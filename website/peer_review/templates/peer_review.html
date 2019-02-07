@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="mt-2">Peer review</h1>
+<form action="{% url 'peer_review:submit' %}" method="post">
+	{% csrf_token %}
+	<div class="form-group">
+		<p>
+		    Who are you reviewing?
+		</p>
+		<select name='peer' class='form-control'>
+		{% for peer in peers %}
+			<option value='{{peer.username}}'>{{peer.username}}</option>
+		{% endfor %}
+		</select>
+	</div>
+	<div class='form-group'>
+	{% for q in questions %}
+		<p>
+			{{ forloop.counter}}. {{q.question}}
+		</p>
+		<p>
+			<input type='text' name='{{q.pk}}' placeholder='enter answer here' class='form-control'/>
+		</p>
+	{% endfor %}
+	</div>
+	<input type='submit' value="Submit" />
+</form>
+{% endblock %}
