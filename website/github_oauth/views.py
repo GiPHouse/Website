@@ -15,14 +15,15 @@ def github_callback(request):
 
     code = request.GET['code']
 
-    user = authenticate(
-        request,
-        code=code
-    )
+    user = authenticate(request, code=code)
 
     if user is not None:
         login(request, user)
-        messages.success(request, 'Login Successful', extra_tags='alert alert-success')
+
+        messages.success(
+            request, 'Login Successful', extra_tags='alert alert-success'
+        )
+
         return redirect('home')
 
     messages.warning(request, 'Login Failed', extra_tags='alert alert-danger')
