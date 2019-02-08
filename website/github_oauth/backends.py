@@ -1,7 +1,7 @@
 import requests
-from django.contrib.auth import get_user_model
 from requests.exceptions import RequestException
 
+from django.contrib.auth import get_user_model
 from django.conf import settings
 
 from .links import URL_GITHUB_ACCESS_TOKEN, URL_GITHUB_USER_INFO
@@ -16,7 +16,6 @@ class GithubOAuthBackend:
         try:
             access_token = self._get_access_token(code)
             github_username, github_id = self._get_github_info(access_token)
-            print(access_token, github_username, github_id)
         except (RequestException, ValueError, KeyError):
             return None
 
@@ -27,7 +26,7 @@ class GithubOAuthBackend:
         else:
             return user
 
-        return self.get_user(1)
+        return None
 
     def get_user(self, user_id):
         try:
