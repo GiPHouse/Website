@@ -2,6 +2,7 @@ from enum import Enum
 
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.contrib.auth.models import Group
 
 User = get_user_model()
 
@@ -17,11 +18,28 @@ class SeasonChoice(Enum):
     fall = "Fall"
     spring = "Spring"
 
+    def __str__(self):
+        return self.value
 
-class GiPHouseProfile(models.Model):
+
+class Semester(models.Model):
+    year = models.IntegerField()
+    semester = models.CharField(
+        max_length=6,
+        choices=[(tag.name, tag.value) for tag in SeasonChoice]
+    )
+
+    def __str__(self):
+        return f'{SeasonChoice[self.semester]} {self.year}'
+
+
+class GiphouseProfile(models.Model):
+    class Meta:
+        verbose_name = "GiPHouse Profile"
+
     user = models.OneToOneField(
         User,
-        on_delete=models.CASCADE,
+        on_delete=models.CASCADE
     )
 
     github_id = models.IntegerField(
@@ -34,34 +52,27 @@ class GiPHouseProfile(models.Model):
 
     snumber = models.IntegerField(
         unique=True,
-        null=True,
+        null=True
     )
 
     role = models.CharField(
         max_length=8,
-        choices=[(tag, tag.value) for tag in RoleChoice]
+        choices=[(tag.name, tag.value) for tag in RoleChoice]
     )
 
-
-class Semester(models.Model):
-    year = models.IntegerField()
-    semester = models.CharField(
-        max_length=5,
-        choices=[(tag, tag.value) for tag in SeasonChoice]
-    )
+    def __str__(self):
+        return f'{self.user.first_name} {self.user.last_name}'
 
 
-class Project(models.Model):
-    name = models.TextField()
-
-    academic_year = models.ForeignKey(
+class Project(Group):
+    semester = models.ForeignKey(
         Semester,
-        on_delete=models.DO_NOTHING
+        on_delete=models.SET_NULL
     )
 
     description = models.TextField()
 
-    members = models.ForeignKey(
-        User,
-        on_delete=models.DO_NOTHING
-    )
+    objects = models.Manager()
+
+    def __str__(self):
+        return f'{self.name} ({self.semester})'
