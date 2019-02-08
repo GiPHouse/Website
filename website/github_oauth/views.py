@@ -9,6 +9,11 @@ from django.contrib import messages
 
 @require_http_methods(['GET', ])
 def github_callback(request):
+    """
+    Callback view accessed by GitHub after an authorization request.
+    :param request: Object containing information about request user made.
+    :return: Redirect to homepage with a login status message.
+    """
 
     if 'code' not in request.GET or request.user.is_authenticated:
         return HttpResponseNotFound()
