@@ -1,12 +1,12 @@
 import requests
+from django.contrib.auth import get_user_model
 from requests.exceptions import RequestException
 
 from django.conf import settings
-from django.contrib.auth.models import User
-
-from registrations.models import GiPHouseProfile
 
 from .links import URL_GITHUB_ACCESS_TOKEN, URL_GITHUB_USER_INFO
+
+User = get_user_model()
 
 
 class GithubOAuthBackend:
@@ -22,7 +22,7 @@ class GithubOAuthBackend:
 
         try:
             user = User.objects.get(giphouseprofile__github_id=github_id)
-        except (GiPHouseProfile.DoesNotExist, User.DoesNotExist):
+        except User.DoesNotExist:
             pass
         else:
             return user
