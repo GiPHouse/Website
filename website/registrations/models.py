@@ -67,7 +67,8 @@ class GiphouseProfile(models.Model):
 class Project(Group):
     semester = models.ForeignKey(
         Semester,
-        on_delete=models.SET_NULL
+        on_delete=models.SET_NULL,
+        null=True,
     )
 
     description = models.TextField()
