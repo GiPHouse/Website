@@ -6,9 +6,11 @@ from django.http.response import HttpResponseNotFound
 
 from django.contrib import messages
 
+from github_oauth.backends import GithubOAuthBackend
+
 
 @require_http_methods(['GET', ])
-def github_callback(request):
+def github_login(request):
     """
     Callback view accessed by GitHub after an authorization request.
     :param request: Object containing information about request user made.
@@ -33,3 +35,23 @@ def github_callback(request):
 
     messages.warning(request, 'Login Failed', extra_tags='alert alert-danger')
     return redirect('home')
+
+
+@require_http_methods(['GET', ])
+def github_register(request):
+    if 'code' not in request.GET:
+        return HttpResponseNotFound()
+    if request.user.is_authenticated:
+        return redirect('home')
+
+    code = request.GET['code']
+    token = GithubOAuthBackend.get_access_token(code)
+    github_info = GithubOAuthBackend.get_github_info(token)
+
+    session = request.session
+    session['github_id'] = github_info['id']
+    session['github_username'] = github_info['login']
+    session['github_email'] = github_info['email']
+    session['github_name'] = github_info['name']
+
+    return redirect('registrations:step2')
