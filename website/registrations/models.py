@@ -3,6 +3,7 @@ from enum import Enum
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.contrib.auth.models import Group
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -22,12 +23,24 @@ class SeasonChoice(Enum):
         return self.value
 
 
+class SemesterManager(models.Manager):
+    def get_current(self):
+        """Returns a list of latest semesters (not in the future), use .first() to get the newest"""
+        return self.filter(registration_start__lte=timezone.now(),
+                           registration_end__gte=timezone.now()).order_by('-registration_end')[:1]
+
+
 class Semester(models.Model):
     year = models.IntegerField()
     semester = models.CharField(
         max_length=6,
         choices=[(tag.name, tag.value) for tag in SeasonChoice]
     )
+
+    registration_start = models.DateTimeField()
+    registration_end = models.DateTimeField()
+
+    objects = SemesterManager()
 
     def __str__(self):
         return f'{SeasonChoice[self.semester]} {self.year}'

@@ -21,8 +21,9 @@ class GithubOAuthBackend:
         """
 
         try:
-            access_token = self._get_access_token(code)
-            github_username, github_id = self._get_github_info(access_token)
+            access_token = self.get_access_token(code)
+            github_info = self.get_github_info(access_token)
+            github_username, github_id = github_info['login'], github_info['id']
         except (RequestException, ValueError, KeyError):
             return None
 
@@ -47,7 +48,7 @@ class GithubOAuthBackend:
             return None
 
     @staticmethod
-    def _get_access_token(code):
+    def get_access_token(code):
         """
         Request access token through GitHub OAuth API.
         :param code: The code needed to request the access token.
@@ -67,7 +68,7 @@ class GithubOAuthBackend:
         return response.json()['access_token']
 
     @staticmethod
-    def _get_github_info(access_token):
+    def get_github_info(access_token):
         """
         Retrieve GitHub username and user id through GitHub API.
         :param access_token: Authentication token for GitHub OAuth.
@@ -84,4 +85,4 @@ class GithubOAuthBackend:
         )
 
         github_info = response.json()
-        return github_info['login'], github_info['id']
+        return github_info

@@ -35,11 +35,11 @@ class GithubOAuthBackendTest(TestCase):
         """
         backend = GithubOAuthBackend()
 
-        backend._get_access_token = mock.MagicMock()
-        backend._get_access_token.return_value = self.github_access_token
+        backend.get_access_token = mock.MagicMock()
+        backend.get_access_token.return_value = self.github_access_token
 
-        backend._get_github_info = mock.MagicMock()
-        backend._get_github_info.return_value = (
+        backend.get_github_info = mock.MagicMock()
+        backend.get_github_info.return_value = (
             self.github_username, self.github_id
         )
 
@@ -54,11 +54,11 @@ class GithubOAuthBackendTest(TestCase):
 
         backend = GithubOAuthBackend()
 
-        backend._get_access_token = mock.MagicMock()
-        backend._get_access_token.return_value = self.github_access_token
+        backend.get_access_token = mock.MagicMock()
+        backend.get_access_token.return_value = self.github_access_token
 
-        backend._get_github_info = mock.MagicMock()
-        backend._get_github_info.return_value = (
+        backend.get_github_info = mock.MagicMock()
+        backend.get_github_info.return_value = (
             'bad_user', self.github_id + 1
         )
 
@@ -73,10 +73,10 @@ class GithubOAuthBackendTest(TestCase):
 
         backend = GithubOAuthBackend()
 
-        backend._get_access_token = mock.MagicMock()
-        backend._get_github_info = mock.MagicMock()
+        backend.get_access_token = mock.MagicMock()
+        backend.get_github_info = mock.MagicMock()
 
-        backend._get_access_token.side_effect = ValueError
+        backend.get_access_token.side_effect = ValueError
 
         result_user = backend.authenticate(None, self.github_code)
 
@@ -116,7 +116,7 @@ class GithubOAuthBackendTest(TestCase):
         }
         mock_post.return_value = mock_response
 
-        access_token = GithubOAuthBackend._get_access_token(self.github_code)
+        access_token = GithubOAuthBackend.get_access_token(self.github_code)
 
         self.assertEqual(access_token, self.github_access_token)
 
@@ -134,7 +134,7 @@ class GithubOAuthBackendTest(TestCase):
 
         mock_get.return_value = mock_response
 
-        username, user_id = GithubOAuthBackend._get_github_info(
+        username, user_id = GithubOAuthBackend.get_github_info(
             self.github_access_token
         )
 

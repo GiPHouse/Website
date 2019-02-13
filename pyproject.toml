@@ -8,6 +8,7 @@ authors = []
 python = "^3.7"
 Django = "^2.1"
 requests = "^2.21"
+django-bootstrap4 = "^0.0.7"
 
 [tool.poetry.dev-dependencies]
 
