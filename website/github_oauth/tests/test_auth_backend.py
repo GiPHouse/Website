@@ -3,7 +3,7 @@ from unittest import mock
 from django.test import TestCase
 from django.contrib.auth.models import User
 
-from registrations.models import GiPHouseProfile
+from registrations.models import GiphouseProfile
 from ..backends import GithubOAuthBackend
 
 
@@ -24,7 +24,7 @@ class GithubOAuthBackendTest(TestCase):
             username=cls.github_username,
         )
 
-        cls.test_giphouse_user = GiPHouseProfile.objects.create(
+        cls.test_giphouse_user = GiphouseProfile.objects.create(
             user=cls.test_user,
             github_id=cls.github_id,
         )
