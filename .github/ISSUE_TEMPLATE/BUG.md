@@ -1,3 +1,8 @@
+---
+name: Bug Report
+about: Bug report template
+---
+
 ### One-sentence description
 <!-- Describe the problem in one sentece. -->
 

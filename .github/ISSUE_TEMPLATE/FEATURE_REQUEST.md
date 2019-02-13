@@ -1,3 +1,8 @@
+---
+name: Feature Request 
+about: Feature request template
+---
+
 ### One-sentence description
 <!-- Describe the feature you want to see added in one sentece. -->
 
