@@ -1,4 +1,6 @@
 __pycache__/
 *.py[cod]
 .idea/
+.vscode/
 db.sqlite3
+.envrc

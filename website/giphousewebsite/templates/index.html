@@ -1,5 +1,5 @@
-{# You always use this line, so the base template and style is loaded #}
 {% extends 'base.html' %}
+{% block title %}{{ block.super }} - Home {% endblock %}
 {% block content %}
     <h1>GiPHouse website</h1>
     <p>GiPHouse is a unique student-run company that develops software and practices entrepreneurship at the Radboud University.</p>

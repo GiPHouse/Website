@@ -32,6 +32,8 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'giphousewebsite',
+    'github_oauth.apps.GithubConfig',
+    'registrations.apps.RegistrationsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -107,7 +109,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Amsterdam'
 
 USE_I18N = True
 
@@ -120,3 +122,22 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'github_oauth.backends.GithubOAuthBackend'
+]
+
+# GitHub OAuth Settings
+GITHUB_CLIENT_ID = os.environ.get(
+    'GITHUB_CLIENT_ID',
+    default='',
+)
+GITHUB_CLIENT_SECRET = os.environ.get(
+    'GITHUB_CLIENT_SECRET',
+    default='',
+)
+
+LOGOUT_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/'

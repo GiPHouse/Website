@@ -1,0 +1,35 @@
+from django.shortcuts import redirect
+from django.contrib.auth import authenticate, login
+from django.views.decorators.http import require_http_methods
+
+from django.http.response import HttpResponseNotFound
+
+from django.contrib import messages
+
+
+@require_http_methods(['GET', ])
+def github_callback(request):
+    """
+    Callback view accessed by GitHub after an authorization request.
+    :param request: Object containing information about request user made.
+    :return: Redirect to homepage with a login status message.
+    """
+
+    if 'code' not in request.GET or request.user.is_authenticated:
+        return HttpResponseNotFound()
+
+    code = request.GET['code']
+
+    user = authenticate(request, code=code)
+
+    if user is not None:
+        login(request, user)
+
+        messages.success(
+            request, 'Login Successful', extra_tags='alert alert-success'
+        )
+
+        return redirect('home')
+
+    messages.warning(request, 'Login Failed', extra_tags='alert alert-danger')
+    return redirect('home')
