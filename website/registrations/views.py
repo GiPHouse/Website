@@ -13,7 +13,7 @@ User = get_user_model()
 
 class Step1View(TemplateView):
     def dispatch(self, request, *args, **kwargs):
-        if not Semester.objects.get_current():
+        if not Semester.objects.get_current_registration():
             messages.warning(request, 'Registrations are currently not open', extra_tags='alert alert-danger')
             return redirect('home')
 
