@@ -7,13 +7,15 @@ from .models import *
 
 #@login_required
 def show_form(request):
-    questions = Question.objects.all()
+    global_questions = Question.objects.filter(about_someone_else=False)
+    peer_questions = Question.objects.filter(about_someone_else=True)
 
     #TODO only show users in your group
     peers = User.objects.all()
 
     context = {
-        'questions': questions,
+        'global_questions' : global_questions,
+        'peer_questions': peer_questions,
         'peers' : peers,
     }
     return render(request, 'peer_review.html', context)

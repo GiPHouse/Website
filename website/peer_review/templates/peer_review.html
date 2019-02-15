@@ -1,29 +1,104 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+			.dot {
+				display: flex;
+				flex-grow: 1;
+				padding: 5px;
+				flex-direction: column;
+			}
+			.dot_label {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				padding: 0 5px;
+				min-height: 1.5em;
+			}
+			.dot_input {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				padding: 0 5px;
+				min-height: 1.5em;
+			}
+</style>
 <h1 class="mt-2">Peer review</h1>
 <form action="{% url 'peer_review:submit' %}" method="post">
 	{% csrf_token %}
-	<div class="form-group">
+	{% for q in global_questions %}
+		<h5>
+			{{q.question}}
+		</h5>
 		<p>
-		    Who are you reviewing?
-		</p>
-		<select name='peer' class='form-control'>
-		{% for peer in peers %}
-			<option value='{{peer.username}}'>{{peer.username}}</option>
-		{% endfor %}
-		</select>
-	</div>
-	<div class='form-group'>
-	{% for q in questions %}
-		<p>
-			{{ forloop.counter}}. {{q.question}}
-		</p>
-		<p>
+			{% if q.question_type == 'o' %}
 			<input type='text' name='{{q.pk}}' placeholder='enter answer here' class='form-control'/>
+			{% elif q.closed_question %}
+			<div style="display:flex;" >
+				{% for label in q.get_scale_labels %}
+				<div class="dot">
+					<div class="dot_label">
+						{{label}}
+					</div>
+					<div class="dot_input">
+						<input type="radio" name="{{q.pk}}">
+					</div>
+				</div>
+				{% endfor %}
+						
+			</div>
+			{% endif %}
 		</p>
 	{% endfor %}
-	</div>
-	<input type='submit' value="Submit" />
-</form>
-{% endblock %}
+	<hr />
+	{% for peer in peers %}
+		<h3>Peer review for {{peer.first_name}} {{peer.last_name}}</h3>
+		<div class='form-group'>
+		{% for q in peer_questions %}
+			<h5>
+				{{q.question}}
+			</h5>
+			<p>
+				{% if q.question_type == 'o' %}
+				<input type='text' name='{{peer.username}}-{{q.pk}}' placeholder='enter answer here' class='form-control'/>
+				{% elif q.closed_question %}
+				<div style="display:flex;">
+					{% for label in q.get_scale_labels %}
+					<div class="dot">
+						<div class="dot_label">
+							{{label}}
+						</div>
+						<div class="dot_input">
+							<input type="radio" name="{{peer.username}}-{{q.pk}}">
+						</div>
+					</div>
+					{% endfor %}
+							
+				</div>
+				{% endif %}
+			</p>
+		{% endfor %}
+		</div>
+	{% endfor %}
+	<button type="submit" class="btn btn-primary mb-2">Submit</button>
+</form>              	
+{% endblock %}       	
+                     	
+                     	
+                     	
+                     	
+                     	
+                     	
+                     	
+                     	
+                     	
+                     	
+                     	
+                     	
+                     	
+                     	
+                     	
+                     	
+                     	
+                     	
+                     	
