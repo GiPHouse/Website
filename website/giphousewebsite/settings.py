@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'sass_processor',
     'giphousewebsite',
     'github_oauth.apps.GithubConfig',
     'registrations.apps.RegistrationsConfig',
@@ -120,12 +121,28 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'giphousewebsite/static/')
 STATIC_URL = '/static/'
 
+# SASS processor variables
+SASS_PROCESSOR_ROOT = os.path.join(BASE_DIR, 'giphousewebsite/static/scss')
+
+SASS_PROCESSOR_INCLUDE_DIRS = [
+    os.path.join(BASE_DIR, 'giphousewebsite/static/scss'),
+]
+
+SASS_PRECISION = 8
+SASS_PROCESSOR_ENABLED = True
+
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'sass_processor.finders.CssFinder',
+]
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
-    'github_oauth.backends.GithubOAuthBackend'
+    'github_oauth.backends.GithubOAuthBackend',
 ]
 
 # GitHub OAuth Settings

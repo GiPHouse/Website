@@ -4,3 +4,4 @@ __pycache__/
 .vscode/
 db.sqlite3
 .envrc
+website/giphousewebsite/static/scss/scss/

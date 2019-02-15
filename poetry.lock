@@ -27,6 +27,35 @@ pytz = "*"
 
 [[package]]
 category = "main"
+description = "A helper class for handling configuration defaults of packaged apps gracefully."
+name = "django-appconf"
+optional = false
+python-versions = "*"
+version = "1.0.2"
+
+[[package]]
+category = "main"
+description = "Compresses linked and inline JavaScript or CSS into single cached files."
+name = "django-compressor"
+optional = false
+python-versions = "*"
+version = "2.2"
+
+[package.dependencies]
+django-appconf = ">=1.0"
+rcssmin = "1.0.6"
+rjsmin = "1.0.12"
+
+[[package]]
+category = "main"
+description = "SASS processor to compile SCSS files into *.css, while rendering, or offline."
+name = "django-sass-processor"
+optional = false
+python-versions = "*"
+version = "0.7.2"
+
+[[package]]
+category = "main"
 description = "Internationalized Domain Names in Applications (IDNA)"
 name = "idna"
 optional = false
@@ -35,11 +64,30 @@ version = "2.8"
 
 [[package]]
 category = "main"
+description = "Sass for Python: A straightforward binding of libsass for Python."
+name = "libsass"
+optional = false
+python-versions = "*"
+version = "0.17.0"
+
+[package.dependencies]
+six = "*"
+
+[[package]]
+category = "main"
 description = "World timezone definitions, modern and historical"
 name = "pytz"
 optional = false
 python-versions = "*"
 version = "2018.9"
+
+[[package]]
+category = "main"
+description = "CSS Minifier"
+name = "rcssmin"
+optional = false
+python-versions = "*"
+version = "1.0.6"
 
 [[package]]
 category = "main"
@@ -57,6 +105,22 @@ urllib3 = ">=1.21.1,<1.25"
 
 [[package]]
 category = "main"
+description = "Javascript Minifier"
+name = "rjsmin"
+optional = false
+python-versions = "*"
+version = "1.0.12"
+
+[[package]]
+category = "main"
+description = "Python 2 and 3 compatibility utilities"
+name = "six"
+optional = false
+python-versions = ">=2.6, !=3.0.*, !=3.1.*"
+version = "1.12.0"
+
+[[package]]
+category = "main"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 name = "urllib3"
 optional = false
@@ -64,14 +128,21 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4"
 version = "1.24.1"
 
 [metadata]
-content-hash = "a365aa28991ed88d73e635371caf5365f0d7ef403ee157eeded91d31676296aa"
+content-hash = "b65547f5480d0650a775778e4653d3195785936005dfddf31b5f0f419f942d2f"
 python-versions = "^3.7"
 
 [metadata.hashes]
 certifi = ["47f9c83ef4c0c621eaef743f133f09fa8a74a9b75f037e8624f83bd1b6626cb7", "993f830721089fef441cdfeb4b2c8c9df86f0c63239f06bd025a76a7daddb033"]
 chardet = ["84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae", "fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691"]
 django = ["275bec66fd2588dd517ada59b8bfb23d4a9abc5a362349139ddda3c7ff6f5ade", "939652e9d34d7d53d74d5d8ef82a19e5f8bb2de75618f7e5360691b6e9667963"]
+django-appconf = ["6a4d9aea683b4c224d97ab8ee11ad2d29a37072c0c6c509896dd9857466fb261", "ddab987d14b26731352c01ee69c090a4ebfc9141ed223bef039d79587f22acd9"]
+django-compressor = ["7732676cfb9d58498dfb522b036f75f3f253f72ea1345ac036434fdc418c2e57", "9616570e5b08e92fa9eadc7a1b1b49639cce07ef392fc27c74230ab08075b30f"]
+django-sass-processor = ["0381585a23c0f31a387cb53cf38f744e4d97d8ac3b9b19ec423dd6bfa714ecff"]
 idna = ["c357b3f628cf53ae2c4c05627ecc484553142ca23264e593d327bcde5e9c3407", "ea8b7f6188e6fa117537c3df7da9fc686d485087abf6ac197f9c46432f7e4a3c"]
+libsass = ["0da943e00e028211cb4bb91496a20becab9fe82407bb75266ec4212af04acb45", "107591ba2c0d173bb1705bef0e9fd04a5b6f482f3584f4ea51b28ab8b137fbb2", "1aeadc155594af23879e27792667dc06e7f248c2c599c40ff2a7335193abdf05", "411833c623288138744865d882f5226f6db52afce1e19f42722c416df9d308dc", "4bf7a80a956da9de9715436b85343a179da4ff399a6e9a1694e70bff93d43099", "53be1c6cea9458fc0b59fafff5307d63cbde4d6f8a4413fb52ae467566273357", "55b77204cfa363142ab02c49ee871321a396b8e51f6361ebc226c3953c780541", "66e3062ff508c81928e35c66702f0cc4f70fb12eb76ba23eeb0ff87a6340cc13", "747e1cb3624b25ce9104315cf98b080246c5112d008cba6536a7dd2edb16fcc2", "75605a97f4b2f47fafc5a372f09efec210c7f33908c6de726362f85489fd53aa", "7c7a531b8cd786c35170e97338be2e73a74806f95539366a8ee837df94b8a8cf", "953ebe810f09d81b84ccafdca0fb6171d1b58c8f0147cb650184a41e124e296f", "a19041e78d5bb7c5d72e010e893c29119693628b6ee06025503ab2584cf24edd", "b3e4abf50ad3a6bec25acd0c67495301cab6137aa79b8640364276f7f3712586", "bf6b7ad08f287695338f050c80f79d258a405e5c349cdaeb9be5d5376c09e37a", "fcbc861a001ffd68c4df00164b41c6152d5451185d06c654ac240d811be9f7e2"]
 pytz = ["32b0891edff07e28efe91284ed9c31e123d84bea3fd98e1f72be2508f43ef8d9", "d5f05e487007e29e03409f9398d074e158d920d36eb82eaf66fb1136b0c5374c"]
+rcssmin = ["ca87b695d3d7864157773a61263e5abb96006e9ff0e021eff90cbe0e1ba18270"]
 requests = ["502a824f31acdacb3a35b6690b5fbf0bc41d63a24a45c4004352b0242707598e", "7bf2a778576d825600030a110f3c0e3e8edc51dfaafe1c146e39a2027784957b"]
+rjsmin = ["dd9591aa73500b08b7db24367f8d32c6470021f39d5ab4e50c7c02e4401386f1"]
+six = ["3350809f0555b11f552448330d0b52d5f24c91a322ea4a15ef22629740f3761c", "d16a0141ec1a18405cd4ce8b4613101da75da0e9a7aec5bdd4fa804d0e0eba73"]
 urllib3 = ["61bf29cada3fc2fbefad4fdf059ea4bd1b4a86d2b6d15e1c7c0b582b9752fe39", "de9529817c93f27c8ccbfead6985011db27bd0ddfcdb2d86f3f663385c6a9c22"]
