@@ -23,17 +23,17 @@ class Step2Form(forms.Form):
     email = forms.EmailField()
 
     project1 = forms.ModelChoiceField(label="First project preference",
-                                      queryset=Project.objects.filter(semester=Semester.objects.get_current()))
+                                      queryset=Project.objects.filter(semester=Semester.objects.get_current_registration()))
 
     project2 = forms.ModelChoiceField(label="Second project preference",
                                       help_text="Optional",
                                       required=False,
-                                      queryset=Project.objects.filter(semester=Semester.objects.get_current()))
+                                      queryset=Project.objects.filter(semester=Semester.objects.get_current_registration()))
 
     project3 = forms.ModelChoiceField(label="Third project preference",
                                       help_text="Optional",
                                       required=False,
-                                      queryset=Project.objects.filter(semester=Semester.objects.get_current()))
+                                      queryset=Project.objects.filter(semester=Semester.objects.get_current_registration()))
 
     comments = forms.CharField(widget=forms.Textarea(attrs={'placeholder': "Who do you want to work with?\n"
                                                                            "Any other comments?"}),

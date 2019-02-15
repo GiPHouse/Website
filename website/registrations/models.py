@@ -24,8 +24,8 @@ class SeasonChoice(Enum):
 
 
 class SemesterManager(models.Manager):
-    def get_current(self):
-        """Returns a list of latest semesters (not in the future), use .first() to get the newest"""
+    def get_current_registration(self):
+        """Returns the current registration (not in the future) that is active"""
         return self.filter(registration_start__lte=timezone.now(),
                            registration_end__gte=timezone.now()).order_by('-registration_end')[:1]
 
