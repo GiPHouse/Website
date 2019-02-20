@@ -1,12 +1,14 @@
 import re
 
 from django import forms
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.forms import widgets
 
-from registrations.models import RoleChoice, Project, Semester
+from registrations.models import RoleChoice, Project, Semester, GiphouseProfile
 
 s_number_regex = re.compile(r'^[sS]?(\d{7})$')
+User = get_user_model()
 
 
 class Step2Form(forms.Form):
@@ -23,27 +25,57 @@ class Step2Form(forms.Form):
     email = forms.EmailField()
 
     project1 = forms.ModelChoiceField(label="First project preference",
-                                      queryset=Project.objects.filter(semester=Semester.objects.get_current_registration()))
+                                      queryset=Project.objects.filter(
+                                          semester=Semester.objects.get_current_registration()))
 
     project2 = forms.ModelChoiceField(label="Second project preference",
                                       help_text="Optional",
                                       required=False,
-                                      queryset=Project.objects.filter(semester=Semester.objects.get_current_registration()))
+                                      queryset=Project.objects.filter(
+                                          semester=Semester.objects.get_current_registration()))
 
     project3 = forms.ModelChoiceField(label="Third project preference",
                                       help_text="Optional",
                                       required=False,
-                                      queryset=Project.objects.filter(semester=Semester.objects.get_current_registration()))
+                                      queryset=Project.objects.filter(
+                                          semester=Semester.objects.get_current_registration()))
 
-    comments = forms.CharField(widget=forms.Textarea(attrs={'placeholder': "Who do you want to work with?\n"
+    comments = forms.CharField(widget=forms.Textarea(attrs={'placeholder': "Who do you want to work with? \n"
                                                                            "Any other comments?"}),
                                help_text="Optional",
                                required=False)
+
+    def clean(self):
+        cleaned_data = super(Step2Form, self).clean()
+
+        try:
+            User.objects.get(email=cleaned_data['email'])
+        except User.DoesNotExist:
+            pass
+        else:
+            ValidationError("Email already in use", code='exists')
+
+        try:
+            GiphouseProfile.objects.get(snumber=cleaned_data['s_number'])
+        except GiphouseProfile.DoesNotExist:
+            pass
+        else:
+            ValidationError("Student Number already in use", code='exists')
+
+        project1 = cleaned_data['project1']
+        project2 = cleaned_data.get('project2')
+        project3 = cleaned_data.get('project3')
+
+        if ((project2 and project2 == project1)
+                or (project3 and project3 == project1)
+                or (project3 and project2 and project2 == project3)):
+            raise ValidationError("The same project has been selected multiple times.")
 
     def clean_s_number(self):
         s_number = self.cleaned_data['s_number']
 
         m = s_number_regex.match(s_number)
         if m is None:
-            raise ValidationError("not a valid s number", code='invalid')
-        return m.group(1)
+            raise ValidationError("Invalid Student Number", code='invalid')
+
+        return 's' + m.group(1)
