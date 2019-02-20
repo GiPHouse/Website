@@ -25,14 +25,14 @@ class ProjectForm(forms.ModelForm):
     # Add the users field.
     managers = UserModelMultipleChoiceField(
         queryset=User.objects.filter(giphouseprofile__role=RoleChoice.sdm.name),
-        required=True,
+        required=False,
         # Use the pretty 'filter_horizontal widget'.
         widget=widgets.FilteredSelectMultiple('managers', False)
     )
 
     developers = UserModelMultipleChoiceField(
         queryset=User.objects.filter(giphouseprofile__role=RoleChoice.se.name),
-        required=True,
+        required=False,
         # Use the pretty 'filter_horizontal widget'.
         widget=widgets.FilteredSelectMultiple('developers', False)
     )
