@@ -133,6 +133,7 @@ SASS_PROCESSOR_INCLUDE_DIRS = [
 
 SASS_PRECISION = 8
 SASS_PROCESSOR_ENABLED = True
+SASS_OUTPUT_STYLE = 'compressed'
 
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
