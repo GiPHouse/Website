@@ -20,7 +20,7 @@ description = "A high-level Python Web framework that encourages rapid developme
 name = "django"
 optional = false
 python-versions = ">=3.5"
-version = "2.1.5"
+version = "2.1.7"
 
 [package.dependencies]
 pytz = "*"
@@ -70,7 +70,7 @@ python-versions = "^3.7"
 [metadata.hashes]
 certifi = ["47f9c83ef4c0c621eaef743f133f09fa8a74a9b75f037e8624f83bd1b6626cb7", "993f830721089fef441cdfeb4b2c8c9df86f0c63239f06bd025a76a7daddb033"]
 chardet = ["84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae", "fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691"]
-django = ["a32c22af23634e1d11425574dce756098e015a165be02e4690179889b207c7a8", "d6393918da830530a9516bbbcbf7f1214c3d733738779f06b0f649f49cc698c3"]
+django = ["275bec66fd2588dd517ada59b8bfb23d4a9abc5a362349139ddda3c7ff6f5ade", "939652e9d34d7d53d74d5d8ef82a19e5f8bb2de75618f7e5360691b6e9667963"]
 idna = ["c357b3f628cf53ae2c4c05627ecc484553142ca23264e593d327bcde5e9c3407", "ea8b7f6188e6fa117537c3df7da9fc686d485087abf6ac197f9c46432f7e4a3c"]
 pytz = ["32b0891edff07e28efe91284ed9c31e123d84bea3fd98e1f72be2508f43ef8d9", "d5f05e487007e29e03409f9398d074e158d920d36eb82eaf66fb1136b0c5374c"]
 requests = ["502a824f31acdacb3a35b6690b5fbf0bc41d63a24a45c4004352b0242707598e", "7bf2a778576d825600030a110f3c0e3e8edc51dfaafe1c146e39a2027784957b"]
