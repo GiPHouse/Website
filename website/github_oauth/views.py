@@ -48,8 +48,7 @@ def github_register(request):
         return redirect('home')
 
     code = request.GET['code']
-    token = GithubOAuthBackend.get_access_token(code)
-    github_info = GithubOAuthBackend.get_github_info(token)
+    github_info = GithubOAuthBackend.get_github_info(code)
 
     try:
         user = User.objects.get(giphouseprofile__github_id=github_info['id'])

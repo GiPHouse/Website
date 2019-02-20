@@ -17,38 +17,38 @@ class CallbackTest(TestCase):
         self.client = Client()
 
     @mock.patch('github_oauth.views.authenticate')
-    def test_callback_get_success(self, mock_auth):
+    def test_login_get_success(self, mock_auth):
         """
     Test callback if authenticate succeeds.
         """
         mock_auth.return_value = self.test_user
 
-        response = self.client.get('/oauth/callback/?code=fakecode')
+        response = self.client.get('/oauth/login/?code=fakecode')
 
         self.assertRedirects(response, '/')
 
     @mock.patch('github_oauth.views.authenticate')
-    def test_callback_get_fail(self, mock_auth):
+    def test_login_get_fail(self, mock_auth):
         """
         Test callback if authenticate fails.
         """
         mock_auth.return_value = None
 
-        response = self.client.get('/oauth/callback/?code=fakecode')
+        response = self.client.get('/oauth/login/?code=fakecode')
 
         self.assertRedirects(response, '/')
 
-    def test_callback_get_no_params(self):
+    def test_login_get_no_params(self):
         """
         Test callback view if GET request is made without parameters.
         """
-        response = self.client.get('/oauth/callback/')
+        response = self.client.get('/oauth/')
         self.assertEqual(response.status_code, 404)
 
-    def test_callback_post(self):
+    def test_login_post(self):
         """
         Test callback view if non GET request is made.
         """
 
-        response = self.client.post('/oauth/callback/')
+        response = self.client.post('/oauth/login/')
         self.assertEqual(response.status_code, 405)
