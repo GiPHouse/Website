@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
 from django.db import transaction, IntegrityError
+from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.views.generic import FormView, TemplateView
 
@@ -27,8 +28,15 @@ class Step1View(TemplateView):
 
 class Step2View(FormView):
     template_name = 'registrations/step-2.html'
+
     form_class = Step2Form
     success_url = '/'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not self.request.session['github_id']:
+            return HttpResponseBadRequest()
+
+        return super().dispatch(request, *args, **kwargs)
 
     def get_initial(self):
         initial = super(Step2View, self).get_initial()
