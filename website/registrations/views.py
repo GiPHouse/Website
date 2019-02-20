@@ -1,10 +1,9 @@
 from django.contrib import messages
-from django.contrib.auth import login, get_user_model
+from django.contrib.auth import get_user_model
 from django.db import transaction, IntegrityError
 from django.shortcuts import redirect
 from django.views.generic import FormView, TemplateView
 
-from github_oauth.templatetags.github_tags import url_github_callback
 from registrations.forms import Step2Form
 from registrations.models import GiphouseProfile, Semester, Registration
 
