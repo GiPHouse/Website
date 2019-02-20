@@ -125,7 +125,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'giphousewebsite/static/')
 STATIC_URL = '/static/'
 
 # SASS processor variables
-SASS_PROCESSOR_ROOT = os.path.join(BASE_DIR, 'giphousewebsite/static/scss')
+SASS_PROCESSOR_ROOT = STATIC_ROOT
 
 SASS_PROCESSOR_INCLUDE_DIRS = [
     os.path.join(BASE_DIR, 'giphousewebsite/static/scss'),
