@@ -50,9 +50,10 @@ class GiphouseProfile(models.Model):
         unique=True,
     )
 
-    snumber = models.IntegerField(
+    student_number = models.CharField(
         unique=True,
-        null=True
+        null=True,
+        max_length=8,
     )
 
     role = models.CharField(
