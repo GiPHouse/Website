@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load bootstrap4 %}
 
 {% block content %}
 <style>
@@ -22,6 +23,22 @@
 				min-height: 1.5em;
 			}
 </style>
+<form method="post">
+	{% csrf_token %}
+<h1 class="mt-2">Peer review</h1>
+
+{% bootstrap_form_errors form %}
+
+{% for field in form %}
+<p>
+{% ifchanged field.help_text %} <h3>{{field.help_text|first}}</h3> {% endifchanged %}
+{{ field.errors }} <br/>
+{% bootstrap_field field show_help=False %}
+</p>
+{% endfor %}
+<button type="submit" class="btn btn-primary">Submit</button>
+</form>
+{% comment %}
 <h1 class="mt-2">Peer review</h1>
 <form action="{% url 'peer_review:submit' %}" method="post">
 	{% csrf_token %}
@@ -38,7 +55,8 @@
 		</div>
 	{% endfor %}
 	<button type="submit" class="btn btn-primary mb-2">Submit</button>
-</form>              	
+</form>      
+{% endcomment %}
 {% endblock %}       	
                      	
                      	

@@ -5,6 +5,10 @@ PoorGoodScale = ("Very poor", "Poor", "Average", "Good", "Very good")
 
 AgreeDisagreeScale = ("Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree")
 
+POOR_GOOD_SCALE = [(x,x) for x in PoorGoodScale]
+AGREE_DISAGREE_SCALE = [(x,x) for x in AgreeDisagreeScale]
+
+
 QUESTION_TYPES = (
         ('p', 'Poor/Good Likert Scale'),
         ('a', 'Agree/Disagree Likert Scale'),
@@ -29,6 +33,16 @@ class Question(models.Model):
     def closed_question(self):
         return self.question_type in ['p','a']
 
+    def choices(self):
+        if not self.closed_question() :
+            return False
+        
+        if self.question_type == 'p':
+            return POOR_GOOD_SCALE
+        elif self.question_type == 'a':
+            return AGREE_DISAGREE_SCALE
+        
+        return ()
 
 class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)

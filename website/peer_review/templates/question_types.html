@@ -1,0 +1,46 @@
+<div class="row">
+{% if q.question_type == 'o' %}
+	<div class="col-12">
+		<h5>{{q.question}}</h5>
+	</div>
+	<div class="col-12 col-lg-10">
+		<input type='text' name='{{peer.username}}-{{question.pk}}' placeholder='enter answer here' class='form-control'/>
+	</div>
+{% elif q.closed_question %}
+{% comment %}
+		<div style="display:flex;">
+		{% for label in q.get_scale_labels %}
+			<div class="dot">
+				<div class="dot_label">
+					{{label}}
+				</div>
+				<div class="dot_input">
+					<input type="radio" name="{{peer.username}}-{{question.pk}}" value="{{label}}">
+				</div>
+			</div>
+		{% endfor %}
+		</div>			
+{% endcomment %}
+	<div class="col-12 col-md-5" style="display:flex;align-items: center;">
+		<h5>{{q.question}}</h5>
+	</div>
+	<div class="col-12 col-sm-12 col-md-7 col-lg-5">
+		<table style="table-layout: fixed; width: 100%;">
+		<tr>
+		{% for label in q.get_scale_labels %}
+			<td style="padding: 0 5px; text-align: center">
+				{{label}}
+			</td>
+		{% endfor %}	
+		</tr>
+		<tr>
+		{% for label in q.get_scale_labels %}
+			<td style="text-align: center">
+				<input type="radio" name="{{peer.username}}-{{question.pk}}" value="{{label}}">
+			</td>
+		{% endfor %}
+		</tr>
+		</table>
+	</div>
+{% endif %}
+</div>
