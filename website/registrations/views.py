@@ -12,8 +12,12 @@ User = get_user_model()
 
 class Step1View(TemplateView):
     def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            messages.warning(request, "You are already logged in", extra_tags='alert alert-success')
+            return redirect('home')
+
         if not Semester.objects.get_current_registration():
-            messages.warning(request, 'Registrations are currently not open', extra_tags='alert alert-danger')
+            messages.warning(request, "Registrations are currently not open", extra_tags='alert alert-danger')
             return redirect('home')
 
         return super().dispatch(request, *args, **kwargs)
