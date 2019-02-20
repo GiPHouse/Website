@@ -30,11 +30,9 @@ class GithubOAuthBackend:
         try:
             user = User.objects.get(giphouseprofile__github_id=github_id)
         except User.DoesNotExist:
-            pass
-        else:
-            return user
+            return None
 
-        return None
+        return user
 
     def get_user(self, user_id):
         """

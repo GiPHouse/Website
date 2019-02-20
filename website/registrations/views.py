@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, login
 from django.db import transaction, IntegrityError
 from django.shortcuts import redirect
 from django.views.generic import FormView, TemplateView
@@ -67,19 +67,25 @@ class Step2View(FormView):
                     comments=form.cleaned_data['comments']
                 )
                 registration.save()
+        except IntegrityError:
+            messages.warning(
+                self.request, "User already exists", extra_tags='alert alert-danger'
+            )
+            return redirect('home')
+        finally:
             del self.request.session['github_id']
             del self.request.session['github_username']
             del self.request.session['github_name']
             del self.request.session['github_email']
 
-            messages.success(
-                self.request, "User created succesfully", extra_tags='alert alert-success'
-            )
+        messages.success(
+            self.request, "User created succesfully", extra_tags='alert alert-success'
+        )
 
-        except IntegrityError:
-            messages.warning(
-                self.request, "User already exists", extra_tags='alert alert-danger'
-            )
+        login(
+            self.request,
+            user,
+            backend='github_oauth.backends.GithubOAuthBackend',
+        )
 
-        finally:
-            return redirect('home')
+        return redirect('home')
