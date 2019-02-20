@@ -71,7 +71,7 @@ class GiphouseProfile(models.Model):
 
     role = models.CharField(
         max_length=8,
-        choices=[(tag.name, tag.value) for tag in RoleChoice]
+        choices=[(tag.name, tag.value) for tag in RoleChoice],
     )
 
     def __str__(self):
@@ -91,3 +91,32 @@ class Project(Group):
 
     def __str__(self):
         return f'{self.name} ({self.semester})'
+
+
+class Registration(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE
+    )
+
+    preference1 = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
+
+    preference2 = models.ForeignKey(
+        Project,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
+
+    preference3 = models.ForeignKey(
+        Project,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
+
+    comments = models.TextField()

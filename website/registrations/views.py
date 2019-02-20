@@ -6,7 +6,7 @@ from django.views.generic import FormView, TemplateView
 
 from github_oauth.templatetags.github_tags import url_github_callback
 from registrations.forms import Step2Form
-from registrations.models import GiphouseProfile, Semester
+from registrations.models import GiphouseProfile, Semester, Registration
 
 User = get_user_model()
 
@@ -60,6 +60,14 @@ class Step2View(FormView):
                 )
 
                 giphouseprofile.save()
+                registration = Registration(
+                    user=user,
+                    preference1=form.cleaned_data['project1'],
+                    preference2=form.cleaned_data['project2'],
+                    preference3=form.cleaned_data['project3'],
+                    comments=form.cleaned_data['comments']
+                )
+                registration.save()
             del self.request.session['github_id']
             del self.request.session['github_username']
 
