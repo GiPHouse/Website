@@ -45,5 +45,5 @@ class Step2Form(forms.Form):
 
         m = s_number_regex.match(s_number)
         if m is None:
-            raise ValidationError("not a valid s number")
+            raise ValidationError("not a valid s number", code='invalid')
         return m.group(1)
