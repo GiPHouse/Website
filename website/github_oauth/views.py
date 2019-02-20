@@ -52,7 +52,7 @@ def github_register(request):
     github_info = GithubOAuthBackend.get_github_info(token)
 
     try:
-        user = User.objects.get(giphouseprofile__github_id=github_id)
+        user = User.objects.get(giphouseprofile__github_id=github_info['id'])
     except User.DoesNotExist:
         pass
     else:

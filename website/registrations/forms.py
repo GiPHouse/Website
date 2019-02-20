@@ -7,7 +7,7 @@ from django.forms import widgets
 
 from registrations.models import RoleChoice, Project, Semester, GiphouseProfile
 
-s_number_regex = re.compile(r'^[sS]?(\d{7})$')
+student_number_regex = re.compile(r'^[sS]?(\d{7})$')
 User = get_user_model()
 
 
@@ -15,7 +15,7 @@ class Step2Form(forms.Form):
     first_name = forms.CharField(widget=widgets.TextInput(attrs={'class': 'form-control'}))
     last_name = forms.CharField()
 
-    s_number = forms.CharField(label="Student Number", widget=widgets.TextInput(attrs={'placeholder': "s1234567"}))
+    student_number = forms.CharField(label="Student Number", widget=widgets.TextInput(attrs={'placeholder': "s1234567"}))
     github_username = forms.CharField(disabled=True)
 
     course = forms.ChoiceField(choices=(('', '---------'),
@@ -56,7 +56,7 @@ class Step2Form(forms.Form):
             ValidationError("Email already in use", code='exists')
 
         try:
-            GiphouseProfile.objects.get(snumber=cleaned_data['s_number'])
+            GiphouseProfile.objects.get(student_number=cleaned_data['student_number'])
         except GiphouseProfile.DoesNotExist:
             pass
         else:
@@ -71,10 +71,10 @@ class Step2Form(forms.Form):
                 or (project3 and project2 and project2 == project3)):
             raise ValidationError("The same project has been selected multiple times.")
 
-    def clean_s_number(self):
-        s_number = self.cleaned_data['s_number']
+    def clean_student_number(self):
+        student_number = self.cleaned_data['student_number']
 
-        m = s_number_regex.match(s_number)
+        m = student_number_regex.match(student_number)
         if m is None:
             raise ValidationError("Invalid Student Number", code='invalid')
 

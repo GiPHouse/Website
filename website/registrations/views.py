@@ -58,7 +58,7 @@ class Step2View(FormView):
                     user=user,
                     github_username=self.request.session['github_username'],
                     github_id=github_id,
-                    snumber=form.cleaned_data['s_number'],
+                    student_number=form.cleaned_data['student_number'],
                     role=form.cleaned_data['course'],
                 )
 
