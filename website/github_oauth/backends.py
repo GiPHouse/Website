@@ -1,5 +1,6 @@
 import requests
 from requests.exceptions import RequestException
+from json.decoder import JSONDecodeError
 
 from django.contrib.auth import get_user_model
 from django.conf import settings
@@ -22,17 +23,10 @@ class GithubOAuthBackend:
 
         try:
             github_id = self.get_github_info(code)['id']
-        except (RequestException, ValueError, KeyError):
+        except (RequestException, KeyError):
             return None
 
         return self.github_authenticate(github_id)
-
-    @staticmethod
-    def github_authenticate(github_id):
-        try:
-            return User.objects.get(giphouseprofile__github_id=github_id)
-        except User.DoesNotExist:
-            return None
 
     def get_user(self, user_id):
         """
@@ -46,12 +40,20 @@ class GithubOAuthBackend:
             return None
 
     @staticmethod
-    def get_access_token(code):
+    def github_authenticate(github_id):
+        try:
+            return User.objects.get(giphouseprofile__github_id=github_id)
+        except User.DoesNotExist:
+            return None
+
+    @staticmethod
+    def _get_access_token(code):
         """
         Request access token through GitHub OAuth API.
         :param code: The code needed to request the access token.
         :return: GitHub OAuth access token.
         """
+
         response = requests.post(
             URL_GITHUB_ACCESS_TOKEN,
             data={
@@ -63,16 +65,23 @@ class GithubOAuthBackend:
                 'Accept': 'application/json'
             },
         )
-        return response.json()['access_token']
 
-    @classmethod
-    def get_github_info(cls, code):
+        try:
+            return response.json()['access_token']
+        except (JSONDecodeError, KeyError):
+            return None
+
+    def get_github_info(self, code):
         """
         Retrieve GitHub username and user id through GitHub API.
         :param code: The code needed to request the access token.
         :return: A dictionary with GitHub user information
         """
-        access_token = cls.get_access_token(code)
+
+        access_token = self._get_access_token(code)
+
+        if access_token is None:
+            return None
 
         response = requests.get(
             URL_GITHUB_USER_INFO,
@@ -84,5 +93,8 @@ class GithubOAuthBackend:
             },
         )
 
-        github_info = response.json()
-        return github_info
+        try:
+            return response.json()
+        except JSONDecodeError:
+            return None
+
