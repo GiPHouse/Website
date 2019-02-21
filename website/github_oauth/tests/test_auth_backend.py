@@ -1,10 +1,12 @@
 from unittest import mock
 
 from django.test import TestCase
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 from registrations.models import GiphouseProfile
 from ..backends import GithubOAuthBackend
+
+User = get_user_model()
 
 
 class GithubOAuthBackendTest(TestCase):
