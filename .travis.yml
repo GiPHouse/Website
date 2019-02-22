@@ -8,7 +8,7 @@ before_install:
   - "pip install --no-cache-dir poetry"
 
 install:
-  - "poetry install --develop"
+  - "poetry install"
 
 script:
   # Django max line length is 119 characters
