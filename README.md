@@ -1,4 +1,4 @@
-# GiPHouse website
+# GiPHouse website [![Build Status](https://travis-ci.com/GipHouse/GiPHouse-Spring-2019.svg?token=YrR2qkUGFcV8PDYmnPAG&branch=master)](https://travis-ci.com/GipHouse/GiPHouse-Spring-2019)
 
 ### Getting Started
 
