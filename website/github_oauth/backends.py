@@ -1,6 +1,5 @@
 import requests
 from requests.exceptions import RequestException
-from json.decoder import JSONDecodeError
 
 from django.contrib.auth import get_user_model
 from django.conf import settings
@@ -55,7 +54,7 @@ class GithubOAuthBackend:
 
         try:
             return response.json()
-        except JSONDecodeError:
+        except ValueError:
             return None
 
     def get_user(self, user_id):
@@ -101,7 +100,7 @@ class GithubOAuthBackend:
 
         try:
             return response.json()['access_token']
-        except (JSONDecodeError, KeyError):
+        except (ValueError, KeyError):
             return None
 
 
