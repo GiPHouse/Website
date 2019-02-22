@@ -102,5 +102,3 @@ class GithubOAuthBackend:
             return response.json()['access_token']
         except (ValueError, KeyError):
             return None
-
-

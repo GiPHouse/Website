@@ -25,4 +25,3 @@ def url_github_callback(context, callback_action=''):
         return f'{URL_GITHUB_LOGIN}&redirect_uri={callback}'
 
     return URL_GITHUB_LOGIN
-
