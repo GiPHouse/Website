@@ -11,7 +11,7 @@ User = get_user_model()
 
 class UserModelMultipleChoiceField(forms.ModelMultipleChoiceField):
     def label_from_instance(self, user):
-        return f'{user.first_name} {user.last_name} (s{user.giphouseprofile.snumber})'
+        return f'{user.first_name} {user.last_name} ({user.giphouseprofile.student_number})'
 
 
 # Create ModelForm based on the Group model.
@@ -25,14 +25,14 @@ class ProjectForm(forms.ModelForm):
     # Add the users field.
     managers = UserModelMultipleChoiceField(
         queryset=User.objects.filter(giphouseprofile__role=RoleChoice.sdm.name),
-        required=True,
+        required=False,
         # Use the pretty 'filter_horizontal widget'.
         widget=widgets.FilteredSelectMultiple('managers', False)
     )
 
     developers = UserModelMultipleChoiceField(
         queryset=User.objects.filter(giphouseprofile__role=RoleChoice.se.name),
-        required=True,
+        required=False,
         # Use the pretty 'filter_horizontal widget'.
         widget=widgets.FilteredSelectMultiple('developers', False)
     )

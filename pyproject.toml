@@ -3,13 +3,19 @@ name = "giphousewebsite"
 version = "0.1.0"
 description = ""
 authors = []
+license = "AGPL-3.0-only"
 
 [tool.poetry.dependencies]
 python = "^3.7"
 Django = "^2.1"
 requests = "^2.21"
+libsass = "^0.17.0"
+django-compressor = "^2.2"
+django-sass-processor = "^0.7.2"
 
 [tool.poetry.dev-dependencies]
+flake8 = "^3.7"
+coverage = "^4.5"
 
 [build-system]
 requires = ["poetry>=0.12"]
