@@ -33,7 +33,7 @@ class Step2View(FormView):
     success_url = '/'
 
     def dispatch(self, request, *args, **kwargs):
-        if not self.request.session['github_id']:
+        if not self.request.session.get('github_id'):
             return HttpResponseBadRequest()
 
         return super().dispatch(request, *args, **kwargs)
