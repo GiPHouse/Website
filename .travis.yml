@@ -12,14 +12,16 @@ install:
 
 script:
   # Django max line length is 119 characters
-  - > poetry run 
+  - >
+    poetry run
       flake8
       --max-line-length=119
       --exclude="migrations,__pycache__"
       website
   - "poetry run python website/manage.py check --no-color"
   - "poetry run python website/manage.py makemigrations --no-input --check --dry-run"
-  - > poetry run
+  - >
+    poetry run
       coverage run 
       --omit="website/manage.py"
       --omit="website/giphousewebsite/wsgi.py"
