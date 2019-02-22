@@ -28,7 +28,7 @@ script:
     --omit="website/*/migrations/"
     --branch
     --source 'website'
-    website/manage.py test"
+    website/manage.py test
   - "poetry run coverage report --show-missing"
 
 notifications:
