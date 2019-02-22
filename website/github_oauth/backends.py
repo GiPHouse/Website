@@ -1,6 +1,5 @@
 import requests
 from requests.exceptions import RequestException
-from json.decoder import JSONDecodeError
 
 from django.contrib.auth import get_user_model
 from django.conf import settings
@@ -23,10 +22,40 @@ class GithubOAuthBackend:
 
         try:
             github_id = self.get_github_info(code)['id']
-        except (RequestException, KeyError):
+        except (KeyError, TypeError):
             return None
 
         return self.github_authenticate(github_id)
+
+    def get_github_info(self, code):
+        """
+        Retrieve GitHub username and user id through GitHub API.
+        :param code: The code needed to request the access token.
+        :return: A dictionary with GitHub user information
+        """
+
+        access_token = self._get_access_token(code)
+
+        if access_token is None:
+            return None
+
+        try:
+            response = requests.get(
+                URL_GITHUB_USER_INFO,
+                params={
+                    'access_token': access_token
+                },
+                headers={
+                    'Accept': 'application/json'
+                },
+            )
+        except RequestException:
+            return None
+
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
     def get_user(self, user_id):
         """
@@ -54,47 +83,22 @@ class GithubOAuthBackend:
         :return: GitHub OAuth access token.
         """
 
-        response = requests.post(
-            URL_GITHUB_ACCESS_TOKEN,
-            data={
-                'client_id': settings.GITHUB_CLIENT_ID,
-                'client_secret': settings.GITHUB_CLIENT_SECRET,
-                'code': code,
-            },
-            headers={
-                'Accept': 'application/json'
-            },
-        )
+        try:
+            response = requests.post(
+                URL_GITHUB_ACCESS_TOKEN,
+                data={
+                    'client_id': settings.GITHUB_CLIENT_ID,
+                    'client_secret': settings.GITHUB_CLIENT_SECRET,
+                    'code': code,
+                },
+                headers={
+                    'Accept': 'application/json'
+                },
+            )
+        except RequestException:
+            return None
 
         try:
             return response.json()['access_token']
-        except (JSONDecodeError, KeyError):
+        except (ValueError, KeyError):
             return None
-
-    def get_github_info(self, code):
-        """
-        Retrieve GitHub username and user id through GitHub API.
-        :param code: The code needed to request the access token.
-        :return: A dictionary with GitHub user information
-        """
-
-        access_token = self._get_access_token(code)
-
-        if access_token is None:
-            return None
-
-        response = requests.get(
-            URL_GITHUB_USER_INFO,
-            params={
-                'access_token': access_token
-            },
-            headers={
-                'Accept': 'application/json'
-            },
-        )
-
-        try:
-            return response.json()
-        except JSONDecodeError:
-            return None
-

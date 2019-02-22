@@ -2,7 +2,7 @@ from django.shortcuts import redirect
 from django.contrib.auth import authenticate, login, get_user_model
 from django.views.decorators.http import require_http_methods
 
-from django.http.response import HttpResponseNotFound
+from django.http.response import HttpResponseBadRequest
 
 from django.contrib import messages
 
@@ -19,8 +19,12 @@ def github_login(request):
     :return: Redirect to homepage with a login status message.
     """
 
-    if 'code' not in request.GET or request.user.is_authenticated:
-        return HttpResponseNotFound()
+    if 'code' not in request.GET:
+        return HttpResponseBadRequest()
+
+    if request.user.is_authenticated:
+        messages.warning(request, "You are already logged in", extra_tags='alert alert-success')
+        return redirect('home')
 
     code = request.GET['code']
 
@@ -41,14 +45,18 @@ def github_login(request):
 
 @require_http_methods(['GET', ])
 def github_register(request):
+
     if 'code' not in request.GET:
-        return HttpResponseNotFound()
+        return HttpResponseBadRequest()
+
     if request.user.is_authenticated:
         messages.warning(request, "You are already logged in", extra_tags='alert alert-success')
         return redirect('home')
 
     code = request.GET['code']
-    github_info = GithubOAuthBackend.get_github_info(code)
+
+    backend = GithubOAuthBackend()
+    github_info = backend.get_github_info(code)
 
     try:
         user = User.objects.get(giphouseprofile__github_id=github_info['id'])

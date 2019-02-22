@@ -121,7 +121,6 @@ USE_TZ = True
 STATIC_ROOT = os.path.join(BASE_DIR, 'giphousewebsite/static/')
 STATIC_URL = '/static/'
 
-<<<<<<< HEAD
 # SASS processor variables
 SASS_PROCESSOR_ROOT = STATIC_ROOT
 
@@ -139,8 +138,7 @@ STATICFILES_FINDERS = [
     'sass_processor.finders.CssFinder',
 ]
 
-=======
->>>>>>> ae99e6c... Add registration flow
+
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'github_oauth.backends.GithubOAuthBackend',

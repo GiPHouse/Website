@@ -15,7 +15,9 @@ class Step2Form(forms.Form):
     first_name = forms.CharField(widget=widgets.TextInput(attrs={'class': 'form-control'}))
     last_name = forms.CharField()
 
-    student_number = forms.CharField(label="Student Number", widget=widgets.TextInput(attrs={'placeholder': "s1234567"}))
+    student_number = forms.CharField(
+        label="Student Number",
+        widget=widgets.TextInput(attrs={'placeholder': "s1234567"}))
     github_username = forms.CharField(disabled=True)
 
     course = forms.ChoiceField(choices=(('', '---------'),
