@@ -5,7 +5,8 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import reverse
 from django.utils import timezone
 
-from registrations.models import Semester, Project, SeasonChoice
+from registrations.models import Project
+from courses.models import Semester, SeasonChoice
 
 User = get_user_model()
 
@@ -57,7 +58,7 @@ class Step1Test(TestCase):
 
         self.assertRedirects(response, reverse('home'))
 
-    @mock.patch('registrations.models.SemesterManager.get_current_registration')
+    @mock.patch('courses.models.SemesterManager.get_current_registration')
     def test_step1_no_semester(self, mock_get_current_registration):
         mock_get_current_registration.return_value = None
 

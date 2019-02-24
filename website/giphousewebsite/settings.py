@@ -33,9 +33,8 @@ INSTALLED_APPS = [
     'giphousewebsite',
     'github_oauth.apps.GithubConfig',
     'registrations.apps.RegistrationsConfig',
-
     'bootstrap4',
-
+    'courses.apps.CoursesConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -67,6 +66,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'courses.context_processors.add_semesters_to_context',
             ],
         },
     },
@@ -121,6 +121,9 @@ USE_TZ = True
 STATIC_ROOT = os.path.join(BASE_DIR, 'giphousewebsite/static/')
 STATIC_URL = '/static/'
 
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
 # SASS processor variables
 SASS_PROCESSOR_ROOT = STATIC_ROOT
 
@@ -156,3 +159,5 @@ GITHUB_CLIENT_SECRET = os.environ.get(
 
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_REDIRECT_URL = '/'
+
+DATE_FORMAT = '%d-%b-%y'

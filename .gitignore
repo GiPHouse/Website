@@ -7,3 +7,5 @@ website/giphousewebsite/static/scss/*.map
 db.sqlite3
 .envrc
 *.DS_Store
+
+website/media/

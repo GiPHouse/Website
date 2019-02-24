@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+    {% block content %}
+
+    {% for course, lectures in courses %}
+
+        <h2 class="text-center section-title">{{ course }} - {{ semester }}</h2>
+
+        {% if not lectures %}
+            <h5>No lectures found</h5>
+        {% else %}
+            <div class="accordion">
+                {% for lecture in lectures %}
+                    <div class="card">
+                        <div class="card-header">
+                            <button class="btn btn-link"
+                                    data-toggle="collapse"
+                                    data-target="#lecture{{ lecture.pk }}">
+                                {{ lecture.date }} - {{ lecture.title }}
+                            </button>
+                        </div>
+
+                        <div class="collapse"
+                             id="lecture{{ lecture.pk }}">
+                            <div class="card-body">
+                                <div class="table-responsive align-baseline">
+                                    <table class="table table-borderless table-sm">
+                                        <tbody>
+                                            <tr>
+                                                <th scope="row">Teacher</th>
+                                                <td class="col-1">{{ lecture.teacher|default:"-" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Location</th>
+                                                <td class="col-1">{{ lecture.location|default:"-" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2"
+                                                    class="col-1">
+                                                    {% if lecture.slides %}
+                                                        <a href="{{ lecture.slides.url }}">Download Slides</a>
+                                                    {% else %}
+                                                        No slides available
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+
+                                    {% if lecture.description %}
+                                        {{ lecture.description }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <hr/>
+    {% endfor %}
+{% endblock %}

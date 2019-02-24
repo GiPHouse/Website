@@ -3,7 +3,8 @@ from enum import Enum
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.contrib.auth.models import Group
-from django.utils import timezone
+
+from courses.models import Semester
 
 User = get_user_model()
 
@@ -13,37 +14,6 @@ class RoleChoice(Enum):
     sdm = "SDM Student"
     director = "Director"
     admin = "Admin"
-
-
-class SeasonChoice(Enum):
-    fall = "Fall"
-    spring = "Spring"
-
-    def __str__(self):
-        return self.value
-
-
-class SemesterManager(models.Manager):
-    def get_current_registration(self):
-        """Returns the current registration (not in the future) that is active"""
-        return self.filter(registration_start__lte=timezone.now(),
-                           registration_end__gte=timezone.now()).order_by('-registration_end')[:1]
-
-
-class Semester(models.Model):
-    year = models.IntegerField()
-    semester = models.CharField(
-        max_length=6,
-        choices=[(tag.name, tag.value) for tag in SeasonChoice]
-    )
-
-    registration_start = models.DateTimeField()
-    registration_end = models.DateTimeField()
-
-    objects = SemesterManager()
-
-    def __str__(self):
-        return f'{SeasonChoice[self.semester]} {self.year}'
 
 
 class GiphouseProfile(models.Model):

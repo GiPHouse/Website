@@ -3,7 +3,8 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
-from registrations.models import Semester, Project, SeasonChoice, GiphouseProfile
+from registrations.models import Project, GiphouseProfile
+from courses.models import Semester, SeasonChoice
 
 User = get_user_model()
 
