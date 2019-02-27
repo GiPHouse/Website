@@ -21,19 +21,41 @@ class GithubOAuthBackend:
         """
 
         try:
-            access_token = self._get_access_token(code)
-            github_username, github_id = self._get_github_info(access_token)
-        except (RequestException, ValueError, KeyError):
+            github_id = self.get_github_info(code)['id']
+        except (KeyError, TypeError):
+            return None
+
+        return self.github_authenticate(github_id)
+
+    def get_github_info(self, code):
+        """
+        Retrieve GitHub username and user id through GitHub API.
+        :param code: The code needed to request the access token.
+        :return: A dictionary with GitHub user information
+        """
+
+        access_token = self._get_access_token(code)
+
+        if access_token is None:
             return None
 
         try:
-            user = User.objects.get(giphouseprofile__github_id=github_id)
-        except User.DoesNotExist:
-            pass
-        else:
-            return user
+            response = requests.get(
+                URL_GITHUB_USER_INFO,
+                params={
+                    'access_token': access_token
+                },
+                headers={
+                    'Accept': 'application/json'
+                },
+            )
+        except RequestException:
+            return None
 
-        return None
+        try:
+            return response.json()
+        except ValueError:
+            return None
 
     def get_user(self, user_id):
         """
@@ -47,41 +69,36 @@ class GithubOAuthBackend:
             return None
 
     @staticmethod
+    def github_authenticate(github_id):
+        try:
+            return User.objects.get(giphouseprofile__github_id=github_id)
+        except User.DoesNotExist:
+            return None
+
+    @staticmethod
     def _get_access_token(code):
         """
         Request access token through GitHub OAuth API.
         :param code: The code needed to request the access token.
         :return: GitHub OAuth access token.
         """
-        response = requests.post(
-            URL_GITHUB_ACCESS_TOKEN,
-            data={
-                'client_id': settings.GITHUB_CLIENT_ID,
-                'client_secret': settings.GITHUB_CLIENT_SECRET,
-                'code': code,
-            },
-            headers={
-                'Accept': 'application/json'
-            },
-        )
-        return response.json()['access_token']
 
-    @staticmethod
-    def _get_github_info(access_token):
-        """
-        Retrieve GitHub username and user id through GitHub API.
-        :param access_token: Authentication token for GitHub OAuth.
-        :return: A tuple with GitHub username and GitHub user id.
-        """
-        response = requests.get(
-            URL_GITHUB_USER_INFO,
-            params={
-                'access_token': access_token
-            },
-            headers={
-                'Accept': 'application/json'
-            },
-        )
+        try:
+            response = requests.post(
+                URL_GITHUB_ACCESS_TOKEN,
+                data={
+                    'client_id': settings.GITHUB_CLIENT_ID,
+                    'client_secret': settings.GITHUB_CLIENT_SECRET,
+                    'code': code,
+                },
+                headers={
+                    'Accept': 'application/json'
+                },
+            )
+        except RequestException:
+            return None
 
-        github_info = response.json()
-        return github_info['login'], github_info['id']
+        try:
+            return response.json()['access_token']
+        except (ValueError, KeyError):
+            return None

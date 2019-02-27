@@ -4,6 +4,8 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.contrib.auth.models import Group
 
+from courses.models import Semester
+
 User = get_user_model()
 
 
@@ -12,25 +14,6 @@ class RoleChoice(Enum):
     sdm = "SDM Student"
     director = "Director"
     admin = "Admin"
-
-
-class SeasonChoice(Enum):
-    fall = "Fall"
-    spring = "Spring"
-
-    def __str__(self):
-        return self.value
-
-
-class Semester(models.Model):
-    year = models.IntegerField()
-    semester = models.CharField(
-        max_length=6,
-        choices=[(tag.name, tag.value) for tag in SeasonChoice]
-    )
-
-    def __str__(self):
-        return f'{SeasonChoice[self.semester]} {self.year}'
 
 
 class GiphouseProfile(models.Model):
@@ -58,7 +41,7 @@ class GiphouseProfile(models.Model):
 
     role = models.CharField(
         max_length=8,
-        choices=[(tag.name, tag.value) for tag in RoleChoice]
+        choices=[(tag.name, tag.value) for tag in RoleChoice],
     )
 
     def __str__(self):
@@ -78,3 +61,32 @@ class Project(Group):
 
     def __str__(self):
         return f'{self.name} ({self.semester})'
+
+
+class Registration(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE
+    )
+
+    preference1 = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
+
+    preference2 = models.ForeignKey(
+        Project,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
+
+    preference3 = models.ForeignKey(
+        Project,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
+
+    comments = models.TextField()
