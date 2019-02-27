@@ -4,7 +4,7 @@ from django.contrib.admin import widgets
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 
-from .models import Project, Semester, GiphouseProfile, RoleChoice
+from .models import Project, GiphouseProfile, RoleChoice
 
 User = get_user_model()
 
@@ -97,4 +97,3 @@ class StudentAdmin(admin.ModelAdmin):
 
 admin.site.register(Student, StudentAdmin)
 admin.site.register(Project, ProjectAdmin)
-admin.site.register(Semester)
