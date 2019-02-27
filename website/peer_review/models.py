@@ -6,9 +6,15 @@ PoorGoodScale = ("Very poor", "Poor", "Average", "Good", "Very good")
 AgreeDisagreeScale = ("Strongly disagree", "Disagree",
                       "Neutral", "Agree", "Strongly agree")
 
-POOR_GOOD_SCALE = [(x, x) for x in PoorGoodScale]
-AGREE_DISAGREE_SCALE = [(x, x) for x in AgreeDisagreeScale]
+ScaleLabels = {
+    'p': PoorGoodScale,
+    'a': AgreeDisagreeScale,
+}
 
+SCALE_LABEL_CHOICES = {
+    x: [(y, y) for y in ScaleLabels[x]]
+    for x in ScaleLabels
+}
 
 QUESTION_TYPES = (
     ('p', 'Poor/Good Likert Scale'),
@@ -26,25 +32,13 @@ class Question(models.Model):
         return str(self.question)
 
     def get_scale_labels(self):
-        if self.question_type == 'p':
-            return PoorGoodScale
-        if self.question_type == 'a':
-            return AgreeDisagreeScale
-        return []
+        return ScaleLabels[self.question_type]
 
     def closed_question(self):
         return self.question_type in ['p', 'a']
 
     def choices(self):
-        if not self.closed_question():
-            return False
-
-        if self.question_type == 'p':
-            return POOR_GOOD_SCALE
-        elif self.question_type == 'a':
-            return AGREE_DISAGREE_SCALE
-
-        return ()
+        return SCALE_LABEL_CHOICES[self.question_type]
 
 
 class Answer(models.Model):
@@ -57,7 +51,7 @@ class Answer(models.Model):
     peer = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='peer')
+        related_name='peer', blank=True, null=True)
 
     def __str__(self):
         return '({} → {}) {}'.format(self.participant, self.peer, self.answer)

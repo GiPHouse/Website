@@ -14,8 +14,7 @@ class PeerReviewView(FormView):
 
     def get_form(self, form_class=None):
         """Return an instance of the form to be used in this view."""
-        if form_class is None:
-            form_class = self.get_form_class()
+        form_class = self.get_form_class()
         # Supply the current logged in user to the form
         return form_class(self.request.user, **self.get_form_kwargs())
 
@@ -36,9 +35,11 @@ class PeerReviewView(FormView):
                     )
             else:
                 field_name = f"{question.pk}"
+                print(form.cleaned_data[field_name])
                 Answer.objects.create(
                     participant=participant,
                     question=question,
+                    peer=None,
                     answer=form.cleaned_data[field_name],
                 )
 

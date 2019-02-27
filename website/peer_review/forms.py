@@ -7,11 +7,7 @@ class PeerReviewForm(forms.Form):
     def __init__(self, user=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         questions = Question.objects.all()
-
-        if user:
-            peers = User.objects.exclude(pk=user.pk)
-        else:
-            peers = User.objects.all()
+        peers = User.objects.exclude(pk=user.pk)
 
         for question in questions:
             if question.about_someone_else:
@@ -23,16 +19,16 @@ class PeerReviewForm(forms.Form):
                 self._build_form_field(question, field_name)
 
     def _build_form_field(self, question, field_name, peer=None):
-        if question.question_type == 'o':
-            self.fields[field_name] = forms.CharField(
-                label=question.question,
-            )
-        elif question.closed_question():
+        if question.closed_question():
             CHOICES = question.choices()
             self.fields[field_name] = forms.ChoiceField(
                 label=question.question,
                 widget=forms.RadioSelect,
                 choices=CHOICES,
+            )
+        else:  # question.question_type == 'o':
+            self.fields[field_name] = forms.CharField(
+                label=question.question,
             )
 
         if question.about_someone_else and peer:
