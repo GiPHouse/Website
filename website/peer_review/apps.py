@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class FormConfig(AppConfig):
-    name = 'form'
+class PeerReviewConfig(AppConfig):
+    name = 'peer_review'

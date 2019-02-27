@@ -33,6 +33,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'sass_processor',
     'giphousewebsite',
+    'peer_review.apps.PeerReviewConfig',
     'github_oauth.apps.GithubConfig',
     'registrations.apps.RegistrationsConfig',
     'django.contrib.admin',
@@ -41,7 +42,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'peer_review',
     'bootstrap4',
 ]
 
