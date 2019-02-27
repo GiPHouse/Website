@@ -27,4 +27,5 @@ urlpatterns = [
     path('about/wayofworking', TemplateView.as_view(template_name='wayofworking.html'), name='wayofworking'),
     path('about/', TemplateView.as_view(template_name='about.html'), name='about'),
     path('contact/', TemplateView.as_view(template_name='contact.html'), name='contact'),
+    path('register/', include('registrations.urls'))
 ]

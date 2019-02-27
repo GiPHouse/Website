@@ -12,6 +12,7 @@ requests = "^2.21"
 libsass = "^0.17.0"
 django-compressor = "^2.2"
 django-sass-processor = "^0.7.2"
+django-bootstrap4 = "^0.0.7"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.7"
