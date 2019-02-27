@@ -78,6 +78,7 @@ class Registration(models.Model):
     preference2 = models.ForeignKey(
         Project,
         null=True,
+        blank=True,
         on_delete=models.CASCADE,
         related_name='+',
     )
@@ -85,8 +86,12 @@ class Registration(models.Model):
     preference3 = models.ForeignKey(
         Project,
         null=True,
+        blank=True,
         on_delete=models.CASCADE,
         related_name='+',
     )
 
-    comments = models.TextField()
+    comments = models.TextField(
+        null=True,
+        blank=True,
+    )

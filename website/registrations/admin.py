@@ -4,7 +4,7 @@ from django.contrib.admin import widgets
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 
-from .models import Project, GiphouseProfile, RoleChoice
+from .models import Project, GiphouseProfile, RoleChoice, Registration
 
 User = get_user_model()
 
@@ -70,6 +70,14 @@ class GiphouseProfileForm(forms.ModelForm):
 class GiphouseProfileInline(admin.StackedInline):
     model = GiphouseProfile
     form = GiphouseProfileForm
+    max_num = 1
+    min_num = 0
+
+
+class RegistrationInline(admin.StackedInline):
+    model = Registration
+    max_num = 1
+    min_num = 0
 
 
 class Student(User):
@@ -82,7 +90,7 @@ class Student(User):
 
 
 class StudentAdmin(admin.ModelAdmin):
-    inlines = [GiphouseProfileInline]
+    inlines = [GiphouseProfileInline, RegistrationInline]
     list_display = ('first_name', 'last_name', 'github_username')
     fields = ('first_name', 'last_name', 'email', 'date_joined', 'groups', 'user_permissions')
 
