@@ -61,8 +61,6 @@ class PeerReviewTest(TestCase):
         """
         peers = User.objects.exclude(pk=self.user.pk)
         post = self.generate_post_data(peers)
-
-        print(post)
         response = self.client.post(
             reverse("peer_review:show"),
             post,
