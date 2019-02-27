@@ -4,10 +4,10 @@ about: Bug report template
 ---
 
 ### One-sentence description
-<!-- Describe the problem in one sentece. -->
+<!-- Describe the problem in one sentence. -->
 
 
-### How to repreoduce the bug
+### How to reproduce the bug
 <!-- Describe how someone could reproduce the bug. -->
 
 1. Step 1

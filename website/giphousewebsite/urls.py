@@ -26,7 +26,6 @@ urlpatterns = [
     path('oauth/', include('github_oauth.urls')),
     path('about/wayofworking', TemplateView.as_view(template_name='wayofworking.html'), name='wayofworking'),
     path('about/', TemplateView.as_view(template_name='about.html'), name='about'),
-    path('clients/', TemplateView.as_view(template_name='clients.html'), name='clients'),
     path('contact/', TemplateView.as_view(template_name='contact.html'), name='contact'),
     path('register/', include('registrations.urls'))
 ]
