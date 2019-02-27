@@ -3,8 +3,9 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
-
 from django.contrib.auth.views import LogoutView
+
+from .views import projectsview
 
 urlpatterns = [
     path('', TemplateView.as_view(template_name='index.html'), name='home'),
@@ -16,5 +17,6 @@ urlpatterns = [
     path('about/', TemplateView.as_view(template_name='about.html'), name='about'),
     path('contact/', TemplateView.as_view(template_name='contact.html'), name='contact'),
     path('review/', include("peer_review.urls")),
-    path('register/', include('registrations.urls'))
+    path('register/', include('registrations.urls')),
+    path('projects/<int:year>/<slug:semester>', projectsview, name='projects'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
