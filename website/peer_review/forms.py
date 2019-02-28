@@ -1,13 +1,13 @@
 from django import forms
 from .models import Question
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 
 class PeerReviewForm(forms.Form):
     def __init__(self, user=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         questions = Question.objects.all()
-        peers = User.objects.exclude(pk=user.pk)
+        peers = get_user_model().objects.exclude(pk=user.pk)
 
         for question in questions:
             if question.about_someone_else:

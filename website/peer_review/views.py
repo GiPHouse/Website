@@ -1,4 +1,3 @@
-# from django.shortcuts import render
 from django.shortcuts import redirect
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -43,5 +42,5 @@ class PeerReviewView(FormView):
                     answer=form.cleaned_data[field_name],
                 )
 
-        messages.success(self.request, "Peer review succesfully submitted!")
+        messages.success(self.request, "Peer review succesfully submitted!", extra_tags='alert alert-success')
         return redirect("home")

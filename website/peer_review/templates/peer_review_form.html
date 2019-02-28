@@ -2,78 +2,17 @@
 {% load bootstrap4 %}
 
 {% block content %}
-<style>
-			.dot {
-				display: flex;
-				flex-grow: 1;
-				flex-direction: column;
-			}
-			.dot_label {
-				display: flex;
-				justify-content: center;
-				align-items: center;
-				padding: 0 5px;
-				min-height: 3em;
-			}
-			.dot_input {
-				display: flex;
-				justify-content: center;
-				align-items: center;
-				padding: 0 5px;
-				min-height: 1.5em;
-			}
-</style>
 <form method="post">
 	{% csrf_token %}
-<h1 class="mt-2">Peer review</h1>
-
-{% bootstrap_form_errors form %}
-
-{% for field in form %}
-<p>
-{% ifchanged field.help_text %} <h3>{{field.help_text|first}}</h3> {% endifchanged %}
-{{ field.errors }} <br/>
-{% bootstrap_field field show_help=False %}
-</p>
-{% endfor %}
-<button type="submit" class="btn btn-primary">Submit</button>
+	<h1 class="mt-2">Peer review</h1>
+	{% bootstrap_form_errors form %}
+	{% for field in form %}
+	<p>
+		{% ifchanged field.help_text %} <h3>{{field.help_text|first}}</h3> {% endifchanged %}
+		{{ field.errors }} <br/>
+		{% bootstrap_field field show_help=False %}
+	</p>
+	{% endfor %}
+	<button type="submit" class="btn btn-primary">Submit</button>
 </form>
-{% comment %}
-<h1 class="mt-2">Peer review</h1>
-<form action="{% url 'peer_review:submit' %}" method="post">
-	{% csrf_token %}
-	{% for question in global_questions %}
-		{% include 'question_types.html' with question=question %}
-	{% endfor %}
-	<hr />
-	{% for peer in peers %}
-		<div class='form-group '>
-		<h3>Peer review for {{peer.first_name}} {{peer.last_name}}</h3>
-		{% for q in peer_questions %}
-			{% include 'question_types.html' with question=question %}
-		{% endfor %}
-		</div>
-	{% endfor %}
-	<button type="submit" class="btn btn-primary mb-2">Submit</button>
-</form>      
-{% endcomment %}
-{% endblock %}       	
-                     	
-                     	
-                     	
-                     	
-                     	
-                     	
-                     	
-                     	
-                     	
-                     	
-                     	
-                     	
-                     	
-                     	
-                     	
-                     	
-                     	
-                     	
-                     	
+{% endblock %}

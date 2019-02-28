@@ -1,19 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-PoorGoodScale = ("Very poor", "Poor", "Average", "Good", "Very good")
-
-AgreeDisagreeScale = ("Strongly disagree", "Disagree",
-                      "Neutral", "Agree", "Strongly agree")
-
-ScaleLabels = {
-    'p': PoorGoodScale,
-    'a': AgreeDisagreeScale,
+SCALE_LABELS = {
+    'p': ("Very poor", "Poor", "Average", "Good", "Very good"),
+    'a': ("Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"),
 }
 
 SCALE_LABEL_CHOICES = {
-    x: [(y, y) for y in ScaleLabels[x]]
-    for x in ScaleLabels
+    x: [(y, y) for y in SCALE_LABELS[x]]
+    for x in SCALE_LABELS
 }
 
 QUESTION_TYPES = (
@@ -32,7 +27,7 @@ class Question(models.Model):
         return str(self.question)
 
     def get_scale_labels(self):
-        return ScaleLabels[self.question_type]
+        return SCALE_LABELS[self.question_type]
 
     def closed_question(self):
         return self.question_type in ['p', 'a']

@@ -1,9 +1,26 @@
-# from unittest import mock
-
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from django.urls import reverse
 from peer_review.models import Question, Answer
+
+
+def generate_post_data(questions, peers):
+    post = {}
+    for question in questions:
+        if question.about_someone_else:
+            for peer in peers:
+                field_name = f"{peer}_{question.pk}"
+                if question.closed_question():
+                    post[field_name] = question.get_scale_labels()[0]
+                else:
+                    post[field_name] = "Something"
+        else:
+            field_name = f"{question.pk}"
+            if question.closed_question():
+                post[field_name] = question.get_scale_labels()[0]
+            else:
+                post[field_name] = "Something"
+    return post
 
 
 class PeerReviewTest(TestCase):
@@ -14,7 +31,7 @@ class PeerReviewTest(TestCase):
             username='myself',
             password='123'
         )
-        User.objects.create_user(
+        cls.peer = User.objects.create_user(
             username='Jack',
         )
         Question.objects.create(
@@ -48,6 +65,22 @@ class PeerReviewTest(TestCase):
         self.client = Client()
         self.client.login(username='myself', password='123')
 
+    def test_str_question(self):
+        question = self.questions[0]
+        str_question = str(question.question)
+        self.assertEqual(str(question), str_question)
+
+    def test_str_answer(self):
+        a = "Something"
+        answer = Answer.objects.create(
+            participant=self.user,
+            peer=self.peer,
+            question=self.questions[0],
+            answer=a,
+        )
+        str_answer = '({} → {}) {}'.format(self.user, self.peer, a)
+        self.assertEqual(str(answer), str_answer)
+
     def test_get_form(self):
         """
         Test GET request to form view
@@ -60,9 +93,9 @@ class PeerReviewTest(TestCase):
         Test POST request to form view
         """
         peers = User.objects.exclude(pk=self.user.pk)
-        post = self.generate_post_data(peers)
+        post = generate_post_data(self.questions, peers)
         response = self.client.post(
-            reverse("peer_review:show"),
+            reverse("peer_review:form"),
             post,
             follow=True
         )
@@ -88,21 +121,3 @@ class PeerReviewTest(TestCase):
                     answer=post[field_name],
                 ).exists()
                 self.assertTrue(answer_exists)
-
-    def generate_post_data(self, peers):
-        post = {}
-        for question in self.questions:
-            if question.about_someone_else:
-                for peer in peers:
-                    field_name = f"{peer}_{question.pk}"
-                    if question.closed_question():
-                        post[field_name] = question.get_scale_labels()[0]
-                    else:
-                        post[field_name] = "Something"
-            else:
-                field_name = f"{question.pk}"
-                if question.closed_question():
-                    post[field_name] = question.get_scale_labels()[0]
-                else:
-                    post[field_name] = "Something"
-        return post
