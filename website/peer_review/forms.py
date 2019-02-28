@@ -33,4 +33,4 @@ class PeerReviewForm(forms.Form):
 
         if question.about_someone_else and peer:
             self.fields[field_name].help_text = \
-                f"Peer review for {peer.first_name} {peer.last_name}",
+                f"Peer review for {peer.first_name} {peer.last_name}"
