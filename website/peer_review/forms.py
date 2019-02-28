@@ -26,7 +26,7 @@ class PeerReviewForm(forms.Form):
                 widget=forms.RadioSelect,
                 choices=CHOICES,
             )
-        else:  # question.question_type == 'o':
+        else:  # Open Question
             self.fields[field_name] = forms.CharField(
                 label=question.question,
             )

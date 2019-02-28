@@ -36,27 +36,27 @@ class PeerReviewTest(TestCase):
         )
         Question.objects.create(
             question='Open Question global',
-            question_type='o',
+            question_type='openQuestion',
             about_someone_else=False
         )
         Question.objects.create(
             question='Closed Question global',
-            question_type='a',
+            question_type='agreeDisagree',
             about_someone_else=False
         )
         Question.objects.create(
             question='Open Question to peer',
-            question_type='o',
+            question_type='openQuestion',
             about_someone_else=True
         )
         Question.objects.create(
             question='Closed Question to peer',
-            question_type='a',
+            question_type='agreeDisagree',
             about_someone_else=True
         )
         Question.objects.create(
             question='Closed Question to peer',
-            question_type='p',
+            question_type='poorGood',
             about_someone_else=True
         )
         cls.questions = Question.objects.all()

@@ -1,36 +1,38 @@
 from django.db import models
 from django.contrib.auth.models import User
+from enum import Enum
 
-SCALE_LABELS = {
-    'p': ("Very poor", "Poor", "Average", "Good", "Very good"),
-    'a': ("Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"),
-}
+
+class ScaleLabels(Enum):
+    poorGood = ("Very poor", "Poor", "Average", "Good", "Very good")
+    agreeDisagree = ("Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree")
+
 
 SCALE_LABEL_CHOICES = {
-    x: [(y, y) for y in SCALE_LABELS[x]]
-    for x in SCALE_LABELS
+    tag.name: [(y, y) for y in tag.value]
+    for tag in ScaleLabels
 }
 
-QUESTION_TYPES = (
-    ('p', 'Poor/Good Likert Scale'),
-    ('a', 'Agree/Disagree Likert Scale'),
-    ('o', 'Open Question'),
-)
+
+class QuestionTypes(Enum):
+    poorGood = 'Poor/Good Likert Scale'
+    agreeDisagree = 'Agree/Disagree Likert Scale'
+    openQuestion = 'Open Question'
 
 
 class Question(models.Model):
     question = models.CharField(max_length=200)
-    question_type = models.CharField(max_length=1, choices=QUESTION_TYPES)
+    question_type = models.CharField(max_length=1, choices=[(tag.name, tag.value) for tag in QuestionTypes])
     about_someone_else = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.question)
 
     def get_scale_labels(self):
-        return SCALE_LABELS[self.question_type]
+        return ScaleLabels[self.question_type]
 
     def closed_question(self):
-        return self.question_type in ['p', 'a']
+        return self.question_type in [QuestionTypes.poorGood, QuestionTypes.agreeDisagree]
 
     def choices(self):
         return SCALE_LABEL_CHOICES[self.question_type]
