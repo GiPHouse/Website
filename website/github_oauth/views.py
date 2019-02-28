@@ -14,11 +14,11 @@ User = get_user_model()
 @require_http_methods(['GET', ])
 def github_login(request):
     """
-    Callback view accessed by GitHub after an authorization request.
+    View accessed by GitHub after an authorization request of a user trying to login.
+
     :param request: Object containing information about request user made.
     :return: Redirect to homepage with a login status message.
     """
-
     if 'code' not in request.GET:
         return HttpResponseBadRequest()
 
@@ -45,7 +45,12 @@ def github_login(request):
 
 @require_http_methods(['GET', ])
 def github_register(request):
+    """
+    View accessed by GitHub after an authorization request of a user trying to register.
 
+    :param request: Object containing information about request user made.
+    :return: Redirect to homepage with a login status message.
+    """
     if 'code' not in request.GET:
         return HttpResponseBadRequest()
 
