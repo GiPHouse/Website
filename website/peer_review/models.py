@@ -5,7 +5,8 @@ from enum import Enum
 
 class ScaleLabels(Enum):
     poorGood = ("Very poor", "Poor", "Average", "Good", "Very good")
-    agreeDisagree = ("Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree")
+    agreeDisagree = ("Strongly disagree", "Disagree",
+                     "Neutral", "Agree", "Strongly agree")
 
 
 SCALE_LABEL_CHOICES = {
@@ -22,17 +23,21 @@ class QuestionTypes(Enum):
 
 class Question(models.Model):
     question = models.CharField(max_length=200)
-    question_type = models.CharField(max_length=1, choices=[(tag.name, tag.value) for tag in QuestionTypes])
+    question_type = models.CharField(
+        max_length=20, choices=[(tag.name, tag.value) for tag in QuestionTypes])
     about_someone_else = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.question)
 
     def get_scale_labels(self):
-        return ScaleLabels[self.question_type]
+        return ScaleLabels[self.question_type].value
 
     def closed_question(self):
-        return self.question_type in [QuestionTypes.poorGood, QuestionTypes.agreeDisagree]
+        return self.question_type in [
+            QuestionTypes.poorGood.name,
+            QuestionTypes.agreeDisagree.name
+        ]
 
     def choices(self):
         return SCALE_LABEL_CHOICES[self.question_type]
