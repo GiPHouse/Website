@@ -85,7 +85,7 @@ class PeerReviewTest(TestCase):
         """
         Test GET request to form view
         """
-        response = self.client.get('/peer_review/')
+        response = self.client.get(reverse('peer_review:form'))
         self.assertEqual(response.status_code, 200)
 
     def test_post_form(self):
