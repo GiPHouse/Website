@@ -78,7 +78,8 @@ class PeerReviewTest(TestCase):
             question=self.questions[0],
             answer=a,
         )
-        str_answer = '({} → {}) {}'.format(self.user, self.peer, a)
+        str_answer = '({} about {}) {}:  answer {}'.format(
+            self.user, self.peer, self.questions[0], a)
         self.assertEqual(str(answer), str_answer)
 
     def test_get_form(self):

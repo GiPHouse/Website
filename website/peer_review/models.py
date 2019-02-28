@@ -49,4 +49,9 @@ class Answer(models.Model):
         related_name='peer', blank=True, null=True)
 
     def __str__(self):
-        return '({} → {}) {}'.format(self.participant, self.peer, self.answer)
+        return '({} about {}) {}:  answer {}'.format(
+            self.participant,
+            self.peer,
+            self.question,
+            self.answer
+        )
