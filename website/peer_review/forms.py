@@ -27,11 +27,10 @@ class PeerReviewForm(forms.Form):
 
     def _build_form_field(self, question, field_name, peer=None):
         if question.closed_question():
-            CHOICES = question.choices()
             self.fields[field_name] = forms.ChoiceField(
                 label=question.question,
                 widget=forms.RadioSelect(attrs={'class': 'multiple-choice'}),
-                choices=CHOICES,
+                choices=question.choices(),
             )
         else:  # Open Question
             self.fields[field_name] = forms.CharField(
