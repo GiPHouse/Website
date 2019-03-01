@@ -16,7 +16,7 @@ script:
     poetry run
     flake8
     --max-line-length=119
-    --exclude="migrations,__pycache__"
+    --exclude="migrations"
     website
   - "poetry run python website/manage.py check --no-color"
   - "poetry run python website/manage.py makemigrations --no-input --check --dry-run"
