@@ -4,7 +4,7 @@ about: Feature request template
 ---
 
 ### One-sentence description
-<!-- Describe the feature you want to see added in one sentece. -->
+<!-- Describe the feature you want to see added in one sentence. -->
 
 
 ### Desired functionality
