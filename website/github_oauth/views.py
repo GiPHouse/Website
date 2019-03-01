@@ -1,11 +1,8 @@
 from django.shortcuts import redirect
 from django.contrib.auth import authenticate, login, get_user_model
 from django.views.decorators.http import require_http_methods
-
 from django.http.response import HttpResponseBadRequest
-
 from django.contrib import messages
-
 from github_oauth.backends import GithubOAuthBackend
 
 User = get_user_model()
@@ -19,6 +16,9 @@ def github_login(request):
     :param request: Object containing information about request user made.
     :return: Redirect to homepage with a login status message.
     """
+    if 'code' not in request.GET:
+        return HttpResponseBadRequest()
+
     if 'code' not in request.GET:
         return HttpResponseBadRequest()
 
@@ -51,6 +51,7 @@ def github_register(request):
     :param request: Object containing information about request user made.
     :return: Redirect to homepage with a login status message.
     """
+
     if 'code' not in request.GET:
         return HttpResponseBadRequest()
 
