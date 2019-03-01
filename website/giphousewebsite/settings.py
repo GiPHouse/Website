@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'github_oauth.apps.GithubConfig',
     'registrations.apps.RegistrationsConfig',
     'bootstrap4',
+    'swingtime',
     'courses.apps.CoursesConfig',
     'django.contrib.admin',
     'django.contrib.auth',
