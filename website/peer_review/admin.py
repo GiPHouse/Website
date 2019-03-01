@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Question, Answer
+from .models import Question, Answer, Questionnaire
 
 
 @admin.register(Question)
@@ -17,3 +17,16 @@ class AnswerAdmin(admin.ModelAdmin):
 
     list_display = ('question', 'answer', 'participant', 'peer')
     list_filter = ('question', 'answer', 'participant', 'peer')
+
+
+class QuestionInline(admin.TabularInline):
+    """Inline form element for Questionnaire."""
+
+    model = Question
+
+
+@admin.register(Questionnaire)
+class QuestionnaireAdmin(admin.ModelAdmin):
+    """Add Questionnaire editing in the admin."""
+
+    inlines = (QuestionInline, )

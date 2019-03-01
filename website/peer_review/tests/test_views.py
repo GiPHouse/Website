@@ -1,7 +1,13 @@
+from datetime import timedelta
+
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from django.urls import reverse
-from peer_review.models import Question, Answer
+from django.utils import timezone
+
+from courses.models import Semester, SeasonChoice
+from peer_review.models import Question, Answer, Questionnaire
+from registrations.models import Project
 
 
 def generate_post_data(questions, peers):
@@ -27,39 +33,70 @@ class PeerReviewTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        cls.team = Project.objects.create(
+            semester=Semester.objects.create(year=2019,
+                                             semester=SeasonChoice.spring.name,
+                                             registration_start=timezone.now(),
+                                             registration_end=timezone.now() + timedelta(days=60)),
+            name="Test Project",
+            description="Description",
+        )
         cls.user = User.objects.create_user(
             username='myself',
             password='123'
         )
+        cls.user.groups.add(cls.team)
+        cls.user.save()
         cls.peer = User.objects.create_user(
             username='Jack',
         )
+        cls.peer.groups.add(cls.team)
+        cls.peer.save()
+        cls.active_questions = Questionnaire.objects.create(
+            title="An Active Questionnaire",
+            active=True
+        )
         Question.objects.create(
+            questionnaire=cls.active_questions,
             question='Open Question global',
             question_type='openQuestion',
             about_team_member=False
         )
         Question.objects.create(
+            questionnaire=cls.active_questions,
             question='Closed Question global',
             question_type='agreeDisagree',
             about_team_member=False
         )
         Question.objects.create(
+            questionnaire=cls.active_questions,
             question='Open Question to peer',
             question_type='openQuestion',
             about_team_member=True
         )
         Question.objects.create(
+            questionnaire=cls.active_questions,
             question='Closed Question to peer',
             question_type='agreeDisagree',
             about_team_member=True
         )
         Question.objects.create(
+            questionnaire=cls.active_questions,
             question='Closed Question to peer',
             question_type='poorGood',
             about_team_member=True
         )
-        cls.questions = Question.objects.all()
+        cls.questions = Question.objects.filter(questionnaire=cls.active_questions)
+        cls.inactive_questions = Questionnaire.objects.create(
+            title="An Inactive Questionnaire",
+            active=False
+        )
+        Question.objects.create(
+            questionnaire=cls.inactive_questions,
+            question='Question for an inactive set',
+            question_type='poorGood',
+            about_team_member=False
+        )
 
     def setUp(self):
         self.client = Client()
@@ -67,8 +104,8 @@ class PeerReviewTest(TestCase):
 
     def test_str_question(self):
         question = self.questions[0]
-        str_question = str(question.question)
-        self.assertEqual(str(question), str_question)
+        str_actual = 'Open Question global'
+        self.assertEqual(str(question), str_actual)
 
     def test_str_answer(self):
         a = "Something"
@@ -78,15 +115,14 @@ class PeerReviewTest(TestCase):
             question=self.questions[0],
             answer=a,
         )
-        str_answer = '({} about {}) {}:  answer {}'.format(
-            self.user, self.peer, self.questions[0], a)
-        self.assertEqual(str(answer), str_answer)
+        str_actual = '(myself about Jack) Open Question global:  answer Something'
+        self.assertEqual(str(answer), str_actual)
 
     def test_get_form(self):
         """
         Test GET request to form view
         """
-        response = self.client.get(reverse('peer_review:form'))
+        response = self.client.get(reverse('peer_review:answer', args=(self.active_questions.pk,)))
         self.assertEqual(response.status_code, 200)
 
     def test_post_form(self):
@@ -96,7 +132,7 @@ class PeerReviewTest(TestCase):
         peers = User.objects.exclude(pk=self.user.pk)
         post = generate_post_data(self.questions, peers)
         response = self.client.post(
-            reverse("peer_review:form"),
+            reverse('peer_review:answer', args=(self.active_questions.pk,)),
             post,
             follow=True
         )
@@ -122,3 +158,12 @@ class PeerReviewTest(TestCase):
                     answer=post[field_name],
                 ).exists()
                 self.assertTrue(answer_exists)
+
+    def test_only_active_questionnaires_visible(self):
+        """
+        Test overview page to check if only active sets are visible
+        """
+        response = self.client.get(reverse('peer_review:overview'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'An Active Questionnaire')
+        self.assertNotContains(response, 'An Inactive Questionnaire')
