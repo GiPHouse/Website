@@ -19,9 +19,6 @@ def github_login(request):
     if 'code' not in request.GET:
         return HttpResponseBadRequest()
 
-    if 'code' not in request.GET:
-        return HttpResponseBadRequest()
-
     if request.user.is_authenticated:
         messages.warning(request, "You are already logged in", extra_tags='alert alert-success')
         return redirect('home')
