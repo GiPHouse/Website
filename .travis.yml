@@ -18,6 +18,7 @@ script:
     --max-line-length=119
     --exclude="migrations"
     website
+  - "poetry run pydocstyle --add-ignore=D100,D104 --match-dir='(?!migrations).*' website/courses"
   - "poetry run python website/manage.py check --no-color"
   - "poetry run python website/manage.py makemigrations --no-input --check --dry-run"
   - >
