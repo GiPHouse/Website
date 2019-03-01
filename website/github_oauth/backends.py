@@ -10,30 +10,30 @@ User = get_user_model()
 
 
 class GithubOAuthBackend:
+    """Authentication backend using the GitHub OAuth provider."""
 
     def authenticate(self, request, code):
         """
-        This will try to request an access token from GitHub using OAuth
-        and authenticate an user.
+        Request an access token from GitHub using OAuth and authenticate a user.
+
         :param request: The request made.
         :param code: The code needed to request the access token.
         :return: The authenticated user or None.
         """
-
         try:
             github_id = self.get_github_info(code)['id']
         except (KeyError, TypeError):
             return None
 
-        return self.github_authenticate(github_id)
+        return self._get_giphouse_user(github_id)
 
     def get_github_info(self, code):
         """
         Retrieve GitHub username and user id through GitHub API.
+
         :param code: The code needed to request the access token.
         :return: A dictionary with GitHub user information
         """
-
         access_token = self._get_access_token(code)
 
         if access_token is None:
@@ -59,7 +59,8 @@ class GithubOAuthBackend:
 
     def get_user(self, user_id):
         """
-        Retrieve an user.
+        Retrieve a user.
+
         :param user_id: Primary key of user.
         :return: User if found else None.
         """
@@ -69,7 +70,13 @@ class GithubOAuthBackend:
             return None
 
     @staticmethod
-    def github_authenticate(github_id):
+    def _get_giphouse_user(github_id):
+        """
+        Get user with github_id.
+
+        :param github_id: GitHub id of required user.
+        :return: A user with github_id as GitHub id or None.
+        """
         try:
             return User.objects.get(giphouseprofile__github_id=github_id)
         except User.DoesNotExist:
@@ -79,10 +86,10 @@ class GithubOAuthBackend:
     def _get_access_token(code):
         """
         Request access token through GitHub OAuth API.
+
         :param code: The code needed to request the access token.
         :return: GitHub OAuth access token.
         """
-
         try:
             response = requests.post(
                 URL_GITHUB_ACCESS_TOKEN,
