@@ -26,6 +26,11 @@ class GiphouseProfile(models.Model):
 
         verbose_name = "GiPHouse Profile"
 
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.user.username = 'github_' + str(self.github_id)
+        self.user.save()
+        super().save(force_insert, force_update, using, update_fields)
+
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE
