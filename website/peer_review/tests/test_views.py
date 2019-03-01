@@ -7,7 +7,7 @@ from peer_review.models import Question, Answer
 def generate_post_data(questions, peers):
     post = {}
     for question in questions:
-        if question.about_someone_else:
+        if question.about_team_member:
             for peer in peers:
                 field_name = f"{peer}_{question.pk}"
                 if question.closed_question():
@@ -37,27 +37,27 @@ class PeerReviewTest(TestCase):
         Question.objects.create(
             question='Open Question global',
             question_type='openQuestion',
-            about_someone_else=False
+            about_team_member=False
         )
         Question.objects.create(
             question='Closed Question global',
             question_type='agreeDisagree',
-            about_someone_else=False
+            about_team_member=False
         )
         Question.objects.create(
             question='Open Question to peer',
             question_type='openQuestion',
-            about_someone_else=True
+            about_team_member=True
         )
         Question.objects.create(
             question='Closed Question to peer',
             question_type='agreeDisagree',
-            about_someone_else=True
+            about_team_member=True
         )
         Question.objects.create(
             question='Closed Question to peer',
             question_type='poorGood',
-            about_someone_else=True
+            about_team_member=True
         )
         cls.questions = Question.objects.all()
 
@@ -104,7 +104,7 @@ class PeerReviewTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
         for question in self.questions:
-            if question.about_someone_else:
+            if question.about_team_member:
                 for peer in peers:
                     field_name = f"{peer}_{question.pk}"
                     answer_exists = Answer.objects.filter(

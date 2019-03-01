@@ -23,7 +23,7 @@ class PeerReviewView(FormView):
         questions = Question.objects.all()
 
         for question in questions:
-            if question.about_someone_else:
+            if question.about_team_member:
                 for peer in peers:
                     field_name = f"{peer.username}_{question.pk}"
                     Answer.objects.create(
@@ -34,7 +34,6 @@ class PeerReviewView(FormView):
                     )
             else:
                 field_name = f"{question.pk}"
-                print(form.cleaned_data[field_name])
                 Answer.objects.create(
                     participant=participant,
                     question=question,

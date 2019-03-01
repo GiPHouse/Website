@@ -10,7 +10,7 @@ class PeerReviewForm(forms.Form):
         peers = get_user_model().objects.exclude(pk=user.pk)
 
         for question in questions:
-            if question.about_someone_else:
+            if question.about_team_member:
                 for peer in peers:
                     field_name = f"{peer.username}_{question.pk}"
                     self._build_form_field(question, field_name, peer)
@@ -31,6 +31,9 @@ class PeerReviewForm(forms.Form):
                 label=question.question,
             )
 
-        if question.about_someone_else and peer:
+        if question.about_team_member and peer:
             self.fields[field_name].help_text = \
                 f"Peer review for {peer.first_name} {peer.last_name}"
+        else:
+            self.fields[field_name].help_text = \
+                "Global Questions"

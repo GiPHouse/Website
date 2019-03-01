@@ -25,7 +25,7 @@ class Question(models.Model):
     question = models.CharField(max_length=200)
     question_type = models.CharField(
         max_length=20, choices=[(tag.name, tag.value) for tag in QuestionTypes])
-    about_someone_else = models.BooleanField(default=False)
+    about_team_member = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.question)
