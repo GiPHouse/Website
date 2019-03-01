@@ -95,3 +95,7 @@ class Registration(models.Model):
         null=True,
         blank=True,
     )
+
+    def __str__(self):
+        """Give basic information about this object"""
+        return f'Registration for {self.user}'
