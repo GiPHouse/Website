@@ -8,6 +8,8 @@ from .forms import PeerReviewForm
 
 
 class PeerReviewView(FormView):
+    """A dynamically generated FormView."""
+
     template_name = 'peer_review_form.html'
     form_class = PeerReviewForm
 
@@ -18,6 +20,7 @@ class PeerReviewView(FormView):
         return form_class(self.request.user, **self.get_form_kwargs())
 
     def form_valid(self, form):
+        """Validate the form."""
         participant = self.request.user
         peers = User.objects.exclude(pk=participant.pk)
         questions = Question.objects.all()

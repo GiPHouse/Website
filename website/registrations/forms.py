@@ -12,6 +12,8 @@ User = get_user_model()
 
 
 class Step2Form(forms.Form):
+    """Form to get user information for registration."""
+
     first_name = forms.CharField(widget=widgets.TextInput(attrs={'class': 'form-control'}))
     last_name = forms.CharField()
 
@@ -48,6 +50,7 @@ class Step2Form(forms.Form):
                                required=False)
 
     def clean(self):
+        """Validate form variables."""
         cleaned_data = super(Step2Form, self).clean()
 
         try:
@@ -74,6 +77,7 @@ class Step2Form(forms.Form):
             raise ValidationError("The same project has been selected multiple times.")
 
     def clean_student_number(self):
+        """Validate student number."""
         student_number = self.cleaned_data['student_number']
 
         m = student_number_regex.match(student_number)
