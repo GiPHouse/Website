@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+
+{% block content %}
+<style>
+.multiple-choice 
+{
+
+}
+</style>
+<form method="post">
+	{% csrf_token %}
+	<h1 class="mt-2">Peer review</h1>
+	{% bootstrap_form_errors form %}
+	{% for field in form %}
+	<p>
+		{% ifchanged field.help_text %} <h3>{{field.help_text}}</h3> {% endifchanged %}
+		{{ field.errors }} <br/>
+		{% bootstrap_field field show_help=False %}
+	</p>
+	{% endfor %}
+	<button type="submit" class="btn btn-primary">Submit</button>
+</form>
+{% endblock %}
