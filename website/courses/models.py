@@ -6,23 +6,31 @@ from django.utils import timezone
 
 
 class SeasonChoice(Enum):
+    """Enum object for the possible seasons."""
+
     spring = "Spring"
     fall = "Fall"
 
     def __str__(self):
+        """Return value of SeasonChoice object."""
         return self.value
 
 
 class SemesterManager(models.Manager):
+    """Manager for the Semester model."""
+
     def get_current_registration(self):
-        """Returns the current registration (not in the future) that is active"""
+        """Return the current registration (not in the future) that is active."""
         return self.filter(registration_start__lte=timezone.now(),
                            registration_end__gte=timezone.now()).order_by('-registration_end')[:1]
 
 
 class Semester(models.Model):
+    """Model for a semester (a year and a season)."""
 
     class Meta:
+        """Meta class describing the order of the model in the database."""
+
         ordering = ['year', '-semester']
 
     year = models.IntegerField()
@@ -38,12 +46,14 @@ class Semester(models.Model):
     objects = SemesterManager()
 
     def __str__(self):
-        return f'{SeasonChoice[self.semester]} {self.year}'
+        """Return semester season and year as string."""
+        return f'{self.get_semester_display()} {self.year}'
 
 
 def get_slides_filename(instance, filename):
     """
-    Function to generate filename.
+    Generate slides filename.
+
     :param instance: Lecture instance
     :param filename: name of uploaded file
     :return: Name of file to save.
@@ -58,6 +68,7 @@ def get_slides_filename(instance, filename):
 
 
 class Lecture(models.Model):
+    """Lecture model."""
 
     COURSE_CHOICES = (
         ('SE', 'Software Engineering'),
@@ -65,6 +76,12 @@ class Lecture(models.Model):
     )
 
     class Meta:
+        """
+        Meta class for Lecture model.
+
+        Describing that course and title should be unique together.
+        """
+
         unique_together = (
             ('course', 'title',),
         )
@@ -110,4 +127,5 @@ class Lecture(models.Model):
     )
 
     def __str__(self):
+        """Return value of Lecture and date object."""
         return f'{ self.get_course_display() } ({ self.date })'

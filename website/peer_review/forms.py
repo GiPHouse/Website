@@ -4,7 +4,14 @@ from django.contrib.auth import get_user_model
 
 
 class PeerReviewForm(forms.Form):
+    """Dynamic form generating a peer review form."""
+
     def __init__(self, user=None, *args, **kwargs):
+        """
+        Dynamically setup form.
+
+        :param user: User making requests
+        """
         super().__init__(*args, **kwargs)
         questions = Question.objects.all()
         peers = get_user_model().objects.exclude(pk=user.pk)

@@ -12,7 +12,12 @@ User = get_user_model()
 
 
 class Step1View(TemplateView):
+    """View showing GitHub link."""
+
+    template_name = 'registrations/step-1.html'
+
     def dispatch(self, request, *args, **kwargs):
+        """Check whether user is authenticated and if registration is possible."""
         if request.user.is_authenticated:
             messages.warning(request, "You are already logged in", extra_tags='alert alert-success')
             return redirect('home')
@@ -23,22 +28,24 @@ class Step1View(TemplateView):
 
         return super().dispatch(request, *args, **kwargs)
 
-    template_name = 'registrations/step-1.html'
-
 
 class Step2View(FormView):
+    """View to show Step2Form."""
+
     template_name = 'registrations/step-2.html'
 
     form_class = Step2Form
     success_url = '/'
 
     def dispatch(self, request, *args, **kwargs):
+        """Check whether github_id is set in the session."""
         if not self.request.session.get('github_id'):
             return HttpResponseBadRequest()
 
         return super().dispatch(request, *args, **kwargs)
 
     def get_initial(self):
+        """Get the initial data for the form."""
         initial = super(Step2View, self).get_initial()
 
         try:
@@ -54,6 +61,7 @@ class Step2View(FormView):
         return initial
 
     def form_valid(self, form):
+        """Register new user if the form is valid."""
         try:
             with transaction.atomic():
                 github_id = self.request.session['github_id']
