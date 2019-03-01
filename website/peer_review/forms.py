@@ -23,7 +23,7 @@ class PeerReviewForm(forms.Form):
             CHOICES = question.choices()
             self.fields[field_name] = forms.ChoiceField(
                 label=question.question,
-                widget=forms.RadioSelect,
+                widget=forms.RadioSelect(attrs={'class': 'multiple-choice'}),
                 choices=CHOICES,
             )
         else:  # Open Question
