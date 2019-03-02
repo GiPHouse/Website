@@ -5,11 +5,14 @@ from courses.models import Lecture, Semester
 
 
 class CoursesView(TemplateView):
+    """View to display the lectures for a course."""
+
     template_name = 'courses.html'
 
     def get_context_data(self, **kwargs):
         """
         Overridden get_context_data method to add a list of courses and lectures to the template.
+
         :return: New context.
         """
         context = super(CoursesView, self).get_context_data(**kwargs)

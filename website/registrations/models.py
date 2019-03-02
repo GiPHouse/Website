@@ -10,6 +10,8 @@ User = get_user_model()
 
 
 class RoleChoice(Enum):
+    """Possible roles."""
+
     se = "SE Student"
     sdm = "SDM Student"
     director = "Director"
@@ -17,7 +19,11 @@ class RoleChoice(Enum):
 
 
 class GiphouseProfile(models.Model):
+    """Model with GiPHouse specific data."""
+
     class Meta:
+        """Meta class specifying name of model."""
+
         verbose_name = "GiPHouse Profile"
 
     user = models.OneToOneField(
@@ -45,10 +51,13 @@ class GiphouseProfile(models.Model):
     )
 
     def __str__(self):
+        """Return full name of user."""
         return f'{self.user.first_name} {self.user.last_name}'
 
 
 class Project(Group):
+    """Project group that contains multiple users."""
+
     semester = models.ForeignKey(
         Semester,
         on_delete=models.SET_NULL,
@@ -60,10 +69,13 @@ class Project(Group):
     objects = models.Manager()
 
     def __str__(self):
+        """Return project name and semester."""
         return f'{self.name} ({self.semester})'
 
 
 class Registration(models.Model):
+    """Model containing registration specific data."""
+
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE
@@ -97,5 +109,5 @@ class Registration(models.Model):
     )
 
     def __str__(self):
-        """Give basic information about this object"""
-        return f'Registration for {self.user}'
+        """Give user information about this object."""
+        return self.user
