@@ -9,3 +9,13 @@
 5. Run `python website/manage.py migrate` to initialise the database.
 5. Run `python webiste/manage.py createsuperuser` to create an admin account.
 6. Run `python website/manage.py runserver` to start the local testing server.
+
+### Loading Fixtures
+
+You can load fixtures with the `manage.py loaddata` command. The fixtures are 
+located in the `website/*/fixtures` directories
+
+Then you can load the courses testdata fixture with this command:
+```bash
+website/manage.py loaddata courses/testdata.json
+```
