@@ -5,5 +5,5 @@ languages:
 - python
 
 exclude:
-- /website/giphousewebsite/settings.py
-- /website/.*/migrations/
+- /website/giphousewebsite/settings/.*
+- /website/.*/migrations/.*
