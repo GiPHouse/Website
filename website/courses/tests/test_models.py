@@ -44,8 +44,6 @@ class ModelTest(TestCase):
         Test __str__ method of Lecture.
         """
 
-        print(self.course[1])
-
         self.assertEqual(
             str(self.lecture),
             f'{self.course} ({self.date})',
