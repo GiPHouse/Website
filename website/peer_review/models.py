@@ -6,9 +6,9 @@ from enum import Enum
 class ScaleLabels(Enum):
     """Possible answer scales."""
 
-    poorGood = ("Very poor", "Poor", "Average", "Good", "Very good")
-    agreeDisagree = ("Strongly disagree", "Disagree",
-                     "Neutral", "Agree", "Strongly agree")
+    poor_good = ("Very poor", "Poor", "Average", "Good", "Very good")
+    agree_disagree = ("Strongly disagree", "Disagree",
+                      "Neutral", "Agree", "Strongly agree")
 
 
 SCALE_LABEL_CHOICES = {
@@ -20,9 +20,9 @@ SCALE_LABEL_CHOICES = {
 class QuestionTypes(Enum):
     """Possible question types."""
 
-    poorGood = 'Poor/Good Likert Scale'
-    agreeDisagree = 'Agree/Disagree Likert Scale'
-    openQuestion = 'Open Question'
+    poor_good = 'Poor/Good Likert Scale'
+    agree_disagree = 'Agree/Disagree Likert Scale'
+    open_question = 'Open Question'
 
 
 class Question(models.Model):
@@ -40,8 +40,8 @@ class Question(models.Model):
     def closed_question(self):
         """Return whether a question is closed."""
         return self.question_type in [
-            QuestionTypes.poorGood.name,
-            QuestionTypes.agreeDisagree.name
+            QuestionTypes.poor_good.name,
+            QuestionTypes.agree_disagree.name
         ]
 
     def choices(self):
