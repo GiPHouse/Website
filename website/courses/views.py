@@ -9,7 +9,7 @@ class CoursesView(TemplateView):
 
     template_name = 'courses.html'
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, year: int, season: str, **kwargs):
         """
         Overridden get_context_data method to add a list of courses and lectures to the template.
 
@@ -17,8 +17,6 @@ class CoursesView(TemplateView):
         """
         context = super(CoursesView, self).get_context_data(**kwargs)
 
-        year = context.get('year')
-        season = context.get('season')
         context['semester'] = get_object_or_404(Semester, year=year, semester=season)
 
         courses = {}
