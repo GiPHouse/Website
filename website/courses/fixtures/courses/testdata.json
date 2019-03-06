@@ -1,0 +1,40 @@
+[
+  {
+    "model": "courses.semester",
+    "pk": 1,
+    "fields": {
+      "year": 2019,
+      "season": "spring",
+      "registration_start": "2019-03-01T11:46:49Z",
+      "registration_end": "2019-03-31T10:46:50Z"
+    }
+  },
+  {
+    "model": "courses.lecture",
+    "pk": 1,
+    "fields": {
+      "date": "2019-03-02",
+      "course": "SE",
+      "semester": 1,
+      "title": "Git Tutorial",
+      "description": "You learn about git",
+      "teacher": "Jelle",
+      "location": "M1.020",
+      "slides": ""
+    }
+  },
+  {
+    "model": "courses.lecture",
+    "pk": 2,
+    "fields": {
+      "date": "2019-03-02",
+      "course": "SDM",
+      "semester": 1,
+      "title": "How to manage",
+      "description": "You learn how to manage students",
+      "teacher": null,
+      "location": null,
+      "slides": ""
+    }
+  }
+]

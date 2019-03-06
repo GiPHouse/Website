@@ -67,8 +67,7 @@ class Step2View(FormView):
         try:
             with transaction.atomic():
                 github_id = self.request.session['github_id']
-                user = User(username='github_' + str(github_id),
-                            first_name=form.cleaned_data['first_name'],
+                user = User(first_name=form.cleaned_data['first_name'],
                             last_name=form.cleaned_data['last_name'],
                             email=form.cleaned_data['email'])
                 user.save()
