@@ -11,6 +11,7 @@ class ProjectsView(TemplateView):
     def get_context_data(self, **kwargs):
         """
         Overridden get_context_data method to add a list of projects to the template.
+
         :return: New context.
         """
         context = super(ProjectsView, self).get_context_data(**kwargs)
