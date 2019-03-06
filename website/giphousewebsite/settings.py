@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'sass_processor',
     'giphousewebsite',
+    'room_reservation',
     'peer_review.apps.PeerReviewConfig',
     'github_oauth.apps.GithubConfig',
     'registrations.apps.RegistrationsConfig',

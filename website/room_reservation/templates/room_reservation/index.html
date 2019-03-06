@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+
+{% block content %}
+{% if reservations   %}
+<ul class="list-group">
+    {% for reservation in reservations %}
+    <li class="list-group-item">{{reservation}}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>
+    No reservations yet.
+</p>
+{% endif %}
+
+{% endblock %}
