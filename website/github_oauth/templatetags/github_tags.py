@@ -4,6 +4,7 @@ from ..links import URL_GITHUB_LOGIN
 
 register = template.Library()
 
+
 @register.simple_tag(takes_context=True)
 def url_github_callback(context, callback_action=''):
     """
