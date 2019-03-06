@@ -26,6 +26,17 @@ class GiphouseProfile(models.Model):
 
         verbose_name = "GiPHouse Profile"
 
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        """
+        Save the giphouseprofile and insert the username in the related user object.
+
+        This overrides the default implementation of save to be able to change the model before inserting. After the
+        change, the default save() method is still called
+        """
+        self.user.username = 'github_' + str(self.github_id)
+        self.user.save()
+        super().save(force_insert, force_update, using, update_fields)
+
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE
