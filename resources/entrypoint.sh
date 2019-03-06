@@ -1,25 +1,29 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 
 set -e
 
-until pg_isready -h "$POSTGRES_HOST" -U "$POSTGRES_USER"; do
+until pg_isready --host="$POSTGRES_HOST" --username="$POSTGRES_USER" --quiet; do
     sleep 1;
 done
 
+chown --recursive www-data:www-data /giphouse/
+
 cd /giphouse/src/website/
 
-./manage.py collectstatic --no-input
+./manage.py compilescss
+./manage.py collectstatic --no-input -v0 --ignore="*.scss"
 ./manage.py migrate --no-input
-./manage.py compress --force
 
 uwsgi --chdir=/giphouse/src/website \
     --module=giphousewebsite.wsgi:application \
-    --env DJANGO_SETTINGS_MODULE=giphousewebsite.settings.production \
     --master --pidfile=/tmp/project-master.pid \
-    --socket=0.0.0.0:8000 \
+    --socket=:8000 \
     --processes=5 \
-    --uid=33 --gid=33 \
-    --harakiri=60 \
+    --uid=www-data --gid=www-data \
+    --harakiri=20 \
+    --post-buffering=16384 \
     --max-requests=5000 \
+    --thunder-lock \
     --vacuum \
-    --daemonize=/giphouse/log/uwsgi.log
+    --logfile-chown \
+    --logto2=/giphouse/log/uwsgi.log

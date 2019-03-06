@@ -2,6 +2,10 @@ FROM python:3.7
 
 ENV PYTHONUNBUFFERED 1
 ENV DEBIAN_FRONTEND noninteractive
+ENV DJANGO_SETTINGS_MODULE giphousewebsite.settings.production
+
+ARG commit_hash="unknown commit hash"
+ENV COMMIT_HASH=${commit_hash}
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
@@ -10,6 +14,8 @@ WORKDIR /giphouse/src/
 RUN mkdir --parents /giphouse/src/ && \
     mkdir --parents /giphouse/log/ && \
     mkdir --parents /giphouse/static/ && \
+    touch /giphouse/log/uwsgi.log && \
+    touch /giphouse/log/django.log && \
     chown --recursive www-data:www-data /giphouse/
 
 RUN apt-get update && \

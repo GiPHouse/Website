@@ -1,0 +1,30 @@
+version: '3.5'
+
+services:
+    postgres:
+        image: 'postgres:11.2'
+        restart: 'always'
+        volumes:
+            - '{{DATABASE_DIRECTORY}}:/var/lib/postgresql/data/'
+            - '{{DATABASE_INIT_DIRECTORY}}:/docker-entrypoint-initdb.d/'
+        environment:
+            PGDATA: '/var/lib/postgresql/data/pgdata'
+    web:
+        image: 'giphouse/giphousewebsite:latest'
+        restart: 'always'
+        ports:
+            - '127.0.0.1:8000:8000'
+        depends_on:
+            - 'postgres'
+        volumes:
+            - '{{DEPLOY_DIRECTORY}}/static:/giphouse/static/'
+            - '{{DEPLOY_DIRECTORY}}/media:/giphouse/media/'
+            - '{{DEPLOY_DIRECTORY}}/log/:/giphouse/log/'
+        environment:
+            DJANGO_SECRET_KEY: '{{DJANGO_SECRET_KEY}}'
+            POSTGRES_HOST: 'postgres'
+            POSTGRES_NAME: '{{POSTGRES_NAME}}'
+            POSTGRES_USER: '{{POSTGRES_USER}}'
+            POSTGRES_PASSWORD: '{{POSTGRES_PASSWORD}}'
+            GITHUB_CLIENT_ID: '{{GITHUB_CLIENT_ID}}'
+            GITHUB_CLIENT_SECRET: '{{GITHUB_CLIENT_SECRET}}'
