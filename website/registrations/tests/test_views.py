@@ -35,7 +35,7 @@ class Step1Test(TestCase):
 
         Semester.objects.create(
             year=timezone.now().year,
-            semester=SeasonChoice.spring.name,
+            season=SeasonChoice.spring.name,
             registration_start=timezone.now(),
             registration_end=timezone.now() + timezone.timedelta(days=1),
         )
@@ -73,7 +73,7 @@ class Step2Test(TestCase):
     def setUpTestData(cls):
         cls.semester = Semester.objects.create(
             year=timezone.now().year,
-            semester=SeasonChoice.spring.name,
+            season=SeasonChoice.spring.name,
             registration_start=timezone.now(),
             registration_end=timezone.now() + timezone.timedelta(days=1),
         )
