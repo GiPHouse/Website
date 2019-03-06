@@ -53,10 +53,12 @@ class Step2View(FormView):
         except (KeyError, AttributeError):
             first_name, last_name = '', ''
 
-        initial['email'] = self.request.session.get('github_email') or ''
-        initial['github_username'] = self.request.session.get('github_username') or ''
-        initial['first_name'] = first_name
-        initial['last_name'] = last_name
+        initial.update({
+            'email': self.request.session.get('github_email') or '',
+            'github_username': self.request.session.get('github_username') or '',
+            'first_name': first_name,
+            'last_name': last_name,
+        })
 
         return initial
 
