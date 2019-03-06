@@ -48,7 +48,6 @@ def github_register(request):
     :param request: Object containing information about request user made.
     :return: Redirect to homepage with a login status message.
     """
-
     if 'code' not in request.GET:
         return HttpResponseBadRequest()
 

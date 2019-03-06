@@ -5,7 +5,6 @@ from django.views.generic import TemplateView
 
 class ProjectsView(TemplateView):
     """View to display the projects for a year."""
-
     template_name = 'projects.html'
 
     def get_context_data(self, **kwargs):
