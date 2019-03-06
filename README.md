@@ -17,5 +17,5 @@ located in the `website/*/fixtures` directories
 
 Then you can load the courses testdata fixture with this command:
 ```bash
-website/manage.py loaddata courses/testdata.json
+python website/manage.py loaddata courses/testdata.json
 ```
