@@ -31,7 +31,7 @@ class ModelsTest(TestCase):
 
         cls.test_semester = Semester.objects.create(
             year=timezone.now().year,
-            semester=SeasonChoice.spring.name,
+            season=SeasonChoice.spring.name,
             registration_start=timezone.now(),
             registration_end=timezone.now() + timezone.timedelta(days=1),
         )
@@ -47,7 +47,7 @@ class ModelsTest(TestCase):
     def test_semester_str(self):
 
         self.assertEqual(
-            f'{SeasonChoice[self.test_semester.semester]} {self.test_semester.year}',
+            f'{self.test_semester.get_season_display()} {self.test_semester.year}',
             str(self.test_semester)
         )
 

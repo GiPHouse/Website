@@ -49,4 +49,13 @@ class Migration(migrations.Migration):
             name='lecture',
             unique_together={('course', 'title')},
         ),
+        migrations.AlterModelOptions(
+            name='semester',
+            options={'ordering': ['year', '-season']},
+        ),
+        migrations.RenameField(
+            model_name='semester',
+            old_name='semester',
+            new_name='season',
+        ),
     ]

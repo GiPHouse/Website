@@ -14,7 +14,7 @@ class GetCoursesTest(TestCase):
 
         cls.semester = Semester.objects.create(
             year=cls.year,
-            semester=cls.season,
+            season=cls.season,
             registration_start=timezone.now(),
             registration_end=timezone.now(),
         )

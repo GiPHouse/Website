@@ -4,7 +4,7 @@
     "pk": 1,
     "fields": {
       "year": 2019,
-      "semester": "spring",
+      "season": "spring",
       "registration_start": "2019-03-01T11:46:49Z",
       "registration_end": "2019-03-31T10:46:50Z"
     }
