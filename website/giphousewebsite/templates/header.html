@@ -28,7 +28,7 @@
                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Course Pages</a>
                         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                             {% for semester in semesters.reverse %}
-                                <a class="dropdown-item" href="{% url 'courses:lectures' semester.year semester.semester %}">{{ semester }}</a>
+                                <a class="dropdown-item" href="{% url 'courses:lectures' semester.year semester.season %}">{{ semester }}</a>
                             {% endfor %}
                         </div>
                     </li>

@@ -31,10 +31,10 @@ class Semester(models.Model):
     class Meta:
         """Meta class describing the order of the model in the database."""
 
-        ordering = ['year', '-semester']
+        ordering = ['year', '-season']
 
     year = models.IntegerField()
-    semester = models.CharField(
+    season = models.CharField(
         max_length=6,
         choices=[(tag.name, tag.value) for tag in SeasonChoice],
         default=SeasonChoice.spring.name
@@ -47,7 +47,7 @@ class Semester(models.Model):
 
     def __str__(self):
         """Return semester season and year as string."""
-        return f'{self.get_semester_display()} {self.year}'
+        return f'{self.get_season_display()} {self.year}'
 
 
 def get_slides_filename(instance, filename):

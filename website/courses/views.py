@@ -17,14 +17,14 @@ class CoursesView(TemplateView):
         """
         context = super(CoursesView, self).get_context_data(**kwargs)
 
-        context['semester'] = get_object_or_404(Semester, year=year, semester=season)
+        context['semester'] = get_object_or_404(Semester, year=year, season=season)
 
         courses = {}
         for course_name, course_label in Lecture.COURSE_CHOICES:
             courses[course_label] = (
                 Lecture
                 .objects
-                .filter(course=course_name, semester__year=year, semester__semester=season)
+                .filter(course=course_name, semester__year=year, semester__season=season)
                 .order_by(f'date')
             )
 

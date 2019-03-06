@@ -35,7 +35,7 @@ class Step1Test(TestCase):
 
         Semester.objects.create(
             year=timezone.now().year,
-            semester=SeasonChoice.spring.name,
+            season=SeasonChoice.spring.name,
             registration_start=timezone.now(),
             registration_end=timezone.now() + timezone.timedelta(days=1),
         )
@@ -73,13 +73,13 @@ class Step2Test(TestCase):
     def setUpTestData(cls):
         cls.semester = Semester.objects.create(
             year=timezone.now().year,
-            semester=SeasonChoice.spring.name,
+            season=SeasonChoice.spring.name,
             registration_start=timezone.now(),
             registration_end=timezone.now() + timezone.timedelta(days=1),
         )
 
-        cls.first_name = 'Test'
-        cls.last_name = 'Test'
+        cls.first_name = 'FirstTest'
+        cls.last_name = 'LastTest'
         cls.email = 'test@test.com'
         cls.github_username = 'test'
         cls.github_id = 1
@@ -125,3 +125,11 @@ class Step2Test(TestCase):
         response = self.client.get('/register/step2')
 
         self.assertEqual(response.status_code, 400)
+
+    def test_step2_includes_initial_information(self):
+        response = self.client.get('/register/step2')
+
+        self.assertContains(response, f'value="{self.github_username}"')
+        self.assertContains(response, f'value="{self.first_name}"')
+        self.assertContains(response, f'value="{self.last_name}"')
+        self.assertContains(response, f'value="{self.email}"')
