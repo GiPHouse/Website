@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+    <p>These questionnaires are currently available</p>
+    <ul>
+        {% for questionnaire in questionnaire_list %}
+            <li><a href="{% url 'peer_review:answer' questionnaire.id %}">{{ questionnaire.title }}</a></li>
+        {% endfor %}
+    </ul>
+{% endblock %}
