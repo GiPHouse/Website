@@ -103,6 +103,10 @@ class Student(User):
 
         proxy = True
 
+    def __str__(self):
+        """Return first and last name."""
+        return f'{self.first_name} {self.last_name}'
+
     @property
     def github_username(self):
         """Return github_username of Student."""
