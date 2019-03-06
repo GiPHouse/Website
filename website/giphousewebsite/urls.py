@@ -17,4 +17,5 @@ urlpatterns = [
     path('review/', include("peer_review.urls")),
     path('register/', include('registrations.urls')),
     path('projects/', include('projects.urls')),
+    path('reservations/', include('room_reservation.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
