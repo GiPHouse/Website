@@ -35,7 +35,7 @@ class PeerReviewTest(TestCase):
     def setUpTestData(cls):
         cls.team = Project.objects.create(
             semester=Semester.objects.create(year=2019,
-                                             semester=SeasonChoice.spring.name,
+                                             season=SeasonChoice.spring.name,
                                              registration_start=timezone.now(),
                                              registration_end=timezone.now() + timedelta(days=60)),
             name="Test Project",

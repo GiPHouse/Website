@@ -12,6 +12,8 @@ from .forms import PeerReviewForm
 class OverviewView(LoginRequiredMixin, ListView):
     """List the available questionnaires."""
 
+    # Raise exception when not logged in
+    raise_exception = True
     model = Questionnaire
 
     def get_queryset(self):
@@ -19,13 +21,16 @@ class OverviewView(LoginRequiredMixin, ListView):
         return super().get_queryset().filter(active=True)
 
 
-class PeerReviewView(FormView):
+class PeerReviewView(LoginRequiredMixin, FormView):
     """A dynamically generated FormView."""
+
+    # Raise exception when not logged in
+    raise_exception = True
 
     template_name = 'peer_review/form.html'
     form_class = PeerReviewForm
 
-    def dispatch(self, request, *args, questionnaire=None, **kwargs):
+    def dispatch(self, request, questionnaire=None, *args, **kwargs):
         """Set up the objects used in this form."""
         self.questionnaire = get_object_or_404(Questionnaire, pk=questionnaire)
         self.participant = self.request.user
