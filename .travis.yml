@@ -4,6 +4,9 @@ dist: "xenial"
 language: "python"
 python: "3.7"
 
+services:
+    - "docker"
+
 before_install:
   - "pip install --no-cache-dir poetry"
 
@@ -12,7 +15,7 @@ install:
 
 script:
   # Django max line length is 119 characters
-  - >
+  - >-
     poetry run
     flake8
     --max-line-length=119
@@ -21,7 +24,7 @@ script:
   - "poetry run pydocstyle --explain --add-ignore=D100,D104 --match-dir='(?!migrations).*'"
   - "poetry run python website/manage.py check --no-color"
   - "poetry run python website/manage.py makemigrations --no-input --check --dry-run"
-  - >
+  - >-
     poetry run
     coverage run
     --omit="website/manage.py,website/giphousewebsite/wsgi.py,website/*/migrations/*"
@@ -29,6 +32,12 @@ script:
     --source 'website'
     website/manage.py test
   - "poetry run coverage report --show-missing"
+
+deploy:
+  provider: "script"
+  script: "resources/deploy.sh"
+  on:
+    branch: "master"
 
 notifications:
   email:
