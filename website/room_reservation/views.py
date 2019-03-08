@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.views.generic.edit import FormView, CreateView
 from .models import Reservation, Room
+from .forms import ReservationForm
 
 
 def show(request):
@@ -22,6 +23,11 @@ class ReservationView(FormView):
 
 
 class CreateReservationView(CreateView):
-    model = Reservation
+    form_class = ReservationForm
+    template_name = 'room_reservation/reservation_form.html'
     success_url = '/reservations/'
-    fields = ('reservee', 'room', 'start_time', 'end_time')
+
+    def form_valid(self, form):
+        form_with_user = form.save(commit=False)
+        form_with_user.user = self.request.user
+        return super().form_valid(form_with_user)
