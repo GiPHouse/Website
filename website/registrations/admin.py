@@ -3,7 +3,6 @@ from django.contrib import admin
 from django.contrib.admin import widgets
 from django.contrib.auth import get_user_model
 
-
 from .models import Project, GiphouseProfile, RoleChoice, Registration
 
 User = get_user_model()
