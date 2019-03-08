@@ -1,6 +1,7 @@
 from django.shortcuts import redirect
 from django.contrib.auth import authenticate, login, get_user_model
 from django.views.decorators.http import require_http_methods
+
 from django.http.response import HttpResponseBadRequest
 from django.contrib import messages
 from github_oauth.backends import GithubOAuthBackend
