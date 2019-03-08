@@ -5,7 +5,9 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.forms import widgets
 
-from registrations.models import RoleChoice, Project, Semester, GiphouseProfile
+from registrations.models import RoleChoice, GiphouseProfile
+from projects.models import Project
+from courses.models import Semester
 
 student_number_regex = re.compile(r'^[sS]?(\d{7})$')
 User = get_user_model()

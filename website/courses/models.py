@@ -29,9 +29,15 @@ class Semester(models.Model):
     """Model for a semester (a year and a season)."""
 
     class Meta:
-        """Meta class describing the order of the model in the database."""
+        """
+        The semesters are ordered chronologically in descending order.
 
-        ordering = ['year', '-season']
+        For example:
+        - Fall 2019 comes before spring 2019.
+        - Spring 2019 comes before fall 2018.
+        """
+
+        ordering = ['-year', 'season']
 
     year = models.IntegerField()
     season = models.CharField(

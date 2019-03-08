@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import reverse
 from django.utils import timezone
 
-from registrations.models import Project
+from projects.models import Project
 from courses.models import Semester, SeasonChoice
 
 User = get_user_model()

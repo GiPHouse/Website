@@ -1,5 +1,6 @@
 from courses.models import Semester
 from peer_review.models import Questionnaire
+from projects.models import Project
 
 
 def add_menu_objects_to_context(request):
@@ -9,12 +10,8 @@ def add_menu_objects_to_context(request):
     :param request: Request made by user.
     :return: All Semester objects
     """
-    if request.user.is_authenticated:
-        questionnaires = Questionnaire.objects.all()
-    else:
-        questionnaires = None
-
     return {
+        'current_projects': Project.objects.filter(semester=Semester.objects.first()),
         'semesters': Semester.objects.all(),
-        'questionnaires': questionnaires,
+        'questionnaires': Questionnaire.objects.all() if request.user.is_authenticated else None,
     }

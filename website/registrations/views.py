@@ -6,7 +6,8 @@ from django.shortcuts import redirect
 from django.views.generic import FormView, TemplateView
 
 from registrations.forms import Step2Form
-from registrations.models import GiphouseProfile, Semester, Registration
+from registrations.models import GiphouseProfile, Registration
+from courses.models import Semester
 
 User = get_user_model()
 

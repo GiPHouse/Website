@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from courses.models import Semester, SeasonChoice
 from peer_review.models import Question, Answer, Questionnaire
-from registrations.models import Project
+from projects.models import Project
 
 
 def generate_post_data(questions, peers):

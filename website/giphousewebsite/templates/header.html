@@ -28,21 +28,23 @@
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Course Pages</a>
                         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            {% for semester in semesters.reverse %}
+                            {% for semester in semesters %}
                                 <a class="dropdown-item" href="{% url 'courses:lectures' semester.year semester.season %}">{{ semester }}</a>
                             {% endfor %}
                         </div>
                     </li>
                 {% endif %}
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Projects</a>
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        {% for semester in semesters %}
-                        <a class="dropdown-item" href="/projects/{{semester.year}}/{{semester.season}}">{{ semester }}</a>
-                        {% endfor %}
-                    </div>
-                </li>
+                {% if semesters %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Projects</a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            {% for semester in semesters %}
+                                <a class="dropdown-item" href="{% url 'projects:projects' semester.year semester.season %}">{{ semester }}</a>
+                            {% endfor %}
+                        </div>
+                    </li>
+                {% endif %}
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'contact' %}">Contact</a>
                 </li>

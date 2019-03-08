@@ -1,16 +1,20 @@
 {% extends 'base.html' %}
-{% block content %}
-    <h1>GiPHouse website</h1>
 
-    {% if current_projects %}
-        <h2 class="text-center">Currently running projects</h2>
-        {% for project in current_projects %}
+{% block title %}Projects - {{ block.super }}{% endblock %}
+
+{% block content %}
+    {% if not projects %}
+        <h5>No projects found.</h5>
+    {% else %}
+        <h1 class="text-center">Projects from {{ projects_semester }}</h1>
+        {% for project in projects %}
             <div class="col-md-8 mx-auto">
                 <div class="card my-4">
                     {% if project.client.logo %}<img class="card-img-top img-fluid" src="{{ project.client.logo.url }}" alt="logo {{ project.client.name }}">{% endif %}
                     <div class="card-body">
                         <h4 class="card-title">{{ project.name }}</h4>
-                        {% if project.client %}<h6 class="card-subtitle text-muted">By {{ project.client.name}}</h6>{% endif %}
+                        {% if project.client %}<h6 class="card-subtitle text-muted mb-2">By {{ project.client.name}}</h6>{% endif %}
+                        <p class="card-text">{{ project.description|linebreaks }}</p>
                     </div>
                 </div>
             </div>

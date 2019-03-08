@@ -1,12 +1,12 @@
 from enum import Enum
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User as DjangoUser
 from django.db import models
-from django.contrib.auth.models import Group
 
-from courses.models import Semester
+from projects.models import Project
 
-User = get_user_model()
+User: DjangoUser = get_user_model()
 
 
 def users_in_same_group(user: User):
@@ -69,24 +69,6 @@ class GiphouseProfile(models.Model):
     def __str__(self):
         """Return full name of user."""
         return f'{self.user.first_name} {self.user.last_name}'
-
-
-class Project(Group):
-    """Project group that contains multiple users."""
-
-    semester = models.ForeignKey(
-        Semester,
-        on_delete=models.SET_NULL,
-        null=True,
-    )
-
-    description = models.TextField()
-
-    objects = models.Manager()
-
-    def __str__(self):
-        """Return project name and semester."""
-        return f'{self.name} ({self.semester})'
 
 
 class Registration(models.Model):
