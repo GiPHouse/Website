@@ -67,5 +67,5 @@ class PeerReviewView(LoginRequiredMixin, FormView):
                     answer=form.cleaned_data[field_name],
                 )
 
-        messages.success(self.request, "Peer review succesfully submitted!", extra_tags='alert alert-success')
+        messages.success(self.request, "Peer review successfully submitted!", extra_tags='alert alert-success')
         return redirect("home")
