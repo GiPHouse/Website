@@ -1,20 +1,21 @@
 from django import forms
-from .models import Question
+from django.contrib.auth.models import User as DjangoUser
+
 from django.contrib.auth import get_user_model
+
+User: DjangoUser = get_user_model()
 
 
 class PeerReviewForm(forms.Form):
     """Dynamic form generating a peer review form."""
 
-    def __init__(self, user=None, *args, **kwargs):
+    def __init__(self, peers=None, questions=None, *args, **kwargs):
         """
         Dynamically setup form.
 
         :param user: User making requests
         """
         super().__init__(*args, **kwargs)
-        questions = Question.objects.all()
-        peers = get_user_model().objects.exclude(pk=user.pk)
 
         for question in questions:
             if question.about_team_member:
@@ -42,4 +43,4 @@ class PeerReviewForm(forms.Form):
                 f"Peer review for {peer.first_name} {peer.last_name}"
         else:
             self.fields[field_name].help_text = \
-                "Global Questions"
+                "General Questions"

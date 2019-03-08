@@ -25,12 +25,26 @@ class QuestionTypes(Enum):
     open_question = 'Open Question'
 
 
+class Questionnaire(models.Model):
+    """A group of questions."""
+
+    title = models.CharField(max_length=200)
+    active = models.BooleanField()
+
+    def __str__(self):
+        """Return title."""
+        return self.title
+
+
 class Question(models.Model):
     """Question model."""
 
+    questionnaire = models.ForeignKey(Questionnaire, null=True, on_delete=models.SET_NULL)
     question = models.CharField(max_length=200)
     question_type = models.CharField(
-        max_length=20, choices=[(tag.name, tag.value) for tag in QuestionTypes])
+        max_length=20,
+        choices=[(tag.name, tag.value) for tag in QuestionTypes]
+    )
     about_team_member = models.BooleanField(default=False)
 
     def get_scale_labels(self):
@@ -61,11 +75,15 @@ class Answer(models.Model):
     participant = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='participant')
+        related_name='participant'
+    )
     peer = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='peer', blank=True, null=True)
+        related_name='peer',
+        blank=True,
+        null=True
+    )
 
     def __str__(self):
         """Return information about answer as string."""

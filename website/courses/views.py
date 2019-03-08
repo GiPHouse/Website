@@ -7,7 +7,7 @@ from courses.models import Lecture, Semester
 class CoursesView(TemplateView):
     """View to display the lectures for a course."""
 
-    template_name = 'courses.html'
+    template_name = 'courses/index.html'
 
     def get_context_data(self, year: int, season: str, **kwargs):
         """

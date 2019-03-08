@@ -67,7 +67,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'courses.context_processors.add_semesters_to_context',
+                'giphousewebsite.context_processors.add_menu_objects_to_context',
             ],
         },
     },
