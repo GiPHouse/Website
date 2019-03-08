@@ -100,7 +100,7 @@ class Step2View(FormView):
             del self.request.session['github_email']
 
         messages.success(
-            self.request, "User created succesfully", extra_tags='alert alert-success'
+            self.request, "User created successfully", extra_tags='alert alert-success'
         )
 
         login(
