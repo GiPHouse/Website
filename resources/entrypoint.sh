@@ -6,6 +6,8 @@ until pg_isready --host="$POSTGRES_HOST" --username="$POSTGRES_USER" --quiet; do
     sleep 1;
 done
 
+echo "Postgres database is up."
+
 chown --recursive www-data:www-data /giphouse/
 
 cd /giphouse/src/website/
@@ -14,6 +16,7 @@ cd /giphouse/src/website/
 ./manage.py collectstatic --no-input -v0 --ignore="*.scss"
 ./manage.py migrate --no-input
 
+echo "Starting uwsgi server."
 uwsgi --chdir=/giphouse/src/website \
     --module=giphousewebsite.wsgi:application \
     --master --pidfile=/tmp/project-master.pid \
