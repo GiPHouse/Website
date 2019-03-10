@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
-    {% block content %}
+{% block content %}
 
     {% for course, lectures in courses %}
 
-        <h2 class="text-center section-title">{{ course }} - {{ semester }}</h2>
+        <h2 class="text-center section-title">{{ course }} - {{ lecture_semester }}</h2>
 
         {% if not lectures %}
             <h5>No lectures found</h5>
