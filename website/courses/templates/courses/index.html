@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% block title %}Lectures - {{ block.super }}{% endblock %}
 {% block content %}
 
     {% for course, lectures in courses %}
