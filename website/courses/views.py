@@ -17,7 +17,7 @@ class CoursesView(TemplateView):
         """
         context = super(CoursesView, self).get_context_data(**kwargs)
 
-        context['semester'] = get_object_or_404(Semester, year=year, season=season)
+        context['lecture_semester'] = get_object_or_404(Semester, year=year, season=season)
 
         courses = {}
         for course_name, course_label in Lecture.COURSE_CHOICES:
