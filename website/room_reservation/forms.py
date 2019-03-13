@@ -1,7 +1,6 @@
-from django.forms import ModelForm,ValidationError
-from django import forms
+from django.forms import ModelForm, ValidationError
 from .models import Reservation
-from django.db.models.query_utils import Q 
+from django.db.models.query_utils import Q
 from datetime import timedelta
 
 
@@ -18,29 +17,29 @@ class ReservationForm(ModelForm):
 
         # TODO, on update, this fails because it is probably matched with itself
         already_taken = Reservation.objects.filter(
-                Q(
-                    room=room,
-                    start_time__lte=start_time,
-                    end_time__gt=start_time,)
-                | Q(
-                    room=room,
-                    start_time__lt=end_time,
-                    end_time__gte=end_time,
-                )
-                | Q(
+            Q(
                 room=room,
-                    start_time__gte=start_time,
-                    end_time__lte=end_time,
-                )
-            ).exists()
-    
-            
+                start_time__lte=start_time,
+                end_time__gt=start_time,)
+            | Q(
+                room=room,
+                start_time__lt=end_time,
+                end_time__gte=end_time,
+            )
+            | Q(
+                room=room,
+                start_time__gte=start_time,
+                end_time__lte=end_time,
+            )
+        ).exists()
+
         if already_taken:
-            raise ValidationError(('Room already reserved in this timeslot.'), code='invalid')
+            raise ValidationError(
+                ('Room already reserved in this timeslot.'), code='invalid')
 
         if end_time - start_time > timedelta(hours=12):
-            raise ValidationError(('Rerservation too long. Please shorten your reservation'), code='invalid')
-
+            raise ValidationError(
+                ('Rerservation too long. Please shorten your reservation'), code='invalid')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

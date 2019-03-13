@@ -1,9 +1,10 @@
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from django.urls import reverse
-from room_reservation.models import Room,Reservation
+from room_reservation.models import Room, Reservation
 from datetime import datetime
 from django.utils.timezone import get_current_timezone
+
 
 class PeerReviewTest(TestCase):
 
@@ -15,11 +16,10 @@ class PeerReviewTest(TestCase):
         )
 
         cls.room = Room.objects.create(
-            name = "New York",
-            location = "Merc 0.1337",
+            name="New York",
+            location="Merc 0.1337",
         )
         cls.tz = get_current_timezone()
-
 
     def setUp(self):
         self.client = Client()
@@ -36,7 +36,8 @@ class PeerReviewTest(TestCase):
         """
         Test GET request to create reservation form.
         """
-        response = self.client.get(reverse('room_reservation:create_reservation'))
+        response = self.client.get(
+            reverse('room_reservation:create_reservation'))
         self.assertEqual(response.status_code, 200)
 
     def test_get_update_reservation(self):
@@ -45,16 +46,16 @@ class PeerReviewTest(TestCase):
         """
 
         reservation = Reservation.objects.create(
-            reservee = self.user,
-            room = self.room,
-            start_time = datetime(2005, 7, 14, 12, 00, tzinfo=self.tz),
-            end_time = datetime(2005, 7, 14, 13, 00, tzinfo=self.tz),
-            )
+            reservee=self.user,
+            room=self.room,
+            start_time=datetime(2005, 7, 14, 12, 00, tzinfo=self.tz),
+            end_time=datetime(2005, 7, 14, 13, 00, tzinfo=self.tz),
+        )
 
         response = self.client.get(
-                reverse(
-                    'room_reservation:update_reservation', kwargs={'pk': reservation.pk}
-                ))
+            reverse(
+                'room_reservation:update_reservation', kwargs={'pk': reservation.pk}
+            ))
 
         self.assertEqual(response.status_code, 200)
 
@@ -62,24 +63,23 @@ class PeerReviewTest(TestCase):
         """
         Test POST request to create reservation form.
         """
-        
+
         reservation = Reservation.objects.create(
-            reservee = self.user,
-            room = self.room,
-            start_time = datetime(2005, 7, 14, 12, 00, tzinfo=self.tz),
-            end_time = datetime(2005, 7, 14, 13, 00, tzinfo=self.tz),
-            )
+            reservee=self.user,
+            room=self.room,
+            start_time=datetime(2005, 7, 14, 12, 00, tzinfo=self.tz),
+            end_time=datetime(2005, 7, 14, 13, 00, tzinfo=self.tz),
+        )
 
         response = self.client.post(
-                reverse(
-                    'room_reservation:delete_reservation', 
-                    kwargs={'pk': reservation.pk}
-                ),
-                follow=True,
-                )
+            reverse(
+                'room_reservation:delete_reservation',
+                kwargs={'pk': reservation.pk}
+            ),
+            follow=True,
+        )
 
         self.assertEqual(response.status_code, 200)
 
         is_removed = not Reservation.objects.filter(pk=reservation.pk).exists()
         self.assertTrue(is_removed, msg='reservation is removed')
-

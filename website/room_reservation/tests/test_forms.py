@@ -1,7 +1,7 @@
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from django.urls import reverse
-from room_reservation.models import Room,Reservation
+from room_reservation.models import Room, Reservation
 
 
 class PeerReviewTest(TestCase):
@@ -14,10 +14,9 @@ class PeerReviewTest(TestCase):
         )
 
         cls.room = Room.objects.create(
-            name = "New York",
-            location = "Merc 0.1337",
+            name="New York",
+            location="Merc 0.1337",
         )
-
 
     def setUp(self):
         self.client = Client()
