@@ -2,40 +2,11 @@
 {% load bootstrap4 %}
 
 {% block content %}
-<style>
-.day {
-	display: block;
-	height: 600px;
-}
-
-.reservation {
-	display:block;
-	position: relative;
-	background-color: #f2f2f2;
-	border: 1px solid #ccc !important;
-	/* border-radius: 6px; */
-	padding: 4px;
-}
-
-.buttons {
-	display:block;
-	position: absolute;
-	bottom: 4px;
-}
-.hour {
-	display: block;
-	position: relative;
-	border-top: 1px solid #000;
-	height: 0px;
-}
-
-</style>
-
 <a href="{% url 'room_reservation:create_reservation' %}"><button class="btn btn-success mb-2">Make Reservation</button></a>
 
 {% buttons %}
-<a href="{% url 'room_reservation:show' %}?week={{ current_week|add:"-1"}}" ><button class="btn btn-secondary">Prev</button></a>
-<a href="{% url 'room_reservation:show' %}?week={{ current_week|add:"1"}}" ><button class="btn btn-secondary">Next</button></a>
+<a href="{% url 'room_reservation:calendar' %}?week={{ current_week|add:"-1"}}" ><button class="btn btn-secondary">Prev</button></a>
+<a href="{% url 'room_reservation:calendar' %}?week={{ current_week|add:"1"}}" ><button class="btn btn-secondary">Next</button></a>
 {% endbuttons %}
 <h3>Week {{current_week}}</h3>
 <table class="table">
@@ -54,27 +25,27 @@
 	<tbody>
 		<tr>
 			<td style="width:50px;">
-				<div class="day">
-				<div class="hour" style="top: calc(( 8 - 8)/10 * 100%);" > 8:00</div>
-				<div class="hour" style="top: calc((10 - 8)/10 * 100%);" >10:00</div>
-				<div class="hour" style="top: calc((12 - 8)/10 * 100%);" >12:00</div>
-				<div class="hour" style="top: calc((14 - 8)/10 * 100%);" >14:00</div>
-				<div class="hour" style="top: calc((16 - 8)/10 * 100%);" >16:00</div>
-				<div class="hour" style="top: calc((18 - 8)/10 * 100%);" >18:00</div>
+				<div class="rr-calendar-day">
+				<div class="rr-calendar-hour" style="top: calc(( 8 - 8)/10 * 100%);" > 8:00</div>
+				<div class="rr-calendar-hour" style="top: calc((10 - 8)/10 * 100%);" >10:00</div>
+				<div class="rr-calendar-hour" style="top: calc((12 - 8)/10 * 100%);" >12:00</div>
+				<div class="rr-calendar-hour" style="top: calc((14 - 8)/10 * 100%);" >14:00</div>
+				<div class="rr-calendar-hour" style="top: calc((16 - 8)/10 * 100%);" >16:00</div>
+				<div class="rr-calendar-hour" style="top: calc((18 - 8)/10 * 100%);" >18:00</div>
 				</div>
 			</td>
 		{% for col in this_weeks_reservations %}
 			<td>
-				<div class="day" >
+				<div class="rr-calendar-day" >
 			{% for reservation in col %}
-			<div class="reservation" 
+			<div class="rr-calendar-reservation" 
 				 {# style="top: calc( (({{reservation.start_time|date:"H"}} + {{reservation.start_time|date:"i"}} / 60) - 8) / 10 * 100%);  #}
 				style="top: calc( ({{reservation.start_time|date:"H"}} - 8) / 10 * 100%); 
 				height: calc( (({{reservation.end_time|date:"H"}} + {{reservation.end_time|date:"i"}} / 60) - 8 ) / 10 * 100% - (({{reservation.start_time|date:"H"}} + {{reservation.start_time|date:"i"}} / 60) - 8) / 10 * 100%); "
 				>
 					<p>{{reservation.reservee}}</p>
 				{% if reservation.reservee == request.user %}
-				<div class="buttons">
+				<div class="rr-reservation-actions">
 					<a href ="{% url 'room_reservation:delete_reservation' reservation.pk %}" ><button class="btn btn-danger btn-sm">X</button></a>
 					<a href ="{% url 'room_reservation:update_reservation' reservation.pk %}" ><button class="btn btn-info btn-sm">Change</button></a>
 				</div>
