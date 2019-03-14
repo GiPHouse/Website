@@ -54,7 +54,7 @@ class CreateReservationView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         """
         Save the form as model.
-        
+
         Auto-fill the logged in user as reservee.
         """
         reservation = form.save(commit=False)

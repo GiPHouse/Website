@@ -8,7 +8,7 @@ class ReservationForm(ModelForm):
     """Form for a logged in user to make/update reservation."""
 
     class Meta:
-        """Meta class for ReservationForm"""
+        """Meta class for ReservationForm."""
 
         model = Reservation
         fields = ('room', 'start_time', 'end_time')
