@@ -10,14 +10,12 @@ class Room(models.Model):
     location = models.CharField(max_length=200)
 
     def __str__(self):
+        """Return small description about the room."""
         return f"{self.name} ({self.location})"
 
 
 class Reservation(models.Model):
-    """
-    Model for a reservation that is made by a
-    reservee for a certain room, with an start and end date."
-    """
+    """Model for a reservation that is made by a reservee for a certain room, with an start and end date.""""
 
     reservee = models.ForeignKey(
         get_user_model(),
@@ -32,7 +30,6 @@ class Reservation(models.Model):
 
     def __str__(self):
         """Return small description about the reservation."""
-
         # To skip the odd autmated unit test?
         if not hasattr(self, 'start'):
             return "."

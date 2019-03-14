@@ -11,6 +11,7 @@ from django.core.exceptions import PermissionDenied
 def show_calendar(request):
     """
     Show a week-calendar and showing the current reservations.
+
     From here, it is possible to make reservations,
     and to update and delete your own.
     """
@@ -43,7 +44,7 @@ def show_calendar(request):
 
 
 class CreateReservationView(LoginRequiredMixin, CreateView):
-    """FormView to make a reservation"""
+    """FormView to make a reservation."""
 
     form_class = ReservationForm
     template_name = 'room_reservation/reservation_form.html'
@@ -53,6 +54,7 @@ class CreateReservationView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         """
         Save the form as model.
+        
         Auto-fill the logged in user as reservee.
         """
         reservation = form.save(commit=False)
