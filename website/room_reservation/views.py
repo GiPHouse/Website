@@ -9,30 +9,32 @@ from django.core.exceptions import PermissionDenied
 
 
 def show_calendar(request):
-    reservations = Reservation.objects.all()
+    """
+    Show a week-calendar and showing the current reservations.
+    From here, it is possible to make reservations,
+    and to update and delete your own.
+    """
     rooms = Room.objects.all()
+    this_weeks_reservations = []
     today = timezone.now().date()
 
     if 'week' in request.GET:
         current_week = request.GET['week']
-        monday_of_the_week = datetime.strptime(
-            f'{today.year}-{current_week}-1-', "%Y-%W-%w").date()
-
     else:
         current_week = today.isocalendar()[1]
-        monday_of_the_week = today - \
-            timedelta(days=(today.isocalendar()[2] - 1))
 
-    this_weeks_reservations = []
-    for day, n in ((monday_of_the_week + timedelta(days=n), n) for n in range(7)):
+    monday_of_the_week = datetime.strptime(
+        f'{today.year}-{current_week}-1', "%G-%V-%w").date()
+    days = (monday_of_the_week + timedelta(days=n) for n in range(7))
+
+    for day in days:
         next_day = day + timedelta(days=1)
         this_weeks_reservations += [Reservation.objects.filter(
             start_time__date__gte=day,
-            start_time__date__lte=next_day,
+            start_time__date__lt=next_day,
         )]
 
     context = {
-        'reservations': reservations,
         'rooms': rooms,
         'this_weeks_reservations': this_weeks_reservations,
         'current_week': current_week,
@@ -41,12 +43,19 @@ def show_calendar(request):
 
 
 class CreateReservationView(LoginRequiredMixin, CreateView):
+    """
+    FormView to make a reservation
+    """
     form_class = ReservationForm
     template_name = 'room_reservation/reservation_form.html'
     success_url = '/reservations/'
     raise_exception = True
 
     def form_valid(self, form):
+        """
+        Save the form as model.
+        Auto-fill the logged in user as reservee.
+        """
         reservation = form.save(commit=False)
         reservation.reservee = self.request.user
         reservation.save()
@@ -54,6 +63,9 @@ class CreateReservationView(LoginRequiredMixin, CreateView):
 
 
 class UpdateReservationView(LoginRequiredMixin, UpdateView):
+    """
+    FormView to update your reservation.
+    """
     model = Reservation
     form_class = ReservationForm
     template_name = 'room_reservation/reservation_form.html'
@@ -69,6 +81,9 @@ class UpdateReservationView(LoginRequiredMixin, UpdateView):
 
 
 class DeleteReservationView(LoginRequiredMixin, DeleteView):
+    """
+    FormView to delete your reservation.
+    """
     model = Reservation
     success_url = '/reservations/'
     raise_exception = True

@@ -4,6 +4,9 @@ from django.utils.timezone import get_current_timezone
 
 
 class Room(models.Model):
+    """
+    Model for a Room that can be reserved.
+    """
     name = models.CharField(max_length=200)
     location = models.CharField(max_length=200)
 
@@ -12,6 +15,10 @@ class Room(models.Model):
 
 
 class Reservation(models.Model):
+    """
+    Model for a reservation that is made by a
+    reservee for a certain room, with an start and end date."
+    """
     reservee = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE,
@@ -24,6 +31,8 @@ class Reservation(models.Model):
     end_time = models.DateTimeField()
 
     def __str__(self):
+        """ Return small description about the reservation. """
+        
         # To skip the odd autmated unit test?
         if not hasattr(self, 'start'):
             return "."
