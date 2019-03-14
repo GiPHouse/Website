@@ -43,9 +43,8 @@ def show_calendar(request):
 
 
 class CreateReservationView(LoginRequiredMixin, CreateView):
-    """
-    FormView to make a reservation
-    """
+    """FormView to make a reservation"""
+
     form_class = ReservationForm
     template_name = 'room_reservation/reservation_form.html'
     success_url = '/reservations/'
@@ -63,9 +62,8 @@ class CreateReservationView(LoginRequiredMixin, CreateView):
 
 
 class UpdateReservationView(LoginRequiredMixin, UpdateView):
-    """
-    FormView to update your reservation.
-    """
+    """FormView to update your reservation."""
+
     model = Reservation
     form_class = ReservationForm
     template_name = 'room_reservation/reservation_form.html'
@@ -73,7 +71,7 @@ class UpdateReservationView(LoginRequiredMixin, UpdateView):
     raise_exception = True
 
     def get_object(self, queryset=None):
-        """ Hook to ensure object is owned by request.user. """
+        """Ensure object is owned by request.user."""
         obj = super(UpdateView, self).get_object()
         if not obj.reservee == self.request.user:
             raise PermissionDenied
@@ -81,15 +79,14 @@ class UpdateReservationView(LoginRequiredMixin, UpdateView):
 
 
 class DeleteReservationView(LoginRequiredMixin, DeleteView):
-    """
-    FormView to delete your reservation.
-    """
+    """FormView to delete your reservation."""
+
     model = Reservation
     success_url = '/reservations/'
     raise_exception = True
 
     def get_object(self, queryset=None):
-        """ Hook to ensure object is owned by request.user. """
+        """Ensure object is owned by request.user."""
         obj = super(DeleteView, self).get_object()
         if not obj.reservee == self.request.user:
             raise PermissionDenied

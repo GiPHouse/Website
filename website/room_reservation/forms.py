@@ -5,15 +5,18 @@ from datetime import timedelta
 
 
 class ReservationForm(ModelForm):
-    """Form for a logged in user to make/update resvation."""
+    """Form for a logged in user to make/update reservation."""
 
     class Meta:
+        """Meta class for ReservationForm"""
+
         model = Reservation
         fields = ('room', 'start_time', 'end_time')
 
     def clean(self):
         """
-        Validate the input by checking:
+        Validate the input by checking:.
+
         - All checks made by ModelForm.
         - Reservation does not collide with another reservation.
         - Reservation is not too long.
@@ -50,10 +53,7 @@ class ReservationForm(ModelForm):
                 ('Rerservation too long. Please shorten your reservation'), code='invalid')
 
     def __init__(self, *args, **kwargs):
-        """
-        Initialize the object and
-        give user-friendly widgets for the datetime objects.
-        """
+        """Initialize the object and give user-friendly widgets for the datetime objects."""
         super().__init__(*args, **kwargs)
 
         # TODO have user friendly widgets for datetimes.
