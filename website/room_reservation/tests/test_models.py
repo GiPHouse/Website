@@ -1,3 +1,4 @@
+from django.test import TestCase
 from django.contrib.auth.models import User
 from datetime import datetime
 from room_reservation.models import Room, Reservation
