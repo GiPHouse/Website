@@ -1,7 +1,6 @@
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
-from django.urls import reverse
-from room_reservation.models import Room, Reservation
+from room_reservation.models import Room
 
 
 class PeerReviewTest(TestCase):
