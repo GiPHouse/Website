@@ -29,5 +29,21 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 # GitHub OAuth Settings
+<<<<<<< HEAD
 GITHUB_CLIENT_ID = os.environ.get('GITHUB_CLIENT_ID', '')
 GITHUB_CLIENT_SECRET = os.environ.get('GITHUB_CLIENT_SECRET', '')
+=======
+GITHUB_CLIENT_ID = os.environ.get(
+    'GITHUB_CLIENT_ID',
+    default='',
+)
+GITHUB_CLIENT_SECRET = os.environ.get(
+    'GITHUB_CLIENT_SECRET',
+    default='',
+)
+
+LOGOUT_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/'
+
+DATE_FORMAT = '%d-%b-%y'
+>>>>>>> removed unused lines
