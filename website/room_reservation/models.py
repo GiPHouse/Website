@@ -31,7 +31,7 @@ class Reservation(models.Model):
     def __str__(self):
         """Return small description about the reservation."""
         # To skip the odd autmated unit test?
-        if not hasattr(self, 'start'):
+        if self.start_time is None:
             return "."
 
         tz = get_current_timezone()
