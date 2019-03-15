@@ -15,8 +15,14 @@ class QuestionAdmin(admin.ModelAdmin):
 class AnswerAdmin(admin.ModelAdmin):
     """Customize the answer filters in the admin."""
 
-    list_display = ('question', 'answer', 'participant', 'peer')
-    list_filter = ('question', 'answer', 'participant', 'peer')
+    list_display = ('question', 'answer', 'participant', 'peer', 'on_time')
+    list_filter = ('question',)
+
+    def on_time(self, obj):
+        """Wrap on_time of model, to be able to set boolean for admin checkmarks."""
+        return obj.on_time
+
+    on_time.boolean = True
 
 
 class QuestionInline(admin.TabularInline):
@@ -29,4 +35,4 @@ class QuestionInline(admin.TabularInline):
 class QuestionnaireAdmin(admin.ModelAdmin):
     """Add Questionnaire editing in the admin."""
 
-    inlines = (QuestionInline, )
+    inlines = (QuestionInline,)
