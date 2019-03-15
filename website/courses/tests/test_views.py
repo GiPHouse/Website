@@ -1,7 +1,7 @@
 from django.test import TestCase, Client
 from django.utils import timezone
 
-from courses.models import Semester, SeasonChoice
+from courses.models import Semester, SeasonChoice, Course
 
 
 class GetCoursesTest(TestCase):
@@ -9,6 +9,7 @@ class GetCoursesTest(TestCase):
     @classmethod
     def setUpTestData(cls):
 
+        cls.course = Course.objects.create(name="Test Course")
         cls.season = SeasonChoice.spring.name
         cls.year = 2019
 

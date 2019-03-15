@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.utils import timezone
-from courses.models import Semester, SeasonChoice, Lecture, get_slides_filename
+from courses.models import Semester, SeasonChoice, Lecture, get_slides_filename, Course
 
 
 class ModelTest(TestCase):
@@ -10,7 +10,7 @@ class ModelTest(TestCase):
 
         cls.season = SeasonChoice.spring.name
         cls.year = 2019
-        cls.course = Lecture.COURSE_CHOICES[0][1]
+        cls.course = Course.objects.create(name="Test Course")
         cls.date = timezone.datetime(1970, 1, 1).date()
         cls.title = 'test title'
 

@@ -1,5 +1,12 @@
 [
   {
+    "model": "courses.course",
+    "pk": 1,
+    "fields": {
+        "name": "Software Engineering"
+    }
+  },
+  {
     "model": "courses.semester",
     "pk": 1,
     "fields": {
@@ -14,7 +21,7 @@
     "pk": 1,
     "fields": {
       "date": "2019-03-02",
-      "course": "SE",
+      "course": 1,
       "semester": 1,
       "title": "Git Tutorial",
       "description": "You learn about git",
@@ -28,7 +35,7 @@
     "pk": 2,
     "fields": {
       "date": "2019-03-02",
-      "course": "SDM",
+      "course": 1,
       "semester": 1,
       "title": "How to manage",
       "description": "You learn how to manage students",

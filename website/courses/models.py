@@ -16,6 +16,16 @@ class SeasonChoice(Enum):
         return self.value
 
 
+class Course(models.Model):
+    """Model to represent course."""
+
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        """Return name of course."""
+        return f'{self.name}'
+
+
 class SemesterManager(models.Manager):
     """Manager for the Semester model."""
 
@@ -66,7 +76,7 @@ def get_slides_filename(instance, filename):
     """
     return (
         f'courses/slides/'
-        f'{ instance.get_course_display() }-'
+        f'{ instance.course }-'
         f'{ instance.title }-'
         f'{ instance.date.strftime("%d-%b-%Y") }'
         f'.pdf'
@@ -75,11 +85,6 @@ def get_slides_filename(instance, filename):
 
 class Lecture(models.Model):
     """Lecture model."""
-
-    COURSE_CHOICES = (
-        ('SE', 'Software Engineering'),
-        ('SDM', 'System Development Management'),
-    )
 
     class Meta:
         """
@@ -94,9 +99,9 @@ class Lecture(models.Model):
 
     date = models.DateField()
 
-    course = models.CharField(
-        choices=COURSE_CHOICES,
-        max_length=3,
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE
     )
 
     semester = models.ForeignKey(
@@ -134,4 +139,4 @@ class Lecture(models.Model):
 
     def __str__(self):
         """Return value of Lecture and date object."""
-        return f'{ self.get_course_display() } ({ self.date })'
+        return f'{ self.course } ({ self.date })'

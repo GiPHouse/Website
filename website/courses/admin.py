@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from courses.models import Semester, Lecture
+from courses.models import Semester, Lecture, Course
 
 
 @admin.register(Lecture)
@@ -11,3 +11,4 @@ class LectureAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Semester)
+admin.site.register(Course)
