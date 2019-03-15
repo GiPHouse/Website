@@ -22,7 +22,7 @@ class GetCoursesTest(TestCase):
     def setUp(self):
         self.client = Client()
 
-    def test_callback_get_success(self):
+    def test_get_success(self):
         """
         Test get request of courses page.
         """
