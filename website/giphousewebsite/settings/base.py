@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     'github_oauth.apps.GithubConfig',
     'registrations.apps.RegistrationsConfig',
     'courses.apps.CoursesConfig',
+    'projects.apps.ProjectsConfig',
     'sass_processor',
     'bootstrap4',
     'django.contrib.admin',
