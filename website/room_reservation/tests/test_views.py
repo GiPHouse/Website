@@ -1,15 +1,20 @@
-from django.test import TestCase, Client
-from django.contrib.auth.models import User
-from django.urls import reverse
-from room_reservation.models import Room, Reservation
 from datetime import datetime
+
+from django.test import TestCase, Client
+from django.urls import reverse
 from django.utils.timezone import get_current_timezone
+from django.contrib.auth import get_user_model
+
+from room_reservation.models import Room, Reservation
+
+User = get_user_model()
 
 
 class PeerReviewTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+
         cls.user = User.objects.create_user(
             username='myself',
             password='123',

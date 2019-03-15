@@ -87,7 +87,8 @@ class PeerReviewTest(TestCase):
             question_type='poorGood',
             about_team_member=True
         )
-        cls.questions = Question.objects.filter(questionnaire=cls.active_questions)
+        cls.questions = Question.objects.filter(
+            questionnaire=cls.active_questions)
         cls.inactive_questions = Questionnaire.objects.create(
             title="An Inactive Questionnaire",
             available_from=timezone.now() - timedelta(days=2),
@@ -124,7 +125,8 @@ class PeerReviewTest(TestCase):
         """
         Test GET request to form view
         """
-        response = self.client.get(reverse('peer_review:answer', args=(self.active_questions.pk,)))
+        response = self.client.get(
+            reverse('peer_review:answer', args=(self.active_questions.pk,)))
         self.assertEqual(response.status_code, 200)
 
     def test_post_form(self):

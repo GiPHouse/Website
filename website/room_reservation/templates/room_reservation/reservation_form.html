@@ -2,17 +2,14 @@
 {% load bootstrap4 %}
 
 {% block content %}
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+
 <form method="post" class="form">
     {% csrf_token %}
 	{% bootstrap_form form %}
+	<input type="hidden" name="pk" value="{%if object %}{{object.pk}}{% else %}-1{%endif%}" />
     {% buttons %}
     <input type="submit" class="btn btn-primary" value="Submit"/>
     {% endbuttons %}
 </form>
 
-{% endblock %}
-
-{% block scripts %}
-{{ form.media }} <!-- used by tempus dominus date picker -->
 {% endblock %}

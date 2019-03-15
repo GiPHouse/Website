@@ -1,6 +1,8 @@
 from django.db import models
-from django.contrib.auth import get_user_model
 from django.utils.timezone import get_current_timezone
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class Room(models.Model):
@@ -30,15 +32,10 @@ class Reservation(models.Model):
 
     def __str__(self):
         """Return small description about the reservation."""
-        # To skip the odd autmated unit test?
-        if self.start_time is None:
-            return "."
 
         tz = get_current_timezone()
         start = self.start_time.astimezone(tz)
         end = self.end_time.astimezone(tz)
         start = start.strftime("%d/%m/%Y %H:%M")
         end = end.strftime("%d/%m/%Y %H:%M")
-        # start = to_current_timezone(start_time)
-        # end = to_current_timezone(end_time)
         return f"{self.reservee} has {self.room} reserved at {start} until {end}"

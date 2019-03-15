@@ -1,11 +1,16 @@
-from django.forms import ModelForm, ValidationError
-from .models import Reservation
-from django.db.models.query_utils import Q
 from datetime import timedelta
+
+from django.forms import ModelForm, ValidationError
+from django import forms
+from django.db.models.query_utils import Q
+
+from .models import Reservation
 
 
 class ReservationForm(ModelForm):
     """Form for a logged in user to make/update reservation."""
+    pk = forms.IntegerField(widget=forms.HiddenInput(),
+                            initial=-1, required=False)
 
     class Meta:
         """Meta class for ReservationForm."""
@@ -26,29 +31,29 @@ class ReservationForm(ModelForm):
         start_time = cleaned_data.get("start_time")
         end_time = cleaned_data.get("end_time")
 
-        # TODO, on update, this fails because it is probably matched with itself
+        pk = cleaned_data.get("pk")
+
         already_taken = Reservation.objects.filter(
+            room=room,
+        ).filter(
             Q(
-                room=room,
                 start_time__lte=start_time,
                 end_time__gt=start_time,)
             | Q(
-                room=room,
                 start_time__lt=end_time,
                 end_time__gte=end_time,
             )
             | Q(
-                room=room,
                 start_time__gte=start_time,
                 end_time__lte=end_time,
             )
-        ).exists()
+        ).exclude(pk=pk).exists()
 
         if already_taken:
             raise ValidationError(
                 ('Room already reserved in this timeslot.'), code='invalid')
 
-        if end_time - start_time > timedelta(hours=12):
+        if end_time.date() - start_time.date() >= timedelta(days=1):
             raise ValidationError(
                 ('Rerservation too long. Please shorten your reservation'), code='invalid')
 
@@ -56,6 +61,6 @@ class ReservationForm(ModelForm):
         """Initialize the object and give user-friendly widgets for the datetime objects."""
         super().__init__(*args, **kwargs)
 
-        # TODO have user friendly widgets for datetimes.
+        self.fields['pk'].initial = -1
         self.fields['start_time'].widget.attrs['placeholder'] = '2000-12-01 23:59'
         self.fields['end_time'].widget.attrs['placeholder'] = '2000-12-01 23:59'

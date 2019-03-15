@@ -1,9 +1,13 @@
-from django.test import TestCase, Client
-from django.contrib.auth.models import User
 from datetime import datetime
+
+from django.test import TestCase, Client
+from django.utils.timezone import get_current_timezone
+from django.contrib.auth import get_user_model
+
 from room_reservation.models import Room, Reservation
 from room_reservation.forms import ReservationForm
-from django.utils.timezone import get_current_timezone
+
+User = get_user_model()
 
 
 class PeerReviewTest(TestCase):
@@ -37,8 +41,8 @@ class PeerReviewTest(TestCase):
     def test_ReservationForm_too_long(self):
         form_data = {
             'room': str(self.room.pk),
-            'start_time': "2005-7-14 5:00",
-            'end_time': "2005-7-14 23:00",
+            'start_time': "2005-7-13 12:00",
+            'end_time': "2005-7-14 12:00",
         }
         form = ReservationForm(data=form_data)
         self.assertFalse(form.is_valid())
