@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from projects.models import Project
 from courses.models import Semester, SeasonChoice
+from registrations.models import RoleChoice, GiphouseProfile
 
 User = get_user_model()
 
@@ -133,3 +134,42 @@ class Step2Test(TestCase):
         self.assertContains(response, f'value="{self.first_name}"')
         self.assertContains(response, f'value="{self.last_name}"')
         self.assertContains(response, f'value="{self.email}"')
+
+    def test_post_step2(self):
+        response = self.client.post('/register/step2',
+                                    {
+                                        'first_name': 'Firsttest',
+                                        'last_name': 'Lasttest',
+                                        'student_number': 's1234567',
+                                        'github_username': 'github',
+                                        'course': RoleChoice.se.name,
+                                        'email': 'test@test.com',
+                                        'project1': str(self.project_preference1.id),
+                                    }, follow=True)
+        self.assertRedirects(response, '/')
+        self.assertContains(response, 'User created successfully')
+
+    def test_post_step2_existing_user(self):
+        test_user = User.objects.create_user(
+            username='test',
+            first_name='Firsttest',
+            last_name='Lasttest',
+        )
+        GiphouseProfile.objects.create(
+            user=test_user,
+            github_id=1,
+            student_number='s1234567',
+        )
+
+        response = self.client.post('/register/step2',
+                                    {
+                                        'first_name': 'Firsttest',
+                                        'last_name': 'Lasttest',
+                                        'student_number': 's1234567',
+                                        'github_username': 'github',
+                                        'course': RoleChoice.se.name,
+                                        'email': 'test@test.com',
+                                        'project1': str(self.project_preference1.id),
+                                    }, follow=True)
+        self.assertRedirects(response, '/')
+        self.assertContains(response, 'User already exists')
