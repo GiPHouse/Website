@@ -54,7 +54,8 @@ class PeerReviewTest(TestCase):
         cls.peer.save()
         cls.active_questions = Questionnaire.objects.create(
             title="An Active Questionnaire",
-            active=True
+            available_from=timezone.now() - timedelta(days=2),
+            available_until=timezone.now() + timedelta(days=1)
         )
         Question.objects.create(
             questionnaire=cls.active_questions,
@@ -89,7 +90,8 @@ class PeerReviewTest(TestCase):
         cls.questions = Question.objects.filter(questionnaire=cls.active_questions)
         cls.inactive_questions = Questionnaire.objects.create(
             title="An Inactive Questionnaire",
-            active=False
+            available_from=timezone.now() - timedelta(days=2),
+            available_until=timezone.now() - timedelta(days=1)
         )
         Question.objects.create(
             questionnaire=cls.inactive_questions,

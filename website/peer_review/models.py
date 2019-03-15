@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from enum import Enum
 
+from django.utils import timezone
+
 
 class ScaleLabels(Enum):
     """Possible answer scales."""
@@ -25,11 +27,21 @@ class QuestionTypes(Enum):
     open_question = 'Open Question'
 
 
+class QuestionnaireManager(models.Manager):
+    """Manager for the Questionnaire model"""
+    def open_questionnaires(self):
+        return self.filter(available_from__lte=timezone.now(),
+                           available_until__gte=timezone.now())
+
+
 class Questionnaire(models.Model):
     """A group of questions."""
 
     title = models.CharField(max_length=200)
-    active = models.BooleanField()
+    available_from = models.DateTimeField()
+    available_until = models.DateTimeField()
+
+    objects = QuestionnaireManager()
 
     def __str__(self):
         """Return title."""

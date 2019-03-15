@@ -1,6 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, get_object_or_404, get_list_or_404
 from django.contrib import messages
+from django.utils import timezone
 from django.views.generic import ListView
 from django.views.generic.edit import FormView
 
@@ -18,7 +19,8 @@ class OverviewView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         """Return the available questionnaires queryset."""
-        return super().get_queryset().filter(active=True)
+        return super().get_queryset().filter(available_from__lte=timezone.now(),
+                                             available_until__gte=timezone.now())
 
 
 class PeerReviewView(LoginRequiredMixin, FormView):
