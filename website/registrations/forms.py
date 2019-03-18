@@ -4,6 +4,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.forms import widgets
+from django.forms.utils import ErrorList
 
 from registrations.models import RoleChoice, GiphouseProfile
 from projects.models import Project
@@ -15,6 +16,16 @@ User = get_user_model()
 
 class Step2Form(forms.Form):
     """Form to get user information for registration."""
+
+    def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None, initial=None, error_class=ErrorList,
+                 label_suffix=None, empty_permitted=False, field_order=None, use_required_attribute=None,
+                 renderer=None):
+        """Set querysets dynamically."""
+        super().__init__(data, files, auto_id, prefix, initial, error_class, label_suffix, empty_permitted,
+                         field_order, use_required_attribute, renderer)
+        self.fields['project1'].queryset = Project.objects.filter(semester=Semester.objects.get_current_registration())
+        self.fields['project2'].queryset = Project.objects.filter(semester=Semester.objects.get_current_registration())
+        self.fields['project3'].queryset = Project.objects.filter(semester=Semester.objects.get_current_registration())
 
     first_name = forms.CharField(widget=widgets.TextInput(attrs={'class': 'form-control'}))
     last_name = forms.CharField()
@@ -30,21 +41,24 @@ class Step2Form(forms.Form):
 
     email = forms.EmailField()
 
-    project1 = forms.ModelChoiceField(label="First project preference",
-                                      queryset=Project.objects.filter(
-                                          semester=Semester.objects.get_current_registration()))
+    project1 = forms.ModelChoiceField(
+        label="First project preference",
+        queryset=None,
+    )
 
-    project2 = forms.ModelChoiceField(label="Second project preference",
-                                      help_text="Optional",
-                                      required=False,
-                                      queryset=Project.objects.filter(
-                                          semester=Semester.objects.get_current_registration()))
+    project2 = forms.ModelChoiceField(
+        label="Second project preference",
+        help_text="Optional",
+        required=False,
+        queryset=None,
+    )
 
-    project3 = forms.ModelChoiceField(label="Third project preference",
-                                      help_text="Optional",
-                                      required=False,
-                                      queryset=Project.objects.filter(
-                                          semester=Semester.objects.get_current_registration()))
+    project3 = forms.ModelChoiceField(
+        label="Third project preference",
+        help_text="Optional",
+        required=False,
+        queryset=None,
+    )
 
     comments = forms.CharField(widget=forms.Textarea(attrs={'placeholder': "Who do you want to work with? \n"
                                                                            "Any other comments?"}),
