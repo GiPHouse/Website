@@ -4,7 +4,6 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.forms import widgets
-from django.forms.utils import ErrorList
 
 from registrations.models import RoleChoice, GiphouseProfile
 from projects.models import Project
@@ -17,12 +16,9 @@ User = get_user_model()
 class Step2Form(forms.Form):
     """Form to get user information for registration."""
 
-    def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None, initial=None, error_class=ErrorList,
-                 label_suffix=None, empty_permitted=False, field_order=None, use_required_attribute=None,
-                 renderer=None):
+    def __init__(self, *args, **kwargs):
         """Set querysets dynamically."""
-        super().__init__(data, files, auto_id, prefix, initial, error_class, label_suffix, empty_permitted,
-                         field_order, use_required_attribute, renderer)
+        super().__init__(*args, **kwargs)
         self.fields['project1'].queryset = Project.objects.filter(semester=Semester.objects.get_current_registration())
         self.fields['project2'].queryset = Project.objects.filter(semester=Semester.objects.get_current_registration())
         self.fields['project3'].queryset = Project.objects.filter(semester=Semester.objects.get_current_registration())
