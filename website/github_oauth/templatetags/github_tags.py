@@ -1,7 +1,7 @@
 from django import template
 from django.shortcuts import reverse
 
-from ..links import URL_GITHUB_LOGIN
+from github_oauth.links import URL_GITHUB_LOGIN
 
 register = template.Library()
 

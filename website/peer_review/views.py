@@ -6,8 +6,8 @@ from django.views.generic import ListView
 from django.views.generic.edit import FormView
 
 from registrations.models import users_in_same_group
-from .models import Answer, Question, Questionnaire
-from .forms import PeerReviewForm
+from peer_review.models import Answer, Question, Questionnaire
+from peer_review.forms import PeerReviewForm
 
 
 class OverviewView(LoginRequiredMixin, ListView):
