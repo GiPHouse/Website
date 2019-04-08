@@ -20,11 +20,11 @@ class Step1View(TemplateView):
     def dispatch(self, request, *args, **kwargs):
         """Check whether user is authenticated and if registration is possible."""
         if request.user.is_authenticated:
-            messages.warning(request, "You are already logged in", extra_tags='alert alert-success')
+            messages.warning(request, "You are already logged in", extra_tags='success')
             return redirect('home')
 
         if not Semester.objects.get_current_registration():
-            messages.warning(request, "Registrations are currently not open", extra_tags='alert alert-danger')
+            messages.warning(request, "Registrations are currently not open", extra_tags='danger')
             return redirect('home')
 
         return super().dispatch(request, *args, **kwargs)
@@ -91,7 +91,7 @@ class Step2View(FormView):
                 registration.save()
         except IntegrityError:
             messages.warning(
-                self.request, "User already exists", extra_tags='alert alert-danger'
+                self.request, "User already exists", extra_tags='danger'
             )
             return redirect('home')
         finally:
@@ -101,7 +101,7 @@ class Step2View(FormView):
             del self.request.session['github_email']
 
         messages.success(
-            self.request, "User created successfully", extra_tags='alert alert-success'
+            self.request, "User created successfully", extra_tags='success'
         )
 
         login(
