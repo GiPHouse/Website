@@ -7,12 +7,12 @@ from django.utils import timezone
 
 
 def current_year():
-    """Function wrapping a call to timezone returning the current year"""
+    """Wrap a call to timezone returning the current year."""
     return timezone.now().year
 
 
 def max_value_current_year(value):
-    """Validator Function for limiting modelinput to current year"""
+    """Validate value, limit modelinput to current year."""
     return MaxValueValidator(current_year()+1)(value)
 
 
