@@ -26,7 +26,7 @@
                 {% if semesters %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Course Pages</a>
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Course Content</a>
                         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                             {% for semester in semesters %}
                                 <a class="dropdown-item" href="{% url 'courses:lectures' semester.year semester.season %}">{{ semester }}</a>
