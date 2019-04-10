@@ -3,15 +3,17 @@
     {% if current_projects %}
         <h2 class="text-center">Currently running projects</h2>
         {% for project in current_projects %}
-            <div class="col-md-8 mx-auto">
-                <div class="card my-4">
-                    {% if project.client.logo %}<img class="card-img-top img-fluid" src="{{ project.client.logo.url }}" alt="logo {{ project.client.name }}">{% endif %}
-                    <div class="card-body">
-                        <h4 class="card-title">{{ project.name }}</h4>
-                        {% if project.client %}<h6 class="card-subtitle text-muted">By {{ project.client.name}}</h6>{% endif %}
-                    </div>
-                </div>
-            </div>
+          <a href="{% url 'projects:projects' current_semester.year current_semester.season %}#{{ project.id }}">
+              <div class="col-md-8 mx-auto">
+                  <div class="card my-4">
+                      {% if project.client.logo %}<img class="card-img-top img-fluid" src="{{ project.client.logo.url }}" alt="logo {{ project.client.name }}">{% endif %}
+                      <div class="card-body">
+                          <h4 class="card-title">{{ project.name }}</h4>
+                          {% if project.client %}<h6 class="card-subtitle text-muted">By {{ project.client.name}}</h6>{% endif %}
+                      </div>
+                  </div>
+              </div>
+          </a>
         {% endfor %}
     {% endif %}
 {% endblock %}
