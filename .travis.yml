@@ -27,7 +27,7 @@ script:
   - >-
     poetry run
     coverage run
-    --omit="website/manage.py,website/giphousewebsite/wsgi.py,website/*/migrations/*"
+    --omit="website/manage.py,website/giphousewebsite/wsgi.py,website/*/migrations/*,website/*/tests/*"
     --branch
     --source 'website'
     website/manage.py test
