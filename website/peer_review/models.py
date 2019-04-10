@@ -67,9 +67,9 @@ class Question(models.Model):
 
     def closed_question(self):
         """Return whether a question is closed."""
-        return self.question_type in [
-            QuestionTypes.poor_good.name,
-            QuestionTypes.agree_disagree.name
+        return QuestionTypes[self.question_type] in [
+            QuestionTypes.poor_good,
+            QuestionTypes.agree_disagree
         ]
 
     def choices(self):
