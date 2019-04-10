@@ -23,7 +23,7 @@ class ShowCalendarView(LoginRequiredMixin, TemplateView):
         context = super(ShowCalendarView, self).get_context_data(**kwargs)
 
         rooms = Room.objects.all()
-        this_weeks_reservations = []
+        this_weeks_reservations = {}
         today = timezone.now().date()
 
         if 'week' in self.request.GET:
@@ -35,12 +35,14 @@ class ShowCalendarView(LoginRequiredMixin, TemplateView):
             f'{today.year}-{current_week}-1', "%G-%V-%w").date()
         days = (monday_of_the_week + timedelta(days=n) for n in range(7))
 
-        for day in days:
-            next_day = day + timedelta(days=1)
-            this_weeks_reservations += [Reservation.objects.filter(
-                start_time__date__gte=day,
-                start_time__date__lt=next_day,
-            )]
+        for room in rooms:
+            this_weeks_reservations[room] = []
+            for day in days:
+                next_day = day + timedelta(days=1)
+                this_weeks_reservations[room] += [Reservation.objects.filter(
+                    start_time__date__gte=day,
+                    start_time__date__lt=next_day,
+                )]
 
         context['rooms'] = rooms
         context['this_weeks_reservations'] = this_weeks_reservations

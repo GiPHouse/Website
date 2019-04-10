@@ -2,6 +2,8 @@
 {% load bootstrap4 %}
 
 {% block content %}
+<!-- XDSoft DateTimePicker -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.min.css" integrity="sha256-DOS9W6NR+NFe1fUhEE0PGKY/fubbUCnOfTje2JMDw3Y=" crossorigin="anonymous" />
 
 <form method="post" class="form">
     {% csrf_token %}
@@ -11,5 +13,21 @@
     <input type="submit" class="btn btn-primary" value="Submit"/>
     {% endbuttons %}
 </form>
+{% endblock %}
 
+{% block js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.full.min.js" integrity="sha256-FEqEelWI3WouFOo2VWP/uJfs1y8KJ++FLh2Lbqc8SJk=" crossorigin="anonymous"></script>
+<script>
+    $(function () {
+      $("#id_start_time").datetimepicker({
+      format: 'm/d/Y H:i',
+      });
+    });
+
+    $(function () {
+      $("#id_end_time").datetimepicker({
+      format: 'm/d/Y H:i',
+      });
+    });
+</script>
 {% endblock %}
