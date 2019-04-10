@@ -24,10 +24,7 @@ class GetCoursesTest(TestCase):
         self.client = Client()
 
     def test_get_success(self):
-        """
-        Test get request of courses page.
-        """
+        """Test get request of courses page."""
 
         response = self.client.get(f'/lectures/{self.year}/{self.season}/')
-
         self.assertEqual(response.status_code, 200)
