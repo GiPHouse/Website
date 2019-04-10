@@ -19,7 +19,7 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__
 
 INSTALLED_APPS = [
     'giphousewebsite',
-    'room_reservation',
+    'room_reservation.RoomReservationConfig',
     'peer_review.apps.PeerReviewConfig',
     'github_oauth.apps.GithubConfig',
     'registrations.apps.RegistrationsConfig',
