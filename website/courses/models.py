@@ -12,7 +12,7 @@ def current_year():
 
 
 def max_value_current_year(value):
-    """Validate value, limit modelinput to current year."""
+    """Validate value, limit modelinput to current_year, call current_year to keep validator from changing per year."""
     return MaxValueValidator(current_year()+1)(value)
 
 
