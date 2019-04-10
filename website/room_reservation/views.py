@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
+from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from room_reservation.models import Reservation, Room
 from room_reservation.forms import ReservationForm
@@ -8,40 +9,45 @@ from django.utils import timezone
 from django.core.exceptions import PermissionDenied
 
 
-def show_calendar(request):
+class ShowCalendarView(LoginRequiredMixin, TemplateView):
     """
     Show a week-calendar and showing the current reservations.
 
     From here, it is possible to make reservations,
     and to update and delete your own.
     """
-    rooms = Room.objects.all()
-    this_weeks_reservations = []
-    today = timezone.now().date()
 
-    if 'week' in request.GET:
-        current_week = request.GET['week']
-    else:
-        current_week = today.isocalendar()[1]
+    template_name = 'room_reservation/index.html'
 
-    monday_of_the_week = datetime.strptime(
-        f'{today.year}-{current_week}-1', "%G-%V-%w").date()
-    days = (monday_of_the_week + timedelta(days=n) for n in range(7))
+    def get_context_data(self, **kwargs):
+        """Load all information for the calendar."""
+        context = super(ShowCalendarView, self).get_context_data(**kwargs)
 
-    for day in days:
-        next_day = day + timedelta(days=1)
-        this_weeks_reservations += [Reservation.objects.filter(
-            start_time__date__gte=day,
-            start_time__date__lt=next_day,
-        )]
+        rooms = Room.objects.all()
+        this_weeks_reservations = []
+        today = timezone.now().date()
 
-    context = {
-        'rooms': rooms,
-        'this_weeks_reservations': this_weeks_reservations,
-        'current_week': current_week,
-    }
-    return render(request, 'room_reservation/index.html', context)
+        if 'week' in self.request.GET:
+            current_week = self.request.GET['week']
+        else:
+            current_week = today.isocalendar()[1]
 
+        monday_of_the_week = datetime.strptime(
+            f'{today.year}-{current_week}-1', "%G-%V-%w").date()
+        days = (monday_of_the_week + timedelta(days=n) for n in range(7))
+
+        for day in days:
+            next_day = day + timedelta(days=1)
+            this_weeks_reservations += [Reservation.objects.filter(
+                start_time__date__gte=day,
+                start_time__date__lt=next_day,
+            )]
+
+        context['rooms'] = rooms
+        context['this_weeks_reservations'] = this_weeks_reservations
+        context['current_week'] = current_week
+
+        return context
 
 class CreateReservationView(LoginRequiredMixin, CreateView):
     """FormView to make a reservation."""

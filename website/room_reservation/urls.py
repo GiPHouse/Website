@@ -1,11 +1,11 @@
 from django.urls import path
 
-from room_reservation.views import show_calendar, CreateReservationView, DeleteReservationView, UpdateReservationView
+from room_reservation.views import ShowCalendarView, CreateReservationView, DeleteReservationView, UpdateReservationView
 
 app_name = 'room_reservation'
 
 urlpatterns = [
-    path('', show_calendar, name='calendar'),
+    path('', ShowCalendarView.as_view(), name='calendar'),
     path('create', CreateReservationView.as_view(), name='create_reservation'),
     path('<int:pk>/update', UpdateReservationView.as_view(),
          name='update_reservation'),
