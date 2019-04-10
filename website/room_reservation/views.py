@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -48,6 +47,7 @@ class ShowCalendarView(LoginRequiredMixin, TemplateView):
         context['current_week'] = current_week
 
         return context
+
 
 class CreateReservationView(LoginRequiredMixin, CreateView):
     """FormView to make a reservation."""
