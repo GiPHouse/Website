@@ -9,6 +9,7 @@ from .models import Reservation
 
 class ReservationForm(ModelForm):
     """Form for a logged in user to make/update reservation."""
+
     pk = forms.IntegerField(widget=forms.HiddenInput(),
                             initial=-1, required=False)
 
