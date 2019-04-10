@@ -1,7 +1,7 @@
 from django.views.generic import TemplateView
 from django.shortcuts import get_object_or_404
 
-from courses.models import Lecture, Semester
+from courses.models import Lecture, Semester, Course
 
 
 class CoursesView(TemplateView):
@@ -20,11 +20,11 @@ class CoursesView(TemplateView):
         context['lecture_semester'] = get_object_or_404(Semester, year=year, season=season)
 
         courses = {}
-        for course_name, course_label in Lecture.COURSE_CHOICES:
-            courses[course_label] = (
+        for course_name in Course.objects.values_list('name', flat=True):
+            courses[course_name] = (
                 Lecture
                 .objects
-                .filter(course=course_name, semester__year=year, semester__season=season)
+                .filter(course__name=course_name, semester__year=year, semester__season=season)
                 .order_by(f'date')
             )
 
