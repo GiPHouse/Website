@@ -18,20 +18,22 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__
 # Application definition
 
 INSTALLED_APPS = [
-    'giphousewebsite',
-    'peer_review.apps.PeerReviewConfig',
-    'github_oauth.apps.GithubConfig',
-    'registrations.apps.RegistrationsConfig',
-    'courses.apps.CoursesConfig',
-    'projects.apps.ProjectsConfig',
-    'sass_processor',
-    'bootstrap4',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'sass_processor',
+    'bootstrap4',
+
+    'giphousewebsite',
+    'peer_review.apps.PeerReviewConfig',
+    'github_oauth.apps.GithubConfig',
+    'registrations.apps.RegistrationsConfig',
+    'courses.apps.CoursesConfig',
+    'projects.apps.ProjectsConfig',
 ]
 
 MIDDLEWARE = [
