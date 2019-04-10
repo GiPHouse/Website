@@ -44,7 +44,11 @@
 					style="top: calc( ({{r.start_time|date:"H"}} - 8) / 10 * 100%); 
 					height: calc( (({{r.end_time|date:"H"}} + {{r.end_time|date:"i"}} / 60) - 8 ) / 10 * 100% - (({{r.start_time|date:"H"}} + {{r.start_time|date:"i"}} / 60) - 8) / 10 * 100%); "
 					>
+<<<<<<< HEAD
 					<p>{{r.reservee.first_name}} {{r.reservee.last_name}}<br/> 
+=======
+					<p>{{r.reservee}}<br/> 
+>>>>>>> fancy datetime picker. calendar per room
 					({{r.start_time|date:"H:i"}}-{{r.end_time|date:"H:i"}})
 					</p>
 					{% if r.reservee == request.user %}
