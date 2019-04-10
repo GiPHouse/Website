@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import PeerReviewView, OverviewView
+from peer_review.views import PeerReviewView, OverviewView
 
 app_name = 'peer_review'
 

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import github_login, github_register
+from github_oauth.views import github_login, github_register
 
 app_name = 'github_oauth'
 urlpatterns = [

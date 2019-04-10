@@ -4,7 +4,7 @@ from requests.exceptions import RequestException
 from django.contrib.auth import get_user_model
 from django.conf import settings
 
-from .links import URL_GITHUB_ACCESS_TOKEN, URL_GITHUB_USER_INFO
+from github_oauth.links import URL_GITHUB_ACCESS_TOKEN, URL_GITHUB_USER_INFO
 
 User = get_user_model()
 

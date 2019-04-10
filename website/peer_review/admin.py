@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Question, Answer, Questionnaire
+from peer_review.models import Question, Answer, Questionnaire
 
 
 @admin.register(Question)
