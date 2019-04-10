@@ -31,7 +31,7 @@ script:
     --branch
     --source 'website'
     website/manage.py test
-  - "poetry run coverage report --show-missing --skip-covered --fail-under=97"
+  - "poetry run coverage report --show-missing --skip-covered --fail-under=96"
 
 deploy:
   provider: "script"
