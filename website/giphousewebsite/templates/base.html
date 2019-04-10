@@ -1,5 +1,4 @@
-{% load static %}
-{% load sass_tags %}
+{% load static sass_tags bootstrap4 %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,9 +18,7 @@
 <div class="container pt-4">
     {% if messages %}
         {% for message in messages %}
-            <div class="{{ message.extra_tags }}">
-                {{ message }}
-            </div>
+            {% bootstrap_alert message alert_type=message.extra_tags dismissable=True %}
         {% endfor %}
     {% endif %}
 

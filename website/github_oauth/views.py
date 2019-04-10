@@ -21,7 +21,7 @@ def github_login(request):
         return HttpResponseBadRequest()
 
     if request.user.is_authenticated:
-        messages.warning(request, "You are already logged in", extra_tags='alert alert-success')
+        messages.warning(request, "You are already logged in", extra_tags='success')
         return redirect('home')
 
     code = request.GET['code']
@@ -32,12 +32,12 @@ def github_login(request):
         login(request, user)
 
         messages.success(
-            request, 'Login Successful', extra_tags='alert alert-success'
+            request, 'Login Successful', extra_tags='success'
         )
 
         return redirect('home')
 
-    messages.warning(request, 'Login Failed', extra_tags='alert alert-danger')
+    messages.warning(request, 'Login Failed', extra_tags='danger')
     return redirect('home')
 
 
@@ -53,7 +53,7 @@ def github_register(request):
         return HttpResponseBadRequest()
 
     if request.user.is_authenticated:
-        messages.warning(request, "You are already logged in", extra_tags='alert alert-success')
+        messages.warning(request, "You are already logged in", extra_tags='success')
         return redirect('home')
 
     code = request.GET['code']
