@@ -3,7 +3,7 @@
     {% if current_projects %}
         <h2 class="text-center">Currently running projects</h2>
         {% for project in current_projects %}
-          <a href="{% url 'projects:projects' current_semester.year current_semester.season %}#{{project.id}}">
+          <a href="{% url 'projects:projects' current_semester.year current_semester.season %}#{{ project.id }}">
               <div class="col-md-8 mx-auto">
                   <div class="card my-4">
                       {% if project.client.logo %}<img class="card-img-top img-fluid" src="{{ project.client.logo.url }}" alt="logo {{ project.client.name }}">{% endif %}
