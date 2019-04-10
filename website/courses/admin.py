@@ -18,7 +18,7 @@ class LectureAdmin(admin.ModelAdmin):
     list_filter = ('course', 'semester__season', 'semester__year', 'teacher')
 
 
-class AdminSemesterForm(forms.ModelForm):
+class AdminSemester(forms.ModelForm):
     """Semester Object form with typed choices for the year."""
 
     year = forms.TypedChoiceField(
@@ -35,8 +35,7 @@ class AdminSemesterForm(forms.ModelForm):
 class AdminSemesterForm(admin.ModelAdmin):
     """Admin for the Semester Object using a custom form."""
 
-    form = SemesterForm
+    form = AdminSemester
 
 
-admin.site.register(Semester, SemesterAdmin)
 admin.site.register(Course)
