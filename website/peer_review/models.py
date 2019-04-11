@@ -98,18 +98,13 @@ class Answer(models.Model):
         blank=True,
         null=True
     )
-    created = models.DateTimeField(
-        auto_now_add=True,
-    )
+    created = models.DateTimeField(auto_now_add=True)
     on_time = models.BooleanField()
 
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+    def save(self, **kwargs):
         """Save model and set on_time field."""
-        if self.created:
-            self.on_time = self.created < self.question.questionnaire.available_until
-        else:
-            self.on_time = timezone.now() < self.question.questionnaire.available_until
-        super().save(force_insert, force_update, using, update_fields)
+        self.on_time = timezone.now() < self.question.questionnaire.available_until
+        super().save(**kwargs)
 
     def __str__(self):
         """Return information about answer as string."""
