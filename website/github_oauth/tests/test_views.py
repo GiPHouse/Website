@@ -1,10 +1,12 @@
 from unittest import mock
 
-from django.test import TestCase, Client
+from django.test import TestCase, Client, RequestFactory
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 from django.shortcuts import reverse
 
 from registrations.models import GiphouseProfile
+from github_oauth.views import BaseGithubView
 
 User = get_user_model()
 
@@ -24,6 +26,16 @@ class LoginTest(TestCase):
 
     def setUp(self):
         self.client = Client()
+        self.request_factory = RequestFactory()
+
+    def test_base_get(self):
+        """Test GET request for base class."""
+
+        request = self.request_factory.get('/?code=fakecode')
+        request.user = AnonymousUser()
+
+        response = BaseGithubView.as_view()(request)
+        self.assertRedirects(response, BaseGithubView.redirect_url_success, fetch_redirect_response=False)
 
     @mock.patch('github_oauth.views.authenticate')
     def test_login_get_success(self, mock_auth):
@@ -59,7 +71,7 @@ class LoginTest(TestCase):
         Test login view if non GET request is made.
         """
 
-        response = self.client.post('/oauth/login/')
+        response = self.client.post('/oauth/login/?code=fakecode')
         self.assertEqual(response.status_code, 405)
 
     def test_login_authenticated(self):
@@ -143,7 +155,7 @@ class RegisterTest(TestCase):
         Test register view if non GET request is made.
         """
 
-        response = self.client.post('/oauth/register/')
+        response = self.client.post('/oauth/register/?code=fakecode')
         self.assertEqual(response.status_code, 405)
 
     def test_register_authenticated(self):

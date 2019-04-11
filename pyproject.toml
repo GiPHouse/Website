@@ -24,6 +24,7 @@ production = ["uwsgi", "psycopg2-binary"]
 flake8 = "^3.7"
 coverage = "^4.5"
 pydocstyle = "^3.0"
+freezegun = "^0.3.11"
 
 [build-system]
 requires = ["poetry>=0.12"]

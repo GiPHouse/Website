@@ -1,38 +1,19 @@
 from django import forms
 from django.contrib import admin
-
+from django.contrib.auth.models import User as DjangoUser
 from django.contrib.auth import get_user_model
 
 from registrations.models import GiphouseProfile, Registration
 
-User = get_user_model()
-
-
-class GiphouseProfileForm(forms.ModelForm):
-    """GiphouseProfile form for admin."""
-
-    github_username = forms.CharField(widget=forms.TextInput)
-
-
-class GiphouseProfileInline(admin.StackedInline):
-    """Inline form for GiphouseProfile."""
-
-    model = GiphouseProfile
-    form = GiphouseProfileForm
-    max_num = 1
-    min_num = 0
-
-
-class RegistrationInline(admin.StackedInline):
-    """Inline form for Registration."""
-
-    model = Registration
-    max_num = 1
-    min_num = 0
+User: DjangoUser = get_user_model()
 
 
 class Student(User):
-    """Proxy model for user."""
+    """
+    Proxy model for user.
+
+    This model is only used in the Admin to be able to edit both the registration and the GiphouseProfile inline.
+    """
 
     class Meta:
         """Meta class Specifying that this model is a proxy model."""
@@ -47,6 +28,29 @@ class Student(User):
     def github_username(self):
         """Return github_username of Student."""
         return self.giphouseprofile.github_username
+
+
+class AdminGiphouseProfileForm(forms.ModelForm):
+    """GiphouseProfile form for admin."""
+
+    github_username = forms.CharField(widget=forms.TextInput)
+
+
+class GiphouseProfileInline(admin.StackedInline):
+    """Inline form for GiphouseProfile."""
+
+    model = GiphouseProfile
+    form = AdminGiphouseProfileForm
+    max_num = 1
+    min_num = 0
+
+
+class RegistrationInline(admin.StackedInline):
+    """Inline form for Registration."""
+
+    model = Registration
+    max_num = 1
+    min_num = 0
 
 
 @admin.register(Student)
