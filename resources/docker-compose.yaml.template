@@ -10,7 +10,7 @@ services:
         environment:
             PGDATA: '/var/lib/postgresql/data/pgdata'
     web:
-        image: 'giphouse/giphousewebsite:latest'
+        image: '{{DOCKER_IMAGE}}'
         restart: 'always'
         ports:
             - '127.0.0.1:8000:8000'
