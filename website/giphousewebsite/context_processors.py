@@ -1,6 +1,13 @@
+import os
+
 from courses.models import Semester
 from peer_review.models import Questionnaire
 from projects.models import Project
+
+
+def source_commit(request):
+    """Get the COMMIT_HASH environment variable."""
+    return {'COMMIT_HASH': os.environ.get('COMMIT_HASH', 'unknown')}
 
 
 def add_menu_objects_to_context(request):
