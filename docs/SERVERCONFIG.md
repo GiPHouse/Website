@@ -1,8 +1,8 @@
 # Serverconfig
 
-The GiPHouse website runs on a [Amazon LightSail](https://aws.amazon.com/lightsail/) server which currently has the IPv4 address `35.157.118.162` (IPv6 is not supported by Amazon Lightsail yet). This server can be reached via SSH (only with publickey).
+The GiPHouse website runs on a [Amazon Lightsail](https://aws.amazon.com/lightsail/) server which currently has the IPv4 address `35.157.118.162` (IPv6 is not supported by Amazon Lightsail yet). This server can be reached via SSH (only with publickey).
 
-Some basic information about the server can be configured in the LightSail dashboard. This includes the firewall. 
+Some basic information about the server can be configured in the Lightsail dashboard. This includes the firewall. 
 We opened ports `22`, `80` and `443` to enable SSH, HTTP and HTTPS.
 
 ### Server Info
@@ -23,7 +23,7 @@ This script does the following:
 - Restarts the running docker containers using the new images.
 
 ### Setup steps
-Some manuall steps are taken to setup the server. These steps are not done in the deployment script, because these steps are only necessary once.
+Some manual steps are taken to setup the server. These steps are not done in the deployment script, because these steps are only necessary once.
 
 1. Add the SSH public keys of engineers to the authorized keys of the `ubuntu` user. 
 2. Add the deploy key to the Github Deploy keys and to the authorized keys of the `ubuntu` user.
