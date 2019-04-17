@@ -3,14 +3,6 @@ from django.contrib import admin
 from peer_review.models import Question, Answer, Questionnaire
 
 
-@admin.register(Question)
-class QuestionAdmin(admin.ModelAdmin):
-    """Customize the question filters in the admin."""
-
-    list_display = ('question', 'question_type')
-    list_filter = ('question', 'question_type')
-
-
 @admin.register(Answer)
 class AnswerAdmin(admin.ModelAdmin):
     """Customize the answer filters in the admin."""
