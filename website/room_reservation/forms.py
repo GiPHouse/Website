@@ -58,6 +58,10 @@ class ReservationForm(ModelForm):
             raise ValidationError(
                 ('Rerservation too long. Please shorten your reservation'), code='invalid')
 
+        if end_time > start_time :
+            raise ValidationError(
+                ('End time past start time.'), code='invalid')
+
     def __init__(self, *args, **kwargs):
         """Initialize the object and give user-friendly widgets for the datetime objects."""
         super().__init__(*args, **kwargs)

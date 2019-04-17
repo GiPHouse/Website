@@ -16,4 +16,3 @@ class RoomAdmin(admin.ModelAdmin):
     """Admin class for Room."""
 
     list_display = ('name', 'location')
-    list_filter = ('name', 'location')
