@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -37,7 +35,7 @@ class PeerReviewTest(TestCase):
             semester=Semester.objects.create(year=2019,
                                              season=SeasonChoice.spring.name,
                                              registration_start=timezone.now(),
-                                             registration_end=timezone.now() + timedelta(days=60)),
+                                             registration_end=timezone.now() + timezone.timedelta(days=60)),
             name="Test Project",
             description="Description",
         )
@@ -54,8 +52,8 @@ class PeerReviewTest(TestCase):
         cls.peer.save()
         cls.active_questions = Questionnaire.objects.create(
             title="An Active Questionnaire",
-            available_from=timezone.now() - timedelta(days=2),
-            available_until=timezone.now() + timedelta(days=1)
+            available_from=timezone.now() - timezone.timedelta(days=2),
+            available_until=timezone.now() + timezone.timedelta(days=1)
         )
         Question.objects.create(
             questionnaire=cls.active_questions,
@@ -90,8 +88,8 @@ class PeerReviewTest(TestCase):
         cls.questions = Question.objects.filter(questionnaire=cls.active_questions)
         cls.inactive_questions = Questionnaire.objects.create(
             title="An Inactive Questionnaire",
-            available_from=timezone.now() - timedelta(days=2),
-            available_until=timezone.now() - timedelta(days=1)
+            available_from=timezone.now() - timezone.timedelta(days=2),
+            available_until=timezone.now() - timezone.timedelta(days=1)
         )
         Question.objects.create(
             questionnaire=cls.inactive_questions,
