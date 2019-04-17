@@ -3,12 +3,13 @@ from unittest import mock
 from django.test import TestCase, Client, RequestFactory
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import User as DjangoUser
 from django.shortcuts import reverse
 
 from registrations.models import GiphouseProfile
 from github_oauth.views import BaseGithubView
 
-User = get_user_model()
+User: DjangoUser = get_user_model()
 
 
 class LoginTest(TestCase):

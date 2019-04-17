@@ -2,6 +2,7 @@ from unittest import mock
 
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User as DjangoUser
 from django.shortcuts import reverse
 from django.utils import timezone
 
@@ -9,7 +10,7 @@ from projects.models import Project
 from courses.models import Semester, SeasonChoice
 from registrations.models import RoleChoice, GiphouseProfile
 
-User = get_user_model()
+User: DjangoUser = get_user_model()
 
 
 class RedirectTest(TestCase):

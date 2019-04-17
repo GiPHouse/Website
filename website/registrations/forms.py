@@ -2,6 +2,7 @@ import re
 
 from django import forms
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User as DjangoUser
 from django.core.exceptions import ValidationError
 from django.forms import widgets
 
@@ -10,7 +11,7 @@ from projects.models import Project
 from courses.models import Semester
 
 student_number_regex = re.compile(r'^[sS]?(\d{7})$')
-User = get_user_model()
+User: DjangoUser = get_user_model()
 
 
 class Step2Form(forms.Form):
