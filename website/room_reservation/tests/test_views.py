@@ -43,7 +43,6 @@ class PeerReviewTest(TestCase):
         """
         week = 14
         response = self.client.get("{}?week={}".format(reverse('room_reservation:calendar'), week))
-        self.assertEqual(response.status_code, 200)
 
     def test_get_create_reservation(self):
         """
@@ -58,14 +57,13 @@ class PeerReviewTest(TestCase):
         Test POST request to create reservation form.
         """
         current = Reservation.objects.all().count()
-
         response = self.client.post(
             reverse('room_reservation:create_reservation'),
             {
                 'room': self.room.pk,
-                'end_time': '04/18/2019 13:00',
-                'start_time': '04/18/2019 12:00',
-                'pk': -1,
+                'start_time': "04/17/2019 18:00",
+                'end_time': "04/17/2019 19:00",
+                'pk': '-1',
             },
             follow=True,
         )
@@ -94,6 +92,33 @@ class PeerReviewTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+    def test_get_update_reservation_permission_denied(self):
+        """
+        Test GET request to update a room reservation made by another user.
+        """
+
+        anotherone = User.objects.create_user(
+            username='someone else',
+            password='123',
+        )
+
+        reservation = Reservation.objects.create(
+            reservee=anotherone,
+            room=self.room,
+            start_time=datetime(2005, 7, 14, 12, 00, tzinfo=self.tz),
+            end_time=datetime(2005, 7, 14, 13, 00, tzinfo=self.tz),
+        )
+
+        response = self.client.get(
+            reverse(
+                'room_reservation:update_reservation',
+                kwargs={'pk': reservation.pk}
+            ),
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 403)
+
     def test_post_delete_reservation(self):
         """
         Test POST request to create reservation form.
@@ -119,7 +144,10 @@ class PeerReviewTest(TestCase):
         is_removed = not Reservation.objects.filter(pk=reservation.pk).exists()
         self.assertTrue(is_removed, msg='reservation is removed')
 
-    def test_update_reservation_permission_denied(self):
+    def test_get_delete_reservation_permission_denied(self):
+        """
+        Test POST request to alter someone else's reservation.
+        """
         someone_else = User.objects.create_user(
             username='someone else',
             password='123',
@@ -158,3 +186,13 @@ class PeerReviewTest(TestCase):
             ))
 
         self.assertEqual(response.status_code, 403)
+                'room_reservation:delete_reservation',
+                kwargs={'pk': reservation.pk}
+            ),
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+        is_removed = not Reservation.objects.filter(pk=reservation.pk).exists()
+        self.assertFalse(is_removed, msg='reservation is removed')
