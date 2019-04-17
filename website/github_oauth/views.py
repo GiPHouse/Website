@@ -2,13 +2,14 @@ from django.views import View
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.contrib.auth import authenticate, login, get_user_model
+from django.contrib.auth.models import User as DjangoUser
 from django.conf import settings
 from django.http.response import HttpResponseBadRequest
 from django.contrib import messages
 
 from github_oauth.backends import GithubOAuthBackend
 
-User = get_user_model()
+User: DjangoUser = get_user_model()
 
 
 class BaseGithubView(View):
