@@ -19,11 +19,11 @@ class UserModelMultipleChoiceField(forms.ModelMultipleChoiceField):
 
 
 # Create ModelForm based on the Group model.
-class ProjectForm(forms.ModelForm):
+class AdminProjectForm(forms.ModelForm):
     """Admin form to edit projects."""
 
     class Meta:
-        """Meta class for ProjectForm."""
+        """Meta class for AdminProjectForm."""
 
         model = Project
         exclude = []
@@ -47,8 +47,8 @@ class ProjectForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         """Initialize the form."""
-        # Do the normal form initialisation.
-        super(ProjectForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
+
         # If it is an existing group (saved objects have a pk).
         if self.instance.pk:
             # Populate the users field with the current Group users.
@@ -61,7 +61,7 @@ class ProjectForm(forms.ModelForm):
 
     def save(self, *args, **kwargs):
         """Save the form data, including many-to-many data."""
-        instance = super(ProjectForm, self).save()
+        instance = super().save()
         self.save_m2m()
         return instance
 
@@ -70,7 +70,7 @@ class ProjectForm(forms.ModelForm):
 class ProjectAdmin(admin.ModelAdmin):
     """Custom admin for projects."""
 
-    form = ProjectForm
+    form = AdminProjectForm
     exclude = ['permissions']
 
 
