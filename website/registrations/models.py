@@ -109,4 +109,4 @@ class Registration(models.Model):
 
     def __str__(self):
         """Give user information about this object."""
-        return f'{self.user.giphouse_profile}'
+        return f'{self.user.giphouseprofile}'
