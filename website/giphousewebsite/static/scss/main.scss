@@ -1,9 +1,52 @@
-// Bootstrap and its default variables
-@import "bootstrap/bootstrap.scss";
-@import "bootstrap/bootstrap-reboot.scss";
-@import "bootstrap/bootstrap-grid.scss";
-
 // Fontawesome
 @import "fontawesome/fontawesome.scss";
 @import "fontawesome/brands.scss";
+@import "fontawesome/solid.scss";
+
 // Variable overrides
+
+$container-max-widths: (
+  sm: 540px,
+  md: 720px,
+  lg: 860px,
+  xl: 861px
+);
+
+$primary: #268AFF;
+$secondary: #FD9A28;
+$navbar-padding-y: 1rem;
+
+.section-title {
+  margin-bottom: 1rem;
+}
+
+// Our own classes
+
+.course {
+  margin-bottom: 3rem;
+}
+
+.no-underline {
+  text-decoration: none !important;
+}
+
+.left-and-right {
+  display: flex;
+  justify-content: space-between;
+}
+
+.client-logo {
+  height: 6em;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.project-logo {
+  height: auto;
+  width: 15rem;
+}
+
+// Bootstrap and its default variables
+// Required includes
+@import "bootstrap/bootstrap";
