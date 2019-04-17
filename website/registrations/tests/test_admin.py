@@ -32,7 +32,7 @@ class RegistrationAdminTest(TestCase):
 
     def test_get_form(self):
         response = self.client.get(
-            reverse('admin:registrations_student_changelist'),
+            reverse('admin:auth_user_changelist'),
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
