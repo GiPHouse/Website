@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
+from django.contrib.auth.models import User as DjangoUser
 from django.db import transaction, IntegrityError
 from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect
@@ -9,7 +10,7 @@ from registrations.forms import Step2Form
 from registrations.models import GiphouseProfile, Registration
 from courses.models import Semester
 
-User = get_user_model()
+User: DjangoUser = get_user_model()
 
 
 class Step1View(TemplateView):
@@ -68,11 +69,13 @@ class Step2View(FormView):
         try:
             with transaction.atomic():
                 github_id = self.request.session['github_id']
-                user = User(first_name=form.cleaned_data['first_name'],
-                            last_name=form.cleaned_data['last_name'],
-                            email=form.cleaned_data['email'])
-                user.save()
-                giphouseprofile = GiphouseProfile(
+                user = User.objects.create(
+                    first_name=form.cleaned_data['first_name'],
+                    last_name=form.cleaned_data['last_name'],
+                    email=form.cleaned_data['email']
+                )
+
+                GiphouseProfile.objects.create(
                     user=user,
                     github_username=self.request.session['github_username'],
                     github_id=github_id,
@@ -80,7 +83,6 @@ class Step2View(FormView):
                     role=form.cleaned_data['course'],
                 )
 
-                giphouseprofile.save()
                 registration = Registration(
                     user=user,
                     preference1=form.cleaned_data['project1'],

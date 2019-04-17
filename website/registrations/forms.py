@@ -65,20 +65,6 @@ class Step2Form(forms.Form):
         """Validate form variables."""
         cleaned_data = super(Step2Form, self).clean()
 
-        try:
-            User.objects.get(email=cleaned_data['email'])
-        except User.DoesNotExist:
-            pass
-        else:
-            ValidationError("Email already in use", code='exists')
-
-        try:
-            GiphouseProfile.objects.get(student_number=cleaned_data['student_number'])
-        except GiphouseProfile.DoesNotExist:
-            pass
-        else:
-            ValidationError("Student Number already in use", code='exists')
-
         project1 = cleaned_data['project1']
         project2 = cleaned_data.get('project2')
         project3 = cleaned_data.get('project3')
@@ -88,6 +74,14 @@ class Step2Form(forms.Form):
                 or (project3 and project2 and project2 == project3)):
             raise ValidationError("The same project has been selected multiple times.")
 
+        return cleaned_data
+
+    def clean_email(self):
+        """Check if email is already used."""
+        if User.objects.filter(email=self.cleaned_data['email']).exists():
+            raise ValidationError("Email already in use", code='exists')
+        return self.cleaned_data['email']
+
     def clean_student_number(self):
         """Validate student number."""
         student_number = self.cleaned_data['student_number']
@@ -96,4 +90,9 @@ class Step2Form(forms.Form):
         if m is None:
             raise ValidationError("Invalid Student Number", code='invalid')
 
-        return 's' + m.group(1)
+        student_number = 's' + m.group(1)
+
+        if GiphouseProfile.objects.filter(student_number=student_number).exclude():
+            ValidationError("Student Number already in use", code='exists')
+
+        return student_number
