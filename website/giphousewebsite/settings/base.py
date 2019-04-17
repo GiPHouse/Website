@@ -133,3 +133,8 @@ LOGOUT_REDIRECT_URL = '/'
 LOGIN_REDIRECT_URL = '/'
 
 DATE_FORMAT = '%d-%b-%y'
+
+BOOTSTRAP4 = {
+    'error_css_class': '',
+    'success_css_class': '',
+}
