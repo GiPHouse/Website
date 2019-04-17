@@ -26,8 +26,9 @@ This script does the following:
 Some manuall steps are taken to setup the server. These steps are not done in the deployment script, because these steps are only necessary once.
 
 1. Add the SSH public keys of engineers to the authorized keys of the `ubuntu` user. 
-2. Disable SSH password login.
-3. Install `docker`.
-4. Install `nginx`.
-5. Place the general `nginx` config (`nginx.conf`), the domain specific `nginx` config (`giphouse.conf`) and `dhparam.pem`.
-6. Install `letsencrypt` and request a certificate using the `cerbot` `nginx` module.
+2. Add the deploy key to the Github Deploy keys and to the authorized keys of the `ubuntu` user.
+3. Disable SSH password login.
+4. Install `docker`.
+5. Install `nginx`.
+6. Place the general `nginx` config (`nginx.conf`), the domain specific `nginx` config (`giphouse.conf`) and `dhparam.pem`.
+7. Install `letsencrypt` and request a certificate using the `cerbot` `nginx` module.
