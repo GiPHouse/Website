@@ -1,9 +1,9 @@
 {% load github_tags %}
 {% load static %}
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
-        <a class="navbar-brand" href="{% url 'home' %}"><img src="{% static "logo.png" %}" alt="GiPHouse"></a>
+        <a class="navbar-brand font-weight-bold" href="{% url 'home' %}">GiPHouse</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -48,9 +48,13 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'contact' %}">Contact</a>
                 </li>
-                {% if questionnaires %}
+                {% if questionnaires|length > 1 %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'peer_review:overview' %}">Peer Review</a>
+                    </li>
+                {% elif questionnaires|length == 1 %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'peer_review:answer' questionnaires.0.id %}">Peer Review</a>
                     </li>
                 {% endif %}
             </ul>

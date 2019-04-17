@@ -1,19 +1,45 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
+    <div class="row">
+        <div class="col-md">
+            <h1>GiPHouse</h1>
+            <p>GiPHouse is a unique student-run company that develops software and practices entrepreneurship at the
+                Radboud University.</p>
+        </div>
+    </div>
     {% if current_projects %}
-        <h2 class="text-center">Currently running projects</h2>
-        {% for project in current_projects %}
-          <a href="{% url 'projects:projects' current_semester.year current_semester.season %}#{{ project.id }}">
-              <div class="col-md-8 mx-auto">
-                  <div class="card my-4">
-                      {% if project.client.logo %}<img class="card-img-top img-fluid" src="{{ project.client.logo.url }}" alt="logo {{ project.client.name }}">{% endif %}
-                      <div class="card-body">
-                          <h4 class="card-title">{{ project.name }}</h4>
-                          {% if project.client %}<h6 class="card-subtitle text-muted">By {{ project.client.name}}</h6>{% endif %}
-                      </div>
-                  </div>
-              </div>
-          </a>
-        {% endfor %}
+        <h2>Currently running projects</h2>
+        <div class="row">
+            {% for project in current_projects %}
+                <div class="col-6">
+                    <a class="no-underline"
+                       href="{% url 'projects:projects' current_semester.year current_semester.season %}#{{ project.id }}">
+                        <div class="card my-2">
+                            {% if project.client.logo %}
+                                <div class="client-logo">
+                                    <img class="card-img-top img-fluid"
+                                                              src="{{ project.client.logo.url }}"
+                                                              alt="logo {{ project.client.name }}">
+                                </div>
+                            {% else %}
+                                <div class="client-logo client-logo-placeholder"></div>
+                            {% endif %}
+                            <div class="card-body">
+                                <h4 class="card-title">{{ project.name }}</h4>
+                                <h6 class="card-subtitle text-muted">
+                                    {% if project.client %}
+                                        By {{ project.client.name }}
+                                    {% else %}
+                                        Current project
+                                    {% endif %}
+                                </h6>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
     {% endif %}
+    <img src="{% static 'img/mercator.jpg' %}" class="img-fluid rounded mb-2" alt="The Mercator building">
 {% endblock %}

@@ -1,0 +1,56 @@
+{% load github_tags %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand font-weight-bold" href="{% url 'home' %}">GiPHouse</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                {% for item in menu %}
+                    {% if not item.authenticated or request.user.is_authenticated %}
+                        {% if 'submenu' in item %}
+                            <li class="nav-item dropdown{% if item.active %} active{% endif %}">
+                                <a class="nav-link dropdown-toggle" href="#" role="button"
+                                   data-toggle="dropdown">
+                                    {{ item.title }}
+                                </a>
+
+                                <div class="dropdown-menu">
+                                    {% for subitem in item.submenu %}
+                                        {% if not subitem.authenticated or request.user.is_authenticated %}
+                                            <a href="{{ subitem.url }}"
+                                               target="_self"
+                                               class="dropdown-item{% if subitem.active %} active{% endif %}">
+                                                {{ subitem.title }}
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </li>
+                        {% else %}
+                            <li class="nav-item{% if item.active %} active{% endif %}">
+                                <a href="{{ item.url }}"
+                                   target="_self" class="nav-link">
+                                    {{ item.title }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        <ul class="navbar-nav my-2 my-lg-0">
+                <li class="nav-item">
+                    {% if not request.user.is_authenticated %}
+                    <a href="{% url_github_callback 'login' %}" class="nav-link">
+                        <i class="fab fa-github"></i> Login with GitHub
+                    </a>
+                    {% else %}
+                    <a class="nav-link" href="{%  url 'logout' %}">Logout</a>
+                    {% endif %}
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

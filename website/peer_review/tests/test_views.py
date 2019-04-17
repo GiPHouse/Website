@@ -167,3 +167,31 @@ class PeerReviewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'An Active Questionnaire')
         self.assertNotContains(response, 'An Inactive Questionnaire')
+
+    def test_navbar_link_goes_to_only_questionnaire_if_available(self):
+        response = self.client.get(reverse('home'))
+        self.assertInHTML(
+            f'<a href="/review/{self.active_questions.id}" target="_self" class="nav-link">Peer Review</a>',
+            response.rendered_content
+        )
+
+    def test_navbar_overview_link_with_multiple_questionnaires(self):
+        Questionnaire.objects.create(
+            title="Another Active Questionnaire",
+            available_from=timezone.now() - timezone.timedelta(days=2),
+            available_until=timezone.now() + timezone.timedelta(days=1)
+        )
+        response = self.client.get(reverse('home'))
+        self.assertInHTML(
+            f'<a class="nav-link" target="_self" href="/review/">Peer Review</a>',
+            response.rendered_content
+        )
+
+
+class NoQuestionnairesTest(TestCase):
+    def test_navbar_link_not_visible_with_no_questionnaires(self):
+        response = self.client.get(reverse('home'))
+        self.assertNotContains(
+            response,
+            'Peer Review',
+        )

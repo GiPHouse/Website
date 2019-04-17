@@ -6,11 +6,11 @@
     {% if not projects %}
         <h5>No projects found.</h5>
     {% else %}
-        <h1 class="text-center">Projects from {{ projects_semester }}</h1>
+        <h1>Projects from {{ projects_semester }}</h1>
         {% for project in projects %}
-            <div class="col-md-8 mx-auto" id={{ project.id }}>
+            <div class="" id={{ project.id }}>
                 <div class="card my-4">
-                    {% if project.client.logo %}<img class="card-img-top img-fluid" src="{{ project.client.logo.url }}" alt="logo {{ project.client.name }}">{% endif %}
+                    {% if project.client.logo %}<img class="project-logo mt-2 mx-2" src="{{ project.client.logo.url }}" alt="logo {{ project.client.name }}">{% endif %}
                     <div class="card-body">
                         <h4 class="card-title">{{ project.name }}</h4>
                         {% if project.client %}<h6 class="card-subtitle text-muted mb-2">By {{ project.client.name}}</h6>{% endif %}

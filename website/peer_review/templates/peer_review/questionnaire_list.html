@@ -1,10 +1,15 @@
 {% extends 'base.html' %}
 {% block title %}Questionnaires - {{ block.super }}{% endblock %}
 {% block content %}
-    <p>These questionnaires are currently available</p>
-    <ul>
+    <p>There are multiple questionnaires that you should fill in:</p>
+    <div class="list-group col-8">
         {% for questionnaire in questionnaire_list %}
-            <li><a href="{% url 'peer_review:answer' questionnaire.id %}">{{ questionnaire.title }}</a></li>
+            <a class="list-group-item list-group-item-action" href="{% url 'peer_review:answer' questionnaire.id %}">
+            <div class="left-and-right align-middle">
+                <span class="mt-1">{{ questionnaire.title }}</span>
+                <button class="btn btn-primary">Start</button>
+            </div>
+            </a>
         {% endfor %}
-    </ul>
+    </div>
 {% endblock %}

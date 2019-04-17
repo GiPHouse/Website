@@ -1,4 +1,4 @@
-{% load static sass_tags bootstrap4 %}
+{% load static sass_tags bootstrap4 menu %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,7 +15,8 @@
     <!-- build commit: {{ COMMIT_HASH }} -->
 </head>
 <body>
-{% include 'header.html' %}
+{#{% include 'header.html' %}#}
+{% render_main_menu %}
 
 <div class="container pt-4">
     {% if messages %}
