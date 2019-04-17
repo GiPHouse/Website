@@ -60,8 +60,7 @@ class Semester(models.Model):
 
         ordering = ['-year', 'season']
 
-    year = models.IntegerField(('year'), validators=[
-                               MinValueValidator(2008), max_value_current_year])
+    year = models.IntegerField(validators=[MinValueValidator(2008), max_value_current_year])
     season = models.CharField(
         max_length=6,
         choices=[(tag.name, tag.value) for tag in SeasonChoice],
