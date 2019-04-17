@@ -51,8 +51,9 @@ class GiphouseProfile(models.Model):
         unique=True,
     )
 
-    github_username = models.TextField(
+    github_username = models.CharField(
         unique=True,
+        max_length=50,
     )
 
     student_number = models.CharField(
