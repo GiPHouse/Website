@@ -43,6 +43,7 @@ class PeerReviewTest(TestCase):
         """
         week = 14
         response = self.client.get("{}?week={}".format(reverse('room_reservation:calendar'), week))
+        self.assertEqual(response.status_code, 200)
 
     def test_get_create_reservation(self):
         """
@@ -182,10 +183,6 @@ class PeerReviewTest(TestCase):
 
         response = self.client.get(
             reverse(
-                'room_reservation:delete_reservation', kwargs={'pk': reservation.pk}
-            ))
-
-        self.assertEqual(response.status_code, 403)
                 'room_reservation:delete_reservation',
                 kwargs={'pk': reservation.pk}
             ),
