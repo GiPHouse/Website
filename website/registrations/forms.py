@@ -1,14 +1,16 @@
 import re
 
+from courses.models import Semester
+
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
 from django.core.exceptions import ValidationError
 from django.forms import widgets
 
-from registrations.models import RoleChoice, GiphouseProfile
 from projects.models import Project
-from courses.models import Semester
+
+from registrations.models import GiphouseProfile, RoleChoice
 
 student_number_regex = re.compile(r'^[sS]?(\d{7})$')
 User: DjangoUser = get_user_model()

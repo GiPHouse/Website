@@ -1,8 +1,7 @@
 from enum import Enum
 
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
 from django.db import models
-from django.core.validators import FileExtensionValidator
 from django.utils import timezone
 
 

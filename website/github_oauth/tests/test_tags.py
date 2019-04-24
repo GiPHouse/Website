@@ -1,8 +1,8 @@
 from unittest import mock
 
-from django.test import TestCase
-from django.template import Context, Template
 from django.shortcuts import reverse
+from django.template import Context, Template
+from django.test import TestCase
 
 from github_oauth.links import URL_GITHUB_LOGIN
 

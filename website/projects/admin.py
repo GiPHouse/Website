@@ -1,10 +1,11 @@
 from django import forms
 from django.contrib import admin
 from django.contrib.admin import widgets
-from django.contrib.auth.models import User as DjangoUser
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User as DjangoUser
 
-from projects.models import Project, Client
+from projects.models import Client, Project
+
 from registrations.models import RoleChoice
 
 User: DjangoUser = get_user_model()

@@ -1,7 +1,7 @@
 from django.urls import path
 from django.views.generic import RedirectView
 
-from registrations.views import Step2View, Step1View
+from registrations.views import Step1View, Step2View
 
 app_name = 'registrations'
 urlpatterns = [
