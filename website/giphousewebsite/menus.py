@@ -43,6 +43,10 @@ MAIN_MENU = [
         'url': reverse('contact'),
     },
     {
+        'title': 'Room Reservation',
+        'url': reverse('room_reservation:calendar'),
+    },
+    {
         'title': 'Peer Review',
         'visible': lambda request: (Questionnaire.objects.open_questionnaires().count() > 1
                                     and request.user.is_authenticated),

@@ -2,11 +2,11 @@
 {% load bootstrap4 %}
 
 {% block content %}
-<a href="{% url 'room_reservation:create_reservation' %}"><button class="btn btn-success mb-2">Make Reservation</button></a>
+<a href="{% url 'room_reservation:create_reservation' %}"><button class="btn btn-primary mb-2">Make Reservation</button></a>
 
 {% buttons %}
-<a href="{% url 'room_reservation:calendar' %}?week={{ current_week|add:"-1"}}" ><button class="btn btn-secondary">Prev</button></a>
-<a href="{% url 'room_reservation:calendar' %}?week={{ current_week|add:"1"}}" ><button class="btn btn-secondary">Next</button></a>
+<a href="{% url 'room_reservation:calendar' %}?week={{ current_week|add:"-1"}}" ><button class="btn btn-outline-primary">Prev</button></a>
+<a href="{% url 'room_reservation:calendar' %}?week={{ current_week|add:"1"}}" ><button class="btn btn-outline-primary">Next</button></a>
 {% endbuttons %}
 <h2>Week {{current_week}}</h2>
 {% for room, reservations in this_weeks_reservations.items %}
@@ -44,13 +44,13 @@
 					style="top: calc( ({{r.start_time|date:"H"}} - 8) / 10 * 100%); 
 					height: calc( (({{r.end_time|date:"H"}} + {{r.end_time|date:"i"}} / 60) - 8 ) / 10 * 100% - (({{r.start_time|date:"H"}} + {{r.start_time|date:"i"}} / 60) - 8) / 10 * 100%); "
 					>
-					<p>{{r.reservee.first_name}} {{r.reservee.last_name}}<br/> 
+					<div class="rr-reservation-info">{{r.reservee.first_name}} {{r.reservee.last_name}}<br/> 
 					({{r.start_time|date:"H:i"}}-{{r.end_time|date:"H:i"}})
-					</p>
+					</div>
 					{% if r.reservee == request.user %}
 					<div class="rr-reservation-actions">
-						<a href ="{% url 'room_reservation:delete_reservation' r.pk %}" ><button class="btn btn-danger btn-sm">X</button></a>
-						<a href ="{% url 'room_reservation:update_reservation' r.pk %}" ><button class="btn btn-info btn-sm">Change</button></a>
+						<a class="pr-1" href ="{% url 'room_reservation:delete_reservation' r.pk %}" ><button class="btn btn-danger btn-sm"><i class="fas fa-trash-alt"></i></button></a>
+						<a href ="{% url 'room_reservation:update_reservation' r.pk %}" ><button class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></button></a>
 					</div>
 					{% endif %}
 					</div>
