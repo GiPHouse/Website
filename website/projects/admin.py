@@ -16,7 +16,7 @@ class UserModelMultipleChoiceField(forms.ModelMultipleChoiceField):
 
     def label_from_instance(self, user):
         """Get correct label."""
-        return f'{user.first_name} {user.last_name} ({user.giphouseprofile.student_number})'
+        return f'{user.get_full_name()}  ({user.giphouseprofile.student_number})'
 
 
 # Create ModelForm based on the Group model.
