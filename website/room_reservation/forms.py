@@ -54,20 +54,19 @@ class ReservationForm(ModelForm):
 
         if already_taken:
             raise ValidationError(
-                ('Room already reserved in this timeslot.'), code='invalid')
+                'Room already reserved in this timeslot.', code='invalid')
 
         if end_time.date() - start_time.date() >= timedelta(days=1):
             raise ValidationError(
-                ('Rerservation too long. Please shorten your reservation'), code='invalid')
+                'Rerservation too long. Please shorten your reservation', code='invalid')
 
         if start_time >= end_time:
             raise ValidationError(
-                ('start time past or same as end time. Please enter a valid time range.'), code='invalid')
+                'start time past or same as end time. Please enter a valid time range.', code='invalid')
 
     def __init__(self, *args, **kwargs):
         """Initialize the object and give user-friendly widgets for the datetime objects."""
         super().__init__(*args, **kwargs)
 
-        self.fields['pk'].initial = -1
         self.fields['start_time'].widget.attrs['placeholder'] = '2000-12-01 23:59'
         self.fields['end_time'].widget.attrs['placeholder'] = '2000-12-01 23:59'
