@@ -69,7 +69,7 @@ class GiphouseProfile(models.Model):
 
     def __str__(self):
         """Return full name of user."""
-        return f'{self.user.first_name} {self.user.last_name}'
+        return f'{self.user.get_full_name()}'
 
 
 class Registration(models.Model):
