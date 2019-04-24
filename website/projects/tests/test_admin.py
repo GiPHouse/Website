@@ -1,7 +1,9 @@
-from django.test import TestCase, Client
+from courses.models import SeasonChoice, Semester
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
 from django.shortcuts import reverse
+from django.test import Client, TestCase
 from django.utils import timezone
 
 from projects.models import Project

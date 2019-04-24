@@ -1,11 +1,11 @@
-from django.views import View
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth import authenticate, get_user_model, login
+from django.contrib.auth.models import User as DjangoUser
+from django.http.response import HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
-from django.contrib.auth import authenticate, login, get_user_model
-from django.contrib.auth.models import User as DjangoUser
-from django.conf import settings
-from django.http.response import HttpResponseBadRequest
-from django.contrib import messages
+from django.views import View
 
 from github_oauth.backends import GithubOAuthBackend
 

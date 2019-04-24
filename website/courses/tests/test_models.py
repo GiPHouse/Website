@@ -1,23 +1,17 @@
-from freezegun import freeze_time
+from courses.models import Course, Lecture, SeasonChoice, Semester, current_year, get_slides_filename, \
+    max_value_current_year
 
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
-from django.core.exceptions import ValidationError
 
-from courses.models import Semester
-from courses.models import SeasonChoice
-from courses.models import Lecture
-from courses.models import get_slides_filename
-from courses.models import Course
-from courses.models import current_year
-from courses.models import max_value_current_year
+from freezegun import freeze_time
 
 
 class ModelTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-
         cls.season = SeasonChoice.spring.name
         cls.year = 2019
         cls.course = Course.objects.create(name="Test Course")

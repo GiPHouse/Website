@@ -1,7 +1,7 @@
-from django.test import TestCase, Client
-from django.utils import timezone
+from courses.models import Course, SeasonChoice, Semester
 
-from courses.models import Semester, SeasonChoice, Course
+from django.test import Client, TestCase
+from django.utils import timezone
 
 
 class GetCoursesTest(TestCase):

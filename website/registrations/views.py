@@ -1,14 +1,15 @@
+from courses.models import Semester
+
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.models import User as DjangoUser
-from django.db import transaction, IntegrityError
+from django.db import IntegrityError, transaction
 from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.views.generic import FormView, TemplateView
 
 from registrations.forms import Step2Form
 from registrations.models import GiphouseProfile, Registration
-from courses.models import Semester
 
 User: DjangoUser = get_user_model()
 

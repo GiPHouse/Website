@@ -1,9 +1,9 @@
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User as DjangoUser
 from django.test import TestCase
 from django.utils import timezone
-from django.contrib.auth.models import User as DjangoUser
-from django.contrib.auth import get_user_model
 
-from peer_review.models import Question, Answer, Questionnaire, QuestionTypes
+from peer_review.models import Answer, Question, QuestionTypes, Questionnaire
 
 User: DjangoUser = get_user_model()
 

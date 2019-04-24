@@ -3,9 +3,10 @@ This file defines the menu layout.
 
 We set the variable `:py:main` to form the menu tree.
 """
+from courses.models import Semester
+
 from django.urls import reverse
 
-from courses.models import Semester
 from peer_review.models import Questionnaire
 
 __all__ = ['MAIN_MENU']

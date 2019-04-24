@@ -22,6 +22,7 @@ production = ["uwsgi", "psycopg2-binary"]
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.7"
+flake8-import-order = "^0.18.1"
 coverage = "^4.5"
 pydocstyle = "^3.0"
 freezegun = "^0.3.11"

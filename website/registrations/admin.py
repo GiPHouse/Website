@@ -1,8 +1,8 @@
 from django import forms
 from django.contrib import admin
-from django.contrib.admin import widgets
-from django.contrib.auth.models import User as DjangoUser, Group
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group, User as DjangoUser
+
 from registrations.models import GiphouseProfile, Registration, Role
 from projects.models import Project
 
