@@ -22,7 +22,7 @@ class ReservationForm(ModelForm):
     def clean(self):
         """
         Validate the input for the reservation.
-        
+
         By checking:
 
         - All checks made by ModelForm.
