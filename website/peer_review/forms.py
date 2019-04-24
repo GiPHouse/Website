@@ -28,6 +28,6 @@ class PeerReviewForm(forms.Form):
             self.fields[field_name] = forms.CharField(label=question.question,)
 
         if question.about_team_member and peer is not None:
-            self.fields[field_name].help_text = f"Peer review for {peer.first_name} {peer.last_name}"
+            self.fields[field_name].help_text = f"Peer review for {peer.get_full_name()}"
         else:
             self.fields[field_name].help_text = "General Questions"
