@@ -8,7 +8,7 @@
     {% else %}
         <h1 class="text-center">Projects from {{ projects_semester }}</h1>
         {% for project in projects %}
-            <div class="col-md-8 mx-auto">
+            <div class="col-md-8 mx-auto" id={{ project.id }}>
                 <div class="card my-4">
                     {% if project.client.logo %}<img class="card-img-top img-fluid" src="{{ project.client.logo.url }}" alt="logo {{ project.client.name }}">{% endif %}
                     <div class="card-body">

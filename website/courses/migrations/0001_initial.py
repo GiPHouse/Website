@@ -58,4 +58,9 @@ class Migration(migrations.Migration):
             old_name='semester',
             new_name='season',
         ),
+        migrations.AlterField(
+            model_name='semester',
+            name='year',
+            field=models.IntegerField(validators=[django.core.validators.MinValueValidator(2008), courses.models.max_value_current_year], verbose_name='year'),
+        ),
     ]

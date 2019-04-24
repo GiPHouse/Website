@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from courses.models import Semester, SeasonChoice
-from peer_review.models import Question, Answer, Questionnaire
+from peer_review.models import Question, Answer, Questionnaire, QuestionTypes
 from projects.models import Project
 
 
@@ -60,31 +60,31 @@ class PeerReviewTest(TestCase):
         Question.objects.create(
             questionnaire=cls.active_questions,
             question='Open Question global',
-            question_type='openQuestion',
+            question_type=QuestionTypes.open_question.name,
             about_team_member=False
         )
         Question.objects.create(
             questionnaire=cls.active_questions,
             question='Closed Question global',
-            question_type='agreeDisagree',
+            question_type=QuestionTypes.agree_disagree.name,
             about_team_member=False
         )
         Question.objects.create(
             questionnaire=cls.active_questions,
             question='Open Question to peer',
-            question_type='openQuestion',
+            question_type=QuestionTypes.open_question.name,
             about_team_member=True
         )
         Question.objects.create(
             questionnaire=cls.active_questions,
             question='Closed Question to peer',
-            question_type='agreeDisagree',
+            question_type=QuestionTypes.agree_disagree.name,
             about_team_member=True
         )
         Question.objects.create(
             questionnaire=cls.active_questions,
             question='Closed Question to peer',
-            question_type='poorGood',
+            question_type=QuestionTypes.poor_good.name,
             about_team_member=True
         )
         cls.questions = Question.objects.filter(questionnaire=cls.active_questions)
@@ -96,7 +96,7 @@ class PeerReviewTest(TestCase):
         Question.objects.create(
             questionnaire=cls.inactive_questions,
             question='Question for an inactive set',
-            question_type='poorGood',
+            question_type=QuestionTypes.poor_good.name,
             about_team_member=False
         )
 
