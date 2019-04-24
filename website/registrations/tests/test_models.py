@@ -1,13 +1,15 @@
+from courses.models import SeasonChoice, Semester
 
-from django.test import TestCase
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User as DjangoUser
+from django.test import TestCase
 from django.utils import timezone
 
-from registrations.models import GiphouseProfile
 from projects.models import Project
-from courses.models import Semester, SeasonChoice
 
-User = get_user_model()
+from registrations.models import GiphouseProfile
+
+User: DjangoUser = get_user_model()
 
 
 class ModelsTest(TestCase):

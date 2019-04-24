@@ -51,8 +51,9 @@ class GiphouseProfile(models.Model):
         unique=True,
     )
 
-    github_username = models.TextField(
+    github_username = models.CharField(
         unique=True,
+        max_length=50,
     )
 
     student_number = models.CharField(
@@ -68,7 +69,7 @@ class GiphouseProfile(models.Model):
 
     def __str__(self):
         """Return full name of user."""
-        return f'{self.user.first_name} {self.user.last_name}'
+        return f'{self.user.get_full_name()}'
 
 
 class Registration(models.Model):
@@ -108,4 +109,4 @@ class Registration(models.Model):
 
     def __str__(self):
         """Give user information about this object."""
-        return f'{self.user.giphouse_profile}'
+        return f'{self.user.giphouseprofile}'

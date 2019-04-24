@@ -1,10 +1,11 @@
 from django import forms
 from django.contrib import admin
 from django.contrib.admin import widgets
-from django.contrib.auth.models import User as DjangoUser
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User as DjangoUser
 
-from projects.models import Project, Client
+from projects.models import Client, Project
+
 from registrations.models import RoleChoice
 
 User: DjangoUser = get_user_model()
@@ -15,15 +16,15 @@ class UserModelMultipleChoiceField(forms.ModelMultipleChoiceField):
 
     def label_from_instance(self, user):
         """Get correct label."""
-        return f'{user.first_name} {user.last_name} ({user.giphouseprofile.student_number})'
+        return f'{user.get_full_name()}  ({user.giphouseprofile.student_number})'
 
 
 # Create ModelForm based on the Group model.
-class ProjectForm(forms.ModelForm):
+class AdminProjectForm(forms.ModelForm):
     """Admin form to edit projects."""
 
     class Meta:
-        """Meta class for ProjectForm."""
+        """Meta class for AdminProjectForm."""
 
         model = Project
         exclude = []
@@ -47,8 +48,8 @@ class ProjectForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         """Initialize the form."""
-        # Do the normal form initialisation.
-        super(ProjectForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
+
         # If it is an existing group (saved objects have a pk).
         if self.instance.pk:
             # Populate the users field with the current Group users.
@@ -61,7 +62,7 @@ class ProjectForm(forms.ModelForm):
 
     def save(self, *args, **kwargs):
         """Save the form data, including many-to-many data."""
-        instance = super(ProjectForm, self).save()
+        instance = super().save()
         self.save_m2m()
         return instance
 
@@ -70,7 +71,7 @@ class ProjectForm(forms.ModelForm):
 class ProjectAdmin(admin.ModelAdmin):
     """Custom admin for projects."""
 
-    form = ProjectForm
+    form = AdminProjectForm
     exclude = ['permissions']
 
 

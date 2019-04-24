@@ -1,12 +1,12 @@
-from datetime import timedelta
+from courses.models import SeasonChoice, Semester
 
-from django.test import TestCase, Client
 from django.contrib.auth.models import User
+from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from courses.models import Semester, SeasonChoice
-from peer_review.models import Question, Answer, Questionnaire, QuestionTypes
+from peer_review.models import Answer, Question, QuestionTypes, Questionnaire
+
 from projects.models import Project
 
 
@@ -37,7 +37,7 @@ class PeerReviewTest(TestCase):
             semester=Semester.objects.create(year=2019,
                                              season=SeasonChoice.spring.name,
                                              registration_start=timezone.now(),
-                                             registration_end=timezone.now() + timedelta(days=60)),
+                                             registration_end=timezone.now() + timezone.timedelta(days=60)),
             name="Test Project",
             description="Description",
         )
@@ -54,8 +54,8 @@ class PeerReviewTest(TestCase):
         cls.peer.save()
         cls.active_questions = Questionnaire.objects.create(
             title="An Active Questionnaire",
-            available_from=timezone.now() - timedelta(days=2),
-            available_until=timezone.now() + timedelta(days=1)
+            available_from=timezone.now() - timezone.timedelta(days=2),
+            available_until=timezone.now() + timezone.timedelta(days=1)
         )
         Question.objects.create(
             questionnaire=cls.active_questions,
@@ -90,8 +90,8 @@ class PeerReviewTest(TestCase):
         cls.questions = Question.objects.filter(questionnaire=cls.active_questions)
         cls.inactive_questions = Questionnaire.objects.create(
             title="An Inactive Questionnaire",
-            available_from=timezone.now() - timedelta(days=2),
-            available_until=timezone.now() - timedelta(days=1)
+            available_from=timezone.now() - timezone.timedelta(days=2),
+            available_until=timezone.now() - timezone.timedelta(days=1)
         )
         Question.objects.create(
             questionnaire=cls.inactive_questions,
@@ -169,3 +169,31 @@ class PeerReviewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'An Active Questionnaire')
         self.assertNotContains(response, 'An Inactive Questionnaire')
+
+    def test_navbar_link_goes_to_only_questionnaire_if_available(self):
+        response = self.client.get(reverse('home'))
+        self.assertInHTML(
+            f'<a href="/review/{self.active_questions.id}" target="_self" class="nav-link">Peer Review</a>',
+            response.rendered_content
+        )
+
+    def test_navbar_overview_link_with_multiple_questionnaires(self):
+        Questionnaire.objects.create(
+            title="Another Active Questionnaire",
+            available_from=timezone.now() - timezone.timedelta(days=2),
+            available_until=timezone.now() + timezone.timedelta(days=1)
+        )
+        response = self.client.get(reverse('home'))
+        self.assertInHTML(
+            f'<a class="nav-link" target="_self" href="/review/">Peer Review</a>',
+            response.rendered_content
+        )
+
+
+class NoQuestionnairesTest(TestCase):
+    def test_navbar_link_not_visible_with_no_questionnaires(self):
+        response = self.client.get(reverse('home'))
+        self.assertNotContains(
+            response,
+            'Peer Review',
+        )

@@ -1,13 +1,14 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect, get_object_or_404, get_list_or_404
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from django.views.generic import ListView
 from django.views.generic.edit import FormView
 
-from registrations.models import users_in_same_group
-from peer_review.models import Answer, Question, Questionnaire
 from peer_review.forms import PeerReviewForm
+from peer_review.models import Answer, Question, Questionnaire
+
+from registrations.models import users_in_same_group
 
 
 class OverviewView(LoginRequiredMixin, ListView):
@@ -36,7 +37,7 @@ class PeerReviewView(LoginRequiredMixin, FormView):
         """Set up the objects used in this form."""
         self.questionnaire = get_object_or_404(Questionnaire, pk=questionnaire)
         self.participant = self.request.user
-        self.peers = get_list_or_404(users_in_same_group(self.participant))
+        self.peers = users_in_same_group(self.participant)
         self.questions = Question.objects.filter(questionnaire=self.questionnaire)
         return super().dispatch(request, *args, **kwargs)
 

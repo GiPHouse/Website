@@ -54,6 +54,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'giphousewebsite.context_processors.source_commit',
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
@@ -134,3 +135,7 @@ LOGIN_REDIRECT_URL = '/'
 
 DATE_FORMAT = '%d-%b-%y'
 
+BOOTSTRAP4 = {
+    'error_css_class': '',
+    'success_css_class': '',
+}

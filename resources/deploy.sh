@@ -62,6 +62,7 @@ sed --in-place='' \
     --expression "s@{{POSTGRES_PASSWORD}}@${POSTGRES_PASSWORD}@" \
     --expression "s@{{GITHUB_CLIENT_ID}}@${GITHUB_CLIENT_ID}@" \
     --expression "s@{{GITHUB_CLIENT_SECRET}}@${GITHUB_CLIENT_SECRET}@" \
+    --expression "s@{{DOCKER_IMAGE}}@${DOCKER_IMAGE}@" \
     "${DOCKER_COMPOSE_PATH_LOCAL}"
 
 # Upload config files.

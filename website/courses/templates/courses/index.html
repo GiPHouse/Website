@@ -3,60 +3,65 @@
 {% block content %}
 
     {% for course, lectures in courses %}
+        <div class="course">
+            <h2 class="section-title">{{ course }} - {{ lecture_semester }}</h2>
 
-        <h2 class="text-center section-title">{{ course }} - {{ lecture_semester }}</h2>
+            {% if not lectures %}
+                <h5>No lectures found</h5>
+            {% else %}
+                {% if lectures|length > 1 %}
+                    <div class="accordion" id="lectures-accordion" >
+                {% endif %}
+                        {% for lecture in lectures %}
+                            <div class="card">
+                                <div class="card-header bg-primary" id="heading-lecture-{{ lecture.pk }}">
+                                    <h2 class="card-header-text left-and-right mb-0">
+                                        <button class="btn btn-link text-white" type="button" data-toggle="collapse" data-target="#lecture-{{ lecture.pk }}" aria-expanded="false" aria-controls="lecture-{{ lecture.pk }}">
+                                            {{ lecture.date }} - {{ lecture.title }}
+                                        </button>
+                                        <button class="btn btn-link text-white" type="button" data-toggle="collapse" data-target="#lecture-{{ lecture.pk }}" aria-expanded="false" aria-controls="lecture-{{ lecture.pk }}">
+                                            <i class="fas fa-bars"></i>
+                                        </button>
+                                    </h2>
+                                </div>
 
-        {% if not lectures %}
-            <h5>No lectures found</h5>
-        {% else %}
-            {% if lectures|length > 1 %}
-                <div class="accordion" id="lectures-accordion" >
-            {% endif %}
-                    {% for lecture in lectures %}
-                        <div class="card">
-                            <div class="card-header" id="heading-lecture-{{ lecture.pk }}">
-                                <button class="btn btn-link" data-toggle="collapse" data-target="#lecture-{{ lecture.pk }}" aria-expanded="false" aria-controls="lecture-{{ lecture.pk }}">
-                                    {{ lecture.date }} - {{ lecture.title }}
-                                </button>
-                            </div>
+                                <div class="collapse" id="lecture-{{ lecture.pk }}" aria-labelledby="heading-lecture-{{ lecture.pk }}">
+                                    <div class="card-body">
+                                        <div class="table-responsive align-baseline">
+                                            <table class="table table-borderless table-sm">
+                                                <tbody>
+                                                    <tr>
+                                                        <th scope="row">Teacher</th>
+                                                        <td class="col-1">{{ lecture.teacher|default:"-" }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th scope="row">Location</th>
+                                                        <td class="col-1">{{ lecture.location|default:"-" }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="col-1" colspan="2">
+                                                            {% if lecture.slides %}
+                                                                <a href="{{ lecture.slides.url }}">Download Slides</a>
+                                                            {% else %}
+                                                                No slides available
+                                                            {% endif %}
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
 
-                            <div class="collapse" id="lecture-{{ lecture.pk }}" aria-labelledby="heading-lecture-{{ lecture.pk }}">
-                                <div class="card-body">
-                                    <div class="table-responsive align-baseline">
-                                        <table class="table table-borderless table-sm">
-                                            <tbody>
-                                                <tr>
-                                                    <th scope="row">Teacher</th>
-                                                    <td class="col-1">{{ lecture.teacher|default:"-" }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">Location</th>
-                                                    <td class="col-1">{{ lecture.location|default:"-" }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="col-1" colspan="2">
-                                                        {% if lecture.slides %}
-                                                            <a href="{{ lecture.slides.url }}">Download Slides</a>
-                                                        {% else %}
-                                                            No slides available
-                                                        {% endif %}
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-
-                                        {% if lecture.description %}
-                                            {{ lecture.description|linebreaks }}
-                                        {% endif %}
+                                            {% if lecture.description %}
+                                                {{ lecture.description|linebreaks }}
+                                            {% endif %}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    {% endfor %}
-            {% if lectures|length > 1 %}
-                </div>
+                        {% endfor %}
+                {% if lectures|length > 1 %}
+                    </div>
+                {% endif %}
             {% endif %}
-        {% endif %}
-        <hr/>
+        </div>
     {% endfor %}
 {% endblock %}

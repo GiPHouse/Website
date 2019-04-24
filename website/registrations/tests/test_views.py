@@ -1,15 +1,18 @@
 from unittest import mock
 
-from django.test import TestCase, Client
+from courses.models import SeasonChoice, Semester
+
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User as DjangoUser
 from django.shortcuts import reverse
+from django.test import Client, TestCase
 from django.utils import timezone
 
 from projects.models import Project
-from courses.models import Semester, SeasonChoice
-from registrations.models import RoleChoice, GiphouseProfile
 
-User = get_user_model()
+from registrations.models import GiphouseProfile, RoleChoice
+
+User: DjangoUser = get_user_model()
 
 
 class RedirectTest(TestCase):
@@ -138,38 +141,90 @@ class Step2Test(TestCase):
     def test_post_step2(self):
         response = self.client.post('/register/step2',
                                     {
-                                        'first_name': 'Firsttest',
-                                        'last_name': 'Lasttest',
-                                        'student_number': 's1234567',
-                                        'github_username': 'github',
+                                        'first_name': self.first_name,
+                                        'last_name': self.last_name,
+                                        'student_number': self.student_number,
+                                        'github_username': self.github_username,
                                         'course': RoleChoice.se.name,
-                                        'email': 'test@test.com',
-                                        'project1': str(self.project_preference1.id),
+                                        'email': self.email,
+                                        'project1': self.project_preference1.id,
                                     }, follow=True)
         self.assertRedirects(response, '/')
         self.assertContains(response, 'User created successfully')
 
+    def test_post_step2_wrong_student_number(self):
+        response = self.client.post('/register/step2',
+                                    {
+                                        'first_name': self.first_name,
+                                        'last_name': self.last_name,
+                                        'student_number': 'wrong format',
+                                        'github_username': self.github_username,
+                                        'course': RoleChoice.se.name,
+                                        'email': self.email,
+                                        'project1': self.project_preference1.id,
+                                    }, follow=True)
+        self.assertContains(response, 'Invalid Student Number')
+
+    def test_post_step2_duplicate_project(self):
+        response = self.client.post('/register/step2',
+                                    {
+                                        'first_name': self.first_name,
+                                        'last_name': self.last_name,
+                                        'student_number': self.student_number,
+                                        'github_username': self.github_username,
+                                        'course': RoleChoice.se.name,
+                                        'email': self.email,
+                                        'project1': self.project_preference1.id,
+                                        'project2': str(self.project_preference1.id),
+                                    }, follow=True)
+        self.assertContains(response, 'The same project has been selected multiple times')
+
     def test_post_step2_existing_user(self):
         test_user = User.objects.create_user(
             username='test',
-            first_name='Firsttest',
-            last_name='Lasttest',
+            first_name=self.first_name,
+            last_name=self.last_name,
         )
         GiphouseProfile.objects.create(
             user=test_user,
             github_id=1,
-            student_number='s1234567',
+            student_number=self.student_number,
         )
 
         response = self.client.post('/register/step2',
                                     {
-                                        'first_name': 'Firsttest',
-                                        'last_name': 'Lasttest',
-                                        'student_number': 's1234567',
-                                        'github_username': 'github',
+                                        'first_name': self.first_name,
+                                        'last_name': self.last_name,
+                                        'student_number': self.student_number,
+                                        'github_username': self.github_username,
                                         'course': RoleChoice.se.name,
-                                        'email': 'test@test.com',
-                                        'project1': str(self.project_preference1.id),
+                                        'email': self.email,
+                                        'project1': self.project_preference1.id,
                                     }, follow=True)
         self.assertRedirects(response, '/')
         self.assertContains(response, 'User already exists')
+
+    def test_post_step2_existing_email(self):
+        test_user = User.objects.create_user(
+            username='test',
+            first_name=self.first_name,
+            last_name=self.last_name,
+            email=self.email,
+        )
+        GiphouseProfile.objects.create(
+            user=test_user,
+            github_id=1,
+            student_number=self.student_number,
+        )
+
+        response = self.client.post('/register/step2',
+                                    {
+                                        'first_name': self.first_name,
+                                        'last_name': self.last_name,
+                                        'student_number': self.student_number,
+                                        'github_username': self.github_username,
+                                        'course': RoleChoice.se.name,
+                                        'email': self.email,
+                                        'project1': self.project_preference1.id,
+                                    }, follow=True)
+        self.assertContains(response, 'Email already in use')

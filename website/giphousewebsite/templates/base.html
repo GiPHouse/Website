@@ -1,4 +1,4 @@
-{% load static sass_tags bootstrap4 %}
+{% load static sass_tags bootstrap4 menu %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,9 +11,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="{% sass_src 'scss/main.scss' %}" type="text/css">
     <link rel="shortcut icon" type="image/png" href="{% static 'img/favicon.png' %}"/>
+
+    <!-- build commit: {{ COMMIT_HASH }} -->
 </head>
 <body>
-{% include 'header.html' %}
+{#{% include 'header.html' %}#}
+{% render_main_menu %}
 
 <div class="container pt-4">
     {% if messages %}

@@ -1,14 +1,6 @@
 from django.contrib import admin
 
-from peer_review.models import Question, Answer, Questionnaire
-
-
-@admin.register(Question)
-class QuestionAdmin(admin.ModelAdmin):
-    """Customize the question filters in the admin."""
-
-    list_display = ('question', 'question_type')
-    list_filter = ('question', 'question_type')
+from peer_review.models import Answer, Question, Questionnaire
 
 
 @admin.register(Answer)
@@ -17,12 +9,7 @@ class AnswerAdmin(admin.ModelAdmin):
 
     list_display = ('question', 'answer', 'participant', 'peer', 'on_time')
     list_filter = ('question',)
-
-    def on_time(self, obj):
-        """Wrap on_time of model, to be able to set boolean for admin checkmarks."""
-        return obj.on_time
-
-    on_time.boolean = True
+    readonly_fields = ('on_time',)
 
 
 class QuestionInline(admin.TabularInline):
