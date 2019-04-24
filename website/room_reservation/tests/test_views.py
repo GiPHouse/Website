@@ -64,7 +64,6 @@ class PeerReviewTest(TestCase):
                 'room': self.room.pk,
                 'start_time': "04/17/2019 18:00",
                 'end_time': "04/17/2019 19:00",
-                'pk': '-1',
             },
             follow=True,
         )
