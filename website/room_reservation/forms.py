@@ -32,8 +32,6 @@ class ReservationForm(ModelForm):
         start_time = cleaned_data.get("start_time")
         end_time = cleaned_data.get("end_time")
 
-        print(room,start_time,end_time)
-
         pk = cleaned_data.get("pk")
 
         already_taken = Reservation.objects.filter(

@@ -42,7 +42,7 @@ class PeerReviewTest(TestCase):
         Test GET request with a specified week.
         """
         week = 14
-        response = self.client.get("{}?week={}".format(reverse('room_reservation:calendar'),week))
+        response = self.client.get("{}?week={}".format(reverse('room_reservation:calendar'), week))
         self.assertEqual(response.status_code, 200)
 
     def test_get_create_reservation(self):
@@ -62,7 +62,7 @@ class PeerReviewTest(TestCase):
         response = self.client.post(
             reverse('room_reservation:create_reservation'),
             {
-                'room':self.room.pk,
+                'room': self.room.pk,
                 'end_time': '04/18/2019 13:00',
                 'start_time': '04/18/2019 12:00',
                 'pk': -1,
@@ -74,7 +74,6 @@ class PeerReviewTest(TestCase):
         new = Reservation.objects.all().count()
 
         self.assertTrue(new > current)
-        
 
     def test_get_update_reservation(self):
         """
@@ -139,7 +138,6 @@ class PeerReviewTest(TestCase):
             ))
 
         self.assertEqual(response.status_code, 403)
-
 
     def test_remove_reservation_permission_denied(self):
         someone_else = User.objects.create_user(
