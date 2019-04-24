@@ -32,6 +32,8 @@ class ReservationForm(ModelForm):
         start_time = cleaned_data.get("start_time")
         end_time = cleaned_data.get("end_time")
 
+        print(room,start_time,end_time)
+
         pk = cleaned_data.get("pk")
 
         already_taken = Reservation.objects.filter(
@@ -58,9 +60,9 @@ class ReservationForm(ModelForm):
             raise ValidationError(
                 ('Rerservation too long. Please shorten your reservation'), code='invalid')
 
-        if end_time > start_time :
+        if start_time >= end_time:
             raise ValidationError(
-                ('End time past start time.'), code='invalid')
+                ('start time past or same as end time. Please enter a valid time range.'), code='invalid')
 
     def __init__(self, *args, **kwargs):
         """Initialize the object and give user-friendly widgets for the datetime objects."""

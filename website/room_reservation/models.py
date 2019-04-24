@@ -32,9 +32,4 @@ class Reservation(models.Model):
 
     def __str__(self):
         """Return small description about the reservation."""
-        tz = get_current_timezone()
-        start = self.start_time.astimezone(tz)
-        end = self.end_time.astimezone(tz)
-        start = start.strftime("%d/%m/%Y %H:%M")
-        end = end.strftime("%d/%m/%Y %H:%M")
-        return f"{self.reservee} has {self.room} reserved at {start} until {end}"
+        return f"{self.reservee} has {self.room} reserved at {self.start_time} until {self.end_time}"
