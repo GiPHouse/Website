@@ -1,8 +1,8 @@
 from django.urls import path
 
-from room_reservation.views import ShowCalendarView
 from room_reservation.views import CreateReservationView
 from room_reservation.views import DeleteReservationView
+from room_reservation.views import ShowCalendarView
 from room_reservation.views import UpdateReservationView
 
 app_name = 'room_reservation'

@@ -1,11 +1,11 @@
 from datetime import datetime
 
-from django.test import TestCase, Client
-from django.utils.timezone import get_current_timezone
 from django.contrib.auth import get_user_model
+from django.test import Client, TestCase
+from django.utils.timezone import get_current_timezone
 
-from room_reservation.models import Room, Reservation
 from room_reservation.forms import ReservationForm
+from room_reservation.models import Reservation, Room
 
 User = get_user_model()
 

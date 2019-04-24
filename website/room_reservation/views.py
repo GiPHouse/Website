@@ -1,11 +1,13 @@
-from django.views.generic.edit import CreateView, DeleteView, UpdateView
-from django.views.generic import TemplateView
+from datetime import datetime, timedelta
+
 from django.contrib.auth.mixins import LoginRequiredMixin
-from room_reservation.models import Reservation, Room
-from room_reservation.forms import ReservationForm
-from datetime import timedelta, datetime
-from django.utils import timezone
 from django.core.exceptions import PermissionDenied
+from django.utils import timezone
+from django.views.generic import TemplateView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView
+
+from room_reservation.forms import ReservationForm
+from room_reservation.models import Reservation, Room
 
 
 class ShowCalendarView(LoginRequiredMixin, TemplateView):
