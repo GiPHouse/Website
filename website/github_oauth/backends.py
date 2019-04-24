@@ -1,11 +1,11 @@
-import requests
-from requests.exceptions import RequestException
-
-from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
 
 from github_oauth.links import URL_GITHUB_ACCESS_TOKEN, URL_GITHUB_USER_INFO
+
+import requests
+from requests.exceptions import RequestException
 
 User: DjangoUser = get_user_model()
 

@@ -1,6 +1,7 @@
 import os
 
 from courses.models import Semester
+
 from projects.models import Project
 
 

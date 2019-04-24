@@ -1,10 +1,12 @@
-from django.test import TestCase, Client
+from courses.models import SeasonChoice, Semester
+
 from django.contrib.auth.models import User
+from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from courses.models import Semester, SeasonChoice
-from peer_review.models import Question, Answer, Questionnaire, QuestionTypes
+from peer_review.models import Answer, Question, QuestionTypes, Questionnaire
+
 from projects.models import Project
 
 

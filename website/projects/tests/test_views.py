@@ -1,8 +1,8 @@
-from django.test import TestCase, Client
-from django.utils import timezone
-from django.shortcuts import reverse
+from courses.models import SeasonChoice, Semester
 
-from courses.models import Semester, SeasonChoice
+from django.shortcuts import reverse
+from django.test import Client, TestCase
+from django.utils import timezone
 
 
 class GetProjectsTest(TestCase):
