@@ -43,3 +43,7 @@ notifications:
   email:
     on_success: "never"
     on_failure: "always"
+
+language: shell
+script:
+  - bash -c 'shopt -s globstar; shellcheck **/*.{sh,ksh,bash}'
