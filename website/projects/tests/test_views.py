@@ -1,4 +1,4 @@
-from courses.models import SeasonChoice, Semester
+from courses.models import Semester
 
 from django.shortcuts import reverse
 from django.test import Client, TestCase
@@ -10,7 +10,7 @@ class GetProjectsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
 
-        cls.season = SeasonChoice.spring.name
+        cls.season = Semester.SPRING
         cls.year = 2019
 
         cls.semester = Semester.objects.create(
