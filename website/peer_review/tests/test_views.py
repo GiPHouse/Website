@@ -1,4 +1,4 @@
-from courses.models import SeasonChoice, Semester
+from courses.models import Semester
 
 from django.contrib.auth.models import User
 from django.test import Client, TestCase
@@ -35,7 +35,7 @@ class PeerReviewTest(TestCase):
     def setUpTestData(cls):
         cls.team = Project.objects.create(
             semester=Semester.objects.create(year=2019,
-                                             season=SeasonChoice.spring.name,
+                                             season=Semester.SPRING,
                                              registration_start=timezone.now(),
                                              registration_end=timezone.now() + timezone.timedelta(days=60)),
             name="Test Project",

@@ -1,4 +1,4 @@
-from courses.models import Course, SeasonChoice, Semester
+from courses.models import Course, Semester
 
 from django.test import Client, TestCase
 from django.utils import timezone
@@ -10,7 +10,7 @@ class GetCoursesTest(TestCase):
     def setUpTestData(cls):
 
         cls.course = Course.objects.create(name="Test Course")
-        cls.season = SeasonChoice.spring.name
+        cls.season = Semester.SPRING
         cls.year = 2019
 
         cls.semester = Semester.objects.create(
