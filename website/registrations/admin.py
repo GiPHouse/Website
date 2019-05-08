@@ -3,8 +3,9 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, User as DjangoUser
 
-from registrations.models import GiphouseProfile, Registration, Role
 from projects.models import Project
+
+from registrations.models import GiphouseProfile, Registration, Role
 
 User: DjangoUser = get_user_model()
 admin.site.unregister(User)
@@ -48,6 +49,7 @@ class StudentForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
+        """Dynamically setup form."""
         super().__init__(*args, **kwargs)
 
         self.fields['role'].initial = Role.objects.filter(user=self.instance).first()

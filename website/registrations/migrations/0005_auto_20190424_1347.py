@@ -6,16 +6,25 @@ import django.db.models.deletion
 
 def create_initial_data(apps, schema_editor):
 
-    role = apps.get_model('registrations', 'Role')
+    Role = apps.get_model('registrations', 'Role')
+    GiphouseProfile = apps.get_model('registrations', 'GiphouseProfile')
 
-    if role.objects.filter(name='SE Student'):
-        se = role.objects.create(name='SE Student')
-    if role.objects.filter(name='SDM Student'):
-        sdm = role.objects.create(name='SDM Student')
-    if role.objects.filter(name='Director'):
-        director = role.objects.create(name='Director')
-    if role.objects.filter(name='Admin'):
-        admin = role.objects.create(name='Admin')
+    se = Role.objects.create(name='SE Student')
+    sdm = Role.objects.create(name='SDM Student')
+    director = Role.objects.create(name='Director')
+    admin = Role.objects.create(name='Admin')
+
+    for gip_profile in GiphouseProfile.objects.all():
+        user = gip_profile.user
+        if gip_profile.role == 'se':
+            user.groups.add(se)
+        if gip_profile.role == 'sdm':
+            user.groups.add(sdm)
+        if gip_profile.role == 'director':
+            user.groups.add(director)
+        if gip_profile.role == 'admin':
+            user.groups.add(admin)
+        user.save()
 
 
 class Migration(migrations.Migration):
@@ -35,10 +44,12 @@ class Migration(migrations.Migration):
             ],
             bases=('auth.group',),
         ),
+
+        migrations.RunPython(create_initial_data),
+
         migrations.RemoveField(
             model_name='giphouseprofile',
             name='role',
         ),
 
-        migrations.RunPython(create_initial_data),
     ]
