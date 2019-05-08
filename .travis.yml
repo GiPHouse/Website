@@ -10,7 +10,7 @@ services:
 before_install:
   - "pip install --no-cache-dir poetry"
   - "DEBIAN_FRONTEND=noninteractive sudo apt-get update"
-  - "DEBIAN_FRONTEND=noninteractive sudo apt-get install -y shellcheck"
+  - "DEBIAN_FRONTEND=noninteractive sudo apt-get install --yes shellcheck"
 
 install:
   - "poetry install"
