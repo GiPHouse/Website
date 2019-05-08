@@ -20,7 +20,7 @@ script:
     flake8
     --max-line-length=119
     --exclude="migrations,website/giphousewebsite/settings/"
-    --application-import-names="$(ls -1 website/*/__init__.py | awk -F'/' 'BEGIN { ORS = "," } {print $(NF-1) }' )"
+    --application-import-names="$(ls -1 website/*/__init__.py | awk -F'/' 'BEGIN { ORS = "," } {print $(NF-1) }')"
     website
   - "poetry run pydocstyle --explain --add-ignore=D100,D104 --match-dir='(?!migrations).*'"
   - "poetry run python website/manage.py check --no-color"
