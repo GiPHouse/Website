@@ -49,6 +49,7 @@ class ShowCalendarView(LoginRequiredMixin, TemplateView):
 
         context['rooms'] = rooms
         context['current_week'] = current_week
+        context['days'] = days
 
         return context
 
