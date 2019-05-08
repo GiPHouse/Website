@@ -72,7 +72,7 @@ class QuestionnaireSubmission(models.Model):
     """Submission of a questionnaire by a user."""
 
     questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
-    participant = models.OneToOneField(User, on_delete=models.CASCADE)
+    participant = models.ForeignKey(User, on_delete=models.CASCADE)
 
     late = models.BooleanField()
     created = models.DateTimeField(auto_now_add=True)
@@ -94,14 +94,16 @@ class Question(models.Model):
     QUALITY = 1
     AGREEMENT = 2
 
+    CHOICES = (
+        (OPEN, 'Open question'),
+        (QUALITY, 'Poor/good Likert scale'),
+        (AGREEMENT, 'Disagree/agree Likert scale'),
+    )
+
     questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
     question = models.CharField(max_length=200)
     question_type = models.PositiveSmallIntegerField(
-        choices=(
-            (OPEN, 'Open question'),
-            (QUALITY, 'Poor/good Likert scale'),
-            (AGREEMENT, 'Disagree/agree Likert scale'),
-        )
+        choices=CHOICES
     )
     about_team_member = models.BooleanField(default=False)
 

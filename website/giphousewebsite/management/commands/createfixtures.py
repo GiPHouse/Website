@@ -1,8 +1,6 @@
 import random
 from datetime import timedelta
 
-from courses.models import Course, Lecture, SeasonChoice, Semester
-
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
 from django.core.management import BaseCommand
@@ -11,9 +9,16 @@ from django.utils import timezone
 from faker import Faker
 from faker.providers import address, company, date_time, internet, lorem, person
 
+from courses.models import Course, Lecture, Semester
+
+from peer_review.models import AgreementAnswerData, Answer, OpenAnswerData, QualityAnswerData, Question, \
+    Questionnaire, QuestionnaireSubmission
+
 from projects.models import Client, Project
 
 from registrations.models import GiphouseProfile, Registration, RoleChoice
+
+from room_reservation.models import Reservation, Room
 
 User: DjangoUser = get_user_model()
 
@@ -30,7 +35,8 @@ class Command(BaseCommand):
     """Add the createfixtures command to manage.py."""
 
     help = 'Creates basic model instances for local testing'
-    things = ['lecture', 'project', 'student', 'director']
+    things = ['lecture', 'project', 'student', 'director', 'questionnaire', 'question', 'submission', 'room',
+              'reservation']
 
     def add_arguments(self, parser):
         """Add all the arguments used by the createfixtures command."""
@@ -45,7 +51,7 @@ class Command(BaseCommand):
         """Create basic instances used by other fixtures."""
         Semester.objects.get_or_create(
             year=timezone.now().year,
-            season=SeasonChoice.fall.name,
+            season=Semester.FALL,
             defaults={
                 'registration_start': timezone.now() - timedelta(days=90),
                 'registration_end': timezone.now() - timedelta(days=60),
@@ -53,7 +59,7 @@ class Command(BaseCommand):
         )
         Semester.objects.get_or_create(
             year=timezone.now().year,
-            season=SeasonChoice.spring.name,
+            season=Semester.SPRING,
             defaults={
                 'registration_start': timezone.now() - timedelta(days=30),
                 'registration_end': timezone.now() + timedelta(days=30),
@@ -129,19 +135,115 @@ class Command(BaseCommand):
             role=RoleChoice.director.name,
         )
 
-    def handle(self, *args, **options):
+    def create_questionnaire(self):
+        """Create one fake questionnaire."""
+        Questionnaire.objects.create(
+            title=fake.sentence(),
+            semester=Semester.objects.order_by('?').first(),
+            available_from=timezone.now() - timedelta(days=2),
+            available_until_soft=timezone.now() + timedelta(days=10),
+            available_until_hard=timezone.now() + timedelta(days=15),
+        )
+
+    def create_question(self):
+        """Create one fake question."""
+        Question.objects.create(
+            questionnaire=Questionnaire.objects.order_by('?').first(),
+            question=fake.sentence().replace('.', '?'),
+            question_type=random.choice(Question.CHOICES)[0],
+            about_team_member=random.choice([True, False])
+        )
+
+    def create_submission(self):
+        """Create one fake submission."""
+        questionnaire = Questionnaire.objects.order_by('?').first()
+        user = User.objects.exclude(questionnairesubmission__questionnaire=questionnaire).order_by('?').first()
+        peers = User.objects.exclude(pk=user.pk).filter(
+            groups__in=user.groups.filter(project__semester=Semester.objects.first())
+        )
+
+        submission = QuestionnaireSubmission.objects.create(
+            questionnaire=questionnaire,
+            participant=user,
+            late=random.choice([True, False]),
+            created=fake.date_between(start_date='-2d', end_date='today'),
+        )
+
+        def create_answer(question, answer):
+            """Create a fake answer for the question."""
+            if question.question_type == Question.OPEN:
+                OpenAnswerData.objects.create(
+                    answer=answer,
+                    value=fake.paragraph()
+                )
+            elif question.question_type == Question.AGREEMENT:
+                AgreementAnswerData.objects.create(
+                    answer=answer,
+                    value=random.choice(AgreementAnswerData.CHOICES)[0]
+                )
+            elif question.question_type == Question.QUALITY:
+                QualityAnswerData.objects.create(
+                    answer=answer,
+                    value=random.choice(QualityAnswerData.CHOICES)[0]
+                )
+
+        for question in questionnaire.question_set.all():
+            if question.about_team_member:
+                for peer in peers:
+                    answer = Answer.objects.create(
+                        question=question,
+                        submission=submission,
+                        peer=peer
+                    )
+                    create_answer(question, answer)
+            else:
+                answer = Answer.objects.create(
+                    question=question,
+                    submission=submission
+                )
+                create_answer(question, answer)
+
+    def create_room(self):
+        """Create one fake room."""
+        Room.objects.create(
+            name=fake.city(),
+            location=fake.numerify('Mercator 1.0##')
+        )
+
+    def create_reservation(self):
+        """Create one fake reservation."""
+        time = fake.date_time_this_month(after_now=True, tzinfo=timezone.get_current_timezone())
+        time = time.replace(minute=0, second=0, microsecond=0)
+        Reservation.objects.create(
+            reservee=User.objects.order_by('?').first(),
+            room=Room.objects.order_by('?').first(),
+            start_time=time,
+            end_time=time + timedelta(hours=random.randint(1, 5))
+        )
+
+    def handle(self, *args, **kwargs):
         """Execute the createfixtures command."""
         options = {
             'lecture': 8,
             'project': 5,
             'student': 25,
             'director': 2,
-        }.update(options)
+            'questionnaire': 2,
+            'question': 8,
+            'submission': 23,
+            'room': 2,
+            'reservation': 10,
+        }
+        if any([value is not None for key, value in kwargs.items() if value in self.things]):
+            options = dict()
+        for key, value in kwargs.items():
+            if value is not None:
+                options[key] = value
 
         self.create_base()
 
         for thing in self.things:
-            amount = options[thing] or 0
+            amount = options.get(thing) or 0
             self.stdout.write(f"Creating {amount} {thing}s")
             for _ in range(amount):
                 self.__getattribute__('create_' + thing)()
