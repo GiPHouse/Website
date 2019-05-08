@@ -1,5 +1,3 @@
-from enum import Enum
-
 from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
@@ -13,17 +11,6 @@ def current_year():
 def max_value_current_year(value):
     """Validate value, limit modelinput to current_year, call current_year to keep validator from changing per year."""
     return MaxValueValidator(current_year()+1)(value)
-
-
-class SeasonChoice(Enum):
-    """Enum object for the possible seasons."""
-
-    spring = "Spring"
-    fall = "Fall"
-
-    def __str__(self):
-        """Return value of SeasonChoice object."""
-        return self.value
 
 
 class Course(models.Model):
@@ -59,11 +46,17 @@ class Semester(models.Model):
 
         ordering = ['-year', 'season']
 
+    SPRING = 0
+    FALL = 1
+    CHOICES = (
+        (SPRING, 'Spring'),
+        (FALL, 'Fall'),
+    )
+
     year = models.IntegerField(validators=[MinValueValidator(2008), max_value_current_year])
-    season = models.CharField(
-        max_length=6,
-        choices=[(tag.name, tag.value) for tag in SeasonChoice],
-        default=SeasonChoice.spring.name
+    season = models.PositiveSmallIntegerField(
+        choices=CHOICES,
+        default=SPRING
     )
 
     registration_start = models.DateTimeField()

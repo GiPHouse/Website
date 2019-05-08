@@ -1,4 +1,4 @@
-from courses.models import SeasonChoice, Semester
+from courses.models import Semester
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
@@ -7,8 +7,8 @@ from django.test import Client, TestCase
 from django.utils import timezone
 
 from projects.models import Project
+
 from registrations.models import GiphouseProfile
-from courses.models import Semester, SeasonChoice
 
 User: DjangoUser = get_user_model()
 
@@ -25,7 +25,7 @@ class GetProjectsTest(TestCase):
 
         cls.semester = Semester.objects.create(
             year=2018,
-            season=SeasonChoice.spring.name,
+            season=Semester.SPRING,
             registration_start=timezone.now(),
             registration_end=timezone.now(),
         )

@@ -9,10 +9,7 @@ register = template.Library()
 def _is_active(item, path):
     if 'url' not in item:
         return False
-    url = item['url']
-    if callable(item['url']):
-        url = item['url']()
-    return url == path
+    return item['url'] == path
 
 
 @register.inclusion_tag('menu/menu.html', takes_context=True)

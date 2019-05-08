@@ -1,15 +1,6 @@
 from django.contrib import admin
 
-from peer_review.models import Answer, Question, Questionnaire
-
-
-@admin.register(Answer)
-class AnswerAdmin(admin.ModelAdmin):
-    """Customize the answer filters in the admin."""
-
-    list_display = ('question', 'answer', 'participant', 'peer', 'on_time')
-    list_filter = ('question',)
-    readonly_fields = ('on_time',)
+from peer_review.models import Question, Questionnaire, QuestionnaireSubmission
 
 
 class QuestionInline(admin.TabularInline):
@@ -23,3 +14,6 @@ class QuestionnaireAdmin(admin.ModelAdmin):
     """Add Questionnaire editing in the admin."""
 
     inlines = (QuestionInline,)
+
+
+admin.site.register(QuestionnaireSubmission)

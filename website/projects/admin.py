@@ -6,7 +6,6 @@ from django.contrib.auth.models import User as DjangoUser
 
 from projects.models import Client, Project
 
-from projects.models import Client, Project
 
 User: DjangoUser = get_user_model()
 

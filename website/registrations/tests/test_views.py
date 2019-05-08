@@ -1,6 +1,6 @@
 from unittest import mock
 
-from courses.models import SeasonChoice, Semester
+from courses.models import Semester
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
@@ -39,7 +39,7 @@ class Step1Test(TestCase):
 
         Semester.objects.create(
             year=timezone.now().year,
-            season=SeasonChoice.spring.name,
+            season=Semester.SPRING,
             registration_start=timezone.now(),
             registration_end=timezone.now() + timezone.timedelta(days=1),
         )
@@ -77,7 +77,7 @@ class Step2Test(TestCase):
     def setUpTestData(cls):
         cls.semester = Semester.objects.create(
             year=timezone.now().year,
-            season=SeasonChoice.spring.name,
+            season=Semester.SPRING,
             registration_start=timezone.now(),
             registration_end=timezone.now() + timezone.timedelta(days=1),
         )

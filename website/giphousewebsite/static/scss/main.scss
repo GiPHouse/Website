@@ -4,7 +4,6 @@
 @import "fontawesome/solid.scss";
 
 // Variable overrides
-
 $container-max-widths: (
   sm: 540px,
   md: 720px,
@@ -50,3 +49,7 @@ $navbar-padding-y: 1rem;
 // Bootstrap and its default variables
 // Required includes
 @import "bootstrap/bootstrap";
+
+
+// Room Reservation
+@import "../../../room_reservation/static/scss/index.scss"

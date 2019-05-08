@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Overview Questionnaires - {{ block.super }}
+{% endblock %}
+
+{% block content %}
+    <div class="col-8">
+        <div>
+            <h4>Questionnaires</h4>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Title</th>
+                        <th scope="col">Available Until</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for questionnaire in questionnaires %}
+                        <tr>
+                            <td>{{ questionnaire.title }}</td>
+                            <td>{{ questionnaire.get_until_date|default_if_none:'Closed' }}</td>
+                            <td>
+                                {% if questionnaire.is_open %}
+                                    <a class="btn btn-primary" role="button" href="{% url 'peer_review:questionnaire' questionnaire.pk %}">Start</a>
+                                {% elif questionnaire.is_late %}
+                                    <a class="btn btn-primary" role="button" href="{% url 'peer_review:questionnaire' questionnaire.pk %}">Start Late</a>
+                                {% else %}
+                                    <a class="btn btn-primary disabled" role="button" href="#">Start</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div>
+            <h4>Submissions</h4>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Title</th>
+                        <th scope="col">Submission Date</th>
+                        <th scope="col">On Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for submission in submissions %}
+                        <tr>
+                            <td>{{ submission.questionnaire.title }}</td>
+                            <td>{{ submission.created }}</td>
+                            <td>
+                                {% if submission.late %}
+                                    <i class="fas fa-times"></i>
+                                {% else %}
+                                    <i class="fas fa-check"></i>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

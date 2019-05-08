@@ -10,11 +10,6 @@ from projects.models import Project
 User: DjangoUser = get_user_model()
 
 
-def users_in_same_group(user: User):
-    """Return the queryset of users from the groups that the user is in."""
-    return User.objects.filter(groups__in=user.groups.all()).exclude(pk=user.pk)
-
-
 class Role(Group):
     """Role Group that contains multiple users."""
 

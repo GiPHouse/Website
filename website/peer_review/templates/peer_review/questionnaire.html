@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+
+{% block title %}
+    Questionnaire - {{ block.super }}
+{% endblock %}
+
+{% block content %}
+    <h1 class="mt-2">Peer review</h1>
+    {% bootstrap_form_errors form %}
+    <form method="post">
+        {% csrf_token %}
+        {% for field in  form %}
+            {% bootstrap_field field %}
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+{% endblock %}

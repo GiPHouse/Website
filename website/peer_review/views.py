@@ -1,27 +1,42 @@
+from courses.models import Semester
+
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import User as DjangoUser
 from django.shortcuts import get_object_or_404, redirect
-from django.utils import timezone
-from django.views.generic import ListView
+from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormView
 
 from peer_review.forms import PeerReviewForm
-from peer_review.models import Answer, Question, Questionnaire
+from peer_review.models import Answer, Questionnaire, QuestionnaireSubmission
 
-from registrations.models import users_in_same_group
+User: DjangoUser = get_user_model()
 
 
-class OverviewView(LoginRequiredMixin, ListView):
+class OverviewView(LoginRequiredMixin, TemplateView):
     """List the available questionnaires."""
 
     # Raise exception when not logged in
     raise_exception = True
-    model = Questionnaire
+    template_name = 'peer_review/overview.html'
 
-    def get_queryset(self):
-        """Return the available questionnaires queryset."""
-        return super().get_queryset().filter(available_from__lte=timezone.now(),
-                                             available_until__gte=timezone.now())
+    def get_context_data(self, **kwargs):
+        """Add the current questionnaires and submissions to the context of the view."""
+        context = super().get_context_data()
+
+        context['submissions'] = []
+        context['questionnaires'] = []
+        for questionnaire in Questionnaire.objects.current_questionnaires():
+
+            try:
+                context['submissions'].append(
+                    QuestionnaireSubmission.objects.get(questionnaire=questionnaire, participant=self.request.user)
+                )
+            except QuestionnaireSubmission.DoesNotExist:
+                context['questionnaires'].append(questionnaire)
+
+        return context
 
 
 class PeerReviewView(LoginRequiredMixin, FormView):
@@ -29,46 +44,50 @@ class PeerReviewView(LoginRequiredMixin, FormView):
 
     # Raise exception when not logged in
     raise_exception = True
-
-    template_name = 'peer_review/form.html'
+    template_name = 'peer_review/questionnaire.html'
     form_class = PeerReviewForm
 
-    def dispatch(self, request, questionnaire=None, *args, **kwargs):
-        """Set up the objects used in this form."""
-        self.questionnaire = get_object_or_404(Questionnaire, pk=questionnaire)
-        self.participant = self.request.user
-        self.peers = users_in_same_group(self.participant)
-        self.questions = Question.objects.filter(questionnaire=self.questionnaire)
-        return super().dispatch(request, *args, **kwargs)
+    def get_form_kwargs(self):
+        """Add extra information to the form."""
+        kwargs = super().get_form_kwargs()
 
-    def get_form(self, form_class=None):
-        """Return an instance of the form to be used in this view."""
-        form_class = self.get_form_class()
-        # Supply the current logged in user to the form
-        return form_class(peers=self.peers, questions=self.questions, **self.get_form_kwargs())
+        participant = self.request.user
+        kwargs['participant'] = participant
+
+        questionnaire = get_object_or_404(Questionnaire, pk=self.kwargs['questionnaire'])
+        kwargs['questionnaire'] = questionnaire
+        kwargs['peers'] = (
+            User.objects
+                .exclude(pk=participant.pk)
+                .filter(
+                    groups__in=participant.groups.filter(project__semester=Semester.objects.first())
+                )
+        )
+
+        return kwargs
 
     def form_valid(self, form):
         """Validate the form."""
-        participant = self.request.user
+        submission = QuestionnaireSubmission.objects.create(
+            questionnaire=form.questionnaire,
+            participant=self.request.user,
+        )
 
-        for question in self.questions:
+        for question in form.questions:
+
             if question.about_team_member:
-                for peer in self.peers:
-                    field_name = f"{peer.username}_{question.pk}"
-                    Answer.objects.create(
-                        participant=participant,
-                        peer=peer,
-                        question=question,
-                        answer=form.cleaned_data[field_name],
-                    )
+                peers = form.peers
             else:
-                field_name = f"{question.pk}"
-                Answer.objects.create(
-                    participant=participant,
-                    question=question,
-                    peer=None,
-                    answer=form.cleaned_data[field_name],
-                )
+                peers = (None, )
 
-        messages.success(self.request, "Peer review successfully submitted!", extra_tags='success')
+            for peer in peers:
+                field_name = PeerReviewForm.get_field_name(question, peer)
+                answer = Answer.objects.create(
+                    submission=submission,
+                    peer=peer,
+                    question=question,
+                )
+                answer.answer = form.cleaned_data[field_name]
+
+        messages.success(self.request, "Questionnaire successfully submitted!", extra_tags='success')
         return redirect("home")

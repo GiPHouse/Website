@@ -7,7 +7,6 @@ from courses.models import Semester
 
 from django.urls import reverse
 
-from peer_review.models import Questionnaire
 
 __all__ = ['MAIN_MENU']
 
@@ -43,16 +42,14 @@ MAIN_MENU = [
         'url': reverse('contact'),
     },
     {
-        'title': 'Peer Review',
-        'visible': lambda request: (Questionnaire.objects.open_questionnaires().count() > 1
-                                    and request.user.is_authenticated),
-        'url': reverse('peer_review:overview')
+        'title': 'Room Reservation',
+        'url': reverse('room_reservation:calendar'),
+        'visible': lambda request: request.user.is_authenticated,
     },
     {
-        'title': 'Peer Review',
-        'visible': lambda request: (Questionnaire.objects.open_questionnaires().count() == 1 and
-                                    request.user.is_authenticated),
-        'url': lambda: (reverse('peer_review:answer', args=(Questionnaire.objects.first().pk,))
-                        if Questionnaire.objects.first() else False)
-    }
+        'title': 'Questionnaires',
+        'visible': lambda request: request.user.is_authenticated,
+        'url': reverse('peer_review:overview')
+    },
+
 ]
