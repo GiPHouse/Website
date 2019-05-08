@@ -4,8 +4,7 @@ from django.utils import timezone
 
 from freezegun import freeze_time
 
-from courses.models import Course, Lecture, Semester, current_year, get_slides_filename, \
-    max_value_current_year
+from courses.models import Course, Lecture, Semester, current_year, get_slides_filename, max_value_current_year
 
 
 class ModelTest(TestCase):
