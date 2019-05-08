@@ -34,7 +34,7 @@ script:
     --source 'website'
     website/manage.py test
   - "poetry run coverage report --show-missing --skip-covered --fail-under=100"
-  - "bash -c 'shopt -s globstar; shellcheck **/*.{sh}'"
+  - "bash -c 'shopt -s globstar; shellcheck **/*.sh'"
 
 deploy:
   provider: "script"
