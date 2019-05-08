@@ -34,7 +34,7 @@ def create_models_test_class(classname):
                 # parent class (Model)
                 self.assertNotEqual(str(instance), models.Model.__str__(instance))
                 self.assertIs(type(str(instance)), str)
-            except ObjectDoesNotExist:
+            except (ObjectDoesNotExist, AttributeError):
                 # if the __str__ method relies on any fields which were not instantiated, it throws a derivative of
                 # ObjectDoesNotExist which means it is different from the parent class implementation
                 pass
