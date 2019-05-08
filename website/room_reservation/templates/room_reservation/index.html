@@ -9,7 +9,7 @@
 <a href="{% url 'room_reservation:calendar' %}?week={{ current_week|add:"1"}}" ><button class="btn btn-outline-primary">Next</button></a>
 {% endbuttons %}
 <h2>Week {{current_week}}</h2>
-{% for room, reservations in this_weeks_reservations.items %}
+{% for room in rooms %}
 	<h3>{{room}}</h3>
 	<table class="table">
 		<thead>
@@ -36,7 +36,7 @@
 					<div class="rr-calendar-hour" style="top: calc((18 - 8)/10 * 100%);" >18:00</div>
 					</div>
 				</td>
-			{% for col in reservations %}
+			{% for col in room.reservations %}
 				<td>
 					<div class="rr-calendar-day" >
 				{% for r in col %}

@@ -35,19 +35,19 @@ class ShowCalendarView(LoginRequiredMixin, TemplateView):
 
         monday_of_the_week = datetime.strptime(
             f'{today.year}-{current_week}-1', "%G-%V-%w").date()
-        days = (monday_of_the_week + timedelta(days=n) for n in range(7))
+        days = [monday_of_the_week + timedelta(days=n) for n in range(7)]
 
         for room in rooms:
-            this_weeks_reservations[room] = []
+            room.reservations = []
             for day in days:
                 next_day = day + timedelta(days=1)
-                this_weeks_reservations[room] += [Reservation.objects.filter(
+                room.reservations += [Reservation.objects.filter(
+                    room=room,
                     start_time__date__gte=day,
                     start_time__date__lt=next_day,
                 )]
 
         context['rooms'] = rooms
-        context['this_weeks_reservations'] = this_weeks_reservations
         context['current_week'] = current_week
 
         return context
