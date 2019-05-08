@@ -60,7 +60,7 @@ class PeerReviewView(LoginRequiredMixin, FormView):
             User.objects
                 .exclude(pk=participant.pk)
                 .filter(
-                    groups__in=participant.groups.filter(project__semester=Semester.objects.first())
+                    groups__in=participant.groups.filter(project__semester=Semester.objects.get_current_semester())
                 )
         )
 
