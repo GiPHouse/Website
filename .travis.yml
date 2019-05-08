@@ -9,10 +9,11 @@ services:
 
 before_install:
   - "pip install --no-cache-dir poetry"
+  - "DEBIAN_FRONTEND=noninteractive sudo apt-get update"
+  - "DEBIAN_FRONTEND=noninteractive sudo apt-get install -y shellcheck"
 
 install:
   - "poetry install"
-  - "DEBIAN_FRONTEND=noninteractive apt-get -y install shellcheck"
 
 script:
   # Django max line length is 119 characters
