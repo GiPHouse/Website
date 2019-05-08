@@ -6,7 +6,7 @@ from django.contrib.auth.models import User as DjangoUser
 from django.core.exceptions import ValidationError
 from django.forms import widgets
 
-from registrations.models import RoleChoice, GiphouseProfile
+from registrations.models import GiphouseProfile
 from projects.models import Project
 from courses.models import Semester
 
@@ -33,8 +33,8 @@ class Step2Form(forms.Form):
     github_username = forms.CharField(disabled=True)
 
     course = forms.ChoiceField(choices=(('', '---------'),
-                                        (RoleChoice.se.name, 'Software Engineering'),
-                                        (RoleChoice.sdm.name, 'System Development Management')))
+                                        ('SE Student', 'Software Engineering'),
+                                        ('SDM Student', 'System Development Management')))
 
     email = forms.EmailField()
 

@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
 from django.shortcuts import reverse
 
-from registrations.models import GiphouseProfile, RoleChoice
+from registrations.models import GiphouseProfile
 
 User: DjangoUser = get_user_model()
 
@@ -23,7 +23,6 @@ class RegistrationAdminTest(TestCase):
             user=manager,
             github_id='0',
             github_username='manager',
-            role=RoleChoice.sdm.name
         )
 
     def setUp(self):

@@ -4,7 +4,7 @@ from django.contrib.auth.models import User as DjangoUser
 from django.shortcuts import reverse
 from django.utils import timezone
 
-from registrations.models import GiphouseProfile, RoleChoice
+from registrations.models import GiphouseProfile
 from peer_review.models import Question, Answer, Questionnaire, QuestionTypes
 
 User: DjangoUser = get_user_model()
@@ -25,7 +25,6 @@ class RegistrationAdminTest(TestCase):
             user=user,
             github_id='0',
             github_username='user',
-            role=RoleChoice.sdm.name
         )
 
         cls.questionnaire = Questionnaire.objects.create(

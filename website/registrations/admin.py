@@ -1,8 +1,10 @@
+from django import forms
 from django.contrib import admin
+from django.contrib.admin import widgets
 from django.contrib.auth.models import User as DjangoUser, Group
 from django.contrib.auth import get_user_model
-
-from registrations.models import GiphouseProfile, Registration
+from registrations.models import GiphouseProfile, Registration, Role
+from projects.models import Project
 
 User: DjangoUser = get_user_model()
 admin.site.unregister(User)
@@ -25,13 +27,55 @@ class RegistrationInline(admin.StackedInline):
     min_num = 0
 
 
+class StudentForm(forms.ModelForm):
+    """Admin form to edit Students."""
+
+    class Meta:
+        """Meta class for StudentForm."""
+
+        model = User
+        fields = ('first_name', 'last_name', 'email', 'date_joined')
+        exclude = []
+
+    role = forms.ModelChoiceField(
+        queryset=Role.objects.all(),
+        required=False,
+    )
+
+    project = forms.ModelChoiceField(
+        queryset=Project.objects.all(),
+        required=False,
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['role'].initial = Role.objects.filter(user=self.instance).first()
+
+        self.fields['project'].initial = Project.objects.filter(user=self.instance).first()
+
+    def save_m2m(self):
+        """Add the Role to the user."""
+        self.instance.groups.set([])
+        if self.cleaned_data['role']:
+            self.instance.groups.add(self.cleaned_data['role'])
+        if self.cleaned_data['role']:
+            self.instance.groups.add(self.cleaned_data['project'])
+
+    def save(self, *args, **kwargs):
+        """Save the form data, including many-to-many data."""
+        instance = super().save()
+        self.save_m2m()
+        return instance
+
+
 @admin.register(User)
 class StudentAdmin(admin.ModelAdmin):
     """Custom admin for Student."""
 
+    form = StudentForm
     inlines = [GiphouseProfileInline, RegistrationInline]
-    list_display = ('first_name', 'last_name', 'get_github_username', 'get_role')
-    fields = ('first_name', 'last_name', 'email', 'date_joined', 'groups')
+    list_display = ('first_name', 'last_name', 'get_github_username')
 
     def get_queryset(self, request):
         """Return queryset of all GiPHouse users."""
@@ -43,8 +87,5 @@ class StudentAdmin(admin.ModelAdmin):
     get_github_username.short_description = 'Github Username'
     get_github_username.admin_order_field = 'giphouseprofile__github_username'
 
-    def get_role(self, obj):
-        """Return role of Student."""
-        return obj.giphouseprofile.get_role_display()
-    get_role.short_description = 'Role'
-    get_role.admin_order_field = 'giphouseprofile__role'
+
+admin.site.register(Role)

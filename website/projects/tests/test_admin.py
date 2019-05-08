@@ -5,7 +5,7 @@ from django.shortcuts import reverse
 from django.utils import timezone
 
 from projects.models import Project
-from registrations.models import GiphouseProfile, RoleChoice
+from registrations.models import GiphouseProfile
 from courses.models import Semester, SeasonChoice
 
 User: DjangoUser = get_user_model()
@@ -33,7 +33,6 @@ class GetProjectsTest(TestCase):
             user=manager,
             github_id='0',
             github_username='manager',
-            role=RoleChoice.sdm.name
         )
 
         cls.project = Project.objects.create(name='test')

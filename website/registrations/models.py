@@ -2,6 +2,7 @@ from enum import Enum
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
+from django.contrib.auth.models import Group
 from django.db import models
 
 from projects.models import Project
@@ -14,13 +15,14 @@ def users_in_same_group(user: User):
     return User.objects.filter(groups__in=user.groups.all()).exclude(pk=user.pk)
 
 
-class RoleChoice(Enum):
-    """Possible roles."""
+class Role(Group):
+    """Role Group that contains multiple users."""
 
-    se = "SE Student"
-    sdm = "SDM Student"
-    director = "Director"
-    admin = "Admin"
+    objects = models.Manager()
+
+    def __str__(self):
+        """Return role name."""
+        return f'{self.name}'
 
 
 class GiphouseProfile(models.Model):
@@ -60,11 +62,6 @@ class GiphouseProfile(models.Model):
         unique=True,
         null=True,
         max_length=8,
-    )
-
-    role = models.CharField(
-        max_length=8,
-        choices=[(tag.name, tag.value) for tag in RoleChoice],
     )
 
     def __str__(self):
