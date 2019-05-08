@@ -1,5 +1,3 @@
-from courses.models import Semester
-
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -7,6 +5,8 @@ from django.contrib.auth.models import User as DjangoUser
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormView
+
+from courses.models import Semester
 
 from peer_review.forms import PeerReviewForm
 from peer_review.models import Answer, Questionnaire, QuestionnaireSubmission

@@ -9,6 +9,8 @@ services:
 
 before_install:
   - "pip install --no-cache-dir poetry"
+  - "DEBIAN_FRONTEND=noninteractive sudo apt-get update"
+  - "DEBIAN_FRONTEND=noninteractive sudo apt-get install --yes shellcheck"
 
 install:
   - "poetry install"
@@ -20,6 +22,7 @@ script:
     flake8
     --max-line-length=119
     --exclude="migrations,website/giphousewebsite/settings/"
+    --application-import-names="$(ls -1 website/*/__init__.py | awk -F'/' 'BEGIN { ORS = "," } {print $(NF-1) }')"
     website
   - "poetry run pydocstyle --explain --add-ignore=D100,D104 --match-dir='(?!migrations).*'"
   - "poetry run python website/manage.py check --no-color"
@@ -32,6 +35,7 @@ script:
     --source 'website'
     website/manage.py test
   - "poetry run coverage report --show-missing --skip-covered --fail-under=100"
+  - "bash -c 'shopt -s globstar; shellcheck **/*.sh'"
 
 deploy:
   provider: "script"

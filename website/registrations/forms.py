@@ -1,12 +1,12 @@
 import re
 
-from courses.models import Semester
-
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
 from django.core.exceptions import ValidationError
 from django.forms import widgets
+
+from courses.models import Semester
 
 from projects.models import Project
 

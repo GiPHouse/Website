@@ -1,9 +1,9 @@
-from courses.models import Semester
-
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
 from django.test import TestCase
 from django.utils import timezone
+
+from courses.models import Semester
 
 from peer_review.models import Answer, Question, Questionnaire, QuestionnaireSubmission
 
