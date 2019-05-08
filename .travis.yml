@@ -12,7 +12,7 @@ before_install:
 
 install:
   - "poetry install"
-  - "apt-get install shellcheck"
+  - "DEBIAN_FRONTEND=noninteractive apt-get -y install shellcheck"
 
 script:
   # Django max line length is 119 characters
