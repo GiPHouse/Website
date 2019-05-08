@@ -4,11 +4,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
 from django.test import TestCase
 
+from requests.exceptions import RequestException
+
 from github_oauth.backends import GithubOAuthBackend
 
 from registrations.models import GiphouseProfile
-
-from requests.exceptions import RequestException
 
 User: DjangoUser = get_user_model()
 

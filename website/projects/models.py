@@ -1,7 +1,7 @@
-from courses.models import Semester
-
 from django.contrib.auth.models import Group
 from django.db import models
+
+from courses.models import Semester
 
 
 class Client(models.Model):

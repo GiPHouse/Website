@@ -1,7 +1,7 @@
+from django.contrib import admin
+
 from courses.forms import AdminSemesterForm
 from courses.models import Course, Lecture, Semester
-
-from django.contrib import admin
 
 
 @admin.register(Lecture)
