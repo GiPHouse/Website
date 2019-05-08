@@ -59,3 +59,12 @@ class ModelTest(TestCase):
     @freeze_time("2018-01-01")
     def test_max_value_current_year_raise(self):
         self.assertRaises(ValidationError, max_value_current_year, 2020)
+
+    @freeze_time("2018-03-03")
+    def test_current_semester(self):
+        startreg = timezone.now().replace(year=2018, month=3, day=3, hour=0, minute=0, second=0, microsecond=1)
+        endreg = timezone.now().replace(year=2018, month=6, day=6, hour=0, minute=0, second=0, microsecond=1)
+        testsem = Semester.objects.create(year=2018, season=Semester.SPRING, registration_start=startreg,
+                                          registration_end=endreg)
+        self.assertEqual(testsem, Semester.objects.get_current_semester())
+
