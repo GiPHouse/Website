@@ -1,8 +1,8 @@
-from courses.forms import year_choices
-
 from django.test import TestCase
 
 from freezegun import freeze_time
+
+from courses.forms import year_choices
 
 
 class FormCoursesTest(TestCase):

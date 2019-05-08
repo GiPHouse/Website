@@ -1,8 +1,8 @@
-from courses.models import Semester
-
 from django.shortcuts import reverse
 from django.test import Client, TestCase
 from django.utils import timezone
+
+from courses.models import Semester
 
 
 class GetProjectsTest(TestCase):

@@ -1,7 +1,7 @@
-from courses.models import Semester
-
 from django import forms
 from django.utils import timezone
+
+from courses.models import Semester
 
 
 def year_choices():
