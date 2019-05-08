@@ -1,4 +1,4 @@
-from courses.models import SeasonChoice, Semester
+from courses.models import Semester
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
@@ -34,7 +34,7 @@ class ModelsTest(TestCase):
 
         cls.test_semester = Semester.objects.create(
             year=timezone.now().year,
-            season=SeasonChoice.spring.name,
+            season=Semester.SPRING,
             registration_start=timezone.now(),
             registration_end=timezone.now() + timezone.timedelta(days=1),
         )
@@ -43,9 +43,6 @@ class ModelsTest(TestCase):
             name=cls.project_name,
             semester=cls.test_semester,
         )
-
-    def test_season_str(self):
-        self.assertEqual(SeasonChoice.spring.value, str(SeasonChoice.spring))
 
     def test_semester_str(self):
 

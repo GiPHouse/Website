@@ -1,4 +1,4 @@
-from courses.models import Course, Lecture, SeasonChoice, Semester, current_year, get_slides_filename, \
+from courses.models import Course, Lecture, Semester, current_year, get_slides_filename, \
     max_value_current_year
 
 from django.core.exceptions import ValidationError
@@ -12,7 +12,7 @@ class ModelTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.season = SeasonChoice.spring.name
+        cls.season = Semester.SPRING
         cls.year = 2019
         cls.course = Course.objects.create(name="Test Course")
         cls.date = timezone.datetime(1970, 1, 1).date()
