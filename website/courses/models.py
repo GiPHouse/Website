@@ -59,8 +59,8 @@ class Semester(models.Model):
         default=SPRING
     )
 
-    registration_start = models.DateTimeField()
-    registration_end = models.DateTimeField()
+    registration_start = models.DateTimeField(blank=True, null=True)
+    registration_end = models.DateTimeField(blank=True, null=True)
 
     objects = SemesterManager()
 
