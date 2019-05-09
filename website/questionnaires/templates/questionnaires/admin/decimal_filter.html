@@ -1,0 +1,24 @@
+<h3>{{ title }}</h3>
+<ul>
+    <li>
+        {% with choices.0 as choice_data %}
+            <form method="GET" action="">
+
+                {% for param_name, param_value in choice_data.get_query.items %}
+
+                    {% if param_name != choice_data.parameter_name %}
+                        <input  type="hidden" value="{{ param_value }}" name="{{ param_name }}"/>
+                    {% endif %}
+                {% endfor %}
+
+                <input  type="number" step="any" value="{{ choice_data.current_value }}" name="{{ choice_data.parameter_name }}"/>
+            </form>
+            <small class="form-text text-muted">Press Enter to submit.</small>
+            <small class="form-text text-muted">{{ choice_data.help_text }}</small>
+
+            {% if not choice_data.all.selected %}
+                <small><a href="{{ choice_data.all.query_string|iriencode }}">Clear</a></small>
+            {% endif %}
+        {% endwith %}
+    </li>
+</ul>
