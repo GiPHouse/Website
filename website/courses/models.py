@@ -45,6 +45,7 @@ class Semester(models.Model):
         """
 
         ordering = ['-year', 'season']
+        unique_together = [['year', 'season']]
 
     SPRING = 0
     FALL = 1
