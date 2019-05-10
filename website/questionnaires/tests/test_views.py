@@ -6,10 +6,10 @@ from django.utils import timezone
 
 from courses.models import Semester
 
+from projects.models import Project
+
 from questionnaires.forms import PeerReviewForm
 from questionnaires.models import Question, Questionnaire
-
-from projects.models import Project
 
 User: DjangoUser = get_user_model()
 

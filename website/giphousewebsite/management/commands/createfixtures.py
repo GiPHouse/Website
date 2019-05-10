@@ -11,10 +11,10 @@ from faker.providers import address, company, date_time, internet, lorem, person
 
 from courses.models import Course, Lecture, Semester
 
+from projects.models import Client, Project
+
 from questionnaires.models import AgreementAnswerData, Answer, OpenAnswerData, QualityAnswerData, Question, \
     Questionnaire, QuestionnaireSubmission
-
-from projects.models import Client, Project
 
 from registrations.models import GiphouseProfile, Registration, RoleChoice
 
