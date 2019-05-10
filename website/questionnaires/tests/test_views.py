@@ -6,8 +6,8 @@ from django.utils import timezone
 
 from courses.models import Semester
 
-from peer_review.forms import PeerReviewForm
-from peer_review.models import Question, Questionnaire
+from questionnaires.forms import PeerReviewForm
+from questionnaires.models import Question, Questionnaire
 
 from projects.models import Project
 
@@ -107,13 +107,13 @@ class PeerReviewTest(TestCase):
         self.client.login(username='myself', password='123')
 
     def test_get_overview(self):
-        response = self.client.get(reverse('peer_review:overview'))
+        response = self.client.get(reverse('questionnaires:overview'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Start Late')
 
     def test_get_questionnaire(self):
         response = self.client.get(
-            reverse('peer_review:questionnaire', kwargs={'questionnaire': self.active_questions.id})
+            reverse('questionnaires:questionnaire', kwargs={'questionnaire': self.active_questions.id})
         )
         self.assertEqual(response.status_code, 200)
 
@@ -122,7 +122,7 @@ class PeerReviewTest(TestCase):
         post_data = generate_post_data(self.active_questions.id, current_peers)
 
         response = self.client.post(
-            reverse('peer_review:questionnaire', kwargs={'questionnaire': self.active_questions.id}),
+            reverse('questionnaires:questionnaire', kwargs={'questionnaire': self.active_questions.id}),
             post_data,
             follow=True,
         )
@@ -134,7 +134,7 @@ class PeerReviewTest(TestCase):
         post_data = generate_post_data(self.active_questions.id, current_peers)
 
         response = self.client.post(
-            reverse('peer_review:questionnaire', kwargs={'questionnaire': self.active_questions.id}),
+            reverse('questionnaires:questionnaire', kwargs={'questionnaire': self.active_questions.id}),
             post_data,
             follow=True,
         )
@@ -142,7 +142,7 @@ class PeerReviewTest(TestCase):
         self.assertRedirects(response, reverse('home'))
 
         response = self.client.post(
-            reverse('peer_review:questionnaire', kwargs={'questionnaire': self.active_questions.id}),
+            reverse('questionnaires:questionnaire', kwargs={'questionnaire': self.active_questions.id}),
             post_data,
             follow=True,
         )
@@ -152,14 +152,14 @@ class PeerReviewTest(TestCase):
     def test_post_closed(self):
 
         response = self.client.post(
-            reverse('peer_review:questionnaire', kwargs={'questionnaire': self.closed_questions.id}),
+            reverse('questionnaires:questionnaire', kwargs={'questionnaire': self.closed_questions.id}),
             {},
             follow=True,
         )
         self.assertContains(response, 'Questionnaire is closed.')
 
     def test_all_questionnaires_visible(self):
-        response = self.client.get(reverse('peer_review:overview'))
+        response = self.client.get(reverse('questionnaires:overview'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.active_questions.title)
         self.assertContains(response, self.closed_questions.title)

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from peer_review.models import Question, Questionnaire, QuestionnaireSubmission
+from questionnaires.models import Question, Questionnaire, QuestionnaireSubmission
 
 
 class QuestionInline(admin.TabularInline):

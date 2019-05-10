@@ -53,11 +53,11 @@
 				</li>
                 {% if questionnaires|length > 1 %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'peer_review:overview' %}">Peer Review</a>
+                        <a class="nav-link" href="{% url 'questionnaires:overview' %}">Questionnaires</a>
                     </li>
                 {% elif questionnaires|length == 1 %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'peer_review:answer' questionnaires.0.id %}">Peer Review</a>
+                        <a class="nav-link" href="{% url 'questionnaires:answer' questionnaires.0.id %}">Questionnaires</a>
                     </li>
                 {% endif %}
             </ul>

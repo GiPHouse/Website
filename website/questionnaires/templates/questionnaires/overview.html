@@ -23,9 +23,9 @@
                             <td>{{ questionnaire.get_until_date|default_if_none:'Closed' }}</td>
                             <td>
                                 {% if questionnaire.is_open %}
-                                    <a class="btn btn-primary" role="button" href="{% url 'peer_review:questionnaire' questionnaire.pk %}">Start</a>
+                                    <a class="btn btn-primary" role="button" href="{% url 'questionnaires:questionnaire' questionnaire.pk %}">Start</a>
                                 {% elif questionnaire.is_late %}
-                                    <a class="btn btn-primary" role="button" href="{% url 'peer_review:questionnaire' questionnaire.pk %}">Start Late</a>
+                                    <a class="btn btn-primary" role="button" href="{% url 'questionnaires:questionnaire' questionnaire.pk %}">Start Late</a>
                                 {% else %}
                                     <a class="btn btn-primary disabled" role="button" href="#">Start</a>
                                 {% endif %}

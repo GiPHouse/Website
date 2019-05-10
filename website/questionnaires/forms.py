@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import ValidationError
 
-from peer_review.models import QuestionnaireSubmission
+from questionnaires.models import QuestionnaireSubmission
 
 
 class PeerReviewForm(forms.Form):
