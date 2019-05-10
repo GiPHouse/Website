@@ -25,7 +25,6 @@ class ShowCalendarView(LoginRequiredMixin, TemplateView):
         context = super(ShowCalendarView, self).get_context_data(**kwargs)
 
         rooms = Room.objects.all()
-        this_weeks_reservations = {}
         today = timezone.now().date()
 
         if 'week' in self.request.GET:
