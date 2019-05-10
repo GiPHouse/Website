@@ -19,7 +19,7 @@ class Reservation(models.Model):
     """Model for a reservation that is made by a reservee for a certain room, with an start and end date."""
 
     reservee = models.ForeignKey(
-        get_user_model(),
+        User,
         on_delete=models.CASCADE,
         related_name='reservee')
     room = models.ForeignKey(
