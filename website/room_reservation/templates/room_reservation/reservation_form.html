@@ -5,7 +5,7 @@
 <!-- XDSoft DateTimePicker -->
 <link rel="stylesheet" href="{% static 'css/jquery.datetimepicker.min.css' %}">
 
-<form method="post" class="form">
+<form method="post" class="form" autocomplete="off">
     {% csrf_token %}
 	{% bootstrap_form form %}
 	<input type="hidden" name="pk" value="{%if object %}{{object.pk}}{% else %}-1{%endif%}" />
