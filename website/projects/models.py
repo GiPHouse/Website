@@ -27,8 +27,7 @@ class Project(Group):
 
     semester = models.ForeignKey(
         Semester,
-        on_delete=models.SET_NULL,
-        null=True,
+        on_delete=models.CASCADE,
     )
 
     description = models.TextField()
