@@ -30,22 +30,38 @@ fake.add_provider(address)
 fake.add_provider(lorem)
 fake.add_provider(internet)
 
+DEFAULTS = {
+    'lecture': 8,
+    'project': 5,
+    'student': 25,
+    'director': 2,
+    'questionnaire': 2,
+    'question': 8,
+    'submission': 23,
+    'room': 2,
+    'reservation': 10,
+}
+THINGS = list(DEFAULTS.keys())
+
 
 class Command(BaseCommand):
     """Add the createfixtures command to manage.py."""
 
     help = 'Creates basic model instances for local testing'
-    things = ['lecture', 'project', 'student', 'director', 'questionnaire', 'question', 'submission', 'room',
-              'reservation']
 
     def add_arguments(self, parser):
         """Add all the arguments used by the createfixtures command."""
-        for thing in self.things:
+        for thing in THINGS:
             parser.add_argument(
                 f'--{thing}',
                 type=int,
-                help=f"The amount of fake {thing}s to add"
+                help=f"The amount of fake {thing}s to add, default = {DEFAULTS[thing]}"
             )
+        parser.add_argument('--merge',
+                            action='store_true',
+                            help="Use default options, but overwrite with supplied command line options. "
+                                 "The default behaviour is to ignore the default options when a "
+                                 "command line option is supplied.")
 
     def create_base(self):
         """Create basic instances used by other fixtures."""
@@ -223,26 +239,21 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         """Execute the createfixtures command."""
-        options = {
-            'lecture': 8,
-            'project': 5,
-            'student': 25,
-            'director': 2,
-            'questionnaire': 2,
-            'question': 8,
-            'submission': 23,
-            'room': 2,
-            'reservation': 10,
-        }
-        if any([value is not None for key, value in kwargs.items() if value in self.things]):
-            options = dict()
+        options = dict()
+
+        if all([value is None for key, value in kwargs.items() if key in THINGS]) or kwargs['merge']:
+            self.stderr.write("Applying default options")
+            options = DEFAULTS
+        else:
+            self.stderr.write("Only using user options")
+
         for key, value in kwargs.items():
             if value is not None:
                 options[key] = value
 
         self.create_base()
 
-        for thing in self.things:
+        for thing in THINGS:
             amount = options.get(thing) or 0
             self.stdout.write(f"Creating {amount} {thing}s")
             for _ in range(amount):
