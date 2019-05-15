@@ -37,7 +37,7 @@ class GetProjectsTest(TestCase):
             github_username='manager',
         )
 
-        cls.project = Project.objects.create(name='test')
+        cls.project = Project.objects.create(name='test', semester=cls.semester)
 
     def setUp(self):
         self.client = Client()
@@ -63,4 +63,4 @@ class GetProjectsTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertIsNotNone(Project.objects.get(semester=self.semester))
+        self.assertIsNotNone(Project.objects.get(name='Test project'))
