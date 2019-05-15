@@ -8,7 +8,7 @@ from courses.models import Semester
 
 from projects.models import Project
 
-from registrations.models import GiphouseProfile
+from registrations.models import GiphouseProfile, Role
 
 User: DjangoUser = get_user_model()
 
@@ -30,12 +30,15 @@ class GetProjectsTest(TestCase):
             registration_end=timezone.now(),
         )
 
+        sdm, created = Role.objects.get_or_create(name='SDM Student')
+
         manager = User.objects.create(username='manager')
         GiphouseProfile.objects.create(
             user=manager,
             github_id='0',
             github_username='manager',
         )
+        manager.groups.add(sdm) if (sdm) else manager.groups.add(created)
 
         cls.project = Project.objects.create(name='test', semester=cls.semester)
 

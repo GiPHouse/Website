@@ -61,7 +61,7 @@ class StudentForm(forms.ModelForm):
         self.instance.groups.set([])
         if self.cleaned_data['role']:
             self.instance.groups.add(self.cleaned_data['role'])
-        if self.cleaned_data['role']:
+        if self.cleaned_data['project']:
             self.instance.groups.add(self.cleaned_data['project'])
 
     def save(self, *args, **kwargs):

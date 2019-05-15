@@ -16,7 +16,7 @@ from peer_review.models import AgreementAnswerData, Answer, OpenAnswerData, Qual
 
 from projects.models import Client, Project
 
-from registrations.models import GiphouseProfile, Registration, RoleChoice
+from registrations.models import GiphouseProfile, Registration
 
 from room_reservation.models import Reservation, Room
 
@@ -124,7 +124,6 @@ class Command(BaseCommand):
             github_id=github_id,
             github_username=fake.user_name(),
             student_number=fake.bothify("s#######"),
-            role=random.choice([RoleChoice.se.name, RoleChoice.sdm.name])
         )
         Registration.objects.create(
             user=user,
@@ -148,7 +147,6 @@ class Command(BaseCommand):
             github_id=github_id,
             github_username=fake.user_name(),
             student_number=fake.bothify("s#######"),
-            role=RoleChoice.director.name,
         )
 
     def create_questionnaire(self):
