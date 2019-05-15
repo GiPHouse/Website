@@ -170,6 +170,25 @@ class Command(BaseCommand):
             about_team_member=random.choice([True, False])
         )
 
+    @staticmethod
+    def _create_answer(question, answer):
+        """Create a fake answer for the question."""
+        if question.question_type == Question.OPEN:
+            OpenAnswerData.objects.create(
+                answer=answer,
+                value=fake.paragraph()
+            )
+        elif question.question_type == Question.AGREEMENT:
+            AgreementAnswerData.objects.create(
+                answer=answer,
+                value=random.choice(AgreementAnswerData.CHOICES)[0]
+            )
+        elif question.question_type == Question.QUALITY:
+            QualityAnswerData.objects.create(
+                answer=answer,
+                value=random.choice(QualityAnswerData.CHOICES)[0]
+            )
+
     def create_submission(self):
         """Create one fake submission."""
         questionnaire = Questionnaire.objects.order_by('?').first()
@@ -185,24 +204,6 @@ class Command(BaseCommand):
             created=fake.date_between(start_date='-2d', end_date='today'),
         )
 
-        def create_answer(question, answer):
-            """Create a fake answer for the question."""
-            if question.question_type == Question.OPEN:
-                OpenAnswerData.objects.create(
-                    answer=answer,
-                    value=fake.paragraph()
-                )
-            elif question.question_type == Question.AGREEMENT:
-                AgreementAnswerData.objects.create(
-                    answer=answer,
-                    value=random.choice(AgreementAnswerData.CHOICES)[0]
-                )
-            elif question.question_type == Question.QUALITY:
-                QualityAnswerData.objects.create(
-                    answer=answer,
-                    value=random.choice(QualityAnswerData.CHOICES)[0]
-                )
-
         for question in questionnaire.question_set.all():
             if question.about_team_member:
                 for peer in peers:
@@ -211,13 +212,13 @@ class Command(BaseCommand):
                         submission=submission,
                         peer=peer
                     )
-                    create_answer(question, answer)
+                    self._create_answer(question, answer)
             else:
                 answer = Answer.objects.create(
                     question=question,
                     submission=submission
                 )
-                create_answer(question, answer)
+                self._create_answer(question, answer)
 
     def create_room(self):
         """Create one fake room."""
