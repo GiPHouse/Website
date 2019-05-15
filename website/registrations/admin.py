@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, User as DjangoUser
 
+from courses.models import Semester
 from registrations.models import GiphouseProfile, Registration
 
 User: DjangoUser = get_user_model()
@@ -32,6 +33,7 @@ class StudentAdmin(admin.ModelAdmin):
     inlines = [GiphouseProfileInline, RegistrationInline]
     list_display = ('first_name', 'last_name', 'get_github_username', 'get_role')
     fields = ('first_name', 'last_name', 'email', 'date_joined', 'groups')
+    actions = ['place_in_first_project_preference']
 
     # Necessary for the autocomplete filter
     search_fields = ('first_name', 'last_name')
@@ -51,3 +53,10 @@ class StudentAdmin(admin.ModelAdmin):
         return obj.giphouseprofile.get_role_display()
     get_role.short_description = 'Role'
     get_role.admin_order_field = 'giphouseprofile__role'
+
+    def place_in_first_project_preference(self, request, queryset):
+        """Place the selected users in their first project preference."""
+        for user in queryset:
+            registration = user.registration_set.order_by('semester').first()
+            user.groups.add(registration.preference1)
+            user.save()
