@@ -99,3 +99,29 @@ class Step2Form(forms.Form):
             ValidationError("Student Number already in use", code='exists')
 
         return student_number
+
+
+# def create_initial_data(apps, schema_editor):
+
+#     Role = apps.get_model('registrations', 'Role')
+#     GiphouseProfile = apps.get_model('registrations', 'GiphouseProfile')
+
+#     se = Role.objects.create(name='SE Student')
+#     sdm = Role.objects.create(name='SDM Student')
+#     director = Role.objects.create(name='Director')
+#     admin = Role.objects.create(name='Admin')
+
+#     for gip_profile in GiphouseProfile.objects.all():
+#         user = gip_profile.user
+#         if gip_profile.role == 'se':
+#             user.groups.add(se)
+#         if gip_profile.role == 'sdm':
+#             user.groups.add(sdm)
+#         if gip_profile.role == 'director':
+#             user.groups.add(director)
+#         if gip_profile.role == 'admin':
+#             user.groups.add(admin)
+#         user.save()
+
+        # migrations.RunPython(create_initial_data),
+#

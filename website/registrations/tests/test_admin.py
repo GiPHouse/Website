@@ -47,9 +47,11 @@ class RegistrationAdminTest(TestCase):
         )
 
         cls.message = {
-            'id': 4,
+            'id': 10,
             'date_joined_0': "2000-12-01",
-            'date_joined_1': "12:00",
+            'date_joined_1': "12:00:00",
+            'initial-date_joined_0': "2000-12-01",
+            'initial-date_joined_1': "12:00:00",
             'project': cls.project.id,
             'role': cls.sdm.id,
             'giphouseprofile-TOTAL_FORMS': 1,
@@ -59,11 +61,12 @@ class RegistrationAdminTest(TestCase):
             'giphouseprofile-0-github_id': 4,
             'giphouseprofile-0-github_username': "bob",
             'giphouseprofile-0-student_number': "s4451323",
-            'registration-TOTAL_FORMS': 1,
-            'registration-INITIAL_FORMS': 0,
-            'registration-MIN_NUM_FORMS': 0,
-            'registration-MAX_NUM_FORMS': 1,
-            'registration-0-preference1': cls.project.id,
+            'registration_set-TOTAL_FORMS': 1,
+            'registration_set-INITIAL_FORMS': 0,
+            'registration_set-MIN_NUM_FORMS': 0,
+            'registration_set-MAX_NUM_FORMS': 1,
+            'registration_set-0-preference1': cls.project.id,
+            'registration_set-0-semester': cls.semester.id,
             '_save': 'Save'
         }
 

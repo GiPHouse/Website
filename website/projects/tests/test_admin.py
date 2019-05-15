@@ -31,14 +31,14 @@ class GetProjectsTest(TestCase):
             registration_end=timezone.now(),
         )
 
-        sdm = Role.objects.create(name='SDM Student')
+        cls.sdm, created = Role.objects.get_or_create(name='SDM Student')
         cls.manager = User.objects.create(username='manager')
         GiphouseProfile.objects.create(
             user=cls.manager,
             github_id='0',
             github_username='manager',
         )
-        cls.manager.groups.add(sdm)
+        cls.manager.groups.add(cls.sdm)
 
         cls.project = Project.objects.create(name='test', semester=cls.semester)
 
