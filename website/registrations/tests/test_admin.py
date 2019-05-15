@@ -4,11 +4,11 @@ from django.shortcuts import reverse
 from django.test import Client, TestCase
 from django.utils import timezone
 
-from registrations.models import GiphouseProfile, Role, SDM
+from courses.models import Semester
 
 from projects.models import Project
 
-from courses.models import Semester
+from registrations.models import GiphouseProfile, Role, SDM
 
 User: DjangoUser = get_user_model()
 
