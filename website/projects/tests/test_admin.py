@@ -1,3 +1,4 @@
+from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
 from django.shortcuts import reverse
@@ -30,15 +31,15 @@ class GetProjectsTest(TestCase):
             registration_end=timezone.now(),
         )
 
-        manager = User.objects.create(username='manager')
+        cls.manager = User.objects.create(username='manager')
         GiphouseProfile.objects.create(
-            user=manager,
+            user=cls.manager,
             github_id='0',
             github_username='manager',
             role=RoleChoice.sdm.name
         )
 
-        cls.project = Project.objects.create(name='test')
+        cls.project = Project.objects.create(name='test', semester=cls.semester)
 
     def setUp(self):
         self.client = Client()
@@ -58,10 +59,24 @@ class GetProjectsTest(TestCase):
             {
                 'name': 'Test project',
                 'semester': self.semester.id,
+                'email': 'a@a.com',
                 'description': 'Test project description'
             },
             follow=True,
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertIsNotNone(Project.objects.get(semester=self.semester))
+        self.assertIsNotNone(Project.objects.get(name='Test project'))
+
+    def test_csv_export(self):
+        self.project.user_set.add(self.manager)
+        self.project.save()
+        response = self.client.post(
+            reverse('admin:projects_project_changelist'),
+            {
+                ACTION_CHECKBOX_NAME: [self.project.pk],
+                'action': 'export_addresses_csv',
+                'index': 0,
+            }
+        )
+        self.assertEqual(response.status_code, 200)

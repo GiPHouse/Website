@@ -29,7 +29,7 @@ INSTALLED_APPS = [
     'bootstrap4',
 
     'giphousewebsite',
-    'peer_review.apps.PeerReviewConfig',
+    'questionnaires.apps.QuestionnairesConfig',
     'github_oauth.apps.GithubConfig',
     'registrations.apps.RegistrationsConfig',
     'courses.apps.CoursesConfig',
