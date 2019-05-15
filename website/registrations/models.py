@@ -4,6 +4,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
 from django.db import models
 
+from courses.models import Semester
+
 from projects.models import Project
 
 User: DjangoUser = get_user_model()
@@ -70,8 +72,15 @@ class GiphouseProfile(models.Model):
 class Registration(models.Model):
     """Model containing registration specific data."""
 
-    user = models.OneToOneField(
+    unique_together = [['user', 'semester']]
+
+    user = models.ForeignKey(
         User,
+        on_delete=models.CASCADE
+    )
+
+    semester = models.ForeignKey(
+        Semester,
         on_delete=models.CASCADE
     )
 

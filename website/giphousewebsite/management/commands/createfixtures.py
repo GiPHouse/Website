@@ -129,6 +129,7 @@ class Command(BaseCommand):
         )
         Registration.objects.create(
             user=user,
+            semester=Semester.objects.get_current_semester(),
             preference1=Project.objects.order_by('?').first(),
             comments=random.choice([fake.sentence(), ''])
         )
