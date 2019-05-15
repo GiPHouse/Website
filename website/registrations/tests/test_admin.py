@@ -5,8 +5,10 @@ from django.shortcuts import reverse
 from django.test import Client, TestCase
 
 from courses.models import Semester
+
 from projects.models import Project
-from registrations.models import GiphouseProfile, RoleChoice, Registration
+
+from registrations.models import GiphouseProfile, Registration, RoleChoice
 
 User: DjangoUser = get_user_model()
 

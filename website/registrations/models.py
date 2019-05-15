@@ -76,6 +76,7 @@ class Registration(models.Model):
 
     class Meta:
         """Meta class for Registration."""
+
         unique_together = [['user', 'semester']]
 
     user = models.ForeignKey(

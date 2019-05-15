@@ -2,7 +2,6 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, User as DjangoUser
 
-from courses.models import Semester
 from registrations.models import GiphouseProfile, Registration
 
 User: DjangoUser = get_user_model()
