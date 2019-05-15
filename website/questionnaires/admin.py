@@ -128,8 +128,9 @@ class AnswerAdmin(admin.ModelAdmin):
 
     def likert_answer(self, obj):
         """Return likert answers."""
-        return obj.answer if obj.question.question_type != 0 else None
+        return obj.answer if obj.question.question_type != 0 else str(obj.answer)[:30]+"..."
     likert_answer.short_description = 'Answer'
+    likert_answer.short_description = 'answer'
 
     class Media:
         """Necessary to use AutocompleteFilter."""
