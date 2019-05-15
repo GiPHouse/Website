@@ -145,6 +145,7 @@ class Step2Test(TestCase):
                                         'last_name': self.last_name,
                                         'student_number': self.student_number,
                                         'github_username': self.github_username,
+                                        'semester': self.semester.id,
                                         'course': RoleChoice.se.name,
                                         'email': self.email,
                                         'project1': self.project_preference1.id,
