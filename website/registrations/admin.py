@@ -58,11 +58,14 @@ class StudentForm(forms.ModelForm):
 
     def save_m2m(self):
         """Add the Role to the user."""
-        self.instance.groups.set([])
-        if self.cleaned_data['role']:
-            self.instance.groups.add(self.cleaned_data['role'])
-        if self.cleaned_data['project']:
-            self.instance.groups.add(self.cleaned_data['project'])
+        groups = []
+        role = self.cleaned_data['role']
+        project = self.cleaned_data['project']
+        if role:
+            groups.append(role)
+        if project:
+            groups.append(project)
+        self.instance.groups.set(groups)
 
     def save(self, *args, **kwargs):
         """Save the form data, including many-to-many data."""
