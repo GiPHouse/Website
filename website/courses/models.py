@@ -28,9 +28,12 @@ class SemesterManager(models.Manager):
 
     def get_current_semester(self):
         """Return the current semester based on the current time."""
-        if timezone.now().month < 8:
-            return self.get(year=current_year(), season=Semester.SPRING)
-        return self.get(year=current_year(), season=Semester.FALL)
+        try:
+            if timezone.now() < timezone.now().replace(month=8, day=1):
+                return self.get(year=current_year(), season=Semester.SPRING)
+            return self.get(year=current_year(), season=Semester.FALL)
+        except Semester.DoesNotExist:
+            self.none()
 
     def get_current_registration(self):
         """Return the current registration (not in the future) that is active."""
