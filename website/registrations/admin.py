@@ -33,6 +33,9 @@ class StudentAdmin(admin.ModelAdmin):
     list_display = ('first_name', 'last_name', 'get_github_username', 'get_role')
     fields = ('first_name', 'last_name', 'email', 'date_joined', 'groups')
 
+    # Necessary for the autocomplete filter
+    search_fields = ('first_name', 'last_name')
+
     def get_queryset(self, request):
         """Return queryset of all GiPHouse users."""
         return self.model.objects.filter(giphouseprofile__isnull=False)

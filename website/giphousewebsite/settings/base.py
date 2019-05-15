@@ -27,6 +27,7 @@ INSTALLED_APPS = [
 
     'sass_processor',
     'bootstrap4',
+    'admin_auto_filters',
 
     'giphousewebsite',
     'questionnaires.apps.QuestionnairesConfig',
