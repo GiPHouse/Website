@@ -4,6 +4,7 @@ from datetime import timedelta
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
 from django.core.management import BaseCommand
+from django.db import IntegrityError
 from django.utils import timezone
 
 from faker import Faker
@@ -258,4 +259,9 @@ class Command(BaseCommand):
             amount = options.get(thing) or 0
             self.stdout.write(f"Creating {amount} {thing}s")
             for _ in range(amount):
-                self.__getattribute__('create_' + thing)()
+                while True:
+                    try:
+                        self.__getattribute__('create_' + thing)()
+                        break
+                    except IntegrityError:
+                        self.stderr.write("IntegrityError, trying again")
