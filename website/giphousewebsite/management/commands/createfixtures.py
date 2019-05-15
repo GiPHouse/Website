@@ -17,7 +17,7 @@ from projects.models import Client, Project
 from questionnaires.models import AgreementAnswerData, Answer, OpenAnswerData, QualityAnswerData, Question, \
     Questionnaire, QuestionnaireSubmission
 
-from registrations.models import GiphouseProfile, Registration
+from registrations.models import GiphouseProfile, Registration, Role, SDM, SE
 
 from room_reservation.models import Reservation, Room
 
@@ -82,6 +82,8 @@ class Command(BaseCommand):
                 'registration_end': timezone.now() + timedelta(days=30),
             }
         )
+        self.sdm, created = Role.objects.get_or_create(name=SDM)
+        self.se, created = Role.objects.get_or_create(name=SE)
 
     def create_lecture(self):
         """Create one fake lecture."""
@@ -119,6 +121,7 @@ class Command(BaseCommand):
             last_name=fake.last_name(),
         )
         user.groups.add(Project.objects.order_by('?').first())
+        user.groups.add(random.choice([self.sdm, self.se]))
         user.save()
         GiphouseProfile.objects.create(
             user=user,

@@ -12,7 +12,6 @@ from projects.models import Client, Project
 
 from registrations.models import SDM, SE
 
-
 User: DjangoUser = get_user_model()
 
 
