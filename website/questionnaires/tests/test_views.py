@@ -24,7 +24,7 @@ def generate_post_data(questionnaire_id, peers):
         for peer in current_peers:
             field_name = PeerReviewForm.get_field_name(question, peer)
             if question.is_closed:
-                post_data[field_name] = 0
+                post_data[field_name] = 1
             else:
                 post_data[field_name] = "Something"
     return post_data

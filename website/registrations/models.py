@@ -9,6 +9,8 @@ from projects.models import Project
 
 User: DjangoUser = get_user_model()
 
+User.__str__ = lambda x: x.get_full_name()
+
 SDM = "SDM Student"
 SE = "SE Student"
 

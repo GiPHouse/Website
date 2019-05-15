@@ -16,6 +16,7 @@ class AdminSemester(admin.ModelAdmin):
     """Admin for the Semester Object using a custom form."""
 
     form = AdminSemesterForm
+    search_fields = ['year']
 
 
 admin.site.register(Course)
