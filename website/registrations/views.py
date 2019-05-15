@@ -68,33 +68,9 @@ class Step2View(FormView):
     def form_valid(self, form):
         """Register new user if the form is valid."""
         try:
-            with transaction.atomic():
-                github_id = self.request.session['github_id']
-                user = User.objects.create(
-                    first_name=form.cleaned_data['first_name'],
-                    last_name=form.cleaned_data['last_name'],
-                    email=form.cleaned_data['email']
-                )
-
-                GiphouseProfile.objects.create(
-                    user=user,
-                    github_username=self.request.session['github_username'],
-                    github_id=github_id,
-                    student_number=form.cleaned_data['student_number'],
-                )
-
-                Registration.objects.create(
-                    user=user,
-                    semester=Semester.objects.get_current_registration().first(),
-                    preference1=form.cleaned_data['project1'],
-                    preference2=form.cleaned_data['project2'],
-                    preference3=form.cleaned_data['project3'],
-                    comments=form.cleaned_data['comments']
-                )
+            user = self._register_user(form)
         except IntegrityError:
-            messages.warning(
-                self.request, "User already exists", extra_tags='danger'
-            )
+            messages.warning(self.request, "User already exists", extra_tags='danger')
             return redirect('home')
         finally:
             del self.request.session['github_id']
@@ -102,14 +78,34 @@ class Step2View(FormView):
             del self.request.session['github_name']
             del self.request.session['github_email']
 
-        messages.success(
-            self.request, "User created successfully", extra_tags='success'
-        )
+        messages.success(self.request, "User created successfully", extra_tags='success')
 
-        login(
-            self.request,
-            user,
-            backend='github_oauth.backends.GithubOAuthBackend',
-        )
+        login(self.request, user, backend='github_oauth.backends.GithubOAuthBackend')
 
         return redirect('home')
+
+    def _register_user(self, form):
+        with transaction.atomic():
+            github_id = self.request.session['github_id']
+            user = User.objects.create(
+                first_name=form.cleaned_data['first_name'],
+                last_name=form.cleaned_data['last_name'],
+                email=form.cleaned_data['email']
+            )
+
+            GiphouseProfile.objects.create(
+                user=user,
+                github_username=self.request.session['github_username'],
+                github_id=github_id,
+                student_number=form.cleaned_data['student_number'],
+            )
+
+            Registration.objects.create(
+                user=user,
+                semester=Semester.objects.get_current_registration().first(),
+                preference1=form.cleaned_data['project1'],
+                preference2=form.cleaned_data['project2'],
+                preference3=form.cleaned_data['project3'],
+                comments=form.cleaned_data['comments']
+            )
+        return user
