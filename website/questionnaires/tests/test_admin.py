@@ -125,7 +125,7 @@ class PeerReviewAdminTest(TestCase):
 
     def test_get_submission_changelist_averagefilter(self):
         response = self.client.get(
-            reverse('admin:questionnaires_questionnairesubmission_changelist',),
+            reverse('admin:questionnaires_questionnairesubmission_changelist'),
             data={
                 SubmissionAdminAverageFilter.parameter_name: self.closed_answer.answer.value + 0.5,
             },
@@ -135,7 +135,7 @@ class PeerReviewAdminTest(TestCase):
 
     def test_get_submission_changelist_averagefilter_below(self):
         response = self.client.get(
-            reverse('admin:questionnaires_questionnairesubmission_changelist',),
+            reverse('admin:questionnaires_questionnairesubmission_changelist'),
             data={
                 SubmissionAdminAverageFilter.parameter_name: self.closed_answer.answer.value - 0.5,
             },
@@ -145,7 +145,7 @@ class PeerReviewAdminTest(TestCase):
 
     def test_get_submission_changelist_semesterfilter(self):
         response = self.client.get(
-            reverse('admin:questionnaires_questionnairesubmission_changelist',),
+            reverse('admin:questionnaires_questionnairesubmission_changelist'),
             data={
                 f'{SubmissionAdminSemesterFilter.field_name}__id__exact': self.semester.id,
             },
@@ -155,7 +155,7 @@ class PeerReviewAdminTest(TestCase):
 
     def test_get_submission_changelist_projectfilter(self):
         response = self.client.get(
-            reverse('admin:questionnaires_questionnairesubmission_changelist', ),
+            reverse('admin:questionnaires_questionnairesubmission_changelist'),
             data={
                 SubmissionAdminProjectFilter.parameter_name: self.project.id,
             },
@@ -165,7 +165,7 @@ class PeerReviewAdminTest(TestCase):
 
     def test_get_submission_changelist_peerfilter(self):
         response = self.client.get(
-            reverse('admin:questionnaires_questionnairesubmission_changelist',),
+            reverse('admin:questionnaires_questionnairesubmission_changelist'),
             data={
                 f'{SubmissionAdminPeerFilter.field_name}__id__exact': self.user.id,
             },
@@ -189,7 +189,7 @@ class PeerReviewAdminTest(TestCase):
 
     def test_get_answer_changelist_questionnairefilter(self):
         response = self.client.get(
-            reverse('admin:questionnaires_answer_changelist',),
+            reverse('admin:questionnaires_answer_changelist'),
             data={
                 f'{AnswerAdminQuestionnaireFilter.field_name}__id__exact': self.active_questions.id,
             },
@@ -199,7 +199,7 @@ class PeerReviewAdminTest(TestCase):
 
     def test_get_answer_changelist_projectfilter(self):
         response = self.client.get(
-            reverse('admin:questionnaires_answer_changelist', ),
+            reverse('admin:questionnaires_answer_changelist'),
             data={
                 AnswerAdminProjectFilter.parameter_name: self.project.id,
             },
@@ -209,7 +209,7 @@ class PeerReviewAdminTest(TestCase):
 
     def test_get_answer_changelist_participantfilter(self):
         response = self.client.get(
-            reverse('admin:questionnaires_answer_changelist', ),
+            reverse('admin:questionnaires_answer_changelist'),
             data={
                 f'{AnswerAdminParticipantFilter.field_name}__id__exact': self.user.id,
             },
@@ -219,7 +219,7 @@ class PeerReviewAdminTest(TestCase):
 
     def test_get_answer_changelist_valuefilter(self):
         response = self.client.get(
-            reverse('admin:questionnaires_answer_changelist', ),
+            reverse('admin:questionnaires_answer_changelist'),
             data={
                 AnswerAdminValueFilter.parameter_name: self.closed_answer.answer.value + 0.5,
             },
@@ -229,7 +229,7 @@ class PeerReviewAdminTest(TestCase):
 
     def test_get_answer_changelist_semesterfilter(self):
         response = self.client.get(
-            reverse('admin:questionnaires_answer_changelist',),
+            reverse('admin:questionnaires_answer_changelist'),
             data={
                 f'{AnswerAdminSemesterFilter.field_name}__id__exact': self.semester.id,
             },
