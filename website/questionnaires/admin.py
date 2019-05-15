@@ -128,7 +128,7 @@ class AnswerAdmin(admin.ModelAdmin):
 
     def likert_answer(self, obj):
         """Return likert answers."""
-        return obj.answer if obj.question.question_type != 0 else str(obj.answer)[:30]+"..."
+        return obj.answer if obj.question.is_closed else str(obj.answer)[:30]+"..."
     likert_answer.short_description = 'Answer'
     likert_answer.short_description = 'answer'
 
