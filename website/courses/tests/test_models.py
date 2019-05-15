@@ -69,8 +69,8 @@ class ModelTest(TestCase):
         self.assertEqual(testsem, Semester.objects.get_current_semester())
 
     @freeze_time("2018-09-09")
-    def test_current_semester(self):
-        startreg = timezone.now().replace(year=2018, month=8, day=3, hour=0, minute=0, second=0, microsecond=1)
+    def test_current_semester2(self):
+        startreg = timezone.now().replace(year=2018, month=9, day=9, hour=0, minute=0, second=0, microsecond=1)
         endreg = timezone.now().replace(year=2018, month=10, day=6, hour=0, minute=0, second=0, microsecond=1)
         testsem = Semester.objects.create(year=2018, season=Semester.SPRING, registration_start=startreg,
                                           registration_end=endreg)
