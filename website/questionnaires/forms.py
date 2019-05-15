@@ -1,11 +1,11 @@
 from django import forms
 from django.forms import ValidationError
 
-from peer_review.models import QuestionnaireSubmission
+from questionnaires.models import QuestionnaireSubmission
 
 
 class PeerReviewForm(forms.Form):
-    """Dynamic form generating a peer review form."""
+    """Dynamic form generating a questionnaires form."""
 
     def __init__(self, participant, questionnaire, peers, *args, **kwargs):
         """Dynamically setup form."""

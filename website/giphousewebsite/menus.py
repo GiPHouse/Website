@@ -49,7 +49,7 @@ MAIN_MENU = [
     {
         'title': 'Questionnaires',
         'visible': lambda request: request.user.is_authenticated,
-        'url': reverse('peer_review:overview')
+        'url': reverse('questionnaires:overview')
     },
 
 ]

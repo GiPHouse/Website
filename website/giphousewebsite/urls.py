@@ -14,7 +14,7 @@ urlpatterns = [
     path('about/wayofworking', TemplateView.as_view(template_name='wayofworking.html'), name='wayofworking'),
     path('about/', TemplateView.as_view(template_name='about.html'), name='about'),
     path('contact/', TemplateView.as_view(template_name='contact.html'), name='contact'),
-    path('review/', include("peer_review.urls")),
+    path('questionnaires/', include("questionnaires.urls")),
     path('register/', include('registrations.urls')),
     path('projects/', include('projects.urls')),
     path('reservations/', include('room_reservation.urls')),
