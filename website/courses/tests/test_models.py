@@ -67,4 +67,3 @@ class ModelTest(TestCase):
         testsem = Semester.objects.create(year=2018, season=Semester.SPRING, registration_start=startreg,
                                           registration_end=endreg)
         self.assertEqual(testsem, Semester.objects.get_current_semester())
-
