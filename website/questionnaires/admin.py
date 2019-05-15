@@ -98,7 +98,7 @@ class AnswerAdmin(admin.ModelAdmin):
                    'submission__late', AnswerAdminValueFilter)
 
     readonly_fields = ('answer',)
-    list_display = ('questionnaire', 'question', 'participant_name', 'peer_name', 'on_time')
+    list_display = ('questionnaire', 'question', 'participant_name', 'peer_name', 'on_time', 'likert_answer')
 
     def participant_name(self, obj):
         """Return the full name of the participant."""
@@ -125,6 +125,11 @@ class AnswerAdmin(admin.ModelAdmin):
         return obj.submission.questionnaire.title
     questionnaire.short_description = 'Questionnaire'
     questionnaire.admin_order_field = 'submission__questionnaire'
+
+    def likert_answer(self, obj):
+        """Return likert answers."""
+        return obj.answer if obj.question.question_type != 0 else None
+    likert_answer.short_description = 'Answer'
 
     class Media:
         """Necessary to use AutocompleteFilter."""
