@@ -14,7 +14,7 @@ from questionnaires.filters import (
     SubmissionAdminParticipantFilter,
     SubmissionAdminPeerFilter,
     SubmissionAdminProjectFilter,
-    SubmissionAdminQuestionnaireFilter,
+	SubmissionAdminQuestionnaireFilter,
     SubmissionAdminSemesterFilter
 )
 from questionnaires.models import Answer, Question, Questionnaire, QuestionnaireSubmission
@@ -70,7 +70,7 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
 
     list_display = ('questionnaire', 'participant_name', 'on_time')
     list_filter = (SubmissionAdminSemesterFilter, SubmissionAdminQuestionnaireFilter, SubmissionAdminParticipantFilter,
-                   SubmissionAdminPeerFilter, SubmissionAdminProjectFilter, 'late', SubmissionAdminAverageFilter)
+                   SubmissionAdminPeerFilter, SubmissionAdminProjectFilter, 'on time', SubmissionAdminAverageFilter)
 
     def participant_name(self, obj):
         """Return the full name of the participant."""
@@ -82,8 +82,8 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
         """Return whether the answer was submitted late or on time."""
         return not obj.late
     on_time.boolean = True
-    on_time.short_description = 'On Time'
-    on_time.admin_order_field = 'late'
+    on_time.short_description = 'On time'
+    on_time.admin_order_field = 'on time'
 
     class Media:
         """Necessary to use AutocompleteFilter."""
