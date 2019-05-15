@@ -8,8 +8,8 @@ from django.views.generic.edit import FormView
 
 from courses.models import Semester
 
-from peer_review.forms import PeerReviewForm
-from peer_review.models import Answer, Questionnaire, QuestionnaireSubmission
+from questionnaires.forms import PeerReviewForm
+from questionnaires.models import Answer, Questionnaire, QuestionnaireSubmission
 
 User: DjangoUser = get_user_model()
 
@@ -19,7 +19,7 @@ class OverviewView(LoginRequiredMixin, TemplateView):
 
     # Raise exception when not logged in
     raise_exception = True
-    template_name = 'peer_review/overview.html'
+    template_name = 'questionnaires/overview.html'
 
     def get_context_data(self, **kwargs):
         """Add the current questionnaires and submissions to the context of the view."""
@@ -39,12 +39,12 @@ class OverviewView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class PeerReviewView(LoginRequiredMixin, FormView):
+class QuestionnaireView(LoginRequiredMixin, FormView):
     """A dynamically generated FormView."""
 
     # Raise exception when not logged in
     raise_exception = True
-    template_name = 'peer_review/questionnaire.html'
+    template_name = 'questionnaires/questionnaire.html'
     form_class = PeerReviewForm
 
     def get_form_kwargs(self):
@@ -60,7 +60,7 @@ class PeerReviewView(LoginRequiredMixin, FormView):
             User.objects
                 .exclude(pk=participant.pk)
                 .filter(
-                    groups__in=participant.groups.filter(project__semester=Semester.objects.first())
+                    groups__in=participant.groups.filter(project__semester=Semester.objects.get_current_semester())
                 )
         )
 

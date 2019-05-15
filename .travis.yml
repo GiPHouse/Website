@@ -41,7 +41,7 @@ script:
   - "poetry run coverage report --show-missing --skip-covered --fail-under=100"
   - "bash -c 'shopt -s globstar; shellcheck **/*.sh'"
   - "poetry run python website/manage.py migrate"
-  - "poetry run python website/manage.py createfixtures"
+  - "poetry run python website/manage.py createfixtures --lecture 8 --project 5 --student 25 --director 2 --questionnaire 2 --question 8 --submission 23 --room 2 --reservation 10"
 
 deploy:
   provider: "script"

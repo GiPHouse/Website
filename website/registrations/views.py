@@ -83,14 +83,14 @@ class Step2View(FormView):
                     student_number=form.cleaned_data['student_number'],
                 )
 
-                registration = Registration(
+                Registration.objects.create(
                     user=user,
+                    semester=Semester.objects.get_current_registration().first(),
                     preference1=form.cleaned_data['project1'],
                     preference2=form.cleaned_data['project2'],
                     preference3=form.cleaned_data['project3'],
                     comments=form.cleaned_data['comments']
                 )
-                registration.save()
         except IntegrityError:
             messages.warning(
                 self.request, "User already exists", extra_tags='danger'

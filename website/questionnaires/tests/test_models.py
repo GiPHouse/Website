@@ -5,12 +5,12 @@ from django.utils import timezone
 
 from courses.models import Semester
 
-from peer_review.models import Answer, Question, Questionnaire, QuestionnaireSubmission
+from questionnaires.models import Answer, Question, Questionnaire, QuestionnaireSubmission
 
 User: DjangoUser = get_user_model()
 
 
-class PeerReviewTest(TestCase):
+class QuestionnairesTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):

@@ -4,6 +4,7 @@ from datetime import timedelta
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
 from django.core.management import BaseCommand
+from django.db import IntegrityError
 from django.utils import timezone
 
 from faker import Faker
@@ -11,10 +12,10 @@ from faker.providers import address, company, date_time, internet, lorem, person
 
 from courses.models import Course, Lecture, Semester
 
-from peer_review.models import AgreementAnswerData, Answer, OpenAnswerData, QualityAnswerData, Question, \
-    Questionnaire, QuestionnaireSubmission
-
 from projects.models import Client, Project
+
+from questionnaires.models import AgreementAnswerData, Answer, OpenAnswerData, QualityAnswerData, Question, \
+    Questionnaire, QuestionnaireSubmission
 
 from registrations.models import GiphouseProfile, Registration
 
@@ -127,6 +128,7 @@ class Command(BaseCommand):
         )
         Registration.objects.create(
             user=user,
+            semester=Semester.objects.get_current_semester(),
             preference1=Project.objects.order_by('?').first(),
             comments=random.choice([fake.sentence(), ''])
         )
@@ -168,6 +170,25 @@ class Command(BaseCommand):
             about_team_member=random.choice([True, False])
         )
 
+    @staticmethod
+    def _create_answer(question, answer):
+        """Create a fake answer for the question."""
+        if question.question_type == Question.OPEN:
+            OpenAnswerData.objects.create(
+                answer=answer,
+                value=fake.paragraph()
+            )
+        elif question.question_type == Question.AGREEMENT:
+            AgreementAnswerData.objects.create(
+                answer=answer,
+                value=random.choice(AgreementAnswerData.CHOICES)[0]
+            )
+        elif question.question_type == Question.QUALITY:
+            QualityAnswerData.objects.create(
+                answer=answer,
+                value=random.choice(QualityAnswerData.CHOICES)[0]
+            )
+
     def create_submission(self):
         """Create one fake submission."""
         questionnaire = Questionnaire.objects.order_by('?').first()
@@ -183,24 +204,6 @@ class Command(BaseCommand):
             created=fake.date_between(start_date='-2d', end_date='today'),
         )
 
-        def create_answer(question, answer):
-            """Create a fake answer for the question."""
-            if question.question_type == Question.OPEN:
-                OpenAnswerData.objects.create(
-                    answer=answer,
-                    value=fake.paragraph()
-                )
-            elif question.question_type == Question.AGREEMENT:
-                AgreementAnswerData.objects.create(
-                    answer=answer,
-                    value=random.choice(AgreementAnswerData.CHOICES)[0]
-                )
-            elif question.question_type == Question.QUALITY:
-                QualityAnswerData.objects.create(
-                    answer=answer,
-                    value=random.choice(QualityAnswerData.CHOICES)[0]
-                )
-
         for question in questionnaire.question_set.all():
             if question.about_team_member:
                 for peer in peers:
@@ -209,13 +212,13 @@ class Command(BaseCommand):
                         submission=submission,
                         peer=peer
                     )
-                    create_answer(question, answer)
+                    self._create_answer(question, answer)
             else:
                 answer = Answer.objects.create(
                     question=question,
                     submission=submission
                 )
-                create_answer(question, answer)
+                self._create_answer(question, answer)
 
     def create_room(self):
         """Create one fake room."""
@@ -255,4 +258,9 @@ class Command(BaseCommand):
             amount = options.get(thing) or 0
             self.stdout.write(f"Creating {amount} {thing}s")
             for _ in range(amount):
-                self.__getattribute__('create_' + thing)()
+                while True:
+                    try:
+                        self.__getattribute__('create_' + thing)()
+                        break
+                    except IntegrityError:
+                        self.stderr.write("IntegrityError, trying again")

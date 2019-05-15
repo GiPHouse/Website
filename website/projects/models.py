@@ -1,5 +1,6 @@
 from django.contrib.auth.models import Group
 from django.db import models
+from django.utils.text import slugify
 
 from courses.models import Semester
 
@@ -30,6 +31,8 @@ class Project(Group):
         on_delete=models.CASCADE,
     )
 
+    email = models.EmailField(blank=True)
+
     description = models.TextField()
 
     client = models.ForeignKey(
@@ -44,3 +47,16 @@ class Project(Group):
     def __str__(self):
         """Return project name and semester."""
         return f'{self.name} ({self.semester})'
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        """Save project and add email if not set."""
+        if not self.email:
+            self.email = self.generate_email()
+        super().save(force_insert, force_update, using, update_fields)
+
+    def generate_email(self):
+        """Generate the standard email for this project."""
+        return (f'{self.semester.year}'
+                f'{self.semester.get_season_display().lower()}-'
+                f'{slugify(self.name)}'
+                f'@giphouse.nl')
