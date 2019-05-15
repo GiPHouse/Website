@@ -10,7 +10,7 @@ from courses.models import Semester
 
 from projects.models import Project
 
-from registrations.models import GiphouseProfile
+from registrations.models import GiphouseProfile, SDM, SE
 
 student_number_regex = re.compile(r'^[sS]?(\d{7})$')
 User: DjangoUser = get_user_model()
@@ -35,8 +35,8 @@ class Step2Form(forms.Form):
     github_username = forms.CharField(disabled=True)
 
     course = forms.ChoiceField(choices=(('', '---------'),
-                                        ('SE Student', 'Software Engineering'),
-                                        ('SDM Student', 'System Development Management')))
+                                        (SE, 'Software Engineering'),
+                                        (SDM, 'System Development Management')))
 
     email = forms.EmailField()
 
@@ -99,29 +99,3 @@ class Step2Form(forms.Form):
             ValidationError("Student Number already in use", code='exists')
 
         return student_number
-
-
-# def create_initial_data(apps, schema_editor):
-
-#     Role = apps.get_model('registrations', 'Role')
-#     GiphouseProfile = apps.get_model('registrations', 'GiphouseProfile')
-
-#     se = Role.objects.create(name='SE Student')
-#     sdm = Role.objects.create(name='SDM Student')
-#     director = Role.objects.create(name='Director')
-#     admin = Role.objects.create(name='Admin')
-
-#     for gip_profile in GiphouseProfile.objects.all():
-#         user = gip_profile.user
-#         if gip_profile.role == 'se':
-#             user.groups.add(se)
-#         if gip_profile.role == 'sdm':
-#             user.groups.add(sdm)
-#         if gip_profile.role == 'director':
-#             user.groups.add(director)
-#         if gip_profile.role == 'admin':
-#             user.groups.add(admin)
-#         user.save()
-
-        # migrations.RunPython(create_initial_data),
-#

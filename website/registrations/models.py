@@ -9,6 +9,9 @@ from projects.models import Project
 
 User: DjangoUser = get_user_model()
 
+SDM = "SDM Student"
+SE = "SE Student"
+
 
 class Role(Group):
     """Role Group that contains multiple users."""

@@ -10,6 +10,8 @@ from django.http import HttpResponse
 
 from projects.models import Client, Project
 
+from registrations.models import SDM, SE
+
 
 User: DjangoUser = get_user_model()
 
@@ -38,14 +40,14 @@ class AdminProjectForm(forms.ModelForm):
 
     # Add the users field.
     managers = UserModelMultipleChoiceField(
-        queryset=User.objects.filter(groups__name='SDM Student'),
+        queryset=User.objects.filter(groups__name=SDM),
         required=False,
         # Use the pretty 'filter_horizontal widget'.
         widget=widgets.FilteredSelectMultiple('managers', False)
     )
 
     developers = UserModelMultipleChoiceField(
-        queryset=User.objects.filter(groups__name='SE Student'),
+        queryset=User.objects.filter(groups__name=SE),
         required=False,
         # Use the pretty 'filter_horizontal widget'.
         widget=widgets.FilteredSelectMultiple('developers', False)
@@ -58,8 +60,8 @@ class AdminProjectForm(forms.ModelForm):
         # If it is an existing group (saved objects have a pk).
         if self.instance.pk:
             # Populate the users field with the current Group users.
-            self.fields['managers'].initial = self.instance.user_set.filter(groups__name='SDM Student')
-            self.fields['developers'].initial = self.instance.user_set.filter(groups__name='SE Student')
+            self.fields['managers'].initial = self.instance.user_set.filter(groups__name=SDM)
+            self.fields['developers'].initial = self.instance.user_set.filter(groups__name=SE)
             self.fields['email'].initial = self.instance.generate_email()
 
     def save_m2m(self):

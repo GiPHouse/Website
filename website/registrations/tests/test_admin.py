@@ -4,7 +4,7 @@ from django.shortcuts import reverse
 from django.test import Client, TestCase
 from django.utils import timezone
 
-from registrations.models import GiphouseProfile, Role
+from registrations.models import GiphouseProfile, Role, SDM
 
 from projects.models import Project
 
@@ -23,7 +23,7 @@ class RegistrationAdminTest(TestCase):
             email='',
             password=cls.admin_password)
 
-        cls.sdm, created = Role.objects.get_or_create(name='SDM Student')
+        cls.sdm, created = Role.objects.get_or_create(name=SDM)
 
         manager = User.objects.create(username='manager')
         GiphouseProfile.objects.create(
