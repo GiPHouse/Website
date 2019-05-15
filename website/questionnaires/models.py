@@ -65,7 +65,7 @@ class Questionnaire(models.Model):
 
     def __str__(self):
         """Return title."""
-        return self.title
+        return f'{self.title} ({self.semester})'
 
 
 class QuestionnaireSubmission(models.Model):
@@ -84,7 +84,7 @@ class QuestionnaireSubmission(models.Model):
 
     def __str__(self):
         """Return string representation of the submission."""
-        return f'{self.participant} answers {self.questionnaire.title}'
+        return self.questionnaire.title
 
 
 class Question(models.Model):
@@ -146,24 +146,25 @@ class Answer(models.Model):
         """Get the correct answer value."""
         if self.question.question_type == Question.OPEN:
             try:
-                return self.openanswerdata.value
+                return self.openanswerdata
             except OpenAnswerData.DoesNotExist:
                 return None
 
         elif self.question.question_type == Question.AGREEMENT:
             try:
-                return self.agreementanswerdata.value
+                return self.agreementanswerdata
             except AgreementAnswerData.DoesNotExist:
                 return None
 
         else:
             try:
-                return self.qualityanswerdata.value
+                return self.qualityanswerdata
             except QualityAnswerData.DoesNotExist:
                 return None
 
     @answer.setter
     def answer(self, value):
+        """Set the correct answer value."""
         if self.question.question_type == Question.OPEN:
             try:
                 self.openanswerdata.value = value
@@ -187,7 +188,7 @@ class Answer(models.Model):
 
     def __str__(self):
         """Return string representation of the answer."""
-        return f'{self.submission.participant} answer #{self.question.id}'
+        return f'{self.submission.participant} answers #{self.question.id}'
 
 
 class OpenAnswerData(models.Model):
@@ -214,17 +215,17 @@ class AbstractLikertData(models.Model):
     def __str__(self):
         """Return string representation of the value."""
         value = self.get_value_display()
-        return value if value is not None else ''
+        return f'{value} ({self.value})' if value is not None else ''
 
 
 class AgreementAnswerData(AbstractLikertData):
     """Model representing a Likert value describing agreement."""
 
-    STRONGLY_DISAGREE = 0
-    DISAGREE = 1
-    NEUTRAL = 2
-    AGREE = 3
-    STRONGLY_AGREE = 4
+    STRONGLY_DISAGREE = 1
+    DISAGREE = 2
+    NEUTRAL = 3
+    AGREE = 4
+    STRONGLY_AGREE = 5
 
     CHOICES = (
         (STRONGLY_DISAGREE, 'Strong disagree'),
@@ -240,11 +241,11 @@ class AgreementAnswerData(AbstractLikertData):
 class QualityAnswerData(AbstractLikertData):
     """Model representing a Likert value describing quality."""
 
-    VERY_POOR = 0
-    POOR = 1
-    AVERAGE = 2
-    GOOD = 3
-    VERY_GOOD = 4
+    VERY_POOR = 1
+    POOR = 2
+    AVERAGE = 3
+    GOOD = 4
+    VERY_GOOD = 5
 
     CHOICES = (
         (VERY_POOR, 'Very poor'),

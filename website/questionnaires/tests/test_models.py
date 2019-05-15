@@ -5,7 +5,14 @@ from django.utils import timezone
 
 from courses.models import Semester
 
-from questionnaires.models import Answer, Question, Questionnaire, QuestionnaireSubmission
+from questionnaires.models import (
+    AgreementAnswerData,
+    Answer,
+    QualityAnswerData,
+    Question,
+    Questionnaire,
+    QuestionnaireSubmission,
+)
 
 User: DjangoUser = get_user_model()
 
@@ -65,7 +72,7 @@ class QuestionnairesTest(TestCase):
         )
         self.assertIsNone(answer.answer)
         answer.answer = 'test'
-        self.assertEqual(answer.answer, 'test')
+        self.assertEqual(answer.answer.value, 'test')
 
     def test_set_agreement_answer(self):
         answer = Answer.objects.create(
@@ -73,8 +80,8 @@ class QuestionnairesTest(TestCase):
             submission=self.submission,
         )
         self.assertIsNone(answer.answer)
-        answer.answer = 0
-        self.assertEqual(answer.answer, 0)
+        answer.answer = AgreementAnswerData.NEUTRAL
+        self.assertEqual(answer.answer.value, AgreementAnswerData.NEUTRAL)
 
     def test_set_quality_answer(self):
         answer = Answer.objects.create(
@@ -82,8 +89,8 @@ class QuestionnairesTest(TestCase):
             submission=self.submission,
         )
         self.assertIsNone(answer.answer)
-        answer.answer = 0
-        self.assertEqual(answer.answer, 0)
+        answer.answer = QualityAnswerData.POOR
+        self.assertEqual(answer.answer.value, QualityAnswerData.POOR)
 
     def test_open_likert_values(self):
         self.assertEqual(self.open_question.get_likert_choices(), ())
