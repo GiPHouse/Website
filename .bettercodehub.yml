@@ -7,3 +7,5 @@ languages:
 exclude:
 - /website/giphousewebsite/settings/.*
 - /website/.*/migrations/.*
+# This is a data file
+- /website/giphousewebsite/menus.py
