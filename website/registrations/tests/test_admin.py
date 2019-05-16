@@ -8,7 +8,7 @@ from courses.models import Semester
 
 from projects.models import Project
 
-from registrations.models import GiphouseProfile, Registration, Role, RoleEnum
+from registrations.models import GiphouseProfile, Registration, Role
 
 User: DjangoUser = get_user_model()
 
@@ -24,7 +24,7 @@ class RegistrationAdminTest(TestCase):
             password=cls.admin_password
         )
 
-        sdm, created = Role.objects.get_or_create(name=RoleEnum.sdm.value)
+        sdm, created = Role.objects.get_or_create(name=Role.SDM)
 
         semester = Semester.objects.create(
             year=2019,

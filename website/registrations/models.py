@@ -14,17 +14,13 @@ User: DjangoUser = get_user_model()
 User.__str__ = lambda x: x.get_full_name()
 
 
-class RoleEnum(Enum):
-    """Possible roles."""
-
-    se = "SE Student"
-    sdm = "SDM Student"
-    director = "Director"
-    admin = "Admin"
-
-
 class Role(Group):
     """Role Group that contains multiple users."""
+
+    SE = "SE Student"
+    SDM = "SDM Student"
+    DIRECTOR = "Director"
+    ADMIN = "Admin"
 
     objects = models.Manager()
 

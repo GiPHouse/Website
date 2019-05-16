@@ -10,7 +10,7 @@ from courses.models import Semester
 
 from projects.models import Project
 
-from registrations.models import GiphouseProfile, RoleEnum
+from registrations.models import GiphouseProfile, Role
 
 student_number_regex = re.compile(r'^[sS]?(\d{7})$')
 User: DjangoUser = get_user_model()
@@ -35,8 +35,8 @@ class Step2Form(forms.Form):
     github_username = forms.CharField(disabled=True)
 
     course = forms.ChoiceField(choices=(('', '---------'),
-                                        (RoleEnum.se.value, 'Software Engineering'),
-                                        (RoleEnum.sdm.value, 'System Development Management')))
+                                        (Role.SE, 'Software Engineering'),
+                                        (Role.SDM, 'System Development Management')))
 
     email = forms.EmailField()
 

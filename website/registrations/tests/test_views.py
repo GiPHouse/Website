@@ -10,7 +10,7 @@ from courses.models import Semester
 
 from projects.models import Project
 
-from registrations.models import GiphouseProfile, RoleEnum
+from registrations.models import GiphouseProfile, Role
 
 User: DjangoUser = get_user_model()
 
@@ -146,7 +146,7 @@ class Step2Test(TestCase):
                                         'student_number': self.student_number,
                                         'github_username': self.github_username,
                                         'semester': self.semester.id,
-                                        'course': RoleEnum.se.value,
+                                        'course': Role.SE,
                                         'email': self.email,
                                         'project1': self.project_preference1.id,
                                     }, follow=True)
@@ -160,7 +160,7 @@ class Step2Test(TestCase):
                                         'last_name': self.last_name,
                                         'student_number': 'wrong format',
                                         'github_username': self.github_username,
-                                        'course': RoleEnum.se.value,
+                                        'course': Role.SE,
                                         'email': self.email,
                                         'project1': self.project_preference1.id,
                                     }, follow=True)
@@ -173,7 +173,7 @@ class Step2Test(TestCase):
                                         'last_name': self.last_name,
                                         'student_number': self.student_number,
                                         'github_username': self.github_username,
-                                        'course': RoleEnum.se.value,
+                                        'course': Role.SE,
                                         'email': self.email,
                                         'project1': self.project_preference1.id,
                                         'project2': str(self.project_preference1.id),
@@ -198,7 +198,7 @@ class Step2Test(TestCase):
                                         'last_name': self.last_name,
                                         'student_number': self.student_number,
                                         'github_username': self.github_username,
-                                        'course': RoleEnum.se.value,
+                                        'course': Role.SE,
                                         'email': self.email,
                                         'project1': self.project_preference1.id,
                                     }, follow=True)
@@ -224,7 +224,7 @@ class Step2Test(TestCase):
                                         'last_name': self.last_name,
                                         'student_number': self.student_number,
                                         'github_username': self.github_username,
-                                        'course': RoleEnum.se.value,
+                                        'course': Role.SE,
                                         'email': self.email,
                                         'project1': self.project_preference1.id,
                                     }, follow=True)

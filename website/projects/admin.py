@@ -10,7 +10,7 @@ from django.http import HttpResponse
 
 from projects.models import Client, Project
 
-from registrations.models import RoleEnum
+from registrations.models import Role
 
 User: DjangoUser = get_user_model()
 
@@ -39,14 +39,14 @@ class AdminProjectForm(forms.ModelForm):
 
     # Add the users field.
     managers = UserModelMultipleChoiceField(
-        queryset=User.objects.filter(groups__name=RoleEnum.sdm.value),
+        queryset=User.objects.filter(groups__name=Role.SDM),
         required=False,
         # Use the pretty 'filter_horizontal widget'.
         widget=widgets.FilteredSelectMultiple('managers', False)
     )
 
     developers = UserModelMultipleChoiceField(
-        queryset=User.objects.filter(groups__name=RoleEnum.se.value),
+        queryset=User.objects.filter(groups__name=Role.SE),
         required=False,
         # Use the pretty 'filter_horizontal widget'.
         widget=widgets.FilteredSelectMultiple('developers', False)
@@ -59,8 +59,8 @@ class AdminProjectForm(forms.ModelForm):
         # If it is an existing group (saved objects have a pk).
         if self.instance.pk:
             # Populate the users field with the current Group users.
-            self.fields['managers'].initial = self.instance.user_set.filter(groups__name=RoleEnum.sdm.value)
-            self.fields['developers'].initial = self.instance.user_set.filter(groups__name=RoleEnum.se.value)
+            self.fields['managers'].initial = self.instance.user_set.filter(groups__name=Role.SDM)
+            self.fields['developers'].initial = self.instance.user_set.filter(groups__name=Role.SE)
             self.fields['email'].initial = self.instance.generate_email()
 
     def save_m2m(self):

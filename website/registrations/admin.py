@@ -5,7 +5,7 @@ from django.contrib.auth.models import Group, User as DjangoUser
 
 from projects.models import Project
 
-from registrations.models import GiphouseProfile, Registration, Role, RoleEnum
+from registrations.models import GiphouseProfile, Registration, Role
 
 User: DjangoUser = get_user_model()
 admin.site.unregister(User)
@@ -98,10 +98,7 @@ class StudentAdmin(admin.ModelAdmin):
 
     def get_role(self, obj):
         """Return role of Student."""
-        try:
-            return (set(obj.groups.values_list('name', flat=True)) & set([r.value for r in RoleEnum])).pop()
-        except KeyError:
-            return None
+        return Role.objects.filter(user=obj)
     get_role.short_description = 'Role'
 
     def place_in_first_project_preference(self, request, queryset):
