@@ -16,14 +16,11 @@ class PeerReviewForm(forms.Form):
         self.questions = questionnaire.question_set.all()
         self.peers = peers
 
-        for question in self.questions:
+        for question in (q for q in self.questions if not q.about_team_member):
+            self._build_form_field(self.get_field_name(question, None), question, None)
 
-            if question.about_team_member:
-                question_peers = self.peers
-            else:
-                question_peers = (None, )
-
-            for peer in question_peers:
+        for peer in self.peers:
+            for question in (q for q in self.questions if not q.about_team_member):
                 self._build_form_field(self.get_field_name(question, peer), question, peer)
 
     def clean(self):
@@ -58,9 +55,9 @@ class PeerReviewForm(forms.Form):
             )
 
         if peer is not None:
-            self.fields[field_name].help_text = f"Peer review for {peer.get_full_name()}"
+            self.fields[field_name].help_text = f"Questions about {peer.get_full_name()}"
         else:
-            self.fields[field_name].help_text = "General Question"
+            self.fields[field_name].help_text = "General Questions"
 
     @staticmethod
     def get_field_name(question, peer=None):

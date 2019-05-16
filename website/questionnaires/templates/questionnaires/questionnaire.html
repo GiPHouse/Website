@@ -8,11 +8,23 @@
 {% block content %}
     <h1 class="mt-2">Questionnaire</h1>
     {% bootstrap_form_errors form %}
-    <form method="post">
+	<div class="">
+    <form method="post" class="row">
         {% csrf_token %}
         {% for field in  form %}
-            {% bootstrap_field field %}
+			{% ifchanged field.help_text %}
+			<div class="col-12">
+			<hr/>
+			<h2>{{ field.help_text }}</h2>
+			</div>
+			{% endifchanged %}
+			<div class="col-12 col-lg-10">
+			{% bootstrap_field field show_help=False %}
+			</div>
         {% endfor %}
+		<div class="col-12">
         <button type="submit" class="btn btn-primary">Submit</button>
+		</div>
     </form>
+	</div>
 {% endblock %}
