@@ -2,11 +2,11 @@
 {% load bootstrap4 %}
 
 {% block title %}
-    Questionnaire - {{ block.super }}
+    {{form.questionnaire.title}} - Questionnaire - {{ block.super }}
 {% endblock %}
 
 {% block content %}
-    <h1 class="mt-2">Questionnaire</h1>
+	<h1 class="mt-2">{{form.questionnaire.title}}</h1>
     {% bootstrap_form_errors form %}
     <form method="post" class="row">
         {% csrf_token %}

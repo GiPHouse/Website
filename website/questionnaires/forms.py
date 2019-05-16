@@ -59,7 +59,7 @@ class PeerReviewForm(forms.Form):
         if peer is not None:
             self.fields[field_name].help_text = f"{peer.get_full_name()}"
         else:
-            self.fields[field_name].help_text = "General Questions"
+            self.fields[field_name].help_text = ""
 
     @staticmethod
     def get_field_name(question, peer=None):
