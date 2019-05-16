@@ -16,12 +16,14 @@ class PeerReviewForm(forms.Form):
         self.questions = questionnaire.question_set.all()
         self.peers = peers
 
-        for question in (q for q in self.questions if not q.about_team_member):
-            self._build_form_field(self.get_field_name(question, None), question, None)
+        for question in self.questions:
+            if not question.about_team_member:
+                self._build_form_field(self.get_field_name(question, None), question, None)
 
         for peer in self.peers:
-            for question in (q for q in self.questions if not q.about_team_member):
-                self._build_form_field(self.get_field_name(question, peer), question, peer)
+            for question in self.questions:
+                if question.about_team_member:
+                    self._build_form_field(self.get_field_name(question, peer), question, peer)
 
     def clean(self):
         """Validate that the form is not closed."""
