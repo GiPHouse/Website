@@ -5,7 +5,7 @@ from django.contrib.auth.models import Group, User as DjangoUser
 
 from projects.models import Project
 
-from registrations.models import GiphouseProfile, Registration, Role
+from registrations.models import GiphouseProfile, Registration, Role, RoleEnum
 
 User: DjangoUser = get_user_model()
 admin.site.unregister(User)
@@ -69,8 +69,8 @@ class StudentForm(forms.ModelForm):
 
     def save(self, *args, **kwargs):
         """Save the form data, including many-to-many data."""
-        instance = super().save()
         self.save_m2m()
+        instance = super().save()
         return instance
 
 
@@ -80,7 +80,8 @@ class StudentAdmin(admin.ModelAdmin):
 
     form = StudentForm
     inlines = [GiphouseProfileInline, RegistrationInline]
-    list_display = ('first_name', 'last_name', 'get_github_username')
+    list_display = ('first_name', 'last_name', 'get_github_username', 'get_role')
+    actions = ['place_in_first_project_preference']
 
     # Necessary for the autocomplete filter
     search_fields = ('first_name', 'last_name')
@@ -94,6 +95,21 @@ class StudentAdmin(admin.ModelAdmin):
         return obj.giphouseprofile.github_username
     get_github_username.short_description = 'Github Username'
     get_github_username.admin_order_field = 'giphouseprofile__github_username'
+
+    def get_role(self, obj):
+        """Return role of Student."""
+        try:
+            return (set(obj.groups.values_list('name', flat=True)) & set([r.value for r in RoleEnum])).pop()
+        except:
+            return None
+    get_role.short_description = 'Role'
+
+    def place_in_first_project_preference(self, request, queryset):
+        """Place the selected users in their first project preference."""
+        for user in queryset:
+            registration = user.registration_set.order_by('semester').first()
+            user.groups.add(registration.preference1)
+            user.save()
 
 
 admin.site.register(Role)

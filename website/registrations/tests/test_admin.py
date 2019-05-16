@@ -1,3 +1,4 @@
+from django.contrib.admin import ACTION_CHECKBOX_NAME
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
 from django.shortcuts import reverse
@@ -8,7 +9,7 @@ from courses.models import Semester
 
 from projects.models import Project
 
-from registrations.models import GiphouseProfile, Role, SDM
+from registrations.models import GiphouseProfile, Registration, Role, RoleEnum
 
 User: DjangoUser = get_user_model()
 
@@ -21,30 +22,27 @@ class RegistrationAdminTest(TestCase):
         cls.admin = User.objects.create_superuser(
             username='admin',
             email='',
-            password=cls.admin_password)
+            password=cls.admin_password
+        )
 
-        cls.sdm, created = Role.objects.get_or_create(name=SDM)
+        sdm, created = Role.objects.get_or_create(name=RoleEnum.sdm.name)
 
-        manager = User.objects.create(username='manager')
+        semester = Semester.objects.create(
+            year=2019,
+            season=Semester.SPRING,
+        )
+        project = Project.objects.create(
+            name="GiPHouse",
+            description="Test",
+            semester=semester,
+        )
+        cls.manager = User.objects.create(username='manager')
         GiphouseProfile.objects.create(
-            user=manager,
+            user=cls.manager,
             github_id='0',
             github_username='manager',
         )
-        manager.groups.add(cls.sdm)
-
-        cls.semester = Semester.objects.create(
-            year=2019,
-            season=Semester.SPRING,
-            registration_start=timezone.now(),
-            registration_end=timezone.now() + timezone.timedelta(days=60)
-        )
-
-        cls.project, created = Project.objects.get_or_create(
-            semester=cls.semester,
-            name="Test Project",
-            description="Description",
-        )
+        cls.manager.groups.add(sdm)
 
         cls.message = {
             'id': 10,
@@ -52,8 +50,8 @@ class RegistrationAdminTest(TestCase):
             'date_joined_1': "12:00:00",
             'initial-date_joined_0': "2000-12-01",
             'initial-date_joined_1': "12:00:00",
-            'project': cls.project.id,
-            'role': cls.sdm.id,
+            'project': project.id,
+            'role': sdm.id,
             'giphouseprofile-TOTAL_FORMS': 1,
             'giphouseprofile-INITIAL_FORMS': 0,
             'giphouseprofile-MIN_NUM_FORMS': 0,
@@ -65,10 +63,16 @@ class RegistrationAdminTest(TestCase):
             'registration_set-INITIAL_FORMS': 0,
             'registration_set-MIN_NUM_FORMS': 0,
             'registration_set-MAX_NUM_FORMS': 1,
-            'registration_set-0-preference1': cls.project.id,
-            'registration_set-0-semester': cls.semester.id,
+            'registration_set-0-preference1': project.id,
+            'registration_set-0-semester': semester.id,
             '_save': 'Save'
         }
+
+        Registration.objects.create(
+            user=cls.manager,
+            semester=semester,
+            preference1=project,
+        )
 
     def setUp(self):
         self.client = Client()
@@ -101,3 +105,15 @@ class RegistrationAdminTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(User.objects.filter(pk=5))
+
+    def test_place_in_first_project_preference(self):
+        response = self.client.post(
+            reverse('admin:auth_user_changelist'),
+            {
+                ACTION_CHECKBOX_NAME: [self.manager.pk],
+                'action': 'place_in_first_project_preference',
+                'index': 0,
+            },
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
