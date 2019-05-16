@@ -9,7 +9,7 @@ from courses.models import Semester
 
 from projects.models import Project
 
-from registrations.models import GiphouseProfile, Role, SDM
+from registrations.models import GiphouseProfile, Role, RoleEnum
 
 User: DjangoUser = get_user_model()
 
@@ -31,7 +31,7 @@ class GetProjectsTest(TestCase):
             registration_end=timezone.now(),
         )
 
-        cls.sdm, created = Role.objects.get_or_create(name=SDM)
+        cls.sdm, created = Role.objects.get_or_create(name=RoleEnum.sdm.name)
         cls.manager = User.objects.create(username='manager')
         GiphouseProfile.objects.create(
             user=cls.manager,

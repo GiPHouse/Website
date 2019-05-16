@@ -69,8 +69,8 @@ class StudentForm(forms.ModelForm):
 
     def save(self, *args, **kwargs):
         """Save the form data, including many-to-many data."""
-        self.save_m2m()
         instance = super().save()
+        self.save_m2m()
         return instance
 
 

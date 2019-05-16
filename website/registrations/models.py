@@ -1,3 +1,5 @@
+from enum import Enum
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import User as DjangoUser
@@ -11,8 +13,14 @@ User: DjangoUser = get_user_model()
 
 User.__str__ = lambda x: x.get_full_name()
 
-SDM = "SDM Student"
-SE = "SE Student"
+
+class RoleEnum(Enum):
+    """Possible roles."""
+
+    se = "SE Student"
+    sdm = "SDM Student"
+    director = "Director"
+    admin = "Admin"
 
 
 class Role(Group):
