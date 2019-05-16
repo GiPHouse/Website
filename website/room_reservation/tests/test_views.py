@@ -62,8 +62,8 @@ class PeerReviewTest(TestCase):
             reverse('room_reservation:create_reservation'),
             {
                 'room': self.room.pk,
-                'start_time': "04/17/2019 10:00",
-                'end_time': "04/17/2019 12:00",
+                'start_time': "04/17/2019 18:00",
+                'end_time': "04/17/2019 19:00",
             },
             follow=True,
         )

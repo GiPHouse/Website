@@ -64,10 +64,6 @@ class ReservationForm(ModelForm):
             raise ValidationError(
                 'start time past or same as end time. Please enter a valid time range.', code='invalid')
 
-        if start_time.hour < 8 or start_time.hour >= 18 or end_time.hour < 8 or start_time.hour > 18:
-            raise ValidationError(
-                    'reservation outside range, Please enter times between 8:00 and 18:00.', code='invalid')
-
     def __init__(self, *args, **kwargs):
         """Initialize the object and give user-friendly widgets for the datetime objects."""
         super().__init__(*args, **kwargs)
