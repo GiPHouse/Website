@@ -3,7 +3,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
 from django.shortcuts import reverse
 from django.test import Client, TestCase
-from django.utils import timezone
 
 from courses.models import Semester
 
@@ -25,7 +24,7 @@ class RegistrationAdminTest(TestCase):
             password=cls.admin_password
         )
 
-        sdm, created = Role.objects.get_or_create(name=RoleEnum.sdm.name)
+        sdm, created = Role.objects.get_or_create(name=RoleEnum.sdm.value)
 
         semester = Semester.objects.create(
             year=2019,
@@ -43,6 +42,7 @@ class RegistrationAdminTest(TestCase):
             github_username='manager',
         )
         cls.manager.groups.add(sdm)
+        cls.manager.save()
 
         cls.message = {
             'id': 10,

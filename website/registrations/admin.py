@@ -100,7 +100,7 @@ class StudentAdmin(admin.ModelAdmin):
         """Return role of Student."""
         try:
             return (set(obj.groups.values_list('name', flat=True)) & set([r.value for r in RoleEnum])).pop()
-        except:
+        except KeyError:
             return None
     get_role.short_description = 'Role'
 

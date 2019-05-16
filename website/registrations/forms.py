@@ -35,8 +35,8 @@ class Step2Form(forms.Form):
     github_username = forms.CharField(disabled=True)
 
     course = forms.ChoiceField(choices=(('', '---------'),
-                                        (RoleEnum.se.name, 'Software Engineering'),
-                                        (RoleEnum.sdm.name, 'System Development Management')))
+                                        (RoleEnum.se.value, 'Software Engineering'),
+                                        (RoleEnum.sdm.value, 'System Development Management')))
 
     email = forms.EmailField()
 
