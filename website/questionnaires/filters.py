@@ -148,7 +148,7 @@ class SubmissionAdminProjectFilter(admin.SimpleListFilter):
 class SubmissionAdminParticipantFilter(AutocompleteFilter):
     """Filter class to filter participants."""
 
-    title = 'Participant'
+    title = 'Participant (submitter)'
     field_name = 'participant'
 
 
