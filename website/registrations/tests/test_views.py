@@ -149,6 +149,8 @@ class Step2Test(TestCase):
                                         'course': RoleChoice.se.name,
                                         'email': self.email,
                                         'project1': self.project_preference1.id,
+                                        'project2': self.project_preference2.id,
+                                        'project3': self.project_preference3.id,
                                     }, follow=True)
         self.assertRedirects(response, '/')
         self.assertContains(response, 'User created successfully')
@@ -163,6 +165,8 @@ class Step2Test(TestCase):
                                         'course': RoleChoice.se.name,
                                         'email': self.email,
                                         'project1': self.project_preference1.id,
+                                        'project2': self.project_preference2.id,
+                                        'project3': self.project_preference3.id,
                                     }, follow=True)
         self.assertContains(response, 'Invalid Student Number')
 
@@ -178,7 +182,7 @@ class Step2Test(TestCase):
                                         'project1': self.project_preference1.id,
                                         'project2': str(self.project_preference1.id),
                                     }, follow=True)
-        self.assertContains(response, 'The same project has been selected multiple times')
+        self.assertContains(response, 'You should fill in all preferences with unique values')
 
     def test_post_step2_existing_user(self):
         test_user = User.objects.create_user(
@@ -201,6 +205,8 @@ class Step2Test(TestCase):
                                         'course': RoleChoice.se.name,
                                         'email': self.email,
                                         'project1': self.project_preference1.id,
+                                        'project2': self.project_preference2.id,
+                                        'project3': self.project_preference3.id,
                                     }, follow=True)
         self.assertRedirects(response, '/')
         self.assertContains(response, 'User already exists')
