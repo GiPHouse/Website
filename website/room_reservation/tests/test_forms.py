@@ -47,6 +47,15 @@ class PeerReviewTest(TestCase):
         form = ReservationForm(data=form_data)
         self.assertFalse(form.is_valid())
 
+    def test_ReservationForm_out_of_range(self):
+        form_data = {
+            'room': str(self.room.pk),
+            'start_time': "2005-7-14 6:00",
+            'end_time': "2005-7-14 10:00",
+        }
+        form = ReservationForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
     def test_ReservationForm_end_time_past_start_time(self):
         form_data = {
             'room': str(self.room.pk),
