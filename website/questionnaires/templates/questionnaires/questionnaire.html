@@ -2,17 +2,30 @@
 {% load bootstrap4 %}
 
 {% block title %}
-    Questionnaire - {{ block.super }}
+    {{form.questionnaire.title}} - Questionnaire - {{ block.super }}
 {% endblock %}
 
 {% block content %}
-    <h1 class="mt-2">Questionnaire</h1>
+	<h1 class="mt-2">{{form.questionnaire.title}}</h1>
     {% bootstrap_form_errors form %}
-    <form method="post">
+    <form method="post" class="row">
         {% csrf_token %}
         {% for field in  form %}
-            {% bootstrap_field field %}
+			{% ifchanged field.label %}
+				<div class="col-12">
+					<hr/>
+					<h2>{{ field.label }}</h2>
+				</div>
+			{% endifchanged %}
+			<div class="col-2">
+				<p class="font-weight-bold"> {{ field.help_text }} </p>
+			</div>
+			<div class="col-10 col-lg-10">
+				{% bootstrap_field field show_help=False show_label=False %}
+			</div>
         {% endfor %}
-        <button type="submit" class="btn btn-primary">Submit</button>
+		<div class="col-12">
+        	<button type="submit" class="btn btn-primary">Submit</button>
+		</div>
     </form>
 {% endblock %}
