@@ -1,0 +1,17 @@
+// q - Questionnaires
+
+.form-group .radio {
+	display:flex;
+	flex-grow: 1;
+}
+
+.form-group .radio label {
+	display: flex;
+	flex-grow: 1;
+	flex-basis: 0;
+	flex-direction: column;
+	padding: 0px;
+	min-height: 3em;
+	justify-content: center;
+    align-items: center;
+}
