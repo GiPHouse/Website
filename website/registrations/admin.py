@@ -55,7 +55,7 @@ class StudentAdmin(admin.ModelAdmin):
 
     def get_role(self, obj):
         """Return role of Student."""
-        return Role.objects.filter(user=obj)
+        return Role.objects.get(user=obj)
     get_role.short_description = 'Role'
 
     def place_in_first_project_preference(self, request, queryset):

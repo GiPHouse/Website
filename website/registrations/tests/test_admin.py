@@ -1,8 +1,11 @@
+from datetime import timedelta
+
 from django.contrib.admin import ACTION_CHECKBOX_NAME
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
 from django.shortcuts import reverse
 from django.test import Client, TestCase
+from django.utils import timezone
 
 from courses.models import Semester
 
@@ -25,10 +28,13 @@ class RegistrationAdminTest(TestCase):
         )
 
         sdm, _created = Role.objects.get_or_create(name=Role.SDM)
-
-        semester = Semester.objects.create(
-            year=2019,
+        semester, _created = Semester.objects.get_or_create(
+            year=timezone.now().year,
             season=Semester.SPRING,
+            defaults={
+                'registration_start': timezone.now() - timedelta(days=30),
+                'registration_end': timezone.now() + timedelta(days=30),
+            }
         )
         project = Project.objects.create(
             name="GiPHouse",
@@ -45,7 +51,6 @@ class RegistrationAdminTest(TestCase):
         cls.manager.save()
 
         cls.message = {
-            'id': 10,
             'date_joined_0': "2000-12-01",
             'date_joined_1': "12:00:00",
             'initial-date_joined_0': "2000-12-01",

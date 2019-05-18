@@ -94,7 +94,7 @@ class Step2View(FormView):
             )
 
             se, _created = Role.objects.get_or_create(name=Role.SE)
-            user.groups.add(sdm)
+            user.groups.add(se)
             user.save()
 
             GiphouseProfile.objects.create(
