@@ -5,7 +5,10 @@ from django.contrib.auth.models import Group, User as DjangoUser
 
 from projects.models import Project
 
+from registrations.forms import StudentAdminForm
+
 from registrations.models import GiphouseProfile, Registration, Role
+
 
 User: DjangoUser = get_user_model()
 admin.site.unregister(User)
@@ -28,57 +31,11 @@ class RegistrationInline(admin.StackedInline):
     min_num = 0
 
 
-class StudentForm(forms.ModelForm):
-    """Admin form to edit Students."""
-
-    class Meta:
-        """Meta class for StudentForm."""
-
-        model = User
-        fields = ('first_name', 'last_name', 'email', 'date_joined')
-        exclude = []
-
-    role = forms.ModelChoiceField(
-        queryset=Role.objects.all(),
-        required=False,
-    )
-
-    project = forms.ModelChoiceField(
-        queryset=Project.objects.all(),
-        required=False,
-    )
-
-    def __init__(self, *args, **kwargs):
-        """Dynamically setup form."""
-        super().__init__(*args, **kwargs)
-
-        self.fields['role'].initial = Role.objects.filter(user=self.instance).first()
-
-        self.fields['project'].initial = Project.objects.filter(user=self.instance).first()
-
-    def save_m2m(self):
-        """Add the Role to the user."""
-        groups = []
-        role = self.cleaned_data['role']
-        project = self.cleaned_data['project']
-        if role:
-            groups.append(role)
-        if project:
-            groups.append(project)
-        self.instance.groups.set(groups)
-
-    def save(self, *args, **kwargs):
-        """Save the form data, including many-to-many data."""
-        instance = super().save()
-        self.save_m2m()
-        return instance
-
-
 @admin.register(User)
 class StudentAdmin(admin.ModelAdmin):
     """Custom admin for Student."""
 
-    form = StudentForm
+    form = StudentAdminForm
     inlines = [GiphouseProfileInline, RegistrationInline]
     list_display = ('first_name', 'last_name', 'get_github_username', 'get_role')
     actions = ['place_in_first_project_preference']

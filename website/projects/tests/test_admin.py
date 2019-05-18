@@ -31,7 +31,7 @@ class GetProjectsTest(TestCase):
             registration_end=timezone.now(),
         )
 
-        cls.sdm, created = Role.objects.get_or_create(name=Role.SDM)
+        cls.sdm, _created = Role.objects.get_or_create(name=Role.SDM)
         cls.manager = User.objects.create(username='manager')
         GiphouseProfile.objects.create(
             user=cls.manager,

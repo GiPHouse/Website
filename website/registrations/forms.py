@@ -99,3 +99,49 @@ class Step2Form(forms.Form):
             ValidationError("Student Number already in use", code='exists')
 
         return student_number
+
+
+class StudentAdminForm(forms.ModelForm):
+    """Admin form to edit Students."""
+
+    class Meta:
+        """Meta class for StudentForm."""
+
+        model = User
+        fields = ('first_name', 'last_name', 'email', 'date_joined')
+        exclude = []
+
+    role = forms.ModelChoiceField(
+        queryset=Role.objects.all(),
+        required=False,
+    )
+
+    project = forms.ModelChoiceField(
+        queryset=Project.objects.filter(semester=Semester.objects.get_current_registration()),
+        required=False,
+    )
+
+    def __init__(self, *args, **kwargs):
+        """Dynamically setup form."""
+        super().__init__(*args, **kwargs)
+
+        self.fields['role'].initial = Role.objects.filter(user=self.instance).first()
+
+        self.fields['project'].initial = Project.objects.filter(user=self.instance).first()
+
+    def save_m2m(self):
+        """Add the Role to the user."""
+        groups = []
+        role = self.cleaned_data['role']
+        project = self.cleaned_data['project']
+        if role:
+            groups.append(role)
+        if project:
+            groups.append(project)
+        self.instance.groups.set(groups)
+
+    def save(self, *args, **kwargs):
+        """Save the form data, including many-to-many data."""
+        instance = super().save()
+        self.save_m2m()
+        return instance
