@@ -63,7 +63,7 @@ class RegistrationAdminTest(TestCase):
             'giphouseprofile-MAX_NUM_FORMS': 1,
             'giphouseprofile-0-github_id': 4,
             'giphouseprofile-0-github_username': "bob",
-            'giphouseprofile-0-student_number': "s4451323",
+            'giphouseprofile-0-student_number': "s0000000",
             'registration_set-TOTAL_FORMS': 1,
             'registration_set-INITIAL_FORMS': 0,
             'registration_set-MIN_NUM_FORMS': 0,
@@ -97,19 +97,19 @@ class RegistrationAdminTest(TestCase):
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIsNotNone(User.objects.filter(pk=4))
+        self.assertIsNotNone(User.objects.get(giphouseprofile__student_number='s0000000'))
 
     def test_form_save_without_role_and_project(self):
         self.message['role'] = ''
         self.message['project'] = ''
-        self.message['id'] = 5
+        self.message['giphouseprofile-0-student_number'] = 's1111111'
         response = self.client.post(
             reverse('admin:auth_user_add'),
             self.message,
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIsNotNone(User.objects.filter(pk=5))
+        self.assertIsNotNone(User.objects.get(giphouseprofile__student_number='s1111111'))
 
     def test_place_in_first_project_preference(self):
         response = self.client.post(
