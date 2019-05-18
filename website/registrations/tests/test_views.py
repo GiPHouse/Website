@@ -240,7 +240,7 @@ class Step2Test(TestCase):
                                         'student_number': self.student_number,
                                         'github_username': self.github_username,
                                         'semester': self.semester.id,
-                                        'course': RoleChoice.se.name,
+                                        'course': Role.SE,
                                         'email': self.email,
                                         'project1': self.project_preference1.id,
                                         'project2': self.project_preference2.id,
