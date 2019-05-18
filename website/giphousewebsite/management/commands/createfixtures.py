@@ -82,8 +82,8 @@ class Command(BaseCommand):
                 'registration_end': timezone.now() + timedelta(days=30),
             }
         )
-        self.sdm, _created = Role.objects.get_or_create(name=Role.SDM)
-        self.se, _created = Role.objects.get_or_create(name=Role.SE)
+        self.sdm, _ = Role.objects.get_or_create(name=Role.SDM)
+        self.se, _ = Role.objects.get_or_create(name=Role.SE)
 
     def create_lecture(self):
         """Create one fake lecture."""

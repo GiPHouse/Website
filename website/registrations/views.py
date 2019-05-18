@@ -95,7 +95,7 @@ class Step2View(FormView):
                 email=form.cleaned_data['email']
             )
 
-            se, _created = Role.objects.get_or_create(name=Role.SE)
+            se, _ = Role.objects.get_or_create(name=Role.SE)
             user.groups.add(se)
             user.save()
 

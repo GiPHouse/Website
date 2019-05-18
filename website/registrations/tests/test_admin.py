@@ -27,8 +27,8 @@ class RegistrationAdminTest(TestCase):
             password=cls.admin_password
         )
 
-        sdm, _created = Role.objects.get_or_create(name=Role.SDM)
-        semester, _created = Semester.objects.get_or_create(
+        sdm, _ = Role.objects.get_or_create(name=Role.SDM)
+        semester, _ = Semester.objects.get_or_create(
             year=timezone.now().year,
             season=Semester.SPRING,
             defaults={
