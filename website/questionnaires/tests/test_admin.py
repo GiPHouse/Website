@@ -99,6 +99,7 @@ class PeerReviewAdminTest(TestCase):
             submission=cls.submission,
             peer=peer,
         )
+        cls.open_answer.answer = "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
 
         cls.closed_answer = Answer.objects.create(
             question=closed_question,
