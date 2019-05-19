@@ -74,7 +74,10 @@ class GiphouseProfile(models.Model):
 class Registration(models.Model):
     """Model containing registration specific data."""
 
-    unique_together = [['user', 'semester']]
+    class Meta:
+        """Meta class for Registration."""
+
+        unique_together = [['user', 'semester']]
 
     user = models.ForeignKey(
         User,

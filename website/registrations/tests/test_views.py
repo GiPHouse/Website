@@ -229,3 +229,22 @@ class Step2Test(TestCase):
                                         'project1': self.project_preference1.id,
                                     }, follow=True)
         self.assertContains(response, 'Email already in use')
+
+    def test_step2_works_with_no_last_name(self):
+        self.session['github_name'] = f'{self.first_name}'
+        self.session.save()
+        response = self.client.post('/register/step2',
+                                    {
+                                        'first_name': self.first_name,
+                                        'last_name': self.last_name,
+                                        'student_number': self.student_number,
+                                        'github_username': self.github_username,
+                                        'semester': self.semester.id,
+                                        'course': RoleChoice.se.name,
+                                        'email': self.email,
+                                        'project1': self.project_preference1.id,
+                                        'project2': self.project_preference2.id,
+                                        'project3': self.project_preference3.id,
+                                    }, follow=True)
+        self.assertRedirects(response, '/')
+        self.assertContains(response, 'User created successfully')
