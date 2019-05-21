@@ -17,7 +17,7 @@ from projects.models import Client, Project
 from questionnaires.models import AgreementAnswerData, Answer, OpenAnswerData, QualityAnswerData, Question, \
     Questionnaire, QuestionnaireSubmission
 
-from registrations.models import GiphouseProfile, Registration, RoleChoice
+from registrations.models import GiphouseProfile, Registration, Role
 
 from room_reservation.models import Reservation, Room
 
@@ -82,6 +82,8 @@ class Command(BaseCommand):
                 'registration_end': timezone.now() + timedelta(days=30),
             }
         )
+        self.sdm, _ = Role.objects.get_or_create(name=Role.SDM)
+        self.se, _ = Role.objects.get_or_create(name=Role.SE)
 
     def create_lecture(self):
         """Create one fake lecture."""
@@ -119,13 +121,13 @@ class Command(BaseCommand):
             last_name=fake.last_name(),
         )
         user.groups.add(Project.objects.order_by('?').first())
+        user.groups.add(random.choice([self.sdm, self.se]))
         user.save()
         GiphouseProfile.objects.create(
             user=user,
             github_id=github_id,
             github_username=fake.user_name(),
             student_number=fake.bothify("s#######"),
-            role=random.choice([RoleChoice.se.name, RoleChoice.sdm.name])
         )
         Registration.objects.create(
             user=user,
@@ -150,7 +152,6 @@ class Command(BaseCommand):
             github_id=github_id,
             github_username=fake.user_name(),
             student_number=fake.bothify("s#######"),
-            role=RoleChoice.director.name,
         )
 
     def create_questionnaire(self):

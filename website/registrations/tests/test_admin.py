@@ -1,14 +1,17 @@
+from datetime import timedelta
+
 from django.contrib.admin import ACTION_CHECKBOX_NAME
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
 from django.shortcuts import reverse
 from django.test import Client, TestCase
+from django.utils import timezone
 
 from courses.models import Semester
 
 from projects.models import Project
 
-from registrations.models import GiphouseProfile, Registration, RoleChoice
+from registrations.models import GiphouseProfile, Registration, Role
 
 User: DjangoUser = get_user_model()
 
@@ -24,9 +27,14 @@ class RegistrationAdminTest(TestCase):
             password=cls.admin_password
         )
 
-        semester = Semester.objects.create(
-            year=2019,
+        sdm, _ = Role.objects.get_or_create(name=Role.SDM)
+        semester, _ = Semester.objects.get_or_create(
+            year=timezone.now().year,
             season=Semester.SPRING,
+            defaults={
+                'registration_start': timezone.now() - timedelta(days=30),
+                'registration_end': timezone.now() + timedelta(days=30),
+            }
         )
         project = Project.objects.create(
             name="GiPHouse",
@@ -38,8 +46,33 @@ class RegistrationAdminTest(TestCase):
             user=cls.manager,
             github_id='0',
             github_username='manager',
-            role=RoleChoice.sdm.name
         )
+        cls.manager.groups.add(sdm)
+        cls.manager.save()
+
+        cls.message = {
+            'date_joined_0': "2000-12-01",
+            'date_joined_1': "12:00:00",
+            'initial-date_joined_0': "2000-12-01",
+            'initial-date_joined_1': "12:00:00",
+            'project': project.id,
+            'role': sdm.id,
+            'giphouseprofile-TOTAL_FORMS': 1,
+            'giphouseprofile-INITIAL_FORMS': 0,
+            'giphouseprofile-MIN_NUM_FORMS': 0,
+            'giphouseprofile-MAX_NUM_FORMS': 1,
+            'giphouseprofile-0-github_id': 4,
+            'giphouseprofile-0-github_username': "bob",
+            'giphouseprofile-0-student_number': "s0000000",
+            'registration_set-TOTAL_FORMS': 1,
+            'registration_set-INITIAL_FORMS': 0,
+            'registration_set-MIN_NUM_FORMS': 0,
+            'registration_set-MAX_NUM_FORMS': 1,
+            'registration_set-0-preference1': project.id,
+            'registration_set-0-semester': semester.id,
+            '_save': 'Save'
+        }
+
         Registration.objects.create(
             user=cls.manager,
             semester=semester,
@@ -56,6 +89,27 @@ class RegistrationAdminTest(TestCase):
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
+
+    def test_form_save_with_role_and_project(self):
+        response = self.client.post(
+            reverse('admin:auth_user_add'),
+            self.message,
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(User.objects.get(giphouseprofile__student_number='s0000000'))
+
+    def test_form_save_without_role_and_project(self):
+        self.message['role'] = ''
+        self.message['project'] = ''
+        self.message['giphouseprofile-0-student_number'] = 's1111111'
+        response = self.client.post(
+            reverse('admin:auth_user_add'),
+            self.message,
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(User.objects.get(giphouseprofile__student_number='s1111111'))
 
     def test_place_in_first_project_preference(self):
         response = self.client.post(

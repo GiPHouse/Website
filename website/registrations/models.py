@@ -1,6 +1,5 @@
-from enum import Enum
-
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.contrib.auth.models import User as DjangoUser
 from django.db import models
 
@@ -13,13 +12,19 @@ User: DjangoUser = get_user_model()
 User.__str__ = lambda x: x.get_full_name()
 
 
-class RoleChoice(Enum):
-    """Possible roles."""
+class Role(Group):
+    """Role Group that contains multiple users."""
 
-    se = "SE Student"
-    sdm = "SDM Student"
-    director = "Director"
-    admin = "Admin"
+    SE = "SE Student"
+    SDM = "SDM Student"
+    DIRECTOR = "Director"
+    ADMIN = "Admin"
+
+    objects = models.Manager()
+
+    def __str__(self):
+        """Return role name."""
+        return f'{self.name}'
 
 
 class GiphouseProfile(models.Model):
@@ -59,11 +64,6 @@ class GiphouseProfile(models.Model):
         unique=True,
         null=True,
         max_length=8,
-    )
-
-    role = models.CharField(
-        max_length=8,
-        choices=[(tag.name, tag.value) for tag in RoleChoice],
     )
 
     def __str__(self):
