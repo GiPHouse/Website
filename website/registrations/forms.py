@@ -130,7 +130,7 @@ class StudentAdminForm(forms.ModelForm):
         self.fields['project'].initial = Project.objects.filter(user=self.instance).first()
 
     def save_m2m(self):
-        """Add the Role to the user."""
+        """Add the user to the specified groups."""
         groups = []
         role = self.cleaned_data['role']
         project = self.cleaned_data['project']
