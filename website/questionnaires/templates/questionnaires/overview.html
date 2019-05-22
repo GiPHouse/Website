@@ -8,34 +8,41 @@
     <div class="col-8">
         <div>
             <h4>Questionnaires</h4>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th scope="col">Title</th>
-                        <th scope="col">Available Until</th>
-                        <th scope="col">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for questionnaire in questionnaires %}
-                        <tr>
-                            <td>{{ questionnaire.title }}</td>
-                            <td>{{ questionnaire.get_until_date|default_if_none:'Closed' }}</td>
-                            <td>
-                                {% if questionnaire.is_open %}
-                                    <a class="btn btn-primary" role="button" href="{% url 'questionnaires:questionnaire' questionnaire.pk %}">Start</a>
-                                {% elif questionnaire.is_late %}
-                                    <a class="btn btn-primary" role="button" href="{% url 'questionnaires:questionnaire' questionnaire.pk %}">Start Late</a>
-                                {% else %}
-                                    <a class="btn btn-primary disabled" role="button" href="#">Start</a>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+			{% if questionnaires %}
+				<table class="table">
+					<thead>
+						<tr>
+							<th scope="col">Title</th>
+							<th scope="col">Available Until</th>
+							<th scope="col">Action</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for questionnaire in questionnaires %}
+							<tr>
+								<td>{{ questionnaire.title }}</td>
+								<td>{{ questionnaire.get_until_date|default_if_none:'Closed' }}</td>
+								<td>
+									{% if questionnaire.is_open %}
+										<a class="btn btn-primary" role="button" href="{% url 'questionnaires:questionnaire' questionnaire.pk %}">Start</a>
+									{% elif questionnaire.is_late %}
+										<a class="btn btn-primary" role="button" href="{% url 'questionnaires:questionnaire' questionnaire.pk %}">Start Late</a>
+									{% else %}
+										<a class="btn btn-primary disabled" role="button" href="#">Start</a>
+									{% endif %}
+								</td>
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			{% else %}
+				<p>
+					No questionnaires available.
+				</p>
+			{% endif %}
         </div>
-
+		
+		{% if submissions %}
         <div>
             <h4>Submissions</h4>
             <table class="table">
@@ -63,5 +70,6 @@
                 </tbody>
             </table>
         </div>
+		{% endif %}
     </div>
 {% endblock %}
