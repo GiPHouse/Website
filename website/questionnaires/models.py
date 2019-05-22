@@ -74,7 +74,7 @@ class QuestionnaireSubmission(models.Model):
     questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
     participant = models.ForeignKey(User, on_delete=models.CASCADE)
 
-    late = models.BooleanField()
+    late = models.BooleanField(verbose_name="on time")
     created = models.DateTimeField(auto_now_add=True)
 
     def save(self, **kwargs):
