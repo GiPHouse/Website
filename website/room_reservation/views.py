@@ -1,16 +1,75 @@
-from datetime import datetime, timedelta
+import json
+from datetime import timedelta
+from json import JSONDecodeError
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.exceptions import PermissionDenied
-from django.utils import timezone
+from django.db.models import Q
+from django.http import HttpResponseBadRequest, JsonResponse
+from django.utils import dateparse, timezone
+from django.views import View
 from django.views.generic import TemplateView
-from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from room_reservation.forms import ReservationForm
 from room_reservation.models import Reservation, Room
 
 
-class ShowCalendarView(LoginRequiredMixin, TemplateView):
+class BaseReservationView(View):
+    """Base class for reservation API endpoints."""
+
+    def validate(self, room, start_time, end_time, pk=None):
+        """
+        Validate the input for the reservation.
+
+        By checking:
+
+        - All checks made by ModelForm.
+        - Reservation does not collide with another reservation.
+        - Reservation is not too long.
+        """
+        start_time = start_time.astimezone(timezone.get_current_timezone())
+        end_time = end_time.astimezone(timezone.get_current_timezone())
+
+        if end_time.date() - start_time.date() >= timezone.timedelta(days=1):
+            return False, 'Reservation too long. Please shorten your reservation'
+
+        if start_time >= end_time:
+            return False, 'Start time needs to be before end time'
+
+        if start_time.hour < 8 or start_time.hour >= 18 or end_time.hour < 8 or start_time.hour > 18:
+            return False, 'Please enter times between 8:00 and 18:00'
+
+        already_taken = (
+            Reservation.objects
+            .filter(room=room)
+            .filter(
+                Q(start_time__lte=start_time, end_time__gt=start_time)
+                | Q(start_time__lt=end_time, end_time__gte=end_time)
+                | Q(start_time__gte=start_time, end_time__lte=end_time)
+            )
+            .exclude(pk=pk)
+            .exists()
+        )
+
+        if already_taken:
+            return False, 'Room already reserved in this timeslot'
+        return True, None
+
+    def load_json(self):
+        """Extract the json data from text_body."""
+        body = json.loads(self.request.body)
+        room = body['room']
+        start_time = dateparse.parse_datetime(body['start_time'])
+        end_time = dateparse.parse_datetime(body['end_time'])
+        return room, start_time, end_time
+
+    def can_edit(self, reservation):
+        """Return true if the reservation can be edited by the logged in user."""
+        return self.request.user.has_perms(
+            ['room_reservation.change_reservation', 'room_reservation.delete_reservation'],
+            reservation
+        ) or self.request.user == reservation.reservee
+
+
+class ShowCalendarView(LoginRequiredMixin, TemplateView, BaseReservationView):
     """
     Show a week-calendar and showing the current reservations.
 
@@ -24,82 +83,93 @@ class ShowCalendarView(LoginRequiredMixin, TemplateView):
         """Load all information for the calendar."""
         context = super(ShowCalendarView, self).get_context_data(**kwargs)
 
-        rooms = Room.objects.all()
-        today = timezone.now().date()
-
-        if 'week' in self.request.GET:
-            current_week = self.request.GET['week']
-        else:
-            current_week = today.isocalendar()[1]
-
-        monday_of_the_week = datetime.strptime(
-            f'{today.year}-{current_week}-1', "%G-%V-%w").date()
-        days = [monday_of_the_week + timedelta(days=n) for n in range(7)]
-
-        for room in rooms:
-            room.reservations = []
-            for day in days:
-                next_day = day + timedelta(days=1)
-                room.reservations += [Reservation.objects.filter(
-                    room=room,
-                    start_time__date__gte=day,
-                    start_time__date__lt=next_day,
-                )]
-
-        context['rooms'] = rooms
-        context['current_week'] = current_week
-        context['days'] = days
+        context['reservations'] = json.dumps([{
+            'pk': reservation.pk,
+            'title': str(reservation.room) + ' reserved by ' + str(reservation.reservee),
+            'reservee': str(reservation.reservee)
+            if self.request.user.has_perm('room_reservation.view_reservation') else None,
+            'room': reservation.room_id,
+            'start': reservation.start_time.isoformat(),
+            'end': reservation.end_time.isoformat(),
+            'editable': self.can_edit(reservation)
+        } for reservation in Reservation.objects.filter(
+            start_time__date__gte=timezone.now() - timedelta(days=60),
+            start_time__date__lt=timezone.now() + timedelta(days=60),
+        )])
+        context['rooms'] = Room.objects.all()
 
         return context
 
 
-class CreateReservationView(LoginRequiredMixin, CreateView):
-    """FormView to make a reservation."""
+class CreateReservationView(LoginRequiredMixin, BaseReservationView):
+    """View to make a reservation."""
 
-    form_class = ReservationForm
-    template_name = 'room_reservation/reservation_form.html'
-    success_url = '/reservations/'
     raise_exception = True
 
-    def form_valid(self, form):
-        """
-        Save the form as model.
+    def post(self, request, *args, **kwargs):
+        """Handle the POST method for this view."""
+        try:
+            room, start_time, end_time = self.load_json()
+        except (KeyError, JSONDecodeError):
+            return HttpResponseBadRequest(json.dumps({'ok': 'False', 'message': 'Bad request'}))
 
-        Auto-fill the logged in user as reservee.
-        """
-        reservation = form.save(commit=False)
-        reservation.reservee = self.request.user
+        ok, message = self.validate(room, start_time, end_time)
+        if not ok:
+            return JsonResponse({'ok': False, 'message': message})
+
+        reservation = Reservation.objects.create(
+            reservee=request.user,
+            room_id=room,
+            start_time=start_time,
+            end_time=end_time,
+        )
+        return JsonResponse({'ok': True, 'pk': reservation.pk})
+
+
+class UpdateReservationView(LoginRequiredMixin, BaseReservationView):
+    """View to update your reservation."""
+
+    raise_exception = True
+
+    def post(self, request, pk, *args, **kwargs):
+        """Handle the POST method for this view."""
+        try:
+            room, start_time, end_time = self.load_json()
+        except (KeyError, JSONDecodeError):
+            return HttpResponseBadRequest(json.dumps({'ok': 'False', 'message': 'Bad request'}))
+
+        try:
+            reservation = Reservation.objects.get(pk=pk)
+        except Reservation.DoesNotExist:
+            return JsonResponse({'ok': False, 'message': 'This reservation does not exist'})
+
+        if not self.can_edit(reservation):
+            return JsonResponse({'ok': False, 'message': 'You can only update your own events'})
+
+        ok, message = self.validate(room, start_time, end_time, pk=pk)
+        if not ok:
+            return JsonResponse({'ok': False, 'message': message})
+
+        reservation.start_time = start_time
+        reservation.end_time = end_time
         reservation.save()
-        return super().form_valid(form)
+        return JsonResponse({'ok': True})
 
 
-class UpdateReservationView(LoginRequiredMixin, UpdateView):
-    """FormView to update your reservation."""
+class DeleteReservationView(LoginRequiredMixin, BaseReservationView):
+    """View to delete your reservation."""
 
-    model = Reservation
-    form_class = ReservationForm
-    template_name = 'room_reservation/reservation_form.html'
-    success_url = '/reservations/'
     raise_exception = True
 
-    def get_object(self, queryset=None):
-        """Ensure object is owned by request.user."""
-        obj = super(UpdateView, self).get_object()
-        if not obj.reservee == self.request.user:
-            raise PermissionDenied
-        return obj
+    def post(self, request, pk, *args, **kwargs):
+        """Handle the POST method for this view."""
+        try:
+            reservation = Reservation.objects.get(pk=pk)
+        except Reservation.DoesNotExist:
+            return JsonResponse({'ok': False, 'message': 'This reservation does not exist'})
 
+        if not self.can_edit(reservation):
+            return JsonResponse({'ok': False, 'message': 'You can only delete your own events'})
 
-class DeleteReservationView(LoginRequiredMixin, DeleteView):
-    """FormView to delete your reservation."""
-
-    model = Reservation
-    success_url = '/reservations/'
-    raise_exception = True
-
-    def get_object(self, queryset=None):
-        """Ensure object is owned by request.user."""
-        obj = super(DeleteView, self).get_object()
-        if not obj.reservee == self.request.user:
-            raise PermissionDenied
-        return obj
+        reservation.delete()
+        return JsonResponse({'ok': True})
