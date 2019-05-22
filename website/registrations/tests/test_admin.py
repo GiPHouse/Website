@@ -85,14 +85,14 @@ class RegistrationAdminTest(TestCase):
 
     def test_get_form(self):
         response = self.client.get(
-            reverse('admin:auth_user_changelist'),
+            reverse('admin:registrations_student_changelist'),
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
 
     def test_form_save_with_role_and_project(self):
         response = self.client.post(
-            reverse('admin:auth_user_add'),
+            reverse('admin:registrations_student_add'),
             self.message,
             follow=True,
         )
@@ -102,18 +102,18 @@ class RegistrationAdminTest(TestCase):
     def test_form_save_without_role_and_project(self):
         self.message['role'] = ''
         self.message['project'] = ''
-        self.message['giphouseprofile-0-student_number'] = 's1111111'
+        # self.message['giphouseprofile-0-student_number'] = 's1111111'
         response = self.client.post(
-            reverse('admin:auth_user_add'),
+            reverse('admin:registrations_student_add'),
             self.message,
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIsNotNone(User.objects.get(giphouseprofile__student_number='s1111111'))
+        self.assertIsNotNone(User.objects.get(giphouseprofile__student_number='s0000000'))
 
     def test_place_in_first_project_preference(self):
         response = self.client.post(
-            reverse('admin:auth_user_changelist'),
+            reverse('admin:registrations_student_changelist'),
             {
                 ACTION_CHECKBOX_NAME: [self.manager.pk],
                 'action': 'place_in_first_project_preference',

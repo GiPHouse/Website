@@ -3,11 +3,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, User as DjangoUser
 
 from registrations.forms import StudentAdminForm
-from registrations.models import GiphouseProfile, Registration, Role
-
+from registrations.models import GiphouseProfile, Registration, Role, Student
 
 User: DjangoUser = get_user_model()
-admin.site.unregister(User)
 admin.site.unregister(Group)
 
 
@@ -27,7 +25,7 @@ class RegistrationInline(admin.StackedInline):
     min_num = 0
 
 
-@admin.register(User)
+@admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
     """Custom admin for Student."""
 

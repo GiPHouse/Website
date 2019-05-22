@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 
+from registrations.models import Student
+
 User = get_user_model()
 
 
@@ -19,7 +21,7 @@ class Reservation(models.Model):
     """Model for a reservation that is made by a reservee for a certain room, with an start and end date."""
 
     reservee = models.ForeignKey(
-        User,
+        Student,
         on_delete=models.CASCADE,
         related_name='reservee')
     room = models.ForeignKey(

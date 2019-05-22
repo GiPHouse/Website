@@ -10,7 +10,7 @@ from courses.models import Semester
 
 from projects.models import Project
 
-from registrations.models import GiphouseProfile, Role
+from registrations.models import GiphouseProfile, Role, Student
 
 student_number_regex = re.compile(r'^[sS]?(\d{7})$')
 User: DjangoUser = get_user_model()
@@ -107,7 +107,7 @@ class StudentAdminForm(forms.ModelForm):
     class Meta:
         """Meta class for StudentForm."""
 
-        model = User
+        model = Student
         fields = ('first_name', 'last_name', 'email', 'date_joined')
         exclude = []
 
