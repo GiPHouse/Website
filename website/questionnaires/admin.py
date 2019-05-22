@@ -68,7 +68,7 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
 
     inlines = (AnswerInline,)
 
-    list_display = ('questionnaire', 'participant_name', 'on_time')
+    list_display = ('questionnaire', 'participant_name', 'late')
     list_filter = (SubmissionAdminSemesterFilter, SubmissionAdminQuestionnaireFilter, SubmissionAdminParticipantFilter,
                    SubmissionAdminPeerFilter, SubmissionAdminProjectFilter, 'late', SubmissionAdminAverageFilter)
 
@@ -81,9 +81,9 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
     def late(self, obj):
         """Return whether the answer was submitted late."""
         return obj.late
-    on_time.boolean = True
-    on_time.short_description = 'On Time'
-    on_time.admin_order_field = 'late'
+    late.boolean = True
+    late.short_description = 'On Time'
+    late.admin_order_field = 'late'
 
     class Media:
         """Necessary to use AutocompleteFilter."""
