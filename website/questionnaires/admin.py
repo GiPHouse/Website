@@ -70,7 +70,7 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
 
     list_display = ('questionnaire', 'participant_name', 'on_time')
     list_filter = (SubmissionAdminSemesterFilter, SubmissionAdminQuestionnaireFilter, SubmissionAdminParticipantFilter,
-                   SubmissionAdminPeerFilter, SubmissionAdminProjectFilter, 'on time', SubmissionAdminAverageFilter)
+                   SubmissionAdminPeerFilter, SubmissionAdminProjectFilter, 'late', SubmissionAdminAverageFilter)
 
     def participant_name(self, obj):
         """Return the full name of the participant."""
@@ -79,8 +79,8 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
     participant_name.admin_order_field = 'participant__first_name'
 
     def on_time(self, obj):
-        """Return whether the answer was submitted late or on time."""
-        return not obj.late
+        """Return whether the answer was submitted late."""
+        return obj.late
     on_time.boolean = True
     on_time.short_description = 'On time'
     on_time.admin_order_field = 'late'
