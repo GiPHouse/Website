@@ -14,7 +14,7 @@ from questionnaires.filters import (
     SubmissionAdminParticipantFilter,
     SubmissionAdminPeerFilter,
     SubmissionAdminProjectFilter,
-	SubmissionAdminQuestionnaireFilter,
+    SubmissionAdminQuestionnaireFilter,
     SubmissionAdminSemesterFilter
 )
 from questionnaires.models import Answer, Question, Questionnaire, QuestionnaireSubmission
@@ -83,7 +83,7 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
         return not obj.late
     on_time.boolean = True
     on_time.short_description = 'On time'
-    on_time.admin_order_field = 'on time'
+    on_time.admin_order_field = 'late'
 
     class Media:
         """Necessary to use AutocompleteFilter."""
