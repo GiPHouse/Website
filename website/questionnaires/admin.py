@@ -78,12 +78,12 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
     participant_name.short_description = 'Participant'
     participant_name.admin_order_field = 'participant__first_name'
 
-    def on_time(self, obj):
+    def late(self, obj):
         """Return whether the answer was submitted late."""
         return obj.late
-    on_time.boolean = True
-    on_time.short_description = 'On time'
-    on_time.admin_order_field = 'late'
+    late.boolean = True
+    late.short_description = 'On Time'
+    late.admin_order_field = 'late'
 
     class Media:
         """Necessary to use AutocompleteFilter."""
