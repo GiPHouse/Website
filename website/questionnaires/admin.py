@@ -15,7 +15,7 @@ from questionnaires.filters import (
     SubmissionAdminPeerFilter,
     SubmissionAdminProjectFilter,
     SubmissionAdminQuestionnaireFilter,
-    SubmissionAdminSemesterFilter,
+    SubmissionAdminSemesterFilter
 )
 from questionnaires.models import Answer, Question, Questionnaire, QuestionnaireSubmission
 
