@@ -24,6 +24,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'django.contrib.flatpages',
 
     'sass_processor',
     'bootstrap4',
@@ -44,6 +46,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware'
 ]
 
 ROOT_URLCONF = 'giphousewebsite.urls'
@@ -140,3 +143,6 @@ BOOTSTRAP4 = {
     'error_css_class': '',
     'success_css_class': '',
 }
+
+# Necessary for flatpages
+SITE_ID = 1
