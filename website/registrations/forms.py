@@ -47,15 +47,11 @@ class Step2Form(forms.Form):
 
     project2 = forms.ModelChoiceField(
         label="Second project preference",
-        help_text="Optional",
-        required=False,
         queryset=None,
     )
 
     project3 = forms.ModelChoiceField(
         label="Third project preference",
-        help_text="Optional",
-        required=False,
         queryset=None,
     )
 
@@ -68,15 +64,12 @@ class Step2Form(forms.Form):
         """Validate form variables."""
         cleaned_data = super(Step2Form, self).clean()
 
-        project1 = cleaned_data['project1']
+        project1 = cleaned_data.get('project1')
         project2 = cleaned_data.get('project2')
         project3 = cleaned_data.get('project3')
 
-        if ((project2 and project2 == project1)
-                or (project3 and project3 == project1)
-                or (project3 and project2 and project2 == project3)):
-            raise ValidationError("The same project has been selected multiple times.")
-
+        if len(set(filter(None, (project1, project2, project3)))) != 3:
+            raise ValidationError("You should fill in all preferences with unique values.")
         return cleaned_data
 
     def clean_email(self):
