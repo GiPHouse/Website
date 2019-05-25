@@ -4,7 +4,7 @@ from django.forms import ValidationError
 from questionnaires.models import QuestionnaireSubmission
 
 
-class PeerReviewForm(forms.Form):
+class QuestionnaireForm(forms.Form):
     """Dynamic form generating a questionnaires form."""
 
     def __init__(self, participant, questionnaire, peers, *args, **kwargs):

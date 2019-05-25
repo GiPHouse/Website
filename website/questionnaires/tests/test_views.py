@@ -8,7 +8,7 @@ from courses.models import Semester
 
 from projects.models import Project
 
-from questionnaires.forms import PeerReviewForm
+from questionnaires.forms import QuestionnaireForm
 from questionnaires.models import Question, Questionnaire
 
 User: DjangoUser = get_user_model()
@@ -22,7 +22,7 @@ def generate_post_data(questionnaire_id, peers):
         else:
             current_peers = (None,)
         for peer in current_peers:
-            field_name = PeerReviewForm.get_field_name(question, peer)
+            field_name = QuestionnaireForm.get_field_name(question, peer)
             if question.is_closed:
                 post_data[field_name] = 1
             else:
@@ -30,7 +30,7 @@ def generate_post_data(questionnaire_id, peers):
     return post_data
 
 
-class PeerReviewTest(TestCase):
+class QuestionnaireTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
@@ -170,5 +170,5 @@ class NoQuestionnairesTest(TestCase):
         response = self.client.get(reverse('home'))
         self.assertNotContains(
             response,
-            'Peer Review',
+            'Questionnaires',
         )
