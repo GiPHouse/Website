@@ -102,7 +102,6 @@ class RegistrationAdminTest(TestCase):
     def test_form_save_without_role_and_project(self):
         self.message['role'] = ''
         self.message['project'] = ''
-        # self.message['giphouseprofile-0-student_number'] = 's1111111'
         response = self.client.post(
             reverse('admin:registrations_student_add'),
             self.message,
