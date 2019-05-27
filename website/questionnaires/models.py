@@ -229,7 +229,7 @@ class AgreementAnswerData(AbstractLikertData):
     STRONGLY_AGREE = 5
 
     CHOICES = (
-        (STRONGLY_DISAGREE, 'Strong disagree'),
+        (STRONGLY_DISAGREE, 'Strongly Disagree'),
         (DISAGREE, 'Disagree'),
         (NEUTRAL, 'Neutral'),
         (AGREE, 'Agree'),
@@ -249,11 +249,11 @@ class QualityAnswerData(AbstractLikertData):
     VERY_GOOD = 5
 
     CHOICES = (
-        (VERY_POOR, 'Very poor'),
+        (VERY_POOR, 'Very Poor'),
         (POOR, 'Poor'),
         (AVERAGE, 'Average'),
         (GOOD, 'Good'),
-        (VERY_GOOD, 'Very good'),
+        (VERY_GOOD, 'Very Good'),
     )
 
     value = models.PositiveSmallIntegerField(choices=CHOICES)
