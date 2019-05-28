@@ -37,10 +37,11 @@ class RegistrationAdminTest(TestCase):
             }
         )
         project = Project.objects.create(
-            name="GiPHouse",
+            name="GiPHouse1234",
             description="Test",
             semester=semester,
         )
+
         cls.manager = User.objects.create(username='manager')
         GiphouseProfile.objects.create(
             user=cls.manager,
@@ -73,7 +74,7 @@ class RegistrationAdminTest(TestCase):
             '_save': 'Save'
         }
 
-        Registration.objects.create(
+        cls.registration = Registration.objects.create(
             user=cls.manager,
             semester=semester,
             preference1=project,
@@ -110,6 +111,12 @@ class RegistrationAdminTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(User.objects.get(giphouseprofile__student_number='s0000000'))
 
+    def test_project_queryset_contains_projects_from_registration_semester(self):
+        response = self.client.get(
+            reverse('admin:auth_user_change', args=[self.manager.pk]),
+        )
+        self.assertContains(response, 'GiPHouse1234')
+
     def test_place_in_first_project_preference(self):
         response = self.client.post(
             reverse('admin:registrations_student_changelist'),
@@ -121,3 +128,5 @@ class RegistrationAdminTest(TestCase):
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
+        project = Project.objects.filter(user=self.manager).first()
+        self.assertEqual(project, self.registration.preference1)

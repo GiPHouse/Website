@@ -110,7 +110,7 @@ class StudentAdminForm(forms.ModelForm):
     )
 
     project = forms.ModelChoiceField(
-        queryset=Project.objects.filter(semester=Semester.objects.get_current_registration()),
+        queryset=Project.objects.all(),
         required=False,
     )
 
@@ -119,8 +119,13 @@ class StudentAdminForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.fields['role'].initial = Role.objects.filter(user=self.instance).first()
-
         self.fields['project'].initial = Project.objects.filter(user=self.instance).first()
+
+        user_registration = self.instance.registration_set.order_by('-semester').first()
+        if user_registration is not None:
+            self.fields['project'].queryset = Project.objects.filter(
+                semester=user_registration.semester
+            )
 
     def save_m2m(self):
         """Add the user to the specified groups."""
