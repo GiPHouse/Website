@@ -84,9 +84,16 @@ class RegistrationAdminTest(TestCase):
         self.client = Client()
         self.client.login(username=self.admin.username, password=self.admin_password)
 
-    def test_get_form(self):
+    def test_get_changelist(self):
         response = self.client.get(
             reverse('admin:registrations_student_changelist'),
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_form(self):
+        response = self.client.get(
+            reverse('admin:registrations_student_change', args=[self.manager.id]),
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
