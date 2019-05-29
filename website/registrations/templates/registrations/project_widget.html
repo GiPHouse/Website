@@ -1,0 +1,12 @@
+<form action="{% url 'registrations:changeproject' %}" method="post">
+    <input id="csrf_token{{obj.id}}" name="csrfmiddlewaretoken" type="hidden" />
+    <input name="id" type="hidden" value="{{obj.id}}" />
+    {{field}}
+    <input type="submit" value="Save">
+</form>
+
+<script type="text/javascript">
+// using jQuery
+var csrf_token = document.querySelector("[name=csrfmiddlewaretoken]").value;
+document.getElementById("csrf_token{{obj.id}}").value = csrf_token;
+</script>
