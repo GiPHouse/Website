@@ -10,6 +10,29 @@ from github_oauth.links import URL_GITHUB_ACCESS_TOKEN, URL_GITHUB_USER_INFO
 User: DjangoUser = get_user_model()
 
 
+class GithubOAuthError(Exception):
+    """Error encountered during Github OAuth."""
+
+    def __str__(self):
+        """Return the message or the docstring of the class if no message has been specified."""
+        if self.args:
+            return super().__str__()
+
+        return self.__doc__
+
+
+class GithubOAuthConnectionError(GithubOAuthError):
+    """Error encountered during connection with Github OAuth."""
+
+
+class GithubOAuthJSONDecodeError(GithubOAuthError):
+    """Error decoding Github OAuth response."""
+
+
+class GithubOAuthBadResponse(GithubOAuthError):
+    """Bad response from Github OAuth."""
+
+
 class GithubOAuthBackend:
     """Authentication backend using the GitHub OAuth provider."""
 
@@ -23,8 +46,8 @@ class GithubOAuthBackend:
         """
         try:
             github_id = self.get_github_info(code)['id']
-        except (KeyError, TypeError):
-            return None
+        except KeyError:
+            raise GithubOAuthBadResponse
 
         return self._get_giphouse_user(github_id)
 
@@ -37,9 +60,6 @@ class GithubOAuthBackend:
         """
         access_token = self._get_access_token(code)
 
-        if access_token is None:
-            return None
-
         try:
             response = requests.get(
                 URL_GITHUB_USER_INFO,
@@ -51,12 +71,12 @@ class GithubOAuthBackend:
                 },
             )
         except RequestException:
-            return None
+            raise GithubOAuthConnectionError
 
         try:
             return response.json()
         except ValueError:
-            return None
+            raise GithubOAuthJSONDecodeError
 
     def get_user(self, user_id):
         """
@@ -104,9 +124,11 @@ class GithubOAuthBackend:
                 },
             )
         except RequestException:
-            return None
+            raise GithubOAuthConnectionError
 
         try:
             return response.json()['access_token']
-        except (ValueError, KeyError):
-            return None
+        except ValueError:
+            raise GithubOAuthJSONDecodeError
+        except KeyError:
+            raise GithubOAuthBadResponse

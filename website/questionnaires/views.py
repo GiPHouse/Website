@@ -8,7 +8,7 @@ from django.views.generic.edit import FormView
 
 from courses.models import Semester
 
-from questionnaires.forms import PeerReviewForm
+from questionnaires.forms import QuestionnaireForm
 from questionnaires.models import Answer, Questionnaire, QuestionnaireSubmission
 
 User: DjangoUser = get_user_model()
@@ -45,7 +45,7 @@ class QuestionnaireView(LoginRequiredMixin, FormView):
     # Raise exception when not logged in
     raise_exception = True
     template_name = 'questionnaires/questionnaire.html'
-    form_class = PeerReviewForm
+    form_class = QuestionnaireForm
 
     def get_form_kwargs(self):
         """Add extra information to the form."""
@@ -81,7 +81,7 @@ class QuestionnaireView(LoginRequiredMixin, FormView):
                 peers = (None, )
 
             for peer in peers:
-                field_name = PeerReviewForm.get_field_name(question, peer)
+                field_name = QuestionnaireForm.get_field_name(question, peer)
                 answer = Answer.objects.create(
                     submission=submission,
                     peer=peer,

@@ -1,8 +1,8 @@
-from datetime import datetime
-
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
-from django.utils.timezone import get_current_timezone
+from django.utils import timezone
+
+from freezegun import freeze_time
 
 from room_reservation.forms import ReservationForm
 from room_reservation.models import Reservation, Room
@@ -10,7 +10,7 @@ from room_reservation.models import Reservation, Room
 User = get_user_model()
 
 
-class PeerReviewTest(TestCase):
+class ReservationTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
@@ -23,7 +23,6 @@ class PeerReviewTest(TestCase):
             name="New York",
             location="Merc 0.1337",
         )
-        cls.tz = get_current_timezone()
 
     def setUp(self):
         self.client = Client()
@@ -65,13 +64,14 @@ class PeerReviewTest(TestCase):
         form = ReservationForm(data=form_data)
         self.assertFalse(form.is_valid())
 
+    @freeze_time("2005-7-14 12:00")
     def test_ReservationForm_collision(self):
 
         Reservation.objects.create(
             reservee=self.user,
             room=self.room,
-            start_time=datetime(2005, 7, 14, 12, 00, tzinfo=self.tz),
-            end_time=datetime(2005, 7, 14, 13, 00, tzinfo=self.tz),
+            start_time=timezone.now() - timezone.timedelta(hours=1),
+            end_time=timezone.now() + timezone.timedelta(hours=1),
         )
 
         form_data = {

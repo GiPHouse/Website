@@ -5,14 +5,13 @@ from django.contrib.auth.models import Group, User as DjangoUser
 from django.template.loader import get_template
 
 from registrations.forms import StudentAdminForm
-from registrations.models import GiphouseProfile, Registration, Role
+from registrations.models import GiphouseProfile, Registration, Role, Student
 from projects.models import Project
 
 from django.shortcuts import render
 
 
 User: DjangoUser = get_user_model()
-admin.site.unregister(User)
 admin.site.unregister(Group)
 
 
@@ -32,7 +31,7 @@ class RegistrationInline(admin.StackedInline):
     min_num = 0
 
 
-@admin.register(User)
+@admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
     """Custom admin for Student."""
 

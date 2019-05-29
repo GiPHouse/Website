@@ -9,8 +9,6 @@ from projects.models import Project
 
 User: DjangoUser = get_user_model()
 
-User.__str__ = lambda x: x.get_full_name()
-
 
 class Role(Group):
     """Role Group that contains multiple users."""
@@ -25,6 +23,19 @@ class Role(Group):
     def __str__(self):
         """Return role name."""
         return f'{self.name}'
+
+
+class Student(User):
+    """Proxy model for User to be able to overwrite methods."""
+
+    class Meta:
+        """Meta class for Student."""
+
+        proxy = True
+
+    def __str__(self):
+        """Return the full name for this student."""
+        return f'{self.get_full_name()}'
 
 
 class GiphouseProfile(models.Model):
@@ -47,7 +58,7 @@ class GiphouseProfile(models.Model):
         super().save(force_insert, force_update, using, update_fields)
 
     user = models.OneToOneField(
-        User,
+        Student,
         on_delete=models.CASCADE
     )
 
@@ -80,7 +91,7 @@ class Registration(models.Model):
         unique_together = [['user', 'semester']]
 
     user = models.ForeignKey(
-        User,
+        Student,
         on_delete=models.CASCADE
     )
 

@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from django.contrib.admin import ACTION_CHECKBOX_NAME
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
@@ -32,15 +30,16 @@ class RegistrationAdminTest(TestCase):
             year=timezone.now().year,
             season=Semester.SPRING,
             defaults={
-                'registration_start': timezone.now() - timedelta(days=30),
-                'registration_end': timezone.now() + timedelta(days=30),
+                'registration_start': timezone.now() - timezone.timedelta(days=30),
+                'registration_end': timezone.now() + timezone.timedelta(days=30),
             }
         )
         project = Project.objects.create(
-            name="GiPHouse",
+            name="GiPHouse1234",
             description="Test",
             semester=semester,
         )
+
         cls.manager = User.objects.create(username='manager')
         GiphouseProfile.objects.create(
             user=cls.manager,
@@ -73,7 +72,7 @@ class RegistrationAdminTest(TestCase):
             '_save': 'Save'
         }
 
-        Registration.objects.create(
+        cls.registration = Registration.objects.create(
             user=cls.manager,
             semester=semester,
             preference1=project,
@@ -83,16 +82,23 @@ class RegistrationAdminTest(TestCase):
         self.client = Client()
         self.client.login(username=self.admin.username, password=self.admin_password)
 
+    def test_get_changelist(self):
+        response = self.client.get(
+            reverse('admin:registrations_student_changelist'),
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+
     def test_get_form(self):
         response = self.client.get(
-            reverse('admin:auth_user_changelist'),
+            reverse('admin:registrations_student_change', args=[self.manager.id]),
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
 
     def test_form_save_with_role_and_project(self):
         response = self.client.post(
-            reverse('admin:auth_user_add'),
+            reverse('admin:registrations_student_add'),
             self.message,
             follow=True,
         )
@@ -102,18 +108,23 @@ class RegistrationAdminTest(TestCase):
     def test_form_save_without_role_and_project(self):
         self.message['role'] = ''
         self.message['project'] = ''
-        self.message['giphouseprofile-0-student_number'] = 's1111111'
         response = self.client.post(
-            reverse('admin:auth_user_add'),
+            reverse('admin:registrations_student_add'),
             self.message,
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIsNotNone(User.objects.get(giphouseprofile__student_number='s1111111'))
+        self.assertIsNotNone(User.objects.get(giphouseprofile__student_number='s0000000'))
+
+    def test_project_queryset_contains_projects_from_registration_semester(self):
+        response = self.client.get(
+            reverse('admin:auth_user_change', args=[self.manager.pk]),
+        )
+        self.assertContains(response, 'GiPHouse1234')
 
     def test_place_in_first_project_preference(self):
         response = self.client.post(
-            reverse('admin:auth_user_changelist'),
+            reverse('admin:registrations_student_changelist'),
             {
                 ACTION_CHECKBOX_NAME: [self.manager.pk],
                 'action': 'place_in_first_project_preference',
@@ -122,3 +133,5 @@ class RegistrationAdminTest(TestCase):
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
+        project = Project.objects.filter(user=self.manager).first()
+        self.assertEqual(project, self.registration.preference1)

@@ -2,7 +2,7 @@
 
 ### Getting Started
 
-1. Install Python 3.7 and `poetry` (a Python dependency manager).
+1. Install Python 3.7 and [poetry](https://poetry.eustace.io/) (a Python dependency manager).
 2. Clone this repository.
 3. Run `poetry install` to install all dependencies into virtual environment.
 4. Run `poetry shell` to enter the virtual environment.
@@ -12,10 +12,15 @@
 
 ### Loading Fixtures
 
-You can load fixtures with the `manage.py loaddata` command. The fixtures are 
-located in the `website/*/fixtures` directories
+You can  create and load fixtures with the `manage.py createfixtures` command. The fixtures dynamically generated using the [faker](https://pypi.org/project/Faker/) package.
 
 Then you can load the courses testdata fixture with this command:
 ```bash
-python website/manage.py loaddata courses/testdata.json
+python website/manage.py createfixtures
 ```
+
+See
+```bash
+python website/manage.py createfixtures --help
+```
+for more information.

@@ -10,7 +10,7 @@ from courses.models import Semester
 
 from projects.models import Project
 
-from registrations.models import GiphouseProfile, Role
+from registrations.models import GiphouseProfile, Role, Student
 
 student_number_regex = re.compile(r'^[sS]?(\d{7})$')
 User: DjangoUser = get_user_model()
@@ -47,15 +47,11 @@ class Step2Form(forms.Form):
 
     project2 = forms.ModelChoiceField(
         label="Second project preference",
-        help_text="Optional",
-        required=False,
         queryset=None,
     )
 
     project3 = forms.ModelChoiceField(
         label="Third project preference",
-        help_text="Optional",
-        required=False,
         queryset=None,
     )
 
@@ -68,15 +64,12 @@ class Step2Form(forms.Form):
         """Validate form variables."""
         cleaned_data = super(Step2Form, self).clean()
 
-        project1 = cleaned_data['project1']
+        project1 = cleaned_data.get('project1')
         project2 = cleaned_data.get('project2')
         project3 = cleaned_data.get('project3')
 
-        if ((project2 and project2 == project1)
-                or (project3 and project3 == project1)
-                or (project3 and project2 and project2 == project3)):
-            raise ValidationError("The same project has been selected multiple times.")
-
+        if len(set(filter(None, (project1, project2, project3)))) != 3:
+            raise ValidationError("You should fill in all preferences with unique values.")
         return cleaned_data
 
     def clean_email(self):
@@ -107,7 +100,7 @@ class StudentAdminForm(forms.ModelForm):
     class Meta:
         """Meta class for StudentForm."""
 
-        model = User
+        model = Student
         fields = ('first_name', 'last_name', 'email', 'date_joined')
         exclude = []
 
@@ -117,7 +110,7 @@ class StudentAdminForm(forms.ModelForm):
     )
 
     project = forms.ModelChoiceField(
-        queryset=Project.objects.filter(semester=Semester.objects.get_current_registration()),
+        queryset=Project.objects.all(),
         required=False,
     )
 
@@ -126,8 +119,13 @@ class StudentAdminForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.fields['role'].initial = Role.objects.filter(user=self.instance).first()
-
         self.fields['project'].initial = Project.objects.filter(user=self.instance).first()
+
+        user_registration = self.instance.registration_set.order_by('-semester').first()
+        if user_registration is not None:
+            self.fields['project'].queryset = Project.objects.filter(
+                semester=user_registration.semester
+            )
 
     def save_m2m(self):
         """Add the user to the specified groups."""

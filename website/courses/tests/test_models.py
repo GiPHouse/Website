@@ -32,8 +32,6 @@ class ModelTest(TestCase):
         )
 
     def test_get_slides_filename(self):
-        """Test get_slides_filename function."""
-
         self.assertEqual(
             get_slides_filename(self.lecture, None),
             f'courses/slides/{self.course}-{self.title}-{self.date.strftime("%d-%b-%Y")}.pdf'
@@ -41,8 +39,6 @@ class ModelTest(TestCase):
         )
 
     def test_lecture_string(self):
-        """Test __str__ method of Lecture."""
-
         self.assertEqual(
             str(self.lecture),
             f'{self.course} ({self.date})',

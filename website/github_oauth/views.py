@@ -7,7 +7,7 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views import View
 
-from github_oauth.backends import GithubOAuthBackend
+from github_oauth.backends import GithubOAuthBackend, GithubOAuthError
 
 User: DjangoUser = get_user_model()
 
@@ -18,7 +18,7 @@ class BaseGithubView(View):
     redirect_url_success = settings.LOGIN_REDIRECT_URL
     redirect_url_failure = settings.LOGIN_REDIRECT_URL
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, code, *args, **kwargs):
         """Handle GET request made by Github OAuth."""
         return redirect(self.redirect_url_success)
 
@@ -28,7 +28,7 @@ class BaseGithubView(View):
             return self.http_method_not_allowed(request, *args, **kwargs)
 
         try:
-            self.code = request.GET['code']
+            code = request.GET['code']
         except KeyError:
             return HttpResponseBadRequest()
 
@@ -36,15 +36,15 @@ class BaseGithubView(View):
             messages.warning(request, "You are already logged in", extra_tags='success')
             return redirect('home')
 
-        return self.get(request, *args, **kwargs)
+        return self.get(request, code, *args, **kwargs)
 
 
 class GithubLoginView(BaseGithubView):
     """View accessed by GitHub after an authorization request of a user trying to login."""
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, code, *args, **kwargs):
         """Handle GET request made by Github OAuth."""
-        user = authenticate(request, code=self.code)
+        user = authenticate(request, code=code)
 
         if user is not None:
             login(request, user)
@@ -60,10 +60,15 @@ class GithubRegisterView(BaseGithubView):
 
     redirect_url_success = reverse_lazy('registrations:step2')
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, code, *args, **kwargs):
         """Handle GET request made by Github OAuth."""
         backend = GithubOAuthBackend()
-        github_info = backend.get_github_info(self.code)
+
+        try:
+            github_info = backend.get_github_info(code)
+        except GithubOAuthError as error_message:
+            messages.warning(request, str(error_message), extra_tags='danger')
+            return redirect(self.redirect_url_failure)
 
         try:
             user = User.objects.get(giphouseprofile__github_id=github_info['id'])
