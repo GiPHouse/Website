@@ -22,6 +22,18 @@ from questionnaires.models import Answer, Question, Questionnaire, Questionnaire
 User: DjangoUser = get_user_model()
 
 
+def generate_average_field_function(method_name, text):
+    """Return function that shows an average (given by method_name) in the admin."""
+    def function(obj):
+        if obj.question.is_closed and obj.question.about_team_member:
+            average = method_name(obj)
+            return average
+        return '-'
+    function.short_description = text
+
+    return function
+
+
 class QuestionInline(admin.TabularInline):
     """Inline form element for Questionnaire."""
 
@@ -37,7 +49,23 @@ class AnswerInline(admin.TabularInline):
 
     model = Answer
     can_delete = False
-    readonly_fields = ('question', 'peer', 'answer',)
+    readonly_fields = (
+        'question',
+        'peer',
+        'answer',
+        generate_average_field_function(Answer.objects.person_average_question,
+                                        'Average for peer and specific question'),
+        generate_average_field_function(Answer.objects.person_average_all,
+                                        'Average for peer and all questions'),
+        generate_average_field_function(Answer.objects.project_average_question,
+                                        'Average for project and specific question'),
+        generate_average_field_function(Answer.objects.project_average_all,
+                                        'Average for project and all questions'),
+        generate_average_field_function(Answer.objects.year_average_question,
+                                        'Average for all users and specific question'),
+        generate_average_field_function(Answer.objects.year_average_all,
+                                        'Average for all users and all questions'),
+    )
     extra = 0
     ordering = ['peer', 'question']
 
@@ -97,8 +125,30 @@ class AnswerAdmin(admin.ModelAdmin):
                    AnswerAdminProjectFilter, AnswerAdminParticipantFilter, AnswerAdminPeerFilter,
                    'submission__late', AnswerAdminValueFilter)
 
-    readonly_fields = ('answer',)
-    list_display = ('questionnaire', 'question', 'participant_name', 'peer_name', 'on_time', 'answer')
+    readonly_fields = (
+        'answer',
+        generate_average_field_function(Answer.objects.person_average_question,
+                                        'Average for peer and specific question'),
+        generate_average_field_function(Answer.objects.person_average_all,
+                                        'Average for peer and all questions'),
+        generate_average_field_function(Answer.objects.project_average_question,
+                                        'Average for project and specific question'),
+        generate_average_field_function(Answer.objects.project_average_all,
+                                        'Average for project and all questions'),
+        generate_average_field_function(Answer.objects.year_average_question,
+                                        'Average for all users and specific question'),
+        generate_average_field_function(Answer.objects.year_average_all,
+                                        'Average for all users and all questions'),
+    )
+
+    list_display = (
+        'questionnaire',
+        'question',
+        'participant_name',
+        'peer_name',
+        'on_time',
+        'answer',
+    )
 
     def participant_name(self, obj):
         """Return the full name of the participant."""

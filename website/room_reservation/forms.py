@@ -1,8 +1,7 @@
-from datetime import timedelta
-
 from django import forms
 from django.db.models.query_utils import Q
 from django.forms import ModelForm, ValidationError
+from django.utils import timezone
 
 from room_reservation.models import Reservation
 
@@ -33,7 +32,7 @@ class ReservationForm(ModelForm):
         start_time = cleaned_data.get("start_time")
         end_time = cleaned_data.get("end_time")
 
-        if end_time.date() - start_time.date() >= timedelta(days=1):
+        if end_time.date() - start_time.date() >= timezone.timedelta(days=1):
             raise ValidationError('Reservation too long. Please shorten your reservation', code='invalid')
 
         if start_time >= end_time:

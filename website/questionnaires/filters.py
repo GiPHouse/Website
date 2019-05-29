@@ -18,6 +18,9 @@ class DecimalFilter(admin.SimpleListFilter):
         """Implement necessary method."""
         return ()
 
+    def queryset(self, request, queryset):
+        """Implement necessary method."""
+
     def has_output(self):
         """Tell Django to always show this filter."""
         return True
@@ -87,35 +90,9 @@ class SubmissionAdminAverageFilter(DecimalFilter):
         ids = [
             submission.id
             for submission in queryset
-            if self._peer_average_below_threshold(submission, value)
+            if submission.get_peer_average(value)
         ]
         return queryset.filter(id__in=ids)
-
-    @staticmethod
-    def _peer_average_below_threshold(submission, threshold):
-        """
-        Calculate whether this submission has a peer average below the threshold.
-
-        Calculate the average of the numerical values of all answers to closed questions for each peer
-        in this submission. If an average is below the threshold, return True.
-        :param threshold:
-        :return: Whether the average is below the threshold.
-        """
-        peers = submission.answer_set.filter(peer__isnull=False).values_list('peer_id', flat=True)
-
-        for peer_id in peers:
-            closed_answer_data = [
-                answer.answer.value
-                for answer in submission.answer_set
-                                        .filter(peer_id=peer_id)
-                                        .exclude(question__question_type=Question.OPEN)
-                if answer.question.is_closed
-            ]
-
-            if closed_answer_data and sum(closed_answer_data)/len(closed_answer_data) <= threshold:
-                return True
-
-        return False
 
 
 class SubmissionAdminQuestionnaireFilter(AutocompleteFilter):

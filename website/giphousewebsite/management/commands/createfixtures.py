@@ -1,5 +1,4 @@
 import random
-from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
@@ -70,16 +69,16 @@ class Command(BaseCommand):
             year=timezone.now().year,
             season=Semester.FALL,
             defaults={
-                'registration_start': timezone.now() - timedelta(days=90),
-                'registration_end': timezone.now() - timedelta(days=60),
+                'registration_start': timezone.now() - timezone.timedelta(days=90),
+                'registration_end': timezone.now() - timezone.timedelta(days=60),
             }
         )
         Semester.objects.get_or_create(
             year=timezone.now().year,
             season=Semester.SPRING,
             defaults={
-                'registration_start': timezone.now() - timedelta(days=30),
-                'registration_end': timezone.now() + timedelta(days=30),
+                'registration_start': timezone.now() - timezone.timedelta(days=30),
+                'registration_end': timezone.now() + timezone.timedelta(days=30),
             }
         )
         self.sdm, _ = Role.objects.get_or_create(name=Role.SDM)
@@ -159,9 +158,9 @@ class Command(BaseCommand):
         Questionnaire.objects.create(
             title=fake.sentence(),
             semester=Semester.objects.order_by('?').first(),
-            available_from=timezone.now() - timedelta(days=2),
-            available_until_soft=timezone.now() + timedelta(days=10),
-            available_until_hard=timezone.now() + timedelta(days=15),
+            available_from=timezone.now() - timezone.timedelta(days=2),
+            available_until_soft=timezone.now() + timezone.timedelta(days=10),
+            available_until_hard=timezone.now() + timezone.timedelta(days=15),
         )
 
     def create_question(self):
@@ -238,7 +237,7 @@ class Command(BaseCommand):
             reservee=User.objects.order_by('?').first(),
             room=Room.objects.order_by('?').first(),
             start_time=time,
-            end_time=time + timedelta(hours=random.randint(1, 5))
+            end_time=time + timezone.timedelta(hours=random.randint(1, 5))
         )
 
     def handle(self, *args, **kwargs):
