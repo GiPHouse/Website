@@ -18,4 +18,5 @@ urlpatterns = [
     path('register/', include('registrations.urls')),
     path('projects/', include('projects.urls')),
     path('reservations/', include('room_reservation.urls')),
+    path('pages/', include('django.contrib.flatpages.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
