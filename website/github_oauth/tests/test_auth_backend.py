@@ -7,6 +7,8 @@ from django.test import TestCase
 from requests.exceptions import RequestException
 
 from github_oauth.backends import GithubOAuthBackend
+from github_oauth.backends import (GithubOAuthBadResponse, GithubOAuthConnectionError,
+                                   GithubOAuthError, GithubOAuthJSONDecodeError)
 
 from registrations.models import GiphouseProfile
 
@@ -62,12 +64,18 @@ class GithubOAuthBackendTest(TestCase):
         backend = GithubOAuthBackend()
 
         backend.get_github_info = mock.MagicMock(
-            side_effect=KeyError
+            return_value={'not': 'id'}
+        )
+        self.assertRaises(GithubOAuthBadResponse, backend.authenticate, None, self.github_code)
+
+    def test_authenticate_exception_request(self):
+        backend = GithubOAuthBackend()
+
+        backend.get_github_info = mock.MagicMock(
+            side_effect=GithubOAuthConnectionError
         )
 
-        result_user = backend.authenticate(None, self.github_code)
-
-        self.assertIsNone(result_user)
+        self.assertRaises(GithubOAuthError, backend.authenticate, None, self.github_code)
 
     def test_get_user_success(self):
         backend = GithubOAuthBackend()
@@ -97,9 +105,7 @@ class GithubOAuthBackendTest(TestCase):
 
     @mock.patch('requests.post', side_effect=RequestException)
     def test__get_access_token_exception_requests(self, mock_post):
-        access_token = GithubOAuthBackend._get_access_token(self.github_code)
-
-        self.assertIsNone(access_token)
+        self.assertRaises(GithubOAuthConnectionError, GithubOAuthBackend._get_access_token, self.github_code)
 
     @mock.patch('requests.post')
     def test__get_access_token_exception_json(self, mock_post):
@@ -107,11 +113,19 @@ class GithubOAuthBackendTest(TestCase):
         mock_response.json.side_effect = ValueError
         mock_post.return_value = mock_response
 
-        github_info = GithubOAuthBackend._get_access_token(
-            self.github_code
-        )
+        self.assertRaises(GithubOAuthJSONDecodeError, GithubOAuthBackend._get_access_token, self.github_code)
 
-        self.assertIsNone(github_info)
+    @mock.patch('requests.post')
+    def test__get_access_token_exception_key(self, mock_post):
+        """
+        Test _get_access_token method.
+        """
+
+        mock_response = mock.Mock()
+        mock_response.json.side_effect = KeyError
+        mock_post.return_value = mock_response
+
+        self.assertRaises(GithubOAuthBadResponse, GithubOAuthBackend._get_access_token, self.github_code)
 
     @mock.patch('requests.get')
     def test_get_github_info(self, mock_get):
@@ -135,18 +149,14 @@ class GithubOAuthBackendTest(TestCase):
 
         self.assertEqual(github_info, mock_response.json.return_value)
 
-    def test_get_github_info_none(self):
+    def test_get_github_info_connection_error(self):
         backend = GithubOAuthBackend()
 
         backend._get_access_token = mock.Mock(
-            return_value=None
+            side_effect=GithubOAuthJSONDecodeError
         )
 
-        github_info = backend.get_github_info(
-            self.github_code
-        )
-
-        self.assertIsNone(github_info)
+        self.assertRaises(GithubOAuthJSONDecodeError, backend.get_github_info, self.github_code)
 
     @mock.patch('requests.get', side_effect=RequestException)
     def test_get_github_info_exception_requests(self, mock_get):
@@ -155,11 +165,7 @@ class GithubOAuthBackendTest(TestCase):
             return_value=self.github_access_token
         )
 
-        github_info = backend.get_github_info(
-            self.github_code
-        )
-
-        self.assertIsNone(github_info)
+        self.assertRaises(GithubOAuthConnectionError, backend.get_github_info, self.github_code)
 
     @mock.patch('requests.get')
     def test_get_github_info_exception_json(self, mock_get):
@@ -172,8 +178,4 @@ class GithubOAuthBackendTest(TestCase):
             return_value=self.github_access_token
         )
 
-        github_info = backend.get_github_info(
-            self.github_code
-        )
-
-        self.assertIsNone(github_info)
+        self.assertRaises(GithubOAuthJSONDecodeError, backend.get_github_info, self.github_code)

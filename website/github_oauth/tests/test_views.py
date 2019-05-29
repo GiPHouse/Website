@@ -6,7 +6,8 @@ from django.contrib.auth.models import User as DjangoUser
 from django.shortcuts import reverse
 from django.test import Client, RequestFactory, TestCase
 
-from github_oauth.views import BaseGithubView
+from github_oauth.backends import GithubOAuthError
+from github_oauth.views import BaseGithubView, GithubRegisterView
 
 from registrations.models import GiphouseProfile
 
@@ -140,3 +141,19 @@ class RegisterTest(TestCase):
         response = self.client.get('/oauth/register/?code=fakecode')
 
         self.assertRedirects(response, reverse('home'))
+
+    @mock.patch('github_oauth.backends.GithubOAuthBackend.get_github_info', side_effect=GithubOAuthError)
+    def test_register_github_fail(self, mock_get_github_info):
+
+        response = self.client.get('/oauth/register/?code=fakecode', follow=True)
+
+        self.assertContains(response, GithubOAuthError.__doc__)
+        self.assertRedirects(response, GithubRegisterView.redirect_url_failure)
+
+    @mock.patch('github_oauth.backends.GithubOAuthBackend.get_github_info', side_effect=GithubOAuthError('Error!'))
+    def test_register_github_fail_custom_message(self, mock_get_github_info):
+
+        response = self.client.get('/oauth/register/?code=fakecode', follow=True)
+
+        self.assertContains(response, 'Error!')
+        self.assertRedirects(response, GithubRegisterView.redirect_url_failure)
