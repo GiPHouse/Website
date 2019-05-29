@@ -9,6 +9,7 @@ from courses.models import Semester
 
 from projects.models import Project
 
+from registrations.admin import StudentAdminProjectFilter, StudentAdminRoleFilter, StudentAdminSemesterFilter
 from registrations.models import GiphouseProfile, Registration, Role
 
 User: DjangoUser = get_user_model()
@@ -26,7 +27,7 @@ class RegistrationAdminTest(TestCase):
         )
 
         sdm, _ = Role.objects.get_or_create(name=Role.SDM)
-        semester, _ = Semester.objects.get_or_create(
+        cls.semester, _ = Semester.objects.get_or_create(
             year=timezone.now().year,
             season=Semester.SPRING,
             defaults={
@@ -37,7 +38,7 @@ class RegistrationAdminTest(TestCase):
         project = Project.objects.create(
             name="GiPHouse1234",
             description="Test",
-            semester=semester,
+            semester=cls.semester,
         )
 
         cls.manager = User.objects.create(username='manager')
@@ -68,13 +69,13 @@ class RegistrationAdminTest(TestCase):
             'registration_set-MIN_NUM_FORMS': 0,
             'registration_set-MAX_NUM_FORMS': 1,
             'registration_set-0-preference1': project.id,
-            'registration_set-0-semester': semester.id,
+            'registration_set-0-semester': cls.semester.id,
             '_save': 'Save'
         }
 
         cls.registration = Registration.objects.create(
             user=cls.manager,
-            semester=semester,
+            semester=cls.semester,
             preference1=project,
         )
 
@@ -135,3 +136,33 @@ class RegistrationAdminTest(TestCase):
         self.assertEqual(response.status_code, 200)
         project = Project.objects.filter(user=self.manager).first()
         self.assertEqual(project, self.registration.preference1)
+
+    def test_get_student_changelist_project_filter(self):
+        response = self.client.get(
+            reverse('admin:registrations_student_changelist'),
+            data={
+                StudentAdminProjectFilter.parameter_name: 0,
+            },
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_student_changelist_semester_filter(self):
+        response = self.client.get(
+            reverse('admin:registrations_student_changelist'),
+            data={
+                StudentAdminSemesterFilter.parameter_name: 0,
+            },
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_student_changelist_role_filter(self):
+        response = self.client.get(
+            reverse('admin:registrations_student_changelist'),
+            data={
+                StudentAdminRoleFilter.parameter_name: 0,
+            },
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
