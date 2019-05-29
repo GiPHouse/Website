@@ -24,3 +24,13 @@ See
 python website/manage.py createfixtures --help
 ```
 for more information.
+
+### Running tests
+
+The test suite can be run with the `manage.py` command. The following command can be executed to quickly run all the tests:
+
+```bash
+poetry run website/manage.py test
+```
+
+For more information about testing, see [docs/TESTING.md](/docs/TESTING.md).
