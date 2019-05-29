@@ -24,7 +24,7 @@ from questionnaires.models import Answer, Question, Questionnaire, Questionnaire
 User: DjangoUser = get_user_model()
 
 
-class PeerReviewAdminTest(TestCase):
+class QuestionnaireTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):

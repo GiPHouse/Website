@@ -17,9 +17,6 @@ class GithubOAuthBackendTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        """
-        Set up test user and GitHub data.
-        """
 
         cls.github_id = 0
         cls.github_username = 'test_user'
@@ -36,9 +33,6 @@ class GithubOAuthBackendTest(TestCase):
         )
 
     def test_authenticate_success(self):
-        """
-        Test the authenticate() method if it succeeds.
-        """
         backend = GithubOAuthBackend()
 
         backend.get_github_info = mock.MagicMock(
@@ -52,10 +46,6 @@ class GithubOAuthBackendTest(TestCase):
         self.assertEqual(self.test_user, result_user)
 
     def test_authenticate_fail(self):
-        """
-        Test the authenticate() method if it fails.
-        """
-
         backend = GithubOAuthBackend()
 
         backend.get_github_info = mock.MagicMock(
@@ -69,10 +59,6 @@ class GithubOAuthBackendTest(TestCase):
         self.assertIsNone(result_user)
 
     def test_authenticate_exception(self):
-        """
-        Test the authenticate() method if an exception is thrown.
-        """
-
         backend = GithubOAuthBackend()
 
         backend.get_github_info = mock.MagicMock(
@@ -84,20 +70,12 @@ class GithubOAuthBackendTest(TestCase):
         self.assertIsNone(result_user)
 
     def test_get_user_success(self):
-        """
-        Test get_user method if it succeeds.
-        """
-
         backend = GithubOAuthBackend()
         result_user = backend.get_user(self.test_user.id)
 
         self.assertEqual(result_user, self.test_user)
 
     def test_get_user_fail(self):
-        """
-        Test get_user method if it fails.
-        """
-
         backend = GithubOAuthBackend()
         result_user = backend.get_user(self.test_user.id + 1)
 
@@ -105,10 +83,6 @@ class GithubOAuthBackendTest(TestCase):
 
     @mock.patch('requests.post')
     def test__get_access_token(self, mock_post):
-        """
-        Test _get_access_token method.
-        """
-
         mock_response = mock.Mock()
         mock_response.json.return_value = {
             'access_token': self.github_access_token,
@@ -123,20 +97,12 @@ class GithubOAuthBackendTest(TestCase):
 
     @mock.patch('requests.post', side_effect=RequestException)
     def test__get_access_token_exception_requests(self, mock_post):
-        """
-        Test _get_access_token method.
-        """
-
         access_token = GithubOAuthBackend._get_access_token(self.github_code)
 
         self.assertIsNone(access_token)
 
     @mock.patch('requests.post')
     def test__get_access_token_exception_json(self, mock_post):
-        """
-        Test _get_access_token method.
-        """
-
         mock_response = mock.Mock()
         mock_response.json.side_effect = ValueError
         mock_post.return_value = mock_response
@@ -149,10 +115,6 @@ class GithubOAuthBackendTest(TestCase):
 
     @mock.patch('requests.get')
     def test_get_github_info(self, mock_get):
-        """
-        Test _get_github_info method.
-        """
-
         backend = GithubOAuthBackend()
 
         backend._get_access_token = mock.Mock(
@@ -174,10 +136,6 @@ class GithubOAuthBackendTest(TestCase):
         self.assertEqual(github_info, mock_response.json.return_value)
 
     def test_get_github_info_none(self):
-        """
-        Test _get_github_info method if access token is None.
-        """
-
         backend = GithubOAuthBackend()
 
         backend._get_access_token = mock.Mock(
@@ -192,10 +150,6 @@ class GithubOAuthBackendTest(TestCase):
 
     @mock.patch('requests.get', side_effect=RequestException)
     def test_get_github_info_exception_requests(self, mock_get):
-        """
-        Test _get_github_info method if RequestException is raised.
-        """
-
         backend = GithubOAuthBackend()
         backend._get_access_token = mock.Mock(
             return_value=self.github_access_token
@@ -209,10 +163,6 @@ class GithubOAuthBackendTest(TestCase):
 
     @mock.patch('requests.get')
     def test_get_github_info_exception_json(self, mock_get):
-        """
-        Test _get_github_info method if ValueError is raised.
-        """
-
         mock_response = mock.Mock()
         mock_response.json.side_effect = ValueError
         mock_get.return_value = mock_response

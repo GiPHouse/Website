@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from django.contrib.admin import ACTION_CHECKBOX_NAME
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
@@ -32,8 +30,8 @@ class RegistrationAdminTest(TestCase):
             year=timezone.now().year,
             season=Semester.SPRING,
             defaults={
-                'registration_start': timezone.now() - timedelta(days=30),
-                'registration_end': timezone.now() + timedelta(days=30),
+                'registration_start': timezone.now() - timezone.timedelta(days=30),
+                'registration_end': timezone.now() + timezone.timedelta(days=30),
             }
         )
         project = Project.objects.create(

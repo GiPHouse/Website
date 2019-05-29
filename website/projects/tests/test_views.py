@@ -24,8 +24,6 @@ class GetProjectsTest(TestCase):
         self.client = Client()
 
     def test_get_success(self):
-        """Test get request of projects page."""
-
         response = self.client.get(reverse('projects:projects', kwargs={'year': self.year, 'season': self.season}))
 
         self.assertEqual(response.status_code, 200)

@@ -31,8 +31,6 @@ class LoginTest(TestCase):
         self.request_factory = RequestFactory()
 
     def test_base_get(self):
-        """Test GET request for base class."""
-
         request = self.request_factory.get('/?code=fakecode')
         request.user = AnonymousUser()
 
@@ -41,9 +39,6 @@ class LoginTest(TestCase):
 
     @mock.patch('github_oauth.views.authenticate')
     def test_login_get_success(self, mock_auth):
-        """
-        Test login if authenticate succeeds.
-        """
         mock_auth.return_value = self.test_user
 
         response = self.client.get('/oauth/login/?code=fakecode')
@@ -52,9 +47,6 @@ class LoginTest(TestCase):
 
     @mock.patch('github_oauth.views.authenticate')
     def test_login_get_fail(self, mock_auth):
-        """
-        Test login if authenticate fails.
-        """
         mock_auth.return_value = None
 
         response = self.client.get('/oauth/login/?code=fakecode')
@@ -62,24 +54,15 @@ class LoginTest(TestCase):
         self.assertRedirects(response, reverse('home'))
 
     def test_login_get_no_params(self):
-        """
-        Test login view if GET request is made without parameters.
-        """
         response = self.client.get('/oauth/login/')
         self.assertEqual(response.status_code, 400)
 
     def test_login_post(self):
-        """
-        Test login view if non GET request is made.
-        """
 
         response = self.client.post('/oauth/login/?code=fakecode')
         self.assertEqual(response.status_code, 405)
 
     def test_login_authenticated(self):
-        """
-        Test login view if user is authenticated.
-        """
 
         self.client.login(
             username=self.test_user.username,
@@ -117,9 +100,6 @@ class RegisterTest(TestCase):
 
     @mock.patch('github_oauth.backends.GithubOAuthBackend.get_github_info')
     def test_register(self, mock_get_github_info):
-        """
-        Test register view.
-        """
 
         mock_get_github_info.return_value = {
             'id': self.github_id + 1,
@@ -134,10 +114,6 @@ class RegisterTest(TestCase):
 
     @mock.patch('github_oauth.backends.GithubOAuthBackend.get_github_info')
     def test_register_user_exists(self, mock_get_github_info):
-        """
-        Test register view if user already exists.
-        """
-
         mock_get_github_info.return_value = {
             'id': self.github_id,
         }
@@ -146,24 +122,15 @@ class RegisterTest(TestCase):
         self.assertRedirects(response, reverse('home'))
 
     def test_login_get_no_params(self):
-        """
-        Test register view if GET request is made without parameters.
-        """
         response = self.client.get('/oauth/register/')
         self.assertEqual(response.status_code, 400)
 
     def test_register_post(self):
-        """
-        Test register view if non GET request is made.
-        """
 
         response = self.client.post('/oauth/register/?code=fakecode')
         self.assertEqual(response.status_code, 405)
 
     def test_register_authenticated(self):
-        """
-        Test register view if user is authenticated.
-        """
 
         self.client.login(
             username=self.test_user.username,

@@ -10,10 +10,6 @@ from github_oauth.links import URL_GITHUB_LOGIN
 class GithubTagsTest(TestCase):
 
     def test_tag_no_action(self):
-        """
-        Test url_github_login tag.
-        """
-
         template_to_render = Template(
             '''{% load github_tags %}<a href="{% url_github_callback %}"></a>'''
         )
@@ -25,9 +21,6 @@ class GithubTagsTest(TestCase):
         )
 
     def test_tag_action(self):
-        """
-        Test url_github_login tag with a callback action.
-        """
 
         callback_action = 'login'
         callback_url = reverse(f'github_oauth:{ callback_action }')
