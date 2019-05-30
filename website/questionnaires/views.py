@@ -1,6 +1,5 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User as DjangoUser
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
@@ -9,17 +8,17 @@ from django.views.generic.edit import FormView
 
 from courses.models import Semester
 
+from giphousewebsite.mixins import LoginRequiredMessageMixin
+
 from questionnaires.forms import QuestionnaireForm
 from questionnaires.models import Answer, Questionnaire, QuestionnaireSubmission
 
 User: DjangoUser = get_user_model()
 
 
-class OverviewView(LoginRequiredMixin, TemplateView):
+class OverviewView(LoginRequiredMessageMixin, TemplateView):
     """List the available questionnaires."""
 
-    # Raise exception when not logged in
-    raise_exception = True
     template_name = 'questionnaires/overview.html'
 
     def get_context_data(self, **kwargs):
@@ -40,11 +39,9 @@ class OverviewView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class QuestionnaireView(LoginRequiredMixin, FormView):
+class QuestionnaireView(LoginRequiredMessageMixin, FormView):
     """A dynamically generated FormView."""
 
-    # Raise exception when not logged in
-    raise_exception = True
     template_name = 'questionnaires/questionnaire.html'
     form_class = QuestionnaireForm
 
