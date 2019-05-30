@@ -22,6 +22,16 @@ class Step2Form(forms.Form):
     def __init__(self, *args, **kwargs):
         """Set querysets dynamically."""
         super().__init__(*args, **kwargs)
+
+        se, _ = Role.objects.get_or_create(name=Role.SE)
+        sdm, _ = Role.objects.get_or_create(name=Role.SDM)
+
+        self.fields['course'].choices = (
+            ('', '---------'),
+            (se.id, 'Software Engineering'),
+            (sdm.id, 'System Development Management'),
+        )
+
         self.fields['project1'].queryset = Project.objects.filter(semester=Semester.objects.get_current_registration())
         self.fields['project2'].queryset = Project.objects.filter(semester=Semester.objects.get_current_registration())
         self.fields['project3'].queryset = Project.objects.filter(semester=Semester.objects.get_current_registration())
@@ -34,9 +44,7 @@ class Step2Form(forms.Form):
         widget=widgets.TextInput(attrs={'placeholder': "s1234567"}))
     github_username = forms.CharField(disabled=True)
 
-    course = forms.ChoiceField(choices=(('', '---------'),
-                                        (Role.SE, 'Software Engineering'),
-                                        (Role.SDM, 'System Development Management')))
+    course = forms.ChoiceField(choices=())
 
     email = forms.EmailField()
 

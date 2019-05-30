@@ -1,5 +1,7 @@
 # GiPHouse website [![Build Status](https://travis-ci.com/GipHouse/GiPHouse-Spring-2019.svg?token=YrR2qkUGFcV8PDYmnPAG&branch=master)](https://travis-ci.com/GipHouse/GiPHouse-Spring-2019)
 
+This is the code for the website of [GiPHouse](http://giphouse.nl/) powered by [Django](https://docs.djangoproject.com/en/2.2/).
+
 ### Getting Started
 
 1. Install Python 3.7 and [poetry](https://poetry.eustace.io/) (a Python dependency manager).
@@ -24,3 +26,13 @@ See
 python website/manage.py createfixtures --help
 ```
 for more information.
+
+### Running tests
+
+The test suite can be run with the `manage.py` command. The following command can be executed to quickly run all the tests:
+
+```bash
+poetry run website/manage.py test
+```
+
+For more information about testing, see [docs/TESTING.md](/docs/TESTING.md).

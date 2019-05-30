@@ -48,11 +48,11 @@ class Project(Group):
         """Return project name and semester."""
         return f'{self.name} ({self.semester})'
 
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+    def save(self, *args, **kwargs):
         """Save project and add email if not set."""
         if not self.email:
             self.email = self.generate_email()
-        super().save(force_insert, force_update, using, update_fields)
+        super().save(*args, **kwargs)
 
     def generate_email(self):
         """Generate the standard email for this project."""
