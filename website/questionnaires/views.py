@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User as DjangoUser
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormView
@@ -55,6 +56,8 @@ class QuestionnaireView(LoginRequiredMixin, FormView):
         kwargs['participant'] = participant
 
         questionnaire = get_object_or_404(Questionnaire, pk=self.kwargs['questionnaire'])
+        if questionnaire.is_closed:
+            raise Http404
         kwargs['questionnaire'] = questionnaire
         kwargs['peers'] = (
             User.objects
