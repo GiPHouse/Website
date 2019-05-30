@@ -46,7 +46,7 @@ class GiphouseProfile(models.Model):
 
         verbose_name = "GiPHouse Profile"
 
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+    def save(self, *args, **kwargs):
         """
         Save the giphouseprofile and insert the username in the related user object.
 
@@ -55,7 +55,7 @@ class GiphouseProfile(models.Model):
         """
         self.user.username = 'github_' + str(self.github_id)
         self.user.save()
-        super().save(force_insert, force_update, using, update_fields)
+        super().save(*args, **kwargs)
 
     user = models.OneToOneField(
         Student,
