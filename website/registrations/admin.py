@@ -91,8 +91,7 @@ class StudentAdmin(admin.ModelAdmin):
             'field': field.widget.render("project", ""),
             'obj': obj
         }
-        content = template.render(context)
-        return content
+        return template.render(context)
     current_project.short_description = 'Current Project'
     current_project.allow_tags = True
 

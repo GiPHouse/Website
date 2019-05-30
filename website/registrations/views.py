@@ -121,18 +121,20 @@ class Step2View(FormView):
 
 def changeProjectforStudent(request):
     if not request.method == "POST":
-        return False
+        return HttpResponseBadRequest()
     else:
-        obj_id = request.POST['id']
+        user_id = request.POST['id']
         project_id = request.POST['project']
         project = Project.objects.get(id=project_id)
-        user = User.objects.get(id=obj_id)
-        role_name = list(set(user.groups.values_list('name', flat=True)) &
-                         set([Role.SDM, Role.SE, Role.DIRECTOR, Role.ADMIN]))[0]
+        user = User.objects.get(id=user_id)
+        role_name_array = list(set(user.groups.values_list('name', flat=True)) &
+                               set([Role.SDM, Role.SE, Role.DIRECTOR, Role.ADMIN]))
+        if role_name_array:
+            role_name = role_name_array[0]
+        else:
+            return HttpResponseBadRequest()
         role = Role.objects.get(name=role_name)
-        groups = [role]
-        groups.append(project)
-        print(groups)
+        groups = [role, project]
         user.groups.set(groups)
         user.save()
 
