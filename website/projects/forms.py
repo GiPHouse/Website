@@ -34,11 +34,10 @@ class ProjectAdminForm(forms.ModelForm):
         if self.instance.pk:
             self.fields['managers'].initial = self.instance.user_set.filter(groups__name=Role.SDM)
             self.fields['developers'].initial = self.instance.user_set.filter(groups__name=Role.SE)
-            self.fields['email'].initial = self.instance.generate_email()
 
     name = forms.CharField(widget=forms.TextInput)
 
-    email = forms.EmailField(help_text="The email address that is used for the CSV export feature")
+    email = forms.EmailField(help_text="The email address that is used for the CSV export feature", required=False)
 
     managers = UserModelMultipleChoiceField(
         queryset=User.objects.filter(groups__name=Role.SDM),
