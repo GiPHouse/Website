@@ -151,9 +151,12 @@ class StudentAdmin(admin.ModelAdmin):
             required=False,
         )
         template = get_template('registrations/project_widget.html')
+        project = Project.objects.filter(user=obj).first()
+        project_id = project.id if project else ""
         context = {
             'field': field.widget.render("project", ""),
-            'obj': obj
+            'obj': obj,
+            'project_id': project_id
         }
         return template.render(context)
     current_project.short_description = 'Current Project'

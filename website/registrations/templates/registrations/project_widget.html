@@ -1,4 +1,5 @@
-<form action="{% url 'registrations:changeproject' %}" method="post">
+<form></form>
+<form action="{% url 'registrations:changeproject' %}" method="post" id="form{{obj.id}}">
     <input id="csrf_token{{obj.id}}" name="csrfmiddlewaretoken" type="hidden" />
     <input name="id" type="hidden" value="{{obj.id}}" />
     {{field}}
@@ -6,7 +7,7 @@
 </form>
 
 <script type="text/javascript">
-// using jQuery
-var csrf_token = document.querySelector("[name=csrfmiddlewaretoken]").value;
-document.getElementById("csrf_token{{obj.id}}").value = csrf_token;
+    var csrf_token = document.querySelector("[name=csrfmiddlewaretoken]").value;
+    document.getElementById("csrf_token{{obj.id}}").value = csrf_token;
+    if ("{{ project_id }}") document.querySelector('#form{{obj.id}} option[value="{{project_id}}"]').selected=true;
 </script>

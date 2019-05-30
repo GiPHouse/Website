@@ -125,16 +125,14 @@ def changeProjectforStudent(request):
     else:
         user_id = request.POST['id']
         project_id = request.POST['project']
-        project = Project.objects.get(id=project_id)
+        groups = [Project.objects.get(id=project_id)] if project_id else []
         user = User.objects.get(id=user_id)
         role_name_array = list(set(user.groups.values_list('name', flat=True)) &
                                set([Role.SDM, Role.SE, Role.DIRECTOR, Role.ADMIN]))
-        if role_name_array:
-            role_name = role_name_array[0]
-        else:
+        if (len(role_name_array) == 0):
             return HttpResponseBadRequest()
-        role = Role.objects.get(name=role_name)
-        groups = [role, project]
+        role_name = role_name_array[0]
+        groups.append(Role.objects.get(name=role_name))
         user.groups.set(groups)
         user.save()
 
