@@ -95,8 +95,7 @@ class Step2View(FormView):
                 email=form.cleaned_data['email']
             )
 
-            se, _ = Role.objects.get_or_create(name=Role.SE)
-            user.groups.add(se)
+            user.groups.add(Role.objects.get(id=form.cleaned_data['course']))
             user.save()
 
             GiphouseProfile.objects.create(

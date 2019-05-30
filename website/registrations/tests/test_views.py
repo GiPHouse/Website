@@ -107,6 +107,8 @@ class Step2Test(TestCase):
             description='Test Project 3',
         )
 
+        cls.se, _ = Role.objects.get_or_create(name=Role.SE)
+
     def setUp(self):
         self.client = Client()
 
@@ -146,7 +148,7 @@ class Step2Test(TestCase):
                                         'student_number': self.student_number,
                                         'github_username': self.github_username,
                                         'semester': self.semester.id,
-                                        'course': Role.SE,
+                                        'course': self.se.id,
                                         'email': self.email,
                                         'project1': self.project_preference1.id,
                                         'project2': self.project_preference2.id,
@@ -162,7 +164,7 @@ class Step2Test(TestCase):
                                         'last_name': self.last_name,
                                         'student_number': 'wrong format',
                                         'github_username': self.github_username,
-                                        'course': Role.SE,
+                                        'course': self.se.id,
                                         'email': self.email,
                                         'project1': self.project_preference1.id,
                                         'project2': self.project_preference2.id,
@@ -177,7 +179,7 @@ class Step2Test(TestCase):
                                         'last_name': self.last_name,
                                         'student_number': self.student_number,
                                         'github_username': self.github_username,
-                                        'course': Role.SE,
+                                        'course': self.se.id,
                                         'email': self.email,
                                         'project1': self.project_preference1.id,
                                         'project2': str(self.project_preference1.id),
@@ -202,7 +204,7 @@ class Step2Test(TestCase):
                                         'last_name': self.last_name,
                                         'student_number': self.student_number,
                                         'github_username': self.github_username,
-                                        'course': Role.SE,
+                                        'course': self.se.id,
                                         'email': self.email,
                                         'project1': self.project_preference1.id,
                                         'project2': self.project_preference2.id,
@@ -230,7 +232,7 @@ class Step2Test(TestCase):
                                         'last_name': self.last_name,
                                         'student_number': self.student_number,
                                         'github_username': self.github_username,
-                                        'course': Role.SE,
+                                        'course': self.se.id,
                                         'email': self.email,
                                         'project1': self.project_preference1.id,
                                     }, follow=True)
@@ -246,7 +248,7 @@ class Step2Test(TestCase):
                                         'student_number': self.student_number,
                                         'github_username': self.github_username,
                                         'semester': self.semester.id,
-                                        'course': Role.SE,
+                                        'course': self.se.id,
                                         'email': self.email,
                                         'project1': self.project_preference1.id,
                                         'project2': self.project_preference2.id,
