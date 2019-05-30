@@ -67,6 +67,31 @@ class QuestionnaireTest(TestCase):
             available_until_soft=timezone.now() + timezone.timedelta(days=1),
             available_until_hard=timezone.now() + timezone.timedelta(days=1),
         )
+
+        cls.closed_questions = Questionnaire.objects.create(
+            semester=semester,
+            title="An Closed Questionnaire",
+            available_from=timezone.now() - timezone.timedelta(days=3),
+            available_until_soft=timezone.now() - timezone.timedelta(days=2),
+            available_until_hard=timezone.now() - timezone.timedelta(days=1),
+        )
+
+        cls.late_questions = Questionnaire.objects.create(
+            semester=semester,
+            title="An Closed Questionnaire",
+            available_from=timezone.now() - timezone.timedelta(days=3),
+            available_until_soft=timezone.now() - timezone.timedelta(days=2),
+            available_until_hard=timezone.now() + timezone.timedelta(days=1),
+        )
+
+        cls.closed_questionnaire = Questionnaire.objects.create(
+            semester=semester,
+            title="A Closed Questionnaire",
+            available_from=timezone.now() - timezone.timedelta(days=3),
+            available_until_soft=timezone.now() - timezone.timedelta(days=2),
+            available_until_hard=timezone.now() - timezone.timedelta(days=1),
+        )
+
         Question.objects.create(
             questionnaire=cls.active_questions,
             question='Open Question global',
@@ -84,22 +109,6 @@ class QuestionnaireTest(TestCase):
             question='Closed Question global',
             question_type=Question.AGREEMENT,
             about_team_member=False
-        )
-
-        cls.late_questions = Questionnaire.objects.create(
-            semester=semester,
-            title="An Closed Questionnaire",
-            available_from=timezone.now() - timezone.timedelta(days=3),
-            available_until_soft=timezone.now() - timezone.timedelta(days=2),
-            available_until_hard=timezone.now() + timezone.timedelta(days=1),
-        )
-
-        cls.closed_questions = Questionnaire.objects.create(
-            semester=semester,
-            title="An Closed Questionnaire",
-            available_from=timezone.now() - timezone.timedelta(days=3),
-            available_until_soft=timezone.now() - timezone.timedelta(days=2),
-            available_until_hard=timezone.now() - timezone.timedelta(days=1),
         )
 
     def setUp(self):
@@ -156,7 +165,13 @@ class QuestionnaireTest(TestCase):
             {},
             follow=True,
         )
-        self.assertContains(response, 'Questionnaire is closed.')
+        self.assertEquals(response.status_code, 404)
+
+    def test_get_closed_questionnaire(self):
+        response = self.client.get(
+            reverse('questionnaires:questionnaire', kwargs={'questionnaire': self.closed_questions.id}),
+        )
+        self.assertEquals(response.status_code, 404)
 
     def test_all_questionnaires_visible(self):
         response = self.client.get(reverse('questionnaires:overview'))

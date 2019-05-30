@@ -27,9 +27,6 @@ class QuestionnaireForm(forms.Form):
 
     def clean(self):
         """Validate that the form is not closed."""
-        if self.questionnaire.is_closed:
-            raise ValidationError('Questionnaire is closed.', code='invalid')
-
         try:
             QuestionnaireSubmission.objects.get(
                 participant_id=self.participant.id,
