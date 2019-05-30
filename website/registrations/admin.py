@@ -146,6 +146,7 @@ class StudentAdmin(admin.ModelAdmin):
     get_role.short_description = 'Role'
 
     def current_project(self, obj):
+        """Return current Project of Student."""
         if not obj.registration_set.order_by('semester').first():
             return None
 

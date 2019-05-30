@@ -119,6 +119,7 @@ class Step2View(FormView):
 
 
 def changeProjectforStudent(request):
+    """Change the current project of a student."""
     if not request.method == "POST":
         return HttpResponseBadRequest()
     else:
