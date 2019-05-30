@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.models import User as DjangoUser
 from django.db import IntegrityError, transaction
-from django.http import HttpResponseBadRequest, HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.views.generic import FormView, TemplateView
 

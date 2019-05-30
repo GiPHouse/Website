@@ -3,7 +3,7 @@ from unittest import mock
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
 from django.shortcuts import reverse
-from django.test import Client, TestCase, RequestFactory
+from django.test import Client, RequestFactory, TestCase
 from django.utils import timezone
 
 from courses.models import Semester
@@ -11,7 +11,6 @@ from courses.models import Semester
 from projects.models import Project
 
 from registrations.models import GiphouseProfile, Role
-
 from registrations.views import changeProjectforStudent
 
 User: DjangoUser = get_user_model()

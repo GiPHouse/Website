@@ -1,8 +1,7 @@
-from django.contrib import admin
 from django import forms
+from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, User as DjangoUser
-from django.shortcuts import render
 from django.template.loader import get_template
 
 from courses.models import Semester
