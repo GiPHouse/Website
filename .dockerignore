@@ -1,0 +1,7 @@
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+website/db.sqlite3
+website/media/
+website/static/
