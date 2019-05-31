@@ -147,7 +147,7 @@ class AnswerAdmin(admin.ModelAdmin):
         'participant_name',
         'peer_name',
         'on_time',
-        'answer',
+        'answer_short',
     )
 
     def participant_name(self, obj):
@@ -176,12 +176,12 @@ class AnswerAdmin(admin.ModelAdmin):
     questionnaire.short_description = 'Questionnaire'
     questionnaire.admin_order_field = 'submission__questionnaire'
 
-    def answer(self, obj):
+    def answer_short(self, obj):
         """Return answer preview."""
         if obj.question.is_closed or len(str(obj.answer)) < 30:
             return obj.answer
         return f'{str(obj.answer)[:27]}...'
-    answer.short_description = 'Answer'
+    answer_short.short_description = 'Answer'
 
     class Media:
         """Necessary to use AutocompleteFilter."""
