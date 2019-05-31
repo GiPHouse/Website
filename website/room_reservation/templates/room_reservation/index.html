@@ -1,73 +1,25 @@
 {% extends 'base.html' %}
-{% load bootstrap4 %}
+{% load static %}
 
 {% block content %}
-{% buttons %}
-<a href="{% url 'room_reservation:create_reservation' %}">
-	<button class="btn btn-primary">Make Reservation</button>
-</a>
+    <div id="notifications">
+{# This is where calendar-init.js will place notifications for deleted events. #}
+    </div>
+    <div id="external-events">
+        <h4>Bookable Rooms</h4>
+        <p>Drag a room to the calendar to make a reservation. Click events to remove them.</p>
+        <div id="external-events-list" class="row">
+            {% for room in rooms %}
+            <div class="fc-event col-2" data-event='{ "title": "{{ room }}", "duration": "02:00", "editable": true, "extendedProps": { "room": {{ room.id }} } }'>{{ room }}</div>
+            {% endfor %}
+      </div>
+    </div>
+    <div id="calendar" data-events='{{ reservations|safe }}' data-csrf="{{ csrf_token }}"></div>
 
-<a href="{% url 'room_reservation:calendar' %}" >
-	<button class="btn btn-outline-primary">Current week</button>
-</a>
-{% endbuttons %}
-<h1>
-<a href="{% url 'room_reservation:calendar' %}?week={{ current_week|add:"-1"}}" >
-	<i class="fas fa-chevron-left"></i>
-</a>
-	Week {{current_week}}
-<a href="{% url 'room_reservation:calendar' %}?week={{ current_week|add:"1"}}" >
-	<i class="fas fa-chevron-right"></i>
-</a>
-</h1>
-{% for room in rooms %}
-	<h3>{{room}}</h3>
-	<table class="table mb-5">
-		<thead>
-			<tr>
-				<th scope="col"></th>
-				{% for day in days %}
-					<th scope="col">{{ day|date:"D jS" }}</th> 
-				{% endfor %}
-			</tr>
-		</thead>
-		<tbody>
-			<tr>
-				<td class="rr-calendar-times">
-					<div class="rr-calendar-day">
-					<div class="rr-calendar-hour" style="top: calc(( 8 - 8)/10 * 100%);" > 8:00</div>
-					<div class="rr-calendar-hour" style="top: calc((10 - 8)/10 * 100%);" >10:00</div>
-					<div class="rr-calendar-hour" style="top: calc((12 - 8)/10 * 100%);" >12:00</div>
-					<div class="rr-calendar-hour" style="top: calc((14 - 8)/10 * 100%);" >14:00</div>
-					<div class="rr-calendar-hour" style="top: calc((16 - 8)/10 * 100%);" >16:00</div>
-					<div class="rr-calendar-hour" style="top: calc((18 - 8)/10 * 100%);" >18:00</div>
-					</div>
-				</td>
-			{% for col in room.reservations %}
-				<td>
-					<div class="rr-calendar-day" >
-				{% for r in col %}
-				<div class="rr-calendar-reservation" 
-					style="top: calc( ({{r.start_time|date:"H"}} - 8) / 10 * 100%); 
-					height: calc( (({{r.end_time|date:"H"}} + {{r.end_time|date:"i"}} / 60) - 8 ) / 10 * 100% - (({{r.start_time|date:"H"}} + {{r.start_time|date:"i"}} / 60) - 8) / 10 * 100%); "
-					>
-					<div class="rr-reservation-info">{{r.reservee.first_name}} {{r.reservee.last_name}}<br/> 
-					({{r.start_time|date:"H:i"}}-{{r.end_time|date:"H:i"}})
-					</div>
-					{% if r.reservee == request.user %}
-					<div class="rr-reservation-actions">
-						<a class="pr-1" href ="{% url 'room_reservation:delete_reservation' r.pk %}" ><button class="btn btn-danger btn-sm"><i class="fas fa-trash-alt"></i></button></a>
-						<a href ="{% url 'room_reservation:update_reservation' r.pk %}" ><button class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></button></a>
-					</div>
-					{% endif %}
-					</div>
-				{% endfor %}
-					</div>
-				</td>
-			{% endfor %}
-			</tr>
-		</tbody>
-	</table>
-{% endfor %}
-
+    <script src="{% static 'js/fullcalendar/core/main.min.js' %}"></script>
+    <script src="{% static 'js/fullcalendar/daygrid/main.min.js' %}"></script>
+    <script src="{% static 'js/fullcalendar/timegrid/main.min.js' %}"></script>
+    <script src="{% static 'js/fullcalendar/bootstrap/main.min.js' %}"></script>
+    <script src="{% static 'js/fullcalendar/interaction/main.min.js' %}"></script>
+    <script src="{% static 'js/calendar-init.js' %}"></script>
 {% endblock %}

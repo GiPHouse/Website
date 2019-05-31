@@ -1,40 +1,44 @@
-// rr - Room Reservation
+@import "fullcalendar/core/main.css";
+@import "fullcalendar/daygrid/main.css";
+@import "fullcalendar/timegrid/main.css";
+@import "fullcalendar/bootstrap/main.css";
 
-$reservation-color: #f2f2f2; 
-
-.rr-calendar-times {
-	width:50px;
+#external-events .fc-event {
+  margin: 10px;
+  padding: 10px 8px;
+  cursor: pointer;
 }
 
-.rr-calendar-day {
-    display: block;
-	position: relative;
-    height: 600px;
-}
+#notifications {
+  position: absolute;
+  z-index: 100;
+  right: 0;
+  color: white;
+  max-width: 50%;
 
-.rr-calendar-hour {
-    display: block;
-    position: relative;
-    border-top: 1px solid #000;
-    height: 0px;
+  .notification {
+    max-width: 500px;
+    border-radius: 5px;
+    @media(min-width: 800px) {
+      margin-right: 20px;
+    }
+    margin-right: 5px;
+    padding: 10px 17px 10px 5px;
+    background: rgba($primary, .8);
+    margin-bottom: 5px;
+    transition: .3s;
+    overflow: auto;
+    p {
+      float: left;
+      margin-bottom: 0;
+      // Make the text the same size as the buttons
+      @include button-size($btn-padding-y, $btn-padding-x, $btn-font-size, $btn-line-height, $btn-border-radius);
+    }
+  }
+  .notification-collapsed {
+    height: 0;
+  }
+  .notification:hover {
+    background: rgba($primary, 1);
+  }
 }
-
-.rr-calendar-reservation {
-    display:flex;
-    position: relative;
-    background-color: $reservation-color;
-    border: 1px solid #ccc !important;
-    padding: 4px;
-	flex-wrap: wrap;
-}
-
-.rr-reservation-info{
-}
-
-.rr-reservation-actions{
-    display:flex;
-	flex-grow: 1;
-	justify-content:flex-end;
-	align-items:flex-end;
-}
-
