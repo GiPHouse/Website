@@ -18,14 +18,14 @@ class BaseGithubView(View):
     redirect_url_success = settings.LOGIN_REDIRECT_URL
     redirect_url_failure = settings.LOGIN_REDIRECT_URL
 
-    def get(self, request, code, *args, **kwargs):
+    def get(self, request, code):
         """Handle GET request made by Github OAuth."""
         return redirect(self.redirect_url_success)
 
     def dispatch(self, request, *args, **kwargs):
         """Check if user is authenticated and if the code GET parameter exists."""
         if request.method != 'GET':
-            return self.http_method_not_allowed(request, *args, **kwargs)
+            return self.http_method_not_allowed(request)
 
         try:
             code = request.GET['code']
@@ -36,13 +36,13 @@ class BaseGithubView(View):
             messages.warning(request, "You are already logged in", extra_tags='success')
             return redirect('home')
 
-        return self.get(request, code, *args, **kwargs)
+        return self.get(request, code)
 
 
 class GithubLoginView(BaseGithubView):
     """View accessed by GitHub after an authorization request of a user trying to login."""
 
-    def get(self, request, code, *args, **kwargs):
+    def get(self, request, code):
         """Handle GET request made by Github OAuth."""
         user = authenticate(request, code=code)
 
@@ -60,7 +60,7 @@ class GithubRegisterView(BaseGithubView):
 
     redirect_url_success = reverse_lazy('registrations:step2')
 
-    def get(self, request, code, *args, **kwargs):
+    def get(self, request, code):
         """Handle GET request made by Github OAuth."""
         backend = GithubOAuthBackend()
 
