@@ -139,7 +139,7 @@ class SubmissionAdminPeerFilter(AutocompleteFilter):
     def queryset(self, request, queryset):
         """Filter the specified peer."""
         if self.value():
-            return queryset.filter(answer__peer=self.value())
+            return queryset.filter(answer__peer=self.value()).distinct()
         else:
             return queryset
 
