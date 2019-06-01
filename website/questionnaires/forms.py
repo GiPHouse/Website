@@ -7,7 +7,7 @@ from questionnaires.models import QuestionnaireSubmission
 class QuestionnaireForm(forms.Form):
     """Dynamic form generating a questionnaires form."""
 
-    def __init__(self, participant, questionnaire, peers, *args, **kwargs):
+    def __init__(self, participant, questionnaire, peers, no_peers_warning, *args, **kwargs):
         """Dynamically setup form."""
         super().__init__(*args, **kwargs)
 
@@ -15,6 +15,7 @@ class QuestionnaireForm(forms.Form):
         self.questionnaire = questionnaire
         self.questions = questionnaire.question_set.all()
         self.peers = peers
+        self.no_peers_warning = no_peers_warning
 
         for question in self.questions:
             if question.about_team_member:

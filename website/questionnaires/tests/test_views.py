@@ -53,6 +53,10 @@ class QuestionnaireTest(TestCase):
         )
         cls.user.groups.add(cls.team)
         cls.user.save()
+        cls.alone_user = User.objects.create_user(
+            username='loner',
+            password='123',
+        )
 
         cls.peer = User.objects.create_user(
             username='Jack',
@@ -178,6 +182,21 @@ class QuestionnaireTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.active_questions.title)
         self.assertContains(response, self.closed_questions.title)
+
+    def test_warning_message_not_shown_when_user_is_in_team(self):
+        response = self.client.get(
+            reverse('questionnaires:questionnaire', kwargs={'questionnaire': self.active_questions.id})
+        )
+        self.assertNotContains(response, "This questionnaire contains questions about your team members, "
+                                         "but you are either not in a project, or your project has no other peers.")
+
+    def test_warning_message_shown_when_user_is_alone(self):
+        self.client.login(username='loner', password='123')
+        response = self.client.get(
+            reverse('questionnaires:questionnaire', kwargs={'questionnaire': self.active_questions.id})
+        )
+        self.assertContains(response, "This questionnaire contains questions about your team members, "
+                                      "but you are either not in a project, or your project has no other peers.")
 
 
 class NoQuestionnairesTest(TestCase):
