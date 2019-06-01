@@ -63,6 +63,9 @@ class QuestionnaireView(LoginRequiredMessageMixin, FormView):
                     groups__in=participant.groups.filter(project__semester=Semester.objects.get_current_semester())
                 )
         )
+        kwargs['no_peers_warning'] = (
+                questionnaire.question_set.filter(about_team_member=True).exists() and not kwargs['peers']
+        )
 
         return kwargs
 

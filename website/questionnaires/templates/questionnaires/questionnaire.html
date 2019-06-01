@@ -6,6 +6,9 @@
 {% endblock %}
 
 {% block content %}
+  {% if form.no_peers_warning %}
+    <p class="text-danger">This questionnaire contains questions about your team members, but you are either not in a project, or your project has no other peers.</p>
+  {% endif %}
 	<h1 class="mt-2">{{form.questionnaire.title}}</h1>
     {% bootstrap_form_errors form %}
     <form method="post" class="row">
