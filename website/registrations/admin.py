@@ -171,6 +171,7 @@ class StudentAdmin(admin.ModelAdmin):
             user.save()
 
     def get_urls(self):
+        """Override the admin urls."""
         urls = super().get_urls()
         my_urls = [
             path('change-project-for-student/',
