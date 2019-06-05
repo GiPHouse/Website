@@ -4,7 +4,7 @@ from django.contrib.auth.models import User as DjangoUser
 from django.db import IntegrityError, transaction
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import redirect
-from django.views.generic import FormView, TemplateView
+from django.views.generic import FormView, TemplateView, View
 
 from courses.models import Semester
 
@@ -118,22 +118,25 @@ class Step2View(FormView):
         return user
 
 
-def changeProjectforStudent(request):
-    """Change the current project of a student."""
-    if not request.method == "POST":
-        return HttpResponseBadRequest()
-    else:
-        user_id = request.POST['id']
-        project_id = request.POST['project']
-        groups = [Project.objects.get(id=project_id)] if project_id else []
-        user = User.objects.get(id=user_id)
-        role_name_array = list(set(user.groups.values_list('name', flat=True)) &
-                               set([Role.SDM, Role.SE, Role.DIRECTOR, Role.ADMIN]))
-        if (len(role_name_array) == 0):
-            return HttpResponseBadRequest()
-        role_name = role_name_array[0]
-        groups.append(Role.objects.get(name=role_name))
-        user.groups.set(groups)
-        user.save()
+class ChangeRequestView(View):
+    """View Class handling a change request from within a change-list."""
 
-        return HttpResponse(status=204)
+    def post(self, request):
+        """Change the current project of a student."""
+        if not request.method == "POST":
+            return HttpResponseBadRequest()
+        else:
+            user_id = request.POST['id']
+            project_id = request.POST['project']
+            groups = [Project.objects.get(id=project_id)] if project_id else []
+            user = User.objects.get(id=user_id)
+            role_name_array = list(set(user.groups.values_list('name', flat=True)) &
+                                   set([Role.SDM, Role.SE, Role.DIRECTOR, Role.ADMIN]))
+            if (len(role_name_array) == 0):
+                return HttpResponseBadRequest()
+            role_name = role_name_array[0]
+            groups.append(Role.objects.get(name=role_name))
+            user.groups.set(groups)
+            user.save()
+
+            return HttpResponse(status=204)

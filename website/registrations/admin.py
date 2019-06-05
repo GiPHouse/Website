@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, User as DjangoUser
 from django.template.loader import get_template
+from django.urls import path
 
 from courses.models import Semester
 
@@ -10,6 +11,7 @@ from projects.models import Project
 
 from registrations.forms import StudentAdminForm
 from registrations.models import GiphouseProfile, Registration, Role, Student
+from registrations.views import ChangeRequestView
 
 User: DjangoUser = get_user_model()
 admin.site.unregister(Group)
@@ -160,7 +162,6 @@ class StudentAdmin(admin.ModelAdmin):
         }
         return template.render(context)
     current_project.short_description = 'Current Project'
-    current_project.allow_tags = True
 
     def place_in_first_project_preference(self, request, queryset):
         """Place the selected users in their first project preference."""
@@ -168,6 +169,13 @@ class StudentAdmin(admin.ModelAdmin):
             registration = user.registration_set.order_by('semester').first()
             user.groups.add(registration.preference1)
             user.save()
+
+    def get_urls(self):
+        urls = super().get_urls()
+        my_urls = [
+            path('change-project-for-student/', self.admin_site.admin_view(ChangeRequestView.as_view()), name='changeproject'),
+        ]
+        return my_urls + urls
 
 
 admin.site.register(Role)

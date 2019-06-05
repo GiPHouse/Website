@@ -1,5 +1,5 @@
 <form></form>
-<form action="{% url 'registrations:changeproject' %}" method="post" id="form{{obj.id}}">
+<form action="{% url 'admin:changeproject' %}" method="post" id="form{{obj.id}}">
     <input id="csrf_token{{obj.id}}" name="csrfmiddlewaretoken" type="hidden" />
     <input name="id" type="hidden" value="{{obj.id}}" />
     {{field}}
