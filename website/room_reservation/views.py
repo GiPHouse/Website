@@ -87,7 +87,9 @@ class ShowCalendarView(LoginRequiredMessageMixin, TemplateView, BaseReservationV
 
         context['reservations'] = json.dumps([{
             'pk': reservation.pk,
-            'title': str(reservation.room) + ' reserved by ' + str(reservation.reservee),
+            'title': str(reservation.room) + ' reserved by ' + (
+                'you' if self.request.user == reservation.reservee else str(reservation.reservee)
+            ),
             'reservee': str(reservation.reservee)
             if self.request.user.has_perm('room_reservation.view_reservation') else None,
             'room': reservation.room_id,

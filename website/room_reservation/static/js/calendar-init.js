@@ -135,6 +135,7 @@ document.addEventListener('DOMContentLoaded', function() {
         event.remove();
         return;
       }
+      event.setProp('title', event.title + ' reserved by you');
       event.setExtendedProp('pk', message.pk);
     },
     eventClick: async function({event}) {
