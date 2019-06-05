@@ -283,14 +283,7 @@ class ChangeRequestViewTest(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-    def test_changeProjectforStudent_not_post(self):
-        request = self.factory.get('/change-project-for-student')
-        view = ChangeRequestView()
-        response = view.post(request)
-
-        self.assertEqual(response.status_code, 400)
-
-    def test_changeProjectforStudent_post(self):
+    def test_change_project_for_student_post(self):
         request = self.factory.post('/change-project-for-student',
                                     {'id': self.test_user.id, 'project': self.project_preference1.id})
         view = ChangeRequestView()
@@ -298,7 +291,7 @@ class ChangeRequestViewTest(TestCase):
 
         self.assertEqual(response.status_code, 204)
 
-    def test_changeProjectforStudent_post_no_role(self):
+    def test_change_project_for_student_post_no_role(self):
         self.test_user.groups.set([])
         self.test_user.save()
         request = self.factory.post('/change-project-for-student',

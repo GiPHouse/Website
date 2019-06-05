@@ -123,20 +123,17 @@ class ChangeRequestView(View):
 
     def post(self, request):
         """Change the current project of a student."""
-        if not request.method == "POST":
+        user_id = request.POST['id']
+        project_id = request.POST['project']
+        groups = [Project.objects.get(id=project_id)] if project_id else []
+        user = User.objects.get(id=user_id)
+        role_name_array = list(set(user.groups.values_list('name', flat=True)) &
+                               set([Role.SDM, Role.SE, Role.DIRECTOR, Role.ADMIN]))
+        if (len(role_name_array) == 0):
             return HttpResponseBadRequest()
-        else:
-            user_id = request.POST['id']
-            project_id = request.POST['project']
-            groups = [Project.objects.get(id=project_id)] if project_id else []
-            user = User.objects.get(id=user_id)
-            role_name_array = list(set(user.groups.values_list('name', flat=True)) &
-                                   set([Role.SDM, Role.SE, Role.DIRECTOR, Role.ADMIN]))
-            if (len(role_name_array) == 0):
-                return HttpResponseBadRequest()
-            role_name = role_name_array[0]
-            groups.append(Role.objects.get(name=role_name))
-            user.groups.set(groups)
-            user.save()
+        role_name = role_name_array[0]
+        groups.append(Role.objects.get(name=role_name))
+        user.groups.set(groups)
+        user.save()
 
-            return HttpResponse(status=204)
+        return HttpResponse(status=204)
