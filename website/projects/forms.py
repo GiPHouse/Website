@@ -31,9 +31,10 @@ class ProjectAdminForm(forms.ModelForm):
         """Initialize the form."""
         super().__init__(*args, **kwargs)
 
+        # Check if this is an existing Project
         if self.instance.pk:
-            self.fields['managers'].initial = self.instance.user_set.filter(groups__name=Role.SDM)
-            self.fields['developers'].initial = self.instance.user_set.filter(groups__name=Role.SE)
+            self.fields['managers'].initial = self.instance.user_set.all()
+            self.fields['developers'].initial = self.instance.user_set.all()
 
     name = forms.CharField(widget=forms.TextInput)
 
