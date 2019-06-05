@@ -79,6 +79,13 @@ class RegistrationAdminTest(TestCase):
             preference1=project,
         )
 
+        cls.user = User.objects.create(username='user',)
+        GiphouseProfile.objects.create(
+            user=cls.user,
+            github_id='20',
+            github_username='lol',
+        )
+
     def setUp(self):
         self.client = Client()
         self.client.login(username=self.admin.username, password=self.admin_password)
@@ -136,6 +143,13 @@ class RegistrationAdminTest(TestCase):
         self.assertEqual(response.status_code, 200)
         project = Project.objects.filter(user=self.manager).first()
         self.assertEqual(project, self.registration.preference1)
+
+    def test_student_change_list_without_registration(self):
+        response = self.client.get(
+            reverse('admin:registrations_student_change', args=[self.user.pk]),
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
 
     def test_get_student_changelist_project_filter(self):
         response = self.client.get(

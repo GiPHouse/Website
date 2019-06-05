@@ -3,7 +3,7 @@ from unittest import mock
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
 from django.shortcuts import reverse
-from django.test import Client, TestCase
+from django.test import Client, RequestFactory, TestCase
 from django.utils import timezone
 
 from courses.models import Semester
@@ -11,6 +11,7 @@ from courses.models import Semester
 from projects.models import Project
 
 from registrations.models import GiphouseProfile, Role
+from registrations.views import ChangeRequestView
 
 User: DjangoUser = get_user_model()
 
@@ -256,3 +257,46 @@ class Step2Test(TestCase):
                                     }, follow=True)
         self.assertRedirects(response, '/')
         self.assertContains(response, 'User created successfully')
+
+
+class ChangeRequestViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.test_user = User.objects.create_user(
+            username='test_user',
+        )
+        se, _ = Role.objects.get_or_create(name=Role.SE)
+        cls.test_user.groups.add(se)
+        cls.test_user.save()
+        cls.semester = Semester.objects.create(
+            year=timezone.now().year,
+            season=Semester.SPRING,
+            registration_start=timezone.now(),
+            registration_end=timezone.now() + timezone.timedelta(days=1),
+        )
+        cls.project_preference1 = Project.objects.create(
+            semester=cls.semester,
+            name='project1',
+            description='Test Project 1',
+        )
+
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    def test_change_project_for_student_post(self):
+        request = self.factory.post('/change-project-for-student',
+                                    {'id': self.test_user.id, 'project': self.project_preference1.id})
+        view = ChangeRequestView()
+        response = view.post(request)
+
+        self.assertEqual(response.status_code, 204)
+
+    def test_change_project_for_student_post_no_role(self):
+        self.test_user.groups.set([])
+        self.test_user.save()
+        request = self.factory.post('/change-project-for-student',
+                                    {'id': self.test_user.id, 'project': self.project_preference1.id})
+        view = ChangeRequestView()
+        response = view.post(request)
+
+        self.assertEqual(response.status_code, 400)
