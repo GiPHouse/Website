@@ -11,7 +11,7 @@ from courses.models import Semester
 from projects.models import Project
 
 from registrations.models import GiphouseProfile, Role
-from registrations.views import changeProjectforStudent
+from registrations.views import ChangeRequestView
 
 User: DjangoUser = get_user_model()
 
@@ -259,7 +259,7 @@ class Step2Test(TestCase):
         self.assertContains(response, 'User created successfully')
 
 
-class FunctionTest(TestCase):
+class ChangeRequestViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.test_user = User.objects.create_user(
@@ -285,14 +285,16 @@ class FunctionTest(TestCase):
 
     def test_changeProjectforStudent_not_post(self):
         request = self.factory.get('/change-project-for-student')
-        response = changeProjectforStudent(request)
+        view = ChangeRequestView()
+        response = view.post(request)
 
         self.assertEqual(response.status_code, 400)
 
     def test_changeProjectforStudent_post(self):
         request = self.factory.post('/change-project-for-student',
                                     {'id': self.test_user.id, 'project': self.project_preference1.id})
-        response = changeProjectforStudent(request)
+        view = ChangeRequestView()
+        response = view.post(request)
 
         self.assertEqual(response.status_code, 204)
 
@@ -301,6 +303,7 @@ class FunctionTest(TestCase):
         self.test_user.save()
         request = self.factory.post('/change-project-for-student',
                                     {'id': self.test_user.id, 'project': self.project_preference1.id})
-        response = changeProjectforStudent(request)
+        view = ChangeRequestView()
+        response = view.post(request)
 
         self.assertEqual(response.status_code, 400)

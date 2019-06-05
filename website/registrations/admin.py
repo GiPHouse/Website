@@ -173,7 +173,9 @@ class StudentAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super().get_urls()
         my_urls = [
-            path('change-project-for-student/', self.admin_site.admin_view(ChangeRequestView.as_view()), name='changeproject'),
+            path('change-project-for-student/',
+                 self.admin_site.admin_view(ChangeRequestView.as_view()),
+                 name='changeproject'),
         ]
         return my_urls + urls
 
