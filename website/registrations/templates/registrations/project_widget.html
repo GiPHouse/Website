@@ -1,13 +1,17 @@
-<form></form>
-<form action="{% url 'admin:changeproject' %}" method="post" id="form{{obj.id}}">
-    <input id="csrf_token{{obj.id}}" name="csrfmiddlewaretoken" type="hidden" />
-    <input name="id" type="hidden" value="{{obj.id}}" />
+<div id="projectwidget{{obj.id}}">
     {{field}}
-    <input type="submit" value="Save">
-</form>
-
+</div>
 <script type="text/javascript">
     var csrf_token = document.querySelector("[name=csrfmiddlewaretoken]").value;
-    document.getElementById("csrf_token{{obj.id}}").value = csrf_token;
-    if ("{{ project_id }}") document.querySelector('#form{{obj.id}} option[value="{{project_id}}"]').selected=true;
+    if ("{{ project_id }}") document.querySelector('#projectwidget{{obj.id}} option[value="{{project_id}}"]').selected=true;
+    document.querySelector('#projectwidget{{obj.id}}').onchange = () => {
+      django.jQuery.ajax('{% url 'admin:changeproject' %}', {
+        method: 'POST',
+        data: {
+          id: {{obj.id}},
+          project: document.querySelector('#projectwidget{{obj.id}} [name=project]').value,
+          csrfmiddlewaretoken: csrf_token
+        }
+      })
+    }
 </script>
