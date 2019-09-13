@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "giphousewebsite"
-version = "0.1.0"
-description = ""
-authors = []
+description = "GiPHouse website based on Django Framework"
+version = "1.0.0"
+authors = ["joren485", "pingiun", "keukentrap", "adiehl96", "Pegasystem", "BierBrigadier"]
 license = "AGPL-3.0-only"
 
 [tool.poetry.dependencies]
