@@ -43,12 +43,6 @@ script:
   - "poetry run python website/manage.py migrate"
   - "poetry run python website/manage.py createfixtures --lecture 1 --project 1 --student 1 --director 1 --questionnaire 1 --question 1 --submission 1 --room 1 --reservation 1"
 
-deploy:
-  provider: "script"
-  script: "resources/deploy.sh"
-  on:
-    branch: "master"
-
 notifications:
   email:
     on_success: "never"
