@@ -1,6 +1,6 @@
 # GiPHouse website [![Build Status](https://travis-ci.com/GipHouse/GiPHouse-Spring-2019.svg?token=YrR2qkUGFcV8PDYmnPAG&branch=master)](https://travis-ci.com/GipHouse/GiPHouse-Spring-2019)
 
-This is the code for the website of [GiPHouse](http://giphouse.nl/) powered by [Django](https://docs.djangoproject.com/en/2.2/).
+This is the code for the website of [GiPHouse](http://giphouse.nl/) powered by [Django](https://www.djangoproject.com/).
 
 ### Getting Started
 
