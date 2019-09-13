@@ -4,6 +4,8 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from freezegun import freeze_time
+
 from courses.models import Semester
 
 from projects.models import Project
@@ -33,6 +35,7 @@ def generate_post_data(questionnaire_id, peers):
 class QuestionnaireTest(TestCase):
 
     @classmethod
+    @freeze_time("2019-01-01")
     def setUpTestData(cls):
 
         semester = Semester.objects.create(
@@ -119,17 +122,20 @@ class QuestionnaireTest(TestCase):
         self.client = Client()
         self.client.login(username='myself', password='123')
 
+    @freeze_time("2019-01-01")
     def test_get_overview(self):
         response = self.client.get(reverse('questionnaires:overview'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Start Late')
 
+    @freeze_time("2019-01-01")
     def test_get_questionnaire(self):
         response = self.client.get(
             reverse('questionnaires:questionnaire', kwargs={'questionnaire': self.active_questions.id})
         )
         self.assertEqual(response.status_code, 200)
 
+    @freeze_time("2019-01-01")
     def test_post_questionnaire(self):
         current_peers = User.objects.exclude(pk=self.user.pk)
         post_data = generate_post_data(self.active_questions.id, current_peers)
@@ -141,6 +147,7 @@ class QuestionnaireTest(TestCase):
         )
         self.assertRedirects(response, reverse('home'))
 
+    @freeze_time("2019-01-01")
     def test_post_questionnaire_twice(self):
 
         current_peers = User.objects.exclude(pk=self.user.pk)
@@ -162,6 +169,7 @@ class QuestionnaireTest(TestCase):
 
         self.assertContains(response, 'Questionnaire already submitted.')
 
+    @freeze_time("2019-01-01")
     def test_post_closed(self):
 
         response = self.client.post(
@@ -171,18 +179,21 @@ class QuestionnaireTest(TestCase):
         )
         self.assertEquals(response.status_code, 404)
 
+    @freeze_time("2019-01-01")
     def test_get_closed_questionnaire(self):
         response = self.client.get(
             reverse('questionnaires:questionnaire', kwargs={'questionnaire': self.closed_questions.id}),
         )
         self.assertEquals(response.status_code, 404)
 
+    @freeze_time("2019-01-01")
     def test_all_questionnaires_visible(self):
         response = self.client.get(reverse('questionnaires:overview'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.active_questions.title)
         self.assertContains(response, self.closed_questions.title)
 
+    @freeze_time("2019-01-01")
     def test_warning_message_not_shown_when_user_is_in_team(self):
         response = self.client.get(
             reverse('questionnaires:questionnaire', kwargs={'questionnaire': self.active_questions.id})
@@ -190,6 +201,7 @@ class QuestionnaireTest(TestCase):
         self.assertNotContains(response, "This questionnaire contains questions about your team members, "
                                          "but you are either not in a project, or your project has no other peers.")
 
+    @freeze_time("2019-01-01")
     def test_warning_message_shown_when_user_is_alone(self):
         self.client.login(username='loner', password='123')
         response = self.client.get(
