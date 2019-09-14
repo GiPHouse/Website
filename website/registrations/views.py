@@ -27,7 +27,8 @@ class Step1View(TemplateView):
             messages.warning(request, "You are already logged in", extra_tags='success')
             return redirect('home')
 
-        if not Semester.objects.get_current_registration():
+        if (Semester.objects.get_current_semester() is None
+                or not Semester.objects.get_current_semester().registration_open()):
             messages.warning(request, "Registrations are currently not open", extra_tags='danger')
             return redirect('home')
 
@@ -109,7 +110,7 @@ class Step2View(FormView):
 
             Registration.objects.create(
                 user=user,
-                semester=Semester.objects.get_current_registration().first(),
+                semester=Semester.objects.get_current_semester(),
                 experience=form.cleaned_data['experience'],
                 preference1=form.cleaned_data['project1'],
                 preference2=form.cleaned_data['project2'],

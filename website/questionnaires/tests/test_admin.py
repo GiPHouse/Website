@@ -4,9 +4,7 @@ from django.shortcuts import reverse
 from django.test import Client, TestCase
 from django.utils import timezone
 
-from freezegun import freeze_time
-
-from courses.models import Semester
+from courses.models import Semester, current_season
 
 from projects.models import Project
 
@@ -29,7 +27,6 @@ User: DjangoUser = get_user_model()
 class QuestionnaireTest(TestCase):
 
     @classmethod
-    @freeze_time("2019-01-01")
     def setUpTestData(cls):
         cls.admin_password = 'hunter2'
         cls.admin = User.objects.create_superuser(
@@ -39,7 +36,7 @@ class QuestionnaireTest(TestCase):
 
         cls.semester = Semester.objects.create(
             year=2019,
-            season=Semester.SPRING,
+            season=current_season(),
             registration_start=timezone.now(),
             registration_end=timezone.now() + timezone.timedelta(days=60)
         )
@@ -120,7 +117,6 @@ class QuestionnaireTest(TestCase):
         self.client = Client()
         self.client.login(username=self.admin.username, password=self.admin_password)
 
-    @freeze_time("2019-01-01")
     def test_get_submission_changelist(self):
         response = self.client.get(
             reverse('admin:questionnaires_questionnairesubmission_changelist'),
@@ -128,7 +124,6 @@ class QuestionnaireTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-    @freeze_time("2019-01-01")
     def test_get_submission_changelist_averagefilter(self):
         response = self.client.get(
             reverse('admin:questionnaires_questionnairesubmission_changelist'),
@@ -139,7 +134,6 @@ class QuestionnaireTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-    @freeze_time("2019-01-01")
     def test_get_submission_changelist_averagefilter_below(self):
         response = self.client.get(
             reverse('admin:questionnaires_questionnairesubmission_changelist'),
@@ -150,7 +144,6 @@ class QuestionnaireTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-    @freeze_time("2019-01-01")
     def test_get_submission_changelist_semesterfilter(self):
         response = self.client.get(
             reverse('admin:questionnaires_questionnairesubmission_changelist'),
@@ -161,7 +154,6 @@ class QuestionnaireTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-    @freeze_time("2019-01-01")
     def test_get_submission_changelist_projectfilter(self):
         response = self.client.get(
             reverse('admin:questionnaires_questionnairesubmission_changelist'),
@@ -172,7 +164,6 @@ class QuestionnaireTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-    @freeze_time("2019-01-01")
     def test_get_submission_changelist_peerfilter(self):
         response = self.client.get(
             reverse('admin:questionnaires_questionnairesubmission_changelist'),
@@ -183,7 +174,6 @@ class QuestionnaireTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-    @freeze_time("2019-01-01")
     def test_view_submission_object(self):
         response = self.client.get(
             reverse('admin:questionnaires_questionnairesubmission_change', kwargs={'object_id': self.submission.id}),
@@ -191,7 +181,6 @@ class QuestionnaireTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-    @freeze_time("2019-01-01")
     def test_get_answer_changelist(self):
         response = self.client.get(
             reverse('admin:questionnaires_answer_changelist'),
@@ -199,7 +188,6 @@ class QuestionnaireTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-    @freeze_time("2019-01-01")
     def test_get_answer_changelist_questionnairefilter(self):
         response = self.client.get(
             reverse('admin:questionnaires_answer_changelist'),
@@ -210,7 +198,6 @@ class QuestionnaireTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-    @freeze_time("2019-01-01")
     def test_get_answer_changelist_projectfilter(self):
         response = self.client.get(
             reverse('admin:questionnaires_answer_changelist'),
@@ -221,7 +208,6 @@ class QuestionnaireTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-    @freeze_time("2019-01-01")
     def test_get_answer_changelist_participantfilter(self):
         response = self.client.get(
             reverse('admin:questionnaires_answer_changelist'),
@@ -232,7 +218,6 @@ class QuestionnaireTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-    @freeze_time("2019-01-01")
     def test_get_answer_changelist_valuefilter(self):
         response = self.client.get(
             reverse('admin:questionnaires_answer_changelist'),
@@ -243,7 +228,6 @@ class QuestionnaireTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-    @freeze_time("2019-01-01")
     def test_get_answer_changelist_semesterfilter(self):
         response = self.client.get(
             reverse('admin:questionnaires_answer_changelist'),

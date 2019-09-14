@@ -1,12 +1,10 @@
-from unittest import mock
-
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User as DjangoUser
 from django.shortcuts import reverse
 from django.test import Client, RequestFactory, TestCase
 from django.utils import timezone
 
-from courses.models import Semester
+from courses.models import Semester, current_season
 
 from projects.models import Project
 
@@ -38,17 +36,17 @@ class Step1Test(TestCase):
         )
         cls.test_user.backend = ''
 
-        Semester.objects.create(
-            year=timezone.now().year,
-            season=Semester.SPRING,
-            registration_start=timezone.now(),
-            registration_end=timezone.now() + timezone.timedelta(days=1),
-        )
-
     def setUp(self):
         self.client = Client()
 
     def test_step1(self):
+        Semester.objects.create(
+            year=timezone.now().year,
+            season=current_season(),
+            registration_start=timezone.now(),
+            registration_end=timezone.now() + timezone.timedelta(days=1),
+        )
+
         response = self.client.get('/register/step1')
 
         self.assertEqual(response.status_code, 200)
@@ -63,13 +61,37 @@ class Step1Test(TestCase):
 
         self.assertRedirects(response, reverse('home'))
 
-    @mock.patch('courses.models.SemesterManager.get_current_registration')
-    def test_step1_no_semester(self, mock_get_current_registration):
-        mock_get_current_registration.return_value = None
-
-        response = self.client.get('/register/step1')
+    def test_step1_no_semester(self):
+        response = self.client.get('/register/step1', follow=True)
 
         self.assertRedirects(response, reverse('home'))
+        self.assertContains(response, "Registrations are currently not open")
+
+    def test_step1_current_semester_closed_registration(self):
+        Semester.objects.create(
+            year=timezone.now().year,
+            season=current_season(),
+            registration_start=timezone.now() - timezone.timedelta(days=2),
+            registration_end=timezone.now() - timezone.timedelta(days=1),
+        )
+
+        response = self.client.get('/register/step1', follow=True)
+
+        self.assertRedirects(response, reverse('home'))
+        self.assertContains(response, "Registrations are currently not open")
+
+    def test_step1_old_semester_open_registration(self):
+        Semester.objects.create(
+            year=timezone.now().year - 1,
+            season=current_season(),
+            registration_start=timezone.now(),
+            registration_end=timezone.now() + timezone.timedelta(days=1),
+        )
+
+        response = self.client.get('/register/step1', follow=True)
+
+        self.assertRedirects(response, reverse('home'))
+        self.assertContains(response, "Registrations are currently not open")
 
 
 class Step2Test(TestCase):
@@ -78,7 +100,7 @@ class Step2Test(TestCase):
     def setUpTestData(cls):
         cls.semester = Semester.objects.create(
             year=timezone.now().year,
-            season=Semester.SPRING,
+            season=current_season(),
             registration_start=timezone.now(),
             registration_end=timezone.now() + timezone.timedelta(days=1),
         )
@@ -277,7 +299,7 @@ class ChangeRequestViewTest(TestCase):
         cls.test_user.save()
         cls.semester = Semester.objects.create(
             year=timezone.now().year,
-            season=Semester.SPRING,
+            season=current_season(),
             registration_start=timezone.now(),
             registration_end=timezone.now() + timezone.timedelta(days=1),
         )
