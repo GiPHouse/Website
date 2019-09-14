@@ -13,6 +13,13 @@ def max_value_current_year(value):
     return MaxValueValidator(current_year()+1)(value)
 
 
+def current_season():
+    """Return the current season based on the current time."""
+    if timezone.now() < timezone.now().replace(month=8, day=1):
+        return Semester.SPRING
+    return Semester.FALL
+
+
 class Course(models.Model):
     """Model to represent course."""
 
@@ -29,16 +36,9 @@ class SemesterManager(models.Manager):
     def get_current_semester(self):
         """Return the current semester based on the current time."""
         try:
-            if timezone.now() < timezone.now().replace(month=8, day=1):
-                return self.get(year=current_year(), season=Semester.SPRING)
-            return self.get(year=current_year(), season=Semester.FALL)
+            return self.get(year=current_year(), season=current_season())
         except Semester.DoesNotExist:
             self.none()
-
-    def get_current_registration(self):
-        """Return the current registration (not in the future) that is active."""
-        return self.filter(registration_start__lte=timezone.now(),
-                           registration_end__gte=timezone.now()).order_by('-registration_end')[:1]
 
 
 class Semester(models.Model):
@@ -73,6 +73,10 @@ class Semester(models.Model):
     registration_end = models.DateTimeField(blank=True, null=True)
 
     objects = SemesterManager()
+
+    def registration_open(self):
+        """Return if registration is open."""
+        return self.registration_start <= timezone.now() <= self.registration_end
 
     def __str__(self):
         """Return semester season and year as string."""

@@ -32,9 +32,9 @@ class Step2Form(forms.Form):
             (sdm.id, 'System Development Management'),
         )
 
-        self.fields['project1'].queryset = Project.objects.filter(semester=Semester.objects.get_current_registration())
-        self.fields['project2'].queryset = Project.objects.filter(semester=Semester.objects.get_current_registration())
-        self.fields['project3'].queryset = Project.objects.filter(semester=Semester.objects.get_current_registration())
+        self.fields['project1'].queryset = Project.objects.filter(semester=Semester.objects.get_current_semester())
+        self.fields['project2'].queryset = Project.objects.filter(semester=Semester.objects.get_current_semester())
+        self.fields['project3'].queryset = Project.objects.filter(semester=Semester.objects.get_current_semester())
 
     first_name = forms.CharField(widget=widgets.TextInput(attrs={'class': 'form-control'}))
     last_name = forms.CharField()

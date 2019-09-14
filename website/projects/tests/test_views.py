@@ -2,7 +2,7 @@ from django.shortcuts import reverse
 from django.test import Client, TestCase
 from django.utils import timezone
 
-from courses.models import Semester
+from courses.models import Semester, current_season
 
 
 class GetProjectsTest(TestCase):
@@ -10,7 +10,7 @@ class GetProjectsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
 
-        cls.season = Semester.SPRING
+        cls.season = current_season()
         cls.year = 2019
 
         cls.semester = Semester.objects.create(

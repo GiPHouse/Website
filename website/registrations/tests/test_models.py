@@ -3,7 +3,7 @@ from django.contrib.auth.models import User as DjangoUser
 from django.test import TestCase
 from django.utils import timezone
 
-from courses.models import Semester
+from courses.models import Semester, current_season
 
 from projects.models import Project
 
@@ -34,7 +34,7 @@ class ModelsTest(TestCase):
 
         cls.test_semester = Semester.objects.create(
             year=timezone.now().year,
-            season=Semester.SPRING,
+            season=current_season(),
             registration_start=timezone.now(),
             registration_end=timezone.now() + timezone.timedelta(days=1),
         )
