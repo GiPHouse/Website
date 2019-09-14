@@ -10,7 +10,7 @@ from courses.models import Semester
 
 from projects.models import Project
 
-from registrations.models import GiphouseProfile, Role, Student
+from registrations.models import GiphouseProfile, Registration, Role, Student
 
 student_number_regex = re.compile(r'^[sS]?(\d{7})$')
 User: DjangoUser = get_user_model()
@@ -47,6 +47,12 @@ class Step2Form(forms.Form):
     course = forms.ChoiceField(choices=())
 
     email = forms.EmailField()
+
+    experience = forms.ChoiceField(
+        label="What is your programming experience?",
+        choices=Registration.EXPERIENCE_CHOICES,
+        initial=Registration.EXPERIENCE_BEGINNER,
+    )
 
     project1 = forms.ModelChoiceField(
         label="First project preference",

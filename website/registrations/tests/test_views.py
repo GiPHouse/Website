@@ -10,7 +10,7 @@ from courses.models import Semester
 
 from projects.models import Project
 
-from registrations.models import GiphouseProfile, Role
+from registrations.models import GiphouseProfile, Registration, Role
 from registrations.views import ChangeRequestView
 
 User: DjangoUser = get_user_model()
@@ -89,6 +89,7 @@ class Step2Test(TestCase):
         cls.github_username = 'test'
         cls.github_id = 1
         cls.student_number = 's4593847'
+        cls.experience = Registration.EXPERIENCE_BEGINNER
 
         cls.project_preference1 = Project.objects.create(
             semester=cls.semester,
@@ -151,6 +152,7 @@ class Step2Test(TestCase):
                                         'semester': self.semester.id,
                                         'course': self.se.id,
                                         'email': self.email,
+                                        'experience': self.experience,
                                         'project1': self.project_preference1.id,
                                         'project2': self.project_preference2.id,
                                         'project3': self.project_preference3.id,
@@ -167,6 +169,7 @@ class Step2Test(TestCase):
                                         'github_username': self.github_username,
                                         'course': self.se.id,
                                         'email': self.email,
+                                        'experience': self.experience,
                                         'project1': self.project_preference1.id,
                                         'project2': self.project_preference2.id,
                                         'project3': self.project_preference3.id,
@@ -182,6 +185,7 @@ class Step2Test(TestCase):
                                         'github_username': self.github_username,
                                         'course': self.se.id,
                                         'email': self.email,
+                                        'experience': self.experience,
                                         'project1': self.project_preference1.id,
                                         'project2': str(self.project_preference1.id),
                                     }, follow=True)
@@ -207,6 +211,7 @@ class Step2Test(TestCase):
                                         'github_username': self.github_username,
                                         'course': self.se.id,
                                         'email': self.email,
+                                        'experience': self.experience,
                                         'project1': self.project_preference1.id,
                                         'project2': self.project_preference2.id,
                                         'project3': self.project_preference3.id,
@@ -233,6 +238,7 @@ class Step2Test(TestCase):
                                         'last_name': self.last_name,
                                         'student_number': self.student_number,
                                         'github_username': self.github_username,
+                                        'experience': self.experience,
                                         'course': self.se.id,
                                         'email': self.email,
                                         'project1': self.project_preference1.id,
@@ -251,6 +257,7 @@ class Step2Test(TestCase):
                                         'semester': self.semester.id,
                                         'course': self.se.id,
                                         'email': self.email,
+                                        'experience': self.experience,
                                         'project1': self.project_preference1.id,
                                         'project2': self.project_preference2.id,
                                         'project3': self.project_preference3.id,

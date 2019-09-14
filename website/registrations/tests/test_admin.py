@@ -73,12 +73,14 @@ class RegistrationAdminTest(TestCase):
             'registration_set-MAX_NUM_FORMS': 1,
             'registration_set-0-preference1': project.id,
             'registration_set-0-semester': cls.semester.id,
+            'registration_set-0-experience': Registration.EXPERIENCE_BEGINNER,
             '_save': 'Save'
         }
 
         cls.registration = Registration.objects.create(
             user=cls.manager,
             semester=cls.semester,
+            experience=Registration.EXPERIENCE_BEGINNER,
             preference1=project,
         )
 
