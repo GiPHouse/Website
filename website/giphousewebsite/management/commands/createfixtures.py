@@ -253,10 +253,10 @@ class Command(BaseCommand):
         options = dict()
 
         if all([value is None for key, value in kwargs.items() if key in THINGS]) or kwargs['merge']:
-            self.stderr.write("Applying default options")
+            self.stdout.write("Applying default options")
             options = DEFAULTS
         else:
-            self.stderr.write("Only using user options")
+            self.stdout.write("Only using user options")
 
         for key, value in kwargs.items():
             if value is not None:
