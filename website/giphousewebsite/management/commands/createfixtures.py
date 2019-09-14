@@ -13,8 +13,15 @@ from courses.models import Course, Lecture, Semester
 
 from projects.models import Client, Project
 
-from questionnaires.models import AgreementAnswerData, Answer, OpenAnswerData, QualityAnswerData, Question, \
-    Questionnaire, QuestionnaireSubmission
+from questionnaires.models import (
+    AgreementAnswerData,
+    Answer,
+    OpenAnswerData,
+    QualityAnswerData,
+    Question,
+    Questionnaire,
+    QuestionnaireSubmission
+)
 
 from registrations.models import GiphouseProfile, Registration, Role
 
