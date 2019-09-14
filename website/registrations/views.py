@@ -110,6 +110,7 @@ class Step2View(FormView):
             Registration.objects.create(
                 user=user,
                 semester=Semester.objects.get_current_registration().first(),
+                experience=form.cleaned_data['experience'],
                 preference1=form.cleaned_data['project1'],
                 preference2=form.cleaned_data['project2'],
                 preference3=form.cleaned_data['project3'],

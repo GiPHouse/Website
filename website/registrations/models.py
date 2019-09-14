@@ -85,6 +85,16 @@ class GiphouseProfile(models.Model):
 class Registration(models.Model):
     """Model containing registration specific data."""
 
+    EXPERIENCE_BEGINNER = 1
+    EXPERIENCE_INTERMEDIATE = 2
+    EXPERIENCE_ADVANCED = 3
+
+    EXPERIENCE_CHOICES = (
+        (EXPERIENCE_BEGINNER, 'Beginner'),
+        (EXPERIENCE_BEGINNER, 'Intermediate'),
+        (EXPERIENCE_BEGINNER, 'Advanced'),
+    )
+
     class Meta:
         """Meta class for Registration."""
 
@@ -98,6 +108,10 @@ class Registration(models.Model):
     semester = models.ForeignKey(
         Semester,
         on_delete=models.CASCADE
+    )
+
+    experience = models.PositiveSmallIntegerField(
+        choices=EXPERIENCE_CHOICES
     )
 
     preference1 = models.ForeignKey(

@@ -139,7 +139,8 @@ class Command(BaseCommand):
             user=user,
             semester=Semester.objects.get_current_semester(),
             preference1=Project.objects.order_by('?').first(),
-            comments=random.choice([fake.sentence(), ''])
+            comments=random.choice([fake.sentence(), '']),
+            experience=Registration.EXPERIENCE_INTERMEDIATE,
         )
 
     def create_director(self):
@@ -271,5 +272,6 @@ class Command(BaseCommand):
                     try:
                         self.__getattribute__('create_' + thing)()
                         break
-                    except IntegrityError:
+                    except IntegrityError as e:
+                        print(e)
                         self.stderr.write("IntegrityError, trying again")
