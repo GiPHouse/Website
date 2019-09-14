@@ -273,5 +273,7 @@ class Command(BaseCommand):
                         self.__getattribute__('create_' + thing)()
                         break
                     except IntegrityError as e:
-                        print(e)
-                        self.stderr.write("IntegrityError, trying again")
+                        if 'UNIQUE constraint failed' in str(e.__cause__):
+                            self.stderr.write("IntegrityError, trying again")
+                        else:
+                            raise
