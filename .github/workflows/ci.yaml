@@ -4,21 +4,13 @@ name: "Continuous Integration"
 on: "push"
 
 jobs:
-  test:
-    name: "Linting and Testing"
+  lint:
+    name: "Linting"
     runs-on: "ubuntu-latest"
-
+    container: "python:3.7"
     steps:
     - name: "Checkout the repository"
       uses: "actions/checkout@v1"
-
-    - name: "Setup Python 3.7"
-      uses: "actions/setup-python@v1"
-      with:
-        python-version: '3.7'
-
-    - name: "Upgrade pip"
-      run: "python -m pip install --upgrade --no-cache-dir pip"
 
     - name: "Setup Poetry"
       run: |
@@ -37,6 +29,20 @@ jobs:
     - name: "Lint using PyDocStyle"
       run: "poetry run pydocstyle --explain --add-ignore=D100,D104 --match-dir='(?!migrations).*'"
 
+
+  django-test: 
+    name: "Testing: Django"
+    runs-on: "ubuntu-latest"
+    container: "python:3.7"
+    steps:
+    - name: "Checkout the repository"
+      uses: "actions/checkout@v1"
+
+    - name: "Setup Poetry"
+      run: |
+        python -m pip install --no-cache-dir poetry
+        poetry install
+
     - name: "Run Django checks"
       run: |
         poetry run python website/manage.py check --no-color
@@ -45,6 +51,24 @@ jobs:
       run: |
         poetry run python website/manage.py makemigrations --no-input --check --dry-run
         poetry run python website/manage.py migrate
+
+    - name: "Test createfixtures command"
+      run: "poetry run python website/manage.py createfixtures"
+
+
+  tests:
+    name: "Testing: Coverage"
+    runs-on: "ubuntu-latest"
+    container: "python:3.7"
+    needs: ["lint", "django-test"]
+    steps:
+    - name: "Checkout the repository"
+      uses: "actions/checkout@v1"
+
+    - name: "Setup Poetry"
+      run: |
+        python -m pip install --no-cache-dir poetry
+        poetry install
 
     - name: "Run Django tests using Coverage"
       run: >-
@@ -58,5 +82,3 @@ jobs:
     - name: "Check Coverage report"
       run: "poetry run coverage report --show-missing --skip-covered --fail-under=100"
 
-    - name: "Test createfixtures command"
-      run: "poetry run python website/manage.py createfixtures"
