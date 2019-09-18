@@ -8,13 +8,16 @@ done
 
 echo "Postgres database is up."
 
-chown --recursive www-data:www-data /giphouse/
+touch -a /giphouse/log/uwsgi.log
+touch -a /giphouse/log/django.log
 
 cd /giphouse/src/website/
 
 ./manage.py compilescss
 ./manage.py collectstatic --no-input -v0 --ignore="*.scss"
 ./manage.py migrate --no-input
+
+chown --recursive www-data:www-data /giphouse/
 
 echo "Starting uwsgi server."
 uwsgi --chdir=/giphouse/src/website \
