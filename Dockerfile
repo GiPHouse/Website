@@ -14,8 +14,6 @@ WORKDIR /giphouse/src/
 RUN mkdir --parents /giphouse/src/ && \
     mkdir --parents /giphouse/log/ && \
     mkdir --parents /giphouse/static/ && \
-    touch /giphouse/log/uwsgi.log && \
-    touch /giphouse/log/django.log && \
     chown --recursive www-data:www-data /giphouse/
 
 RUN apt-get update && \

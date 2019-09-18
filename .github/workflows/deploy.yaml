@@ -1,7 +1,6 @@
 ---
 
 name: "Deploy to production"
-
 on:
   push:
     branches:
@@ -11,7 +10,30 @@ jobs:
   deploy:
     name: "Deploy to production"
     runs-on: "ubuntu-latest"
-
     steps:
-      - name: "Test master branch job"
-        run: "echo TEST"
+      - name: "Checkout the repository"
+        uses: "actions/checkout@v1"
+        
+      - name: "Run deploy script"
+        run: "./resources/deploy.sh"
+        env:
+          DOCKER_IMAGE: "giphouse/giphousewebsite:latest"
+          DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
+
+          DEPLOY_DIRECTORY: "/usr/local/giphouse"
+
+          POSTGRES_NAME: "${{ secrets.POSTGRES_NAME }}"
+          POSTGRES_USER: "${{ secrets.POSTGRES_USER }}"
+          POSTGRES_PASSWORD: "${{ secrets.POSTGRES_PASSWORD }}"
+
+          DJANGO_SECRET_KEY: "${{ secrets.DJANGO_SECRET_KEY }}"
+
+          GITHUB_CLIENT_ID: "${{ secrets.GITHUB_CLIENT_ID }}"
+          GITHUB_CLIENT_SECRET: "${{ secrets.GITHUB_CLIENT_SECRET }}"
+
+          SSH_HOST: "staging.giphouse.nl"
+          SSH_USER: "${{ secrets.SSH_USER }}"
+          SSH_PRIVATE_KEY: "${{ secrets.SSH_PRIVATE_KEY }}"
+
+          COMMIT_HASH: "${{ github.sha }}"
