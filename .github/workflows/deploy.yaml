@@ -1,0 +1,17 @@
+---
+
+name: "Deploy to production"
+
+on:
+  push:
+    branches:
+      - "master"
+
+jobs:
+  deploy:
+    name: "Deploy to production"
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: "Test master branch job"
+        run: "echo TEST"
