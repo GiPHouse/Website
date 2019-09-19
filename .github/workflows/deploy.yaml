@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: "Checkout the repository"
         uses: "actions/checkout@v1"
-        
+
       - name: "Run deploy script"
         run: "./resources/deploy.sh"
         env:
