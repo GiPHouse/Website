@@ -1,4 +1,4 @@
-# GiPHouse website [![Build Status](https://travis-ci.com/GipHouse/Website.svg?branch=master)](https://travis-ci.com/GipHouse/Website)
+# GiPHouse website ![](https://github.com/giphouse/Website/workflows/Continuous%20Integration/badge.svg) ![](https://github.com/giphouse/Website/workflows/Deploy%20to%20production/badge.svg)
 
 This is the code for the website of [GiPHouse](http://giphouse.nl/) powered by [Django](https://www.djangoproject.com/).
 
