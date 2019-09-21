@@ -6,56 +6,7 @@ from courses.models import Semester
 
 from projects.models import Project
 
-from questionnaires.models import Answer, Question, Questionnaire, QuestionnaireSubmission
-
-
-class DecimalFilter(admin.SimpleListFilter):
-    """Filter class to filter specific decimal input."""
-
-    template = 'questionnaires/admin/decimal_filter.html'
-
-    def lookups(self, *args):
-        """Implement necessary method."""
-        return ()
-
-    def queryset(self, request, queryset):
-        """Implement necessary method."""
-
-    def has_output(self):
-        """Tell Django to always show this filter."""
-        return True
-
-    def value(self):
-        """Convert the specified value to a float."""
-        value = super().value()
-
-        try:
-            return float(value)
-        except (ValueError, TypeError):
-            return None
-
-    def choices(self, changelist):
-        """
-        Specify context variables.
-
-        Instead of sending actual choices, we use this method more like a `get_context_data` method.
-        Normally, this method specifies all the possible choices.
-        Because the user specifies their own input, we do not have a set of choices.
-        We, however, do have a lot of info that needs to be passed to the template to accomplish this.
-        That is why, instead of specifying choices, we specify context in this method.
-        """
-        return (
-            {
-                'get_query': changelist.params,
-                'parameter_name': self.parameter_name,
-                'help_text': self.help_text,
-                'current_value': self.value(),
-                'all': {
-                    'selected': self.value() is None,
-                    'query_string': changelist.get_query_string(remove=[self.parameter_name]),
-                },
-            },
-        )
+from questionnaires.models import Answer, Questionnaire, QuestionnaireSubmission
 
 
 class SubmissionAdminSemesterFilter(AutocompleteFilter):
@@ -71,28 +22,6 @@ class SubmissionAdminSemesterFilter(AutocompleteFilter):
             return queryset.filter(questionnaire__semester=self.value())
         else:
             return queryset
-
-
-class SubmissionAdminAverageFilter(DecimalFilter):
-    """Filter class to filter peer averages."""
-
-    title = 'Below Peer Average'
-    parameter_name = 'below_peer_average'
-    help_text = 'Closed question average of peer below x.'
-
-    def queryset(self, request, queryset):
-        """Return all submission that contain a peer average below the specified value."""
-        value = self.value()
-
-        if value is None:
-            return queryset
-
-        ids = [
-            submission.id
-            for submission in queryset
-            if submission.get_peer_average(value)
-        ]
-        return queryset.filter(id__in=ids)
 
 
 class SubmissionAdminQuestionnaireFilter(AutocompleteFilter):
@@ -206,29 +135,6 @@ class AnswerAdminPeerFilter(AutocompleteFilter):
 
     title = 'Peer'
     field_name = 'peer'
-
-
-class AnswerAdminValueFilter(DecimalFilter):
-    """Filter class to filter closed question answer values."""
-
-    title = 'Value Below Peer Answer'
-    parameter_name = 'below_peer'
-    help_text = 'Closed question of peer below x.'
-
-    def queryset(self, request, queryset):
-        """Filter all closed question answers below the specified value."""
-        value = self.value()
-
-        if value is None:
-            return queryset
-
-        ids = [
-            answer.id
-            for answer in queryset.exclude(question__question_type=Question.OPEN).exclude(peer__isnull=True)
-            if answer.answer.value <= value
-        ]
-
-        return queryset.filter(id__in=ids)
 
 
 class AnswerAdminSemesterFilter(AutocompleteFilter):
