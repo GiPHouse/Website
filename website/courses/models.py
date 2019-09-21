@@ -10,7 +10,7 @@ def current_year():
 
 def max_value_current_year(value):
     """Validate value, limit modelinput to current_year, call current_year to keep validator from changing per year."""
-    return MaxValueValidator(current_year()+1)(value)
+    return MaxValueValidator(current_year() + 1)(value)
 
 
 def current_season():
@@ -27,7 +27,7 @@ class Course(models.Model):
 
     def __str__(self):
         """Return name of course."""
-        return f'{self.name}'
+        return f"{self.name}"
 
 
 class SemesterManager(models.Manager):
@@ -53,21 +53,15 @@ class Semester(models.Model):
         - Spring 2019 comes before fall 2018.
         """
 
-        ordering = ['-year', 'season']
-        unique_together = [['year', 'season']]
+        ordering = ["-year", "season"]
+        unique_together = [["year", "season"]]
 
     SPRING = 0
     FALL = 1
-    CHOICES = (
-        (SPRING, 'Spring'),
-        (FALL, 'Fall'),
-    )
+    CHOICES = ((SPRING, "Spring"), (FALL, "Fall"))
 
     year = models.IntegerField(validators=[MinValueValidator(2008), max_value_current_year])
-    season = models.PositiveSmallIntegerField(
-        choices=CHOICES,
-        default=SPRING
-    )
+    season = models.PositiveSmallIntegerField(choices=CHOICES, default=SPRING)
 
     registration_start = models.DateTimeField(blank=True, null=True)
     registration_end = models.DateTimeField(blank=True, null=True)
@@ -80,7 +74,7 @@ class Semester(models.Model):
 
     def __str__(self):
         """Return semester season and year as string."""
-        return f'{self.get_season_display()} {self.year}'
+        return f"{self.get_season_display()} {self.year}"
 
 
 def get_slides_filename(instance, filename):
@@ -92,11 +86,11 @@ def get_slides_filename(instance, filename):
     :return: Name of file to save.
     """
     return (
-        f'courses/slides/'
-        f'{ instance.course }-'
-        f'{ instance.title }-'
+        f"courses/slides/"
+        f"{ instance.course }-"
+        f"{ instance.title }-"
         f'{ instance.date.strftime("%d-%b-%Y") }'
-        f'.pdf'
+        f".pdf"
     )
 
 
@@ -110,50 +104,26 @@ class Lecture(models.Model):
         Describing that course and title should be unique together.
         """
 
-        unique_together = (
-            ('course', 'title',),
-        )
+        unique_together = (("course", "title"),)
 
     date = models.DateField()
 
-    course = models.ForeignKey(
-        Course,
-        on_delete=models.CASCADE
-    )
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
 
-    semester = models.ForeignKey(
-        Semester,
-        on_delete=models.CASCADE
-    )
+    semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
 
-    title = models.CharField(
-        max_length=50,
-    )
+    title = models.CharField(max_length=50)
 
-    description = models.TextField(
-        blank=True,
-        null=True,
-    )
+    description = models.TextField(blank=True, null=True)
 
-    teacher = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-    )
+    teacher = models.CharField(max_length=50, blank=True, null=True)
 
-    location = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-    )
+    location = models.CharField(max_length=50, blank=True, null=True)
 
     slides = models.FileField(
-        upload_to=get_slides_filename,
-        validators=[FileExtensionValidator(['pdf'])],
-        blank=True,
-        null=True,
+        upload_to=get_slides_filename, validators=[FileExtensionValidator(["pdf"])], blank=True, null=True
     )
 
     def __str__(self):
         """Return value of Lecture and date object."""
-        return f'{ self.course } ({ self.date })'
+        return f"{ self.course } ({ self.date })"

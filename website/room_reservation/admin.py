@@ -7,8 +7,8 @@ from room_reservation.models import Reservation, Room
 class ReservationAdmin(admin.ModelAdmin):
     """Admin class for Reservation."""
 
-    list_display = ('reservee', 'room', 'start_time', 'end_time')
-    list_filter = ('room', 'start_time', 'end_time')
+    list_display = ("reservee", "room", "start_time", "end_time")
+    list_filter = ("room", "start_time", "end_time")
 
     def has_add_permission(self, request):
         """Reservation should only be added through the frontend."""
@@ -23,4 +23,4 @@ class ReservationAdmin(admin.ModelAdmin):
 class RoomAdmin(admin.ModelAdmin):
     """Admin class for Room."""
 
-    list_display = ('name', 'location')
+    list_display = ("name", "location")

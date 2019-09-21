@@ -9,5 +9,5 @@ class LoginRequiredMessageMixin(LoginRequiredMixin):
 
     def handle_no_permission(self):
         """Set message and handle unauthenticated user."""
-        messages.warning(self.request, self.message, extra_tags='warning')
+        messages.warning(self.request, self.message, extra_tags="warning")
         return super().handle_no_permission()

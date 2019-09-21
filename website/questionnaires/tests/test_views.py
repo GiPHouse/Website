@@ -31,7 +31,6 @@ def generate_post_data(questionnaire_id, peers):
 
 
 class QuestionnaireTest(TestCase):
-
     @classmethod
     def setUpTestData(cls):
 
@@ -39,28 +38,16 @@ class QuestionnaireTest(TestCase):
             year=2019,
             season=current_season(),
             registration_start=timezone.now(),
-            registration_end=timezone.now() + timezone.timedelta(days=60)
+            registration_end=timezone.now() + timezone.timedelta(days=60),
         )
 
-        cls.team = Project.objects.create(
-            semester=semester,
-            name="Test Project",
-            description="Description",
-        )
-        cls.user = User.objects.create_user(
-            username='myself',
-            password='123',
-        )
+        cls.team = Project.objects.create(semester=semester, name="Test Project", description="Description")
+        cls.user = User.objects.create_user(username="myself", password="123")
         cls.user.groups.add(cls.team)
         cls.user.save()
-        cls.alone_user = User.objects.create_user(
-            username='loner',
-            password='123',
-        )
+        cls.alone_user = User.objects.create_user(username="loner", password="123")
 
-        cls.peer = User.objects.create_user(
-            username='Jack',
-        )
+        cls.peer = User.objects.create_user(username="Jack")
         cls.peer.groups.add(cls.team)
         cls.peer.save()
 
@@ -98,35 +85,35 @@ class QuestionnaireTest(TestCase):
 
         Question.objects.create(
             questionnaire=cls.active_questions,
-            question='Open Question global',
+            question="Open Question global",
             question_type=Question.OPEN,
-            about_team_member=False
+            about_team_member=False,
         )
         Question.objects.create(
             questionnaire=cls.active_questions,
-            question='Closed Question global',
+            question="Closed Question global",
             question_type=Question.QUALITY,
-            about_team_member=True
+            about_team_member=True,
         )
         Question.objects.create(
             questionnaire=cls.active_questions,
-            question='Closed Question global',
+            question="Closed Question global",
             question_type=Question.AGREEMENT,
-            about_team_member=False
+            about_team_member=False,
         )
 
     def setUp(self):
         self.client = Client()
-        self.client.login(username='myself', password='123')
+        self.client.login(username="myself", password="123")
 
     def test_get_overview(self):
-        response = self.client.get(reverse('questionnaires:overview'))
+        response = self.client.get(reverse("questionnaires:overview"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Start Late')
+        self.assertContains(response, "Start Late")
 
     def test_get_questionnaire(self):
         response = self.client.get(
-            reverse('questionnaires:questionnaire', kwargs={'questionnaire': self.active_questions.id})
+            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id})
         )
         self.assertEqual(response.status_code, 200)
 
@@ -135,11 +122,11 @@ class QuestionnaireTest(TestCase):
         post_data = generate_post_data(self.active_questions.id, current_peers)
 
         response = self.client.post(
-            reverse('questionnaires:questionnaire', kwargs={'questionnaire': self.active_questions.id}),
+            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id}),
             post_data,
             follow=True,
         )
-        self.assertRedirects(response, reverse('home'))
+        self.assertRedirects(response, reverse("home"))
 
     def test_post_questionnaire_twice(self):
 
@@ -147,25 +134,25 @@ class QuestionnaireTest(TestCase):
         post_data = generate_post_data(self.active_questions.id, current_peers)
 
         response = self.client.post(
-            reverse('questionnaires:questionnaire', kwargs={'questionnaire': self.active_questions.id}),
+            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id}),
             post_data,
             follow=True,
         )
 
-        self.assertRedirects(response, reverse('home'))
+        self.assertRedirects(response, reverse("home"))
 
         response = self.client.post(
-            reverse('questionnaires:questionnaire', kwargs={'questionnaire': self.active_questions.id}),
+            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id}),
             post_data,
             follow=True,
         )
 
-        self.assertContains(response, 'Questionnaire already submitted.')
+        self.assertContains(response, "Questionnaire already submitted.")
 
     def test_post_closed(self):
 
         response = self.client.post(
-            reverse('questionnaires:questionnaire', kwargs={'questionnaire': self.closed_questions.id}),
+            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.closed_questions.id}),
             {},
             follow=True,
         )
@@ -173,36 +160,39 @@ class QuestionnaireTest(TestCase):
 
     def test_get_closed_questionnaire(self):
         response = self.client.get(
-            reverse('questionnaires:questionnaire', kwargs={'questionnaire': self.closed_questions.id}),
+            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.closed_questions.id})
         )
         self.assertEquals(response.status_code, 404)
 
     def test_all_questionnaires_visible(self):
-        response = self.client.get(reverse('questionnaires:overview'))
+        response = self.client.get(reverse("questionnaires:overview"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.active_questions.title)
         self.assertContains(response, self.closed_questions.title)
 
     def test_warning_message_not_shown_when_user_is_in_team(self):
         response = self.client.get(
-            reverse('questionnaires:questionnaire', kwargs={'questionnaire': self.active_questions.id})
+            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id})
         )
-        self.assertNotContains(response, "This questionnaire contains questions about your team members, "
-                                         "but you are either not in a project, or your project has no other peers.")
+        self.assertNotContains(
+            response,
+            "This questionnaire contains questions about your team members, "
+            "but you are either not in a project, or your project has no other peers.",
+        )
 
     def test_warning_message_shown_when_user_is_alone(self):
-        self.client.login(username='loner', password='123')
+        self.client.login(username="loner", password="123")
         response = self.client.get(
-            reverse('questionnaires:questionnaire', kwargs={'questionnaire': self.active_questions.id})
+            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id})
         )
-        self.assertContains(response, "This questionnaire contains questions about your team members, "
-                                      "but you are either not in a project, or your project has no other peers.")
+        self.assertContains(
+            response,
+            "This questionnaire contains questions about your team members, "
+            "but you are either not in a project, or your project has no other peers.",
+        )
 
 
 class NoQuestionnairesTest(TestCase):
     def test_navbar_link_not_visible_with_no_questionnaires(self):
-        response = self.client.get(reverse('home'))
-        self.assertNotContains(
-            response,
-            'Questionnaires',
-        )
+        response = self.client.get(reverse("home"))
+        self.assertNotContains(response, "Questionnaires")

@@ -45,7 +45,7 @@ class GithubOAuthBackend:
         :return: The authenticated user or None.
         """
         try:
-            github_id = self.get_github_info(code)['id']
+            github_id = self.get_github_info(code)["id"]
         except KeyError:
             raise GithubOAuthBadResponse
 
@@ -62,13 +62,7 @@ class GithubOAuthBackend:
 
         try:
             response = requests.get(
-                URL_GITHUB_USER_INFO,
-                params={
-                    'access_token': access_token
-                },
-                headers={
-                    'Accept': 'application/json'
-                },
+                URL_GITHUB_USER_INFO, params={"access_token": access_token}, headers={"Accept": "application/json"}
             )
         except RequestException:
             raise GithubOAuthConnectionError
@@ -115,19 +109,17 @@ class GithubOAuthBackend:
             response = requests.post(
                 URL_GITHUB_ACCESS_TOKEN,
                 data={
-                    'client_id': settings.GITHUB_CLIENT_ID,
-                    'client_secret': settings.GITHUB_CLIENT_SECRET,
-                    'code': code,
+                    "client_id": settings.GITHUB_CLIENT_ID,
+                    "client_secret": settings.GITHUB_CLIENT_SECRET,
+                    "code": code,
                 },
-                headers={
-                    'Accept': 'application/json'
-                },
+                headers={"Accept": "application/json"},
             )
         except RequestException:
             raise GithubOAuthConnectionError
 
         try:
-            return response.json()['access_token']
+            return response.json()["access_token"]
         except ValueError:
             raise GithubOAuthJSONDecodeError
         except KeyError:

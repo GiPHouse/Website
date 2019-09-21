@@ -5,7 +5,6 @@ from courses.models import Course, Semester
 
 
 class GetCoursesTest(TestCase):
-
     @classmethod
     def setUpTestData(cls):
 
@@ -14,15 +13,12 @@ class GetCoursesTest(TestCase):
         cls.year = 2019
 
         cls.semester = Semester.objects.create(
-            year=cls.year,
-            season=cls.season,
-            registration_start=timezone.now(),
-            registration_end=timezone.now(),
+            year=cls.year, season=cls.season, registration_start=timezone.now(), registration_end=timezone.now()
         )
 
     def setUp(self):
         self.client = Client()
 
     def test_get_success(self):
-        response = self.client.get(f'/lectures/{self.year}/{self.season}/')
+        response = self.client.get(f"/lectures/{self.year}/{self.season}/")
         self.assertEqual(response.status_code, 200)

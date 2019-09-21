@@ -9,24 +9,14 @@ User = get_user_model()
 
 
 class ReservationTest(TestCase):
-
     @classmethod
     def setUpTestData(cls):
 
-        cls.user = User.objects.create_user(
-            username='myself',
-            password='123',
-        )
+        cls.user = User.objects.create_user(username="myself", password="123")
 
-        cls.other_user = User.objects.create_user(
-            username='someone else',
-            password='123',
-        )
+        cls.other_user = User.objects.create_user(username="someone else", password="123")
 
-        cls.room = Room.objects.create(
-            name="New York",
-            location="Merc 0.1337",
-        )
+        cls.room = Room.objects.create(name="New York", location="Merc 0.1337")
 
         cls.user_reservation = Reservation.objects.create(
             reservee=cls.user,
@@ -44,8 +34,8 @@ class ReservationTest(TestCase):
 
     def setUp(self):
         self.client = Client()
-        self.client.login(username='myself', password='123')
+        self.client.login(username="myself", password="123")
 
     def test_get_calendar(self):
-        response = self.client.get(reverse('room_reservation:calendar'))
+        response = self.client.get(reverse("room_reservation:calendar"))
         self.assertEqual(response.status_code, 200)

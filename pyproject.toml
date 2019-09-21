@@ -28,7 +28,19 @@ coverage = "^4.5"
 pydocstyle = "^3.0"
 freezegun = "^0.3.11"
 Faker = "^1.0"
+black = {version = "^18.3-alpha.0",allows-prereleases = true}
 
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
+
+[tool.black]
+# Django Default
+line-length = 119
+target-version = ['py37']
+exclude = '''
+/(
+  migrations
+  | website/giphousewebsite/settings
+)/
+'''
