@@ -83,32 +83,6 @@ class QuestionnaireSubmission(models.Model):
         self.late = timezone.now() > self.questionnaire.available_until_soft
         super().save(**kwargs)
 
-    def get_peer_ids(self):
-        """Return all ids of peers related to this submission."""
-        return set(self.answer_set.filter(peer__isnull=False).values_list('peer_id', flat=True))
-
-    def get_peer_average(self, threshold):
-        """
-        Calculate whether this submission has a peer average below the threshold.
-
-        Calculate the average of the numerical values of all answers to closed questions for each peer
-        in this submission. If an average is below the threshold, return True.
-        :param threshold:
-        :return: Whether the average is below the threshold.
-        """
-        for peer_id in self.get_peer_ids():
-            closed_answer_data = [
-                answer.answer.value
-                for answer in self.answer_set
-                                  .filter(peer_id=peer_id)
-                                  .exclude(question__question_type=Question.OPEN)
-            ]
-
-            if closed_answer_data and sum(closed_answer_data)/len(closed_answer_data) <= threshold:
-                return True
-
-        return False
-
     def __str__(self):
         """Return string representation of the submission."""
         return self.questionnaire.title
@@ -154,51 +128,6 @@ class Question(models.Model):
         return self.question
 
 
-class AnswerManager(models.Manager):
-    """Manager for the Answer model."""
-
-    def _average(self, queryset):
-        """Return the average of a queryset of closed answers."""
-        answers = [answer.answer.value for answer in queryset]
-        return round(sum(answers) / len(answers), 2) if answers else None
-
-    def person_average_question(self, answer):
-        """Return the average of all answers to the question of the answer about the answer peer."""
-        return self._average(self.filter(question=answer.question, peer=answer.peer))
-
-    def person_average_all(self, answer):
-        """Return the average of all answers to closed questions about the answer peer."""
-        return self._average(
-            self.filter(submission__questionnaire=answer.submission.questionnaire, peer=answer.peer)
-                .exclude(question__question_type=Question.OPEN)
-        )
-
-    def project_average_question(self, answer):
-        """Return the average of all answers to the question of the answer for the project of the participant."""
-        return self._average(
-            self.filter(question=answer.question, peer_id__in=answer.submission.get_peer_ids())
-        )
-
-    def project_average_all(self, answer):
-        """Return the average of all answers to closed questions for the project of the participant."""
-        return self._average(
-            self.filter(submission__questionnaire=answer.submission.questionnaire,
-                        peer_id__in=answer.submission.get_peer_ids())
-                .exclude(question__question_type=Question.OPEN)
-        )
-
-    def year_average_question(self, answer):
-        """Return the average of all answers to the question of the answer."""
-        return self._average(self.filter(question=answer.question))
-
-    def year_average_all(self, answer):
-        """Return the average of all answers to closed questions in the questionnaire of the answer."""
-        return self._average(
-            self.filter(submission__questionnaire=answer.submission.questionnaire)
-                .exclude(question__question_type=Question.OPEN)
-            )
-
-
 class Answer(models.Model):
     """Answer to a question."""
 
@@ -212,8 +141,6 @@ class Answer(models.Model):
         blank=True,
         null=True,
     )
-
-    objects = AnswerManager()
 
     @property
     def answer(self):

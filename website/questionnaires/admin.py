@@ -9,8 +9,6 @@ from questionnaires.filters import (
     AnswerAdminQuestionFilter,
     AnswerAdminQuestionnaireFilter,
     AnswerAdminSemesterFilter,
-    AnswerAdminValueFilter,
-    SubmissionAdminAverageFilter,
     SubmissionAdminParticipantFilter,
     SubmissionAdminPeerFilter,
     SubmissionAdminProjectFilter,
@@ -20,18 +18,6 @@ from questionnaires.filters import (
 from questionnaires.models import Answer, Question, Questionnaire, QuestionnaireSubmission
 
 User: DjangoUser = get_user_model()
-
-
-def generate_average_field_function(method_name, text):
-    """Return function that shows an average (given by method_name) in the admin."""
-    def function(obj):
-        if obj.question.is_closed and obj.question.about_team_member:
-            average = method_name(obj)
-            return average
-        return '-'
-    function.short_description = text
-
-    return function
 
 
 class QuestionInline(admin.TabularInline):
@@ -53,18 +39,6 @@ class AnswerInline(admin.TabularInline):
         'question',
         'peer',
         'answer',
-        generate_average_field_function(Answer.objects.person_average_question,
-                                        'Average for peer and specific question'),
-        generate_average_field_function(Answer.objects.person_average_all,
-                                        'Average for peer and all questions'),
-        generate_average_field_function(Answer.objects.project_average_question,
-                                        'Average for project and specific question'),
-        generate_average_field_function(Answer.objects.project_average_all,
-                                        'Average for project and all questions'),
-        generate_average_field_function(Answer.objects.year_average_question,
-                                        'Average for all users and specific question'),
-        generate_average_field_function(Answer.objects.year_average_all,
-                                        'Average for all users and all questions'),
     )
     extra = 0
     ordering = ['peer', 'question']
@@ -98,7 +72,7 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
 
     list_display = ('questionnaire', 'participant_name', 'on_time')
     list_filter = (SubmissionAdminSemesterFilter, SubmissionAdminQuestionnaireFilter, SubmissionAdminParticipantFilter,
-                   SubmissionAdminPeerFilter, SubmissionAdminProjectFilter, 'late', SubmissionAdminAverageFilter)
+                   SubmissionAdminPeerFilter, SubmissionAdminProjectFilter, 'late')
 
     def participant_name(self, obj):
         """Return the full name of the participant."""
@@ -123,23 +97,9 @@ class AnswerAdmin(admin.ModelAdmin):
 
     list_filter = (AnswerAdminSemesterFilter, AnswerAdminQuestionnaireFilter, AnswerAdminQuestionFilter,
                    AnswerAdminProjectFilter, AnswerAdminParticipantFilter, AnswerAdminPeerFilter,
-                   'submission__late', AnswerAdminValueFilter)
+                   'submission__late')
 
-    readonly_fields = (
-        'answer',
-        generate_average_field_function(Answer.objects.person_average_question,
-                                        'Average for peer and specific question'),
-        generate_average_field_function(Answer.objects.person_average_all,
-                                        'Average for peer and all questions'),
-        generate_average_field_function(Answer.objects.project_average_question,
-                                        'Average for project and specific question'),
-        generate_average_field_function(Answer.objects.project_average_all,
-                                        'Average for project and all questions'),
-        generate_average_field_function(Answer.objects.year_average_question,
-                                        'Average for all users and specific question'),
-        generate_average_field_function(Answer.objects.year_average_all,
-                                        'Average for all users and all questions'),
-    )
+    readonly_fields = ('answer',)
 
     list_display = (
         'questionnaire',

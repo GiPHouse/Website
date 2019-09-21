@@ -13,8 +13,6 @@ from questionnaires.filters import (
     AnswerAdminProjectFilter,
     AnswerAdminQuestionnaireFilter,
     AnswerAdminSemesterFilter,
-    AnswerAdminValueFilter,
-    SubmissionAdminAverageFilter,
     SubmissionAdminPeerFilter,
     SubmissionAdminProjectFilter,
     SubmissionAdminSemesterFilter,
@@ -124,26 +122,6 @@ class QuestionnaireTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-    def test_get_submission_changelist_averagefilter(self):
-        response = self.client.get(
-            reverse('admin:questionnaires_questionnairesubmission_changelist'),
-            data={
-                SubmissionAdminAverageFilter.parameter_name: self.closed_answer.answer.value + 0.5,
-            },
-            follow=True,
-        )
-        self.assertEqual(response.status_code, 200)
-
-    def test_get_submission_changelist_averagefilter_below(self):
-        response = self.client.get(
-            reverse('admin:questionnaires_questionnairesubmission_changelist'),
-            data={
-                SubmissionAdminAverageFilter.parameter_name: self.closed_answer.answer.value - 0.5,
-            },
-            follow=True,
-        )
-        self.assertEqual(response.status_code, 200)
-
     def test_get_submission_changelist_semesterfilter(self):
         response = self.client.get(
             reverse('admin:questionnaires_questionnairesubmission_changelist'),
@@ -213,16 +191,6 @@ class QuestionnaireTest(TestCase):
             reverse('admin:questionnaires_answer_changelist'),
             data={
                 f'{AnswerAdminParticipantFilter.field_name}__id__exact': self.user.id,
-            },
-            follow=True,
-        )
-        self.assertEqual(response.status_code, 200)
-
-    def test_get_answer_changelist_valuefilter(self):
-        response = self.client.get(
-            reverse('admin:questionnaires_answer_changelist'),
-            data={
-                AnswerAdminValueFilter.parameter_name: self.closed_answer.answer.value + 0.5,
             },
             follow=True,
         )
