@@ -1,4 +1,4 @@
-# GiPHouse website ![](https://github.com/giphouse/Website/workflows/Continuous%20Integration/badge.svg) ![](https://github.com/giphouse/Website/workflows/Deploy%20to%20production/badge.svg)
+# GiPHouse website ![](https://github.com/giphouse/Website/workflows/Linting%20and%20Testing/badge.svg) ![](https://github.com/giphouse/Website/workflows/Deploy%20to%20production/badge.svg)
 
 This is the code for the website of [GiPHouse](http://giphouse.nl/) powered by [Django](https://www.djangoproject.com/).
 
