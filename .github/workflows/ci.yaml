@@ -1,14 +1,14 @@
 ---
 
-name: "Continuous Integration"
+name: "Linting and Testing"
 on: "push"
 
 jobs:
-  test:
-    name: "Linting and Testing"
+  lint:
+    name: "Linting"
     runs-on: "ubuntu-latest"
-
     steps:
+
     - name: "Checkout the repository"
       uses: "actions/checkout@v1"
 
@@ -17,18 +17,16 @@ jobs:
       with:
         python-version: '3.7'
 
-    - name: "Upgrade pip"
-      run: "python -m pip install --upgrade --no-cache-dir pip"
-
     - name: "Setup Poetry"
       run: |
+        python -m pip install --upgrade --no-cache-dir pip
         python -m pip install --no-cache-dir poetry
         poetry install
 
-    - name: "Lint using Black"
+    - name: "Run Black"
       run: "poetry run black --check website"
 
-    - name: "Lint using flake8"
+    - name: "Run flake8"
       run: >-
         poetry run
         flake8
@@ -37,12 +35,30 @@ jobs:
         --application-import-names="$(ls -1 website/*/__init__.py | awk -F'/' 'BEGIN { ORS = "," } {print $(NF-1) }')"
         website
 
-    - name: "Lint using PyDocStyle"
+    - name: "Run PyDocStyle"
       run: "poetry run pydocstyle --explain --add-ignore=D100,D104 --match-dir='(?!migrations).*'"
 
-    - name: "Run Django checks"
+  test:
+    name: "Testing"
+    runs-on: "ubuntu-latest"
+    steps:
+
+    - name: "Checkout the repository"
+      uses: "actions/checkout@v1"
+
+    - name: "Setup Python 3.7"
+      uses: "actions/setup-python@v1"
+      with:
+        python-version: '3.7'
+
+    - name: "Setup Poetry"
       run: |
-        poetry run python website/manage.py check --no-color
+        python -m pip install --upgrade --no-cache-dir pip
+        python -m pip install --no-cache-dir poetry
+        poetry install
+
+    - name: "Run Django checks"
+      run: "poetry run python website/manage.py check --no-color"
 
     - name: "Test migrations"
       run: |
