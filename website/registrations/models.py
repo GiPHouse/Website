@@ -91,8 +91,8 @@ class Registration(models.Model):
 
     EXPERIENCE_CHOICES = (
         (EXPERIENCE_BEGINNER, 'Beginner'),
-        (EXPERIENCE_BEGINNER, 'Intermediate'),
-        (EXPERIENCE_BEGINNER, 'Advanced'),
+        (EXPERIENCE_INTERMEDIATE, 'Intermediate'),
+        (EXPERIENCE_ADVANCED, 'Advanced'),
     )
 
     class Meta:
