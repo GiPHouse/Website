@@ -31,17 +31,16 @@ class BaseReservationView(View):
         end_time = end_time.astimezone(timezone.get_current_timezone())
 
         if end_time.date() - start_time.date() >= timezone.timedelta(days=1):
-            return False, 'Reservation too long. Please shorten your reservation'
+            return False, "Reservation too long. Please shorten your reservation"
 
         if start_time >= end_time:
-            return False, 'Start time needs to be before end time'
+            return False, "Start time needs to be before end time"
 
         if start_time.hour < 8 or start_time.hour >= 18 or end_time.hour < 8 or start_time.hour > 18:
-            return False, 'Please enter times between 8:00 and 18:00'
+            return False, "Please enter times between 8:00 and 18:00"
 
         already_taken = (
-            Reservation.objects
-            .filter(room=room)
+            Reservation.objects.filter(room=room)
             .filter(
                 Q(start_time__lte=start_time, end_time__gt=start_time)
                 | Q(start_time__lt=end_time, end_time__gte=end_time)
@@ -52,23 +51,25 @@ class BaseReservationView(View):
         )
 
         if already_taken:
-            return False, 'Room already reserved in this timeslot'
+            return False, "Room already reserved in this timeslot"
         return True, None
 
     def load_json(self):
         """Extract the json data from text_body."""
         body = json.loads(self.request.body)
-        room = body['room']
-        start_time = dateparse.parse_datetime(body['start_time'])
-        end_time = dateparse.parse_datetime(body['end_time'])
+        room = body["room"]
+        start_time = dateparse.parse_datetime(body["start_time"])
+        end_time = dateparse.parse_datetime(body["end_time"])
         return room, start_time, end_time
 
     def can_edit(self, reservation):
         """Return true if the reservation can be edited by the logged in user."""
-        return self.request.user.has_perms(
-            ['room_reservation.change_reservation', 'room_reservation.delete_reservation'],
-            reservation
-        ) or self.request.user == reservation.reservee
+        return (
+            self.request.user.has_perms(
+                ["room_reservation.change_reservation", "room_reservation.delete_reservation"], reservation
+            )
+            or self.request.user == reservation.reservee
+        )
 
 
 class ShowCalendarView(LoginRequiredMessageMixin, TemplateView, BaseReservationView):
@@ -79,28 +80,34 @@ class ShowCalendarView(LoginRequiredMessageMixin, TemplateView, BaseReservationV
     and to update and delete your own.
     """
 
-    template_name = 'room_reservation/index.html'
+    template_name = "room_reservation/index.html"
 
     def get_context_data(self, **kwargs):
         """Load all information for the calendar."""
         context = super(ShowCalendarView, self).get_context_data(**kwargs)
 
-        context['reservations'] = json.dumps([{
-            'pk': reservation.pk,
-            'title': str(reservation.room) + ' reserved by ' + (
-                'you' if self.request.user == reservation.reservee else str(reservation.reservee)
-            ),
-            'reservee': str(reservation.reservee)
-            if self.request.user.has_perm('room_reservation.view_reservation') else None,
-            'room': reservation.room_id,
-            'start': reservation.start_time.isoformat(),
-            'end': reservation.end_time.isoformat(),
-            'editable': self.can_edit(reservation)
-        } for reservation in Reservation.objects.filter(
-            start_time__date__gte=timezone.now() - timedelta(days=60),
-            start_time__date__lt=timezone.now() + timedelta(days=60),
-        )])
-        context['rooms'] = Room.objects.all()
+        context["reservations"] = json.dumps(
+            [
+                {
+                    "pk": reservation.pk,
+                    "title": str(reservation.room)
+                    + " reserved by "
+                    + ("you" if self.request.user == reservation.reservee else str(reservation.reservee)),
+                    "reservee": str(reservation.reservee)
+                    if self.request.user.has_perm("room_reservation.view_reservation")
+                    else None,
+                    "room": reservation.room_id,
+                    "start": reservation.start_time.isoformat(),
+                    "end": reservation.end_time.isoformat(),
+                    "editable": self.can_edit(reservation),
+                }
+                for reservation in Reservation.objects.filter(
+                    start_time__date__gte=timezone.now() - timedelta(days=60),
+                    start_time__date__lt=timezone.now() + timedelta(days=60),
+                )
+            ]
+        )
+        context["rooms"] = Room.objects.all()
 
         return context
 
@@ -115,19 +122,16 @@ class CreateReservationView(LoginRequiredMixin, BaseReservationView):
         try:
             room, start_time, end_time = self.load_json()
         except (KeyError, JSONDecodeError):
-            return HttpResponseBadRequest(json.dumps({'ok': 'False', 'message': 'Bad request'}))
+            return HttpResponseBadRequest(json.dumps({"ok": "False", "message": "Bad request"}))
 
         ok, message = self.validate(room, start_time, end_time)
         if not ok:
-            return JsonResponse({'ok': False, 'message': message})
+            return JsonResponse({"ok": False, "message": message})
 
         reservation = Reservation.objects.create(
-            reservee=request.user,
-            room_id=room,
-            start_time=start_time,
-            end_time=end_time,
+            reservee=request.user, room_id=room, start_time=start_time, end_time=end_time
         )
-        return JsonResponse({'ok': True, 'pk': reservation.pk})
+        return JsonResponse({"ok": True, "pk": reservation.pk})
 
 
 class UpdateReservationView(LoginRequiredMixin, BaseReservationView):
@@ -140,24 +144,24 @@ class UpdateReservationView(LoginRequiredMixin, BaseReservationView):
         try:
             room, start_time, end_time = self.load_json()
         except (KeyError, JSONDecodeError):
-            return HttpResponseBadRequest(json.dumps({'ok': 'False', 'message': 'Bad request'}))
+            return HttpResponseBadRequest(json.dumps({"ok": "False", "message": "Bad request"}))
 
         try:
             reservation = Reservation.objects.get(pk=pk)
         except Reservation.DoesNotExist:
-            return JsonResponse({'ok': False, 'message': 'This reservation does not exist'})
+            return JsonResponse({"ok": False, "message": "This reservation does not exist"})
 
         if not self.can_edit(reservation):
-            return JsonResponse({'ok': False, 'message': 'You can only update your own events'})
+            return JsonResponse({"ok": False, "message": "You can only update your own events"})
 
         ok, message = self.validate(room, start_time, end_time, pk=pk)
         if not ok:
-            return JsonResponse({'ok': False, 'message': message})
+            return JsonResponse({"ok": False, "message": message})
 
         reservation.start_time = start_time
         reservation.end_time = end_time
         reservation.save()
-        return JsonResponse({'ok': True})
+        return JsonResponse({"ok": True})
 
 
 class DeleteReservationView(LoginRequiredMixin, BaseReservationView):
@@ -170,10 +174,10 @@ class DeleteReservationView(LoginRequiredMixin, BaseReservationView):
         try:
             reservation = Reservation.objects.get(pk=pk)
         except Reservation.DoesNotExist:
-            return JsonResponse({'ok': False, 'message': 'This reservation does not exist'})
+            return JsonResponse({"ok": False, "message": "This reservation does not exist"})
 
         if not self.can_edit(reservation):
-            return JsonResponse({'ok': False, 'message': 'You can only delete your own events'})
+            return JsonResponse({"ok": False, "message": "You can only delete your own events"})
 
         reservation.delete()
-        return JsonResponse({'ok': True})
+        return JsonResponse({"ok": True})

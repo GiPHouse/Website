@@ -20,7 +20,7 @@ from questionnaires.models import (
     QualityAnswerData,
     Question,
     Questionnaire,
-    QuestionnaireSubmission
+    QuestionnaireSubmission,
 )
 
 from registrations.models import GiphouseProfile, Registration, Role
@@ -38,15 +38,15 @@ fake.add_provider(lorem)
 fake.add_provider(internet)
 
 DEFAULTS = {
-    'lecture': 8,
-    'project': 5,
-    'student': 25,
-    'director': 2,
-    'questionnaire': 2,
-    'question': 8,
-    'submission': 23,
-    'room': 2,
-    'reservation': 10,
+    "lecture": 8,
+    "project": 5,
+    "student": 25,
+    "director": 2,
+    "questionnaire": 2,
+    "question": 8,
+    "submission": 23,
+    "room": 2,
+    "reservation": 10,
 }
 THINGS = list(DEFAULTS.keys())
 
@@ -54,21 +54,21 @@ THINGS = list(DEFAULTS.keys())
 class Command(BaseCommand):
     """Add the createfixtures command to manage.py."""
 
-    help = 'Creates basic model instances for local testing'
+    help = "Creates basic model instances for local testing"
 
     def add_arguments(self, parser):
         """Add all the arguments used by the createfixtures command."""
         for thing in THINGS:
             parser.add_argument(
-                f'--{thing}',
-                type=int,
-                help=f"The amount of fake {thing}s to add, default = {DEFAULTS[thing]}"
+                f"--{thing}", type=int, help=f"The amount of fake {thing}s to add, default = {DEFAULTS[thing]}"
             )
-        parser.add_argument('--merge',
-                            action='store_true',
-                            help="Use default options, but overwrite with supplied command line options. "
-                                 "The default behaviour is to ignore the default options when a "
-                                 "command line option is supplied.")
+        parser.add_argument(
+            "--merge",
+            action="store_true",
+            help="Use default options, but overwrite with supplied command line options. "
+            "The default behaviour is to ignore the default options when a "
+            "command line option is supplied.",
+        )
 
     def create_base(self):
         """Create basic instances used by other fixtures."""
@@ -76,17 +76,17 @@ class Command(BaseCommand):
             year=timezone.now().year,
             season=Semester.FALL,
             defaults={
-                'registration_start': timezone.now() - timezone.timedelta(days=90),
-                'registration_end': timezone.now() - timezone.timedelta(days=60),
-            }
+                "registration_start": timezone.now() - timezone.timedelta(days=90),
+                "registration_end": timezone.now() - timezone.timedelta(days=60),
+            },
         )
         Semester.objects.get_or_create(
             year=timezone.now().year,
             season=Semester.SPRING,
             defaults={
-                'registration_start': timezone.now() - timezone.timedelta(days=30),
-                'registration_end': timezone.now() + timezone.timedelta(days=30),
-            }
+                "registration_start": timezone.now() - timezone.timedelta(days=30),
+                "registration_end": timezone.now() + timezone.timedelta(days=30),
+            },
         )
         self.sdm, _ = Role.objects.get_or_create(name=Role.SDM)
         self.se, _ = Role.objects.get_or_create(name=Role.SE)
@@ -95,77 +95,84 @@ class Command(BaseCommand):
         """Create one fake lecture."""
         Lecture.objects.create(
             date=fake.date_between(start_date="-2m", end_date="+1w"),
-            course=Course.objects.order_by('?').first(),
-            semester=Semester.objects.order_by('?').first(),
+            course=Course.objects.order_by("?").first(),
+            semester=Semester.objects.order_by("?").first(),
             title=fake.catch_phrase(),
-            description=' '.join(fake.sentences(nb=4)),
+            description=" ".join(fake.sentences(nb=4)),
             teacher=fake.name(),
-            location=f'{fake.street_name()} {fake.building_number()}',
+            location=f"{fake.street_name()} {fake.building_number()}",
         )
 
     def create_project(self):
         """Create one fake project."""
-        client = Client.objects.create(
-            name=fake.company()
-        )
+        client = Client.objects.create(name=fake.company())
         Project.objects.create(
-            name=(fake.word().capitalize() + ' '
-                  + random.choice(['Creator', 'Builder', 'To ' + fake.file_extension(), 'Reader', 'Website', 'App',
-                                   'Solution', 'In The Cloud', 'As A Service', 'Using Blockchain'])),
-            semester=Semester.objects.order_by('?').first(),
-            description=' '.join(fake.paragraphs(nb=3)),
+            name=(
+                fake.word().capitalize()
+                + " "
+                + random.choice(
+                    [
+                        "Creator",
+                        "Builder",
+                        "To " + fake.file_extension(),
+                        "Reader",
+                        "Website",
+                        "App",
+                        "Solution",
+                        "In The Cloud",
+                        "As A Service",
+                        "Using Blockchain",
+                    ]
+                )
+            ),
+            semester=Semester.objects.order_by("?").first(),
+            description=" ".join(fake.paragraphs(nb=3)),
             client=client,
         )
 
     def create_student(self):
         """Create one fake student."""
-        github_id = random.randint(1, 999999)
+        github_id = random.randint(1, 999_999)
         user = User.objects.create(
-            username='github_' + str(github_id),
+            username="github_" + str(github_id),
             email=fake.ascii_free_email(),
             first_name=fake.first_name(),
             last_name=fake.last_name(),
         )
-        user.groups.add(Project.objects.order_by('?').first())
+        user.groups.add(Project.objects.order_by("?").first())
         user.groups.add(random.choice([self.sdm, self.se]))
         user.save()
         GiphouseProfile.objects.create(
-            user=user,
-            github_id=github_id,
-            github_username=fake.user_name(),
-            student_number=fake.bothify("s#######"),
+            user=user, github_id=github_id, github_username=fake.user_name(), student_number=fake.bothify("s#######")
         )
         Registration.objects.create(
             user=user,
             semester=Semester.objects.get_current_semester(),
-            preference1=Project.objects.order_by('?').first(),
-            comments=random.choice([fake.sentence(), '']),
+            preference1=Project.objects.order_by("?").first(),
+            comments=random.choice([fake.sentence(), ""]),
             experience=Registration.EXPERIENCE_INTERMEDIATE,
         )
 
     def create_director(self):
         """Create one fake director."""
-        github_id = random.randint(1, 999999)
+        github_id = random.randint(1, 999_999)
         user = User.objects.create(
-            username='github_' + str(github_id),
+            username="github_" + str(github_id),
             email=fake.ascii_free_email(),
             first_name=fake.first_name(),
             last_name=fake.last_name(),
         )
-        user.groups.add(Project.objects.order_by('?').first())
+        user.groups.add(Project.objects.order_by("?").first())
         user.save()
         GiphouseProfile.objects.create(
-            user=user,
-            github_id=github_id,
-            github_username=fake.user_name(),
-            student_number=fake.bothify("s#######"),
+            user=user, github_id=github_id, github_username=fake.user_name(), student_number=fake.bothify("s#######")
         )
 
     def create_questionnaire(self):
         """Create one fake questionnaire."""
         Questionnaire.objects.create(
             title=fake.sentence(),
-            semester=Semester.objects.order_by('?').first(),
+            semester=Semester.objects.order_by("?").first(),
             available_from=timezone.now() - timezone.timedelta(days=2),
             available_until_soft=timezone.now() + timezone.timedelta(days=10),
             available_until_hard=timezone.now() + timezone.timedelta(days=15),
@@ -174,35 +181,26 @@ class Command(BaseCommand):
     def create_question(self):
         """Create one fake question."""
         Question.objects.create(
-            questionnaire=Questionnaire.objects.order_by('?').first(),
-            question=fake.sentence().replace('.', '?'),
+            questionnaire=Questionnaire.objects.order_by("?").first(),
+            question=fake.sentence().replace(".", "?"),
             question_type=random.choice(Question.CHOICES)[0],
-            about_team_member=random.choice([True, False])
+            about_team_member=random.choice([True, False]),
         )
 
     @staticmethod
     def _create_answer(question, answer):
         """Create a fake answer for the question."""
         if question.question_type == Question.OPEN:
-            OpenAnswerData.objects.create(
-                answer=answer,
-                value=fake.paragraph()
-            )
+            OpenAnswerData.objects.create(answer=answer, value=fake.paragraph())
         elif question.question_type == Question.AGREEMENT:
-            AgreementAnswerData.objects.create(
-                answer=answer,
-                value=random.choice(AgreementAnswerData.CHOICES)[0]
-            )
+            AgreementAnswerData.objects.create(answer=answer, value=random.choice(AgreementAnswerData.CHOICES)[0])
         elif question.question_type == Question.QUALITY:
-            QualityAnswerData.objects.create(
-                answer=answer,
-                value=random.choice(QualityAnswerData.CHOICES)[0]
-            )
+            QualityAnswerData.objects.create(answer=answer, value=random.choice(QualityAnswerData.CHOICES)[0])
 
     def create_submission(self):
         """Create one fake submission."""
-        questionnaire = Questionnaire.objects.order_by('?').first()
-        user = User.objects.exclude(questionnairesubmission__questionnaire=questionnaire).order_by('?').first()
+        questionnaire = Questionnaire.objects.order_by("?").first()
+        user = User.objects.exclude(questionnairesubmission__questionnaire=questionnaire).order_by("?").first()
         peers = User.objects.exclude(pk=user.pk).filter(
             groups__in=user.groups.filter(project__semester=Semester.objects.first())
         )
@@ -211,48 +209,38 @@ class Command(BaseCommand):
             questionnaire=questionnaire,
             participant=user,
             late=random.choice([True, False]),
-            created=fake.date_between(start_date='-2d', end_date='today'),
+            created=fake.date_between(start_date="-2d", end_date="today"),
         )
 
         for question in questionnaire.question_set.all():
             if question.about_team_member:
                 for peer in peers:
-                    answer = Answer.objects.create(
-                        question=question,
-                        submission=submission,
-                        peer=peer
-                    )
+                    answer = Answer.objects.create(question=question, submission=submission, peer=peer)
                     self._create_answer(question, answer)
             else:
-                answer = Answer.objects.create(
-                    question=question,
-                    submission=submission
-                )
+                answer = Answer.objects.create(question=question, submission=submission)
                 self._create_answer(question, answer)
 
     def create_room(self):
         """Create one fake room."""
-        Room.objects.create(
-            name=fake.city(),
-            location=fake.numerify('Mercator 1.0##')
-        )
+        Room.objects.create(name=fake.city(), location=fake.numerify("Mercator 1.0##"))
 
     def create_reservation(self):
         """Create one fake reservation."""
         time = fake.date_time_this_month(after_now=True, tzinfo=timezone.get_current_timezone())
         time = time.replace(minute=0, second=0, microsecond=0)
         Reservation.objects.create(
-            reservee=User.objects.order_by('?').first(),
-            room=Room.objects.order_by('?').first(),
+            reservee=User.objects.order_by("?").first(),
+            room=Room.objects.order_by("?").first(),
             start_time=time,
-            end_time=time + timezone.timedelta(hours=random.randint(1, 5))
+            end_time=time + timezone.timedelta(hours=random.randint(1, 5)),
         )
 
     def handle(self, *args, **kwargs):
         """Execute the createfixtures command."""
         options = dict()
 
-        if all([value is None for key, value in kwargs.items() if key in THINGS]) or kwargs['merge']:
+        if all([value is None for key, value in kwargs.items() if key in THINGS]) or kwargs["merge"]:
             self.stdout.write("Applying default options")
             options = DEFAULTS
         else:
@@ -270,10 +258,10 @@ class Command(BaseCommand):
             for _ in range(amount):
                 while True:
                     try:
-                        self.__getattribute__('create_' + thing)()
+                        self.__getattribute__("create_" + thing)()
                         break
                     except IntegrityError as e:
-                        if 'UNIQUE constraint failed' in str(e.__cause__):
+                        if "UNIQUE constraint failed" in str(e.__cause__):
                             self.stderr.write("IntegrityError, trying again")
                         else:
                             raise

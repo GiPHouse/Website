@@ -15,7 +15,7 @@ class UserModelMultipleChoiceField(forms.ModelMultipleChoiceField):
 
     def label_from_instance(self, user):
         """Get correct label."""
-        return f'{user.get_full_name()}  ({user.giphouseprofile.student_number})'
+        return f"{user.get_full_name()}  ({user.giphouseprofile.student_number})"
 
 
 class ProjectAdminForm(forms.ModelForm):
@@ -33,8 +33,8 @@ class ProjectAdminForm(forms.ModelForm):
 
         # Check if this is an existing Project
         if self.instance.pk:
-            self.fields['managers'].initial = self.instance.user_set.all()
-            self.fields['developers'].initial = self.instance.user_set.all()
+            self.fields["managers"].initial = self.instance.user_set.all()
+            self.fields["developers"].initial = self.instance.user_set.all()
 
     name = forms.CharField(widget=forms.TextInput)
 
@@ -43,18 +43,18 @@ class ProjectAdminForm(forms.ModelForm):
     managers = UserModelMultipleChoiceField(
         queryset=User.objects.filter(groups__name=Role.SDM),
         required=False,
-        widget=widgets.FilteredSelectMultiple('managers', False)
+        widget=widgets.FilteredSelectMultiple("managers", False),
     )
 
     developers = UserModelMultipleChoiceField(
         queryset=User.objects.filter(groups__name=Role.SE),
         required=False,
-        widget=widgets.FilteredSelectMultiple('developers', False)
+        widget=widgets.FilteredSelectMultiple("developers", False),
     )
 
     def save_m2m(self):
         """Add the users to the Group."""
-        self.instance.user_set.set([*self.cleaned_data['managers'], *self.cleaned_data['developers']])
+        self.instance.user_set.set([*self.cleaned_data["managers"], *self.cleaned_data["developers"]])
 
     def save(self, *args, **kwargs):
         """Save the form data, including many-to-many data."""

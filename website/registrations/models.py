@@ -22,7 +22,7 @@ class Role(Group):
 
     def __str__(self):
         """Return role name."""
-        return f'{self.name}'
+        return f"{self.name}"
 
 
 class Student(User):
@@ -35,7 +35,7 @@ class Student(User):
 
     def __str__(self):
         """Return the full name for this student."""
-        return f'{self.get_full_name()}'
+        return f"{self.get_full_name()}"
 
 
 class GiphouseProfile(models.Model):
@@ -53,33 +53,21 @@ class GiphouseProfile(models.Model):
         This overrides the default implementation of save to be able to change the model before inserting. After the
         change, the default save() method is still called
         """
-        self.user.username = 'github_' + str(self.github_id)
+        self.user.username = "github_" + str(self.github_id)
         self.user.save()
         super().save(*args, **kwargs)
 
-    user = models.OneToOneField(
-        Student,
-        on_delete=models.CASCADE
-    )
+    user = models.OneToOneField(Student, on_delete=models.CASCADE)
 
-    github_id = models.IntegerField(
-        unique=True,
-    )
+    github_id = models.IntegerField(unique=True)
 
-    github_username = models.CharField(
-        unique=True,
-        max_length=50,
-    )
+    github_username = models.CharField(unique=True, max_length=50)
 
-    student_number = models.CharField(
-        unique=True,
-        null=True,
-        max_length=8,
-    )
+    student_number = models.CharField(unique=True, null=True, max_length=8)
 
     def __str__(self):
         """Return full name of user."""
-        return f'{self.user.get_full_name()}'
+        return f"{self.user.get_full_name()}"
 
 
 class Registration(models.Model):
@@ -90,57 +78,30 @@ class Registration(models.Model):
     EXPERIENCE_ADVANCED = 3
 
     EXPERIENCE_CHOICES = (
-        (EXPERIENCE_BEGINNER, 'Beginner'),
-        (EXPERIENCE_INTERMEDIATE, 'Intermediate'),
-        (EXPERIENCE_ADVANCED, 'Advanced'),
+        (EXPERIENCE_BEGINNER, "Beginner"),
+        (EXPERIENCE_INTERMEDIATE, "Intermediate"),
+        (EXPERIENCE_ADVANCED, "Advanced"),
     )
 
     class Meta:
         """Meta class for Registration."""
 
-        unique_together = [['user', 'semester']]
+        unique_together = [["user", "semester"]]
 
-    user = models.ForeignKey(
-        Student,
-        on_delete=models.CASCADE
-    )
+    user = models.ForeignKey(Student, on_delete=models.CASCADE)
 
-    semester = models.ForeignKey(
-        Semester,
-        on_delete=models.CASCADE
-    )
+    semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
 
-    experience = models.PositiveSmallIntegerField(
-        choices=EXPERIENCE_CHOICES
-    )
+    experience = models.PositiveSmallIntegerField(choices=EXPERIENCE_CHOICES)
 
-    preference1 = models.ForeignKey(
-        Project,
-        on_delete=models.CASCADE,
-        related_name='+',
-    )
+    preference1 = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="+")
 
-    preference2 = models.ForeignKey(
-        Project,
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE,
-        related_name='+',
-    )
+    preference2 = models.ForeignKey(Project, null=True, blank=True, on_delete=models.CASCADE, related_name="+")
 
-    preference3 = models.ForeignKey(
-        Project,
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE,
-        related_name='+',
-    )
+    preference3 = models.ForeignKey(Project, null=True, blank=True, on_delete=models.CASCADE, related_name="+")
 
-    comments = models.TextField(
-        null=True,
-        blank=True,
-    )
+    comments = models.TextField(null=True, blank=True)
 
     def __str__(self):
         """Give user information about this object."""
-        return f'{self.user.giphouseprofile}'
+        return f"{self.user.giphouseprofile}"

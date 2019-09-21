@@ -21,7 +21,7 @@ class QuestionnaireForm(forms.Form):
             if question.about_team_member:
                 peers_question = self.peers
             else:
-                peers_question = (None, )
+                peers_question = (None,)
 
             for peer in peers_question:
                 self._build_form_field(self.get_field_name(question, peer), question, peer)
@@ -30,13 +30,12 @@ class QuestionnaireForm(forms.Form):
         """Validate that the form is not closed."""
         try:
             QuestionnaireSubmission.objects.get(
-                participant_id=self.participant.id,
-                questionnaire_id=self.questionnaire.id
+                participant_id=self.participant.id, questionnaire_id=self.questionnaire.id
             )
         except QuestionnaireSubmission.DoesNotExist:
             pass
         else:
-            raise ValidationError('Questionnaire already submitted.', code='invalid')
+            raise ValidationError("Questionnaire already submitted.", code="invalid")
 
     def _build_form_field(self, field_name, question, peer=None):
 
@@ -50,8 +49,7 @@ class QuestionnaireForm(forms.Form):
             )
         else:
             self.fields[field_name] = forms.CharField(
-                label=question.question,
-                widget=forms.Textarea(attrs={'rows': 4, 'placeholder': ''})
+                label=question.question, widget=forms.Textarea(attrs={"rows": 4, "placeholder": ""})
             )
 
         if peer is not None:
@@ -63,5 +61,5 @@ class QuestionnaireForm(forms.Form):
     def get_field_name(question, peer=None):
         """Generate the name of a field used in the HTML to identify a question."""
         if peer is not None:
-            return f'question-{question.pk}-{peer.pk}'
-        return f'question-{question.pk}'
+            return f"question-{question.pk}-{peer.pk}"
+        return f"question-{question.pk}"

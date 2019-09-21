@@ -13,7 +13,7 @@ from questionnaires.filters import (
     SubmissionAdminPeerFilter,
     SubmissionAdminProjectFilter,
     SubmissionAdminQuestionnaireFilter,
-    SubmissionAdminSemesterFilter
+    SubmissionAdminSemesterFilter,
 )
 from questionnaires.models import Answer, Question, Questionnaire, QuestionnaireSubmission
 
@@ -35,13 +35,9 @@ class AnswerInline(admin.TabularInline):
 
     model = Answer
     can_delete = False
-    readonly_fields = (
-        'question',
-        'peer',
-        'answer',
-    )
+    readonly_fields = ("question", "peer", "answer")
     extra = 0
-    ordering = ['peer', 'question']
+    ordering = ["peer", "question"]
 
     def has_add_permission(self, request, obj=None):
         """Disable changing answers in the admin."""
@@ -52,8 +48,8 @@ class AnswerInline(admin.TabularInline):
 class Question(admin.ModelAdmin):
     """Question model admin."""
 
-    search_fields = ('question',)
-    list_display = ('question', 'questionnaire')
+    search_fields = ("question",)
+    list_display = ("question", "questionnaire")
 
 
 @admin.register(Questionnaire)
@@ -61,7 +57,7 @@ class QuestionnaireAdmin(admin.ModelAdmin):
     """Questionnaire model admin."""
 
     inlines = (QuestionInline,)
-    search_fields = ('title',)
+    search_fields = ("title",)
 
 
 @admin.register(QuestionnaireSubmission)
@@ -70,22 +66,30 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
 
     inlines = (AnswerInline,)
 
-    list_display = ('questionnaire', 'participant_name', 'on_time')
-    list_filter = (SubmissionAdminSemesterFilter, SubmissionAdminQuestionnaireFilter, SubmissionAdminParticipantFilter,
-                   SubmissionAdminPeerFilter, SubmissionAdminProjectFilter, 'late')
+    list_display = ("questionnaire", "participant_name", "on_time")
+    list_filter = (
+        SubmissionAdminSemesterFilter,
+        SubmissionAdminQuestionnaireFilter,
+        SubmissionAdminParticipantFilter,
+        SubmissionAdminPeerFilter,
+        SubmissionAdminProjectFilter,
+        "late",
+    )
 
     def participant_name(self, obj):
         """Return the full name of the participant."""
         return obj.participant.get_full_name()
-    participant_name.short_description = 'Participant'
-    participant_name.admin_order_field = 'participant__first_name'
+
+    participant_name.short_description = "Participant"
+    participant_name.admin_order_field = "participant__first_name"
 
     def on_time(self, obj):
         """Return whether the answer was submitted late or on time."""
         return not obj.late
+
     on_time.boolean = True
-    on_time.short_description = 'On Time'
-    on_time.admin_order_field = 'late'
+    on_time.short_description = "On Time"
+    on_time.admin_order_field = "late"
 
     class Media:
         """Necessary to use AutocompleteFilter."""
@@ -95,53 +99,57 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
 class AnswerAdmin(admin.ModelAdmin):
     """Answer model admin."""
 
-    list_filter = (AnswerAdminSemesterFilter, AnswerAdminQuestionnaireFilter, AnswerAdminQuestionFilter,
-                   AnswerAdminProjectFilter, AnswerAdminParticipantFilter, AnswerAdminPeerFilter,
-                   'submission__late')
-
-    readonly_fields = ('answer',)
-
-    list_display = (
-        'questionnaire',
-        'question',
-        'participant_name',
-        'peer_name',
-        'on_time',
-        'answer_short',
+    list_filter = (
+        AnswerAdminSemesterFilter,
+        AnswerAdminQuestionnaireFilter,
+        AnswerAdminQuestionFilter,
+        AnswerAdminProjectFilter,
+        AnswerAdminParticipantFilter,
+        AnswerAdminPeerFilter,
+        "submission__late",
     )
+
+    readonly_fields = ("answer",)
+
+    list_display = ("questionnaire", "question", "participant_name", "peer_name", "on_time", "answer_short")
 
     def participant_name(self, obj):
         """Return the full name of the participant."""
         return obj.submission.participant.get_full_name()
-    participant_name.short_description = 'Participant'
-    participant_name.admin_order_field = 'submission__participant__first_name'
+
+    participant_name.short_description = "Participant"
+    participant_name.admin_order_field = "submission__participant__first_name"
 
     def peer_name(self, obj):
         """Return the full name of the peer (if one exists)."""
         if obj.peer is not None:
             return obj.peer.get_full_name()
-    peer_name.short_description = 'Peer'
-    peer_name.admin_order_field = 'peer'
+
+    peer_name.short_description = "Peer"
+    peer_name.admin_order_field = "peer"
 
     def on_time(self, obj):
         """Return whether the answer was submitted late or on time."""
         return not obj.submission.late
+
     on_time.boolean = True
-    on_time.short_description = 'On Time'
-    on_time.admin_order_field = 'submission__late'
+    on_time.short_description = "On Time"
+    on_time.admin_order_field = "submission__late"
 
     def questionnaire(self, obj):
         """Return the title of the corresponding questionnaire."""
         return obj.submission.questionnaire.title
-    questionnaire.short_description = 'Questionnaire'
-    questionnaire.admin_order_field = 'submission__questionnaire'
+
+    questionnaire.short_description = "Questionnaire"
+    questionnaire.admin_order_field = "submission__questionnaire"
 
     def answer_short(self, obj):
         """Return answer preview."""
         if obj.question.is_closed or len(str(obj.answer)) < 30:
             return obj.answer
-        return f'{str(obj.answer)[:27]}...'
-    answer_short.short_description = 'Answer'
+        return f"{str(obj.answer)[:27]}..."
+
+    answer_short.short_description = "Answer"
 
     class Media:
         """Necessary to use AutocompleteFilter."""

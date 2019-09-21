@@ -20,17 +20,18 @@ class Questionnaire(models.Model):
     class Meta:
         """Meta class describing the order of the Questionnaire model."""
 
-        ordering = ['-available_until_hard', '-available_until_soft', '-available_from']
+        ordering = ["-available_until_hard", "-available_until_soft", "-available_from"]
 
     title = models.CharField(max_length=200)
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
-    available_from = models.DateTimeField(default=timezone.now,
-                                          help_text='The moment from which the questionnaire is available.')
+    available_from = models.DateTimeField(
+        default=timezone.now, help_text="The moment from which the questionnaire is available."
+    )
     available_until_soft = models.DateTimeField(
-        help_text='Soft deadline to submit the questionnaire, after this the submission is marked as late.'
+        help_text="Soft deadline to submit the questionnaire, after this the submission is marked as late."
     )
     available_until_hard = models.DateTimeField(
-        help_text='Hard deadline to submit the questionnaire. No submissions possible after this date.'
+        help_text="Hard deadline to submit the questionnaire. No submissions possible after this date."
     )
 
     objects = QuestionnaireManager()
@@ -38,21 +39,27 @@ class Questionnaire(models.Model):
     @property
     def is_open(self):
         """Return True if neither the deadline nor the late deadline have passed."""
-        return (self.available_from <= timezone.now() <= self.available_until_soft
-                and self.available_until_hard >= timezone.now())
+        return (
+            self.available_from <= timezone.now() <= self.available_until_soft
+            and self.available_until_hard >= timezone.now()
+        )
 
     @property
     def is_late(self):
         """Return True if the deadline but not the late deadline has passed."""
-        return (self.available_from < timezone.now() <= self.available_until_hard
-                and self.available_until_soft < timezone.now())
+        return (
+            self.available_from < timezone.now() <= self.available_until_hard
+            and self.available_until_soft < timezone.now()
+        )
 
     @property
     def is_closed(self):
         """Return True if the deadline and the late deadline have passed."""
-        return (self.available_from < timezone.now()
-                and self.available_until_soft < timezone.now()
-                and self.available_until_hard < timezone.now())
+        return (
+            self.available_from < timezone.now()
+            and self.available_until_soft < timezone.now()
+            and self.available_until_hard < timezone.now()
+        )
 
     def get_until_date(self):
         """Return the date that the questionnaire closes."""
@@ -66,7 +73,7 @@ class Questionnaire(models.Model):
 
     def __str__(self):
         """Return title."""
-        return f'{self.title} ({self.semester})'
+        return f"{self.title} ({self.semester})"
 
 
 class QuestionnaireSubmission(models.Model):
@@ -96,16 +103,14 @@ class Question(models.Model):
     AGREEMENT = 2
 
     CHOICES = (
-        (OPEN, 'Open question'),
-        (QUALITY, 'Poor/good Likert scale'),
-        (AGREEMENT, 'Disagree/agree Likert scale'),
+        (OPEN, "Open question"),
+        (QUALITY, "Poor/good Likert scale"),
+        (AGREEMENT, "Disagree/agree Likert scale"),
     )
 
     questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
     question = models.CharField(max_length=200)
-    question_type = models.PositiveSmallIntegerField(
-        choices=CHOICES
-    )
+    question_type = models.PositiveSmallIntegerField(choices=CHOICES)
     about_team_member = models.BooleanField(default=False)
 
     @property
@@ -135,11 +140,7 @@ class Answer(models.Model):
     submission = models.ForeignKey(QuestionnaireSubmission, on_delete=models.CASCADE)
 
     peer = models.ForeignKey(
-        Student,
-        on_delete=models.CASCADE,
-        related_name='answer_about_user',
-        blank=True,
-        null=True,
+        Student, on_delete=models.CASCADE, related_name="answer_about_user", blank=True, null=True
     )
 
     @property
@@ -189,7 +190,7 @@ class Answer(models.Model):
 
     def __str__(self):
         """Return string representation of the answer."""
-        return f'{self.submission.participant} answers #{self.question.id}'
+        return f"{self.submission.participant} answers #{self.question.id}"
 
 
 class OpenAnswerData(models.Model):
@@ -206,7 +207,7 @@ class OpenAnswerData(models.Model):
 class AbstractLikertData(models.Model):
     """Abstract class describing Likert answer."""
 
-    answer = models.OneToOneField(Answer, on_delete=models.CASCADE, related_name='%(class)s')
+    answer = models.OneToOneField(Answer, on_delete=models.CASCADE, related_name="%(class)s")
 
     class Meta:
         """Meta class making sure this model is abstract."""
@@ -216,7 +217,7 @@ class AbstractLikertData(models.Model):
     def __str__(self):
         """Return string representation of the value."""
         value = self.get_value_display()
-        return f'{value} ({self.value})' if value is not None else ''
+        return f"{value} ({self.value})" if value is not None else ""
 
 
 class AgreementAnswerData(AbstractLikertData):
@@ -229,11 +230,11 @@ class AgreementAnswerData(AbstractLikertData):
     STRONGLY_AGREE = 5
 
     CHOICES = (
-        (STRONGLY_DISAGREE, 'Strongly Disagree'),
-        (DISAGREE, 'Disagree'),
-        (NEUTRAL, 'Neutral'),
-        (AGREE, 'Agree'),
-        (STRONGLY_AGREE, 'Strongly Agree'),
+        (STRONGLY_DISAGREE, "Strongly Disagree"),
+        (DISAGREE, "Disagree"),
+        (NEUTRAL, "Neutral"),
+        (AGREE, "Agree"),
+        (STRONGLY_AGREE, "Strongly Agree"),
     )
 
     value = models.PositiveSmallIntegerField(choices=CHOICES)
@@ -249,11 +250,11 @@ class QualityAnswerData(AbstractLikertData):
     VERY_GOOD = 5
 
     CHOICES = (
-        (VERY_POOR, 'Very Poor'),
-        (POOR, 'Poor'),
-        (AVERAGE, 'Average'),
-        (GOOD, 'Good'),
-        (VERY_GOOD, 'Very Good'),
+        (VERY_POOR, "Very Poor"),
+        (POOR, "Poor"),
+        (AVERAGE, "Average"),
+        (GOOD, "Good"),
+        (VERY_GOOD, "Very Good"),
     )
 
     value = models.PositiveSmallIntegerField(choices=CHOICES)

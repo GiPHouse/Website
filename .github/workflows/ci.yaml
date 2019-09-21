@@ -25,6 +25,9 @@ jobs:
         python -m pip install --no-cache-dir poetry
         poetry install
 
+    - name: "Lint using Black"
+      run: "poetry run black --check website"
+
     - name: "Lint using flake8"
       run: >-
         poetry run
