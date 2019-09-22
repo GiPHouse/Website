@@ -55,6 +55,7 @@ class QuestionnaireView(LoginRequiredMessageMixin, FormView):
         questionnaire = get_object_or_404(Questionnaire, pk=self.kwargs["questionnaire"])
         if questionnaire.is_closed:
             raise Http404
+
         kwargs["questionnaire"] = questionnaire
         kwargs["peers"] = User.objects.exclude(pk=participant.pk).filter(
             groups__in=participant.groups.filter(project__semester=Semester.objects.get_current_semester())
