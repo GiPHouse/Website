@@ -13,7 +13,7 @@
     {% bootstrap_form_errors form %}
     <form method="post" class="row">
         {% csrf_token %}
-        {% for field in  form %}
+        {% for field in form %}
 			{% ifchanged field.label %}
 				<div class="col-12">
 					<hr/>

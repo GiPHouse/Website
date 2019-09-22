@@ -13,7 +13,7 @@ class QuestionnaireForm(forms.Form):
 
         self.participant = participant
         self.questionnaire = questionnaire
-        self.questions = questionnaire.question_set.all()
+        self.questions = questionnaire.question_set.order_by("pk")
         self.peers = peers
         self.no_peers_warning = no_peers_warning
 
@@ -27,7 +27,7 @@ class QuestionnaireForm(forms.Form):
                 self._build_form_field(self.get_field_name(question, peer), question, peer)
 
     def clean(self):
-        """Validate that the form is not closed."""
+        """Validate that the questionnaire is not yet answered."""
         try:
             QuestionnaireSubmission.objects.get(
                 participant_id=self.participant.id, questionnaire_id=self.questionnaire.id
