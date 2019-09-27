@@ -94,7 +94,7 @@ class Step2Form(forms.Form):
 
         student_number = "s" + m.group(1)
 
-        if GiphouseProfile.objects.filter(student_number=student_number).exclude():
+        if GiphouseProfile.objects.filter(student_number=student_number).exists():
             ValidationError("Student Number already in use", code="exists")
 
         return student_number
