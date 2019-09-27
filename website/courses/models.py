@@ -20,10 +20,28 @@ def current_season():
     return Semester.FALL
 
 
+class CourseManager(models.Manager):
+    """Manager for the Course model."""
+
+    def se(self):
+        """Create Software Engineering course."""
+        return self.get(name="Software Engineering")
+
+    def sde(self):
+        """Create System Development Management course."""
+        return self.get(name="System Development Management")
+
+    def sdm(self):
+        """Create Software Development Entrepreneurship course."""
+        return self.get(name="Software Development Entrepreneurship")
+
+
 class Course(models.Model):
     """Model to represent course."""
 
     name = models.CharField(max_length=50)
+
+    objects = CourseManager()
 
     def __str__(self):
         """Return name of course."""

@@ -10,7 +10,7 @@ from courses.models import Semester
 
 
 from registrations.forms import Step2Form
-from registrations.models import GiphouseProfile, Registration, Role
+from registrations.models import GiphouseProfile, Registration
 
 User: DjangoUser = get_user_model()
 
@@ -101,9 +101,6 @@ class Step2View(FormView):
                 email=form.cleaned_data["email"],
             )
 
-            user.groups.add(Role.objects.get(id=form.cleaned_data["course"]))
-            user.save()
-
             GiphouseProfile.objects.create(
                 user=user,
                 github_username=self.request.session["github_username"],
@@ -113,6 +110,7 @@ class Step2View(FormView):
 
             Registration.objects.create(
                 user=user,
+                course=form.cleaned_data["course"],
                 semester=Semester.objects.get_current_semester(),
                 experience=form.cleaned_data["experience"],
                 preference1=form.cleaned_data["project1"],
