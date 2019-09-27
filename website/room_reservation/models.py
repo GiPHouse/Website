@@ -20,8 +20,8 @@ class Room(models.Model):
 class Reservation(models.Model):
     """Model for a reservation that is made by a reservee for a certain room, with an start and end date."""
 
-    reservee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="reservee")
-    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="room")
+    reservee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
 

@@ -142,9 +142,7 @@ class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     submission = models.ForeignKey(QuestionnaireSubmission, on_delete=models.CASCADE)
 
-    peer = models.ForeignKey(
-        Employee, on_delete=models.CASCADE, related_name="answer_about_user", blank=True, null=True
-    )
+    peer = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="+", blank=True, null=True)
 
     @property
     def answer(self):
