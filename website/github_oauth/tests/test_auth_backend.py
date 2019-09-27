@@ -100,10 +100,6 @@ class GithubOAuthBackendTest(TestCase):
 
     @mock.patch("requests.post")
     def test__get_access_token_exception_key(self, mock_post):
-        """
-        Test _get_access_token method.
-        """
-
         mock_response = mock.Mock()
         mock_response.json.side_effect = KeyError
         mock_post.return_value = mock_response
