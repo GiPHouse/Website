@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group, User as DjangoUser
+from django.contrib.auth.models import User as DjangoUser
 
 from courses.models import Semester
 
@@ -10,7 +10,6 @@ from registrations.forms import StudentAdminForm
 from registrations.models import GiphouseProfile, Registration, Role, Student
 
 User: DjangoUser = get_user_model()
-admin.site.unregister(Group)
 
 
 class StudentAdminProjectFilter(admin.SimpleListFilter):
