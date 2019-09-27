@@ -38,6 +38,10 @@ class ReservationTest(TestCase):
         self.client = Client()
         self.client.force_login(self.user)
 
+    def test_get_calendar(self):
+        response = self.client.get(reverse("room_reservation:calendar"))
+        self.assertEqual(response.status_code, 200)
+
     def test_add_reservation(self):
         response = self.client.post(
             reverse("room_reservation:create_reservation"),
