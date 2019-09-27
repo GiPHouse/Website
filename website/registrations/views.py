@@ -2,13 +2,12 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.models import User as DjangoUser
 from django.db import IntegrityError, transaction
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect
-from django.views.generic import FormView, TemplateView, View
+from django.views.generic import FormView, TemplateView
 
 from courses.models import Semester
 
-from projects.models import Project
 
 from registrations.forms import Step2Form
 from registrations.models import GiphouseProfile, Registration, Role
@@ -122,25 +121,3 @@ class Step2View(FormView):
                 comments=form.cleaned_data["comments"],
             )
         return user
-
-
-class ChangeRequestView(View):
-    """View Class handling a change request from within a change-list."""
-
-    def post(self, request):
-        """Change the current project of a student."""
-        user_id = request.POST["id"]
-        project_id = request.POST["project"]
-        groups = [Project.objects.get(id=project_id)] if project_id else []
-        user = User.objects.get(id=user_id)
-        role_name_array = list(
-            set(user.groups.values_list("name", flat=True)) & set([Role.SDM, Role.SE, Role.DIRECTOR, Role.ADMIN])
-        )
-        if len(role_name_array) == 0:
-            return HttpResponseBadRequest()
-        role_name = role_name_array[0]
-        groups.append(Role.objects.get(name=role_name))
-        user.groups.set(groups)
-        user.save()
-
-        return HttpResponse(status=204)

@@ -1,9 +1,6 @@
-from django import forms
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, User as DjangoUser
-from django.template.loader import get_template
-from django.urls import path
 
 from courses.models import Semester
 
@@ -11,7 +8,6 @@ from projects.models import Project
 
 from registrations.forms import StudentAdminForm
 from registrations.models import GiphouseProfile, Registration, Role, Student
-from registrations.views import ChangeRequestView
 
 User: DjangoUser = get_user_model()
 admin.site.unregister(Group)
@@ -94,14 +90,7 @@ class StudentAdmin(admin.ModelAdmin):
 
     form = StudentAdminForm
     inlines = [GiphouseProfileInline, RegistrationInline]
-    list_display = (
-        "full_name",
-        "get_role",
-        "get_preference1",
-        "get_preference2",
-        "get_preference3",
-        "current_project",
-    )
+    list_display = ("full_name", "get_role", "get_preference1", "get_preference2", "get_preference3")
     actions = ["place_in_first_project_preference"]
 
     list_filter = (StudentAdminProjectFilter, StudentAdminSemesterFilter, StudentAdminRoleFilter)
@@ -147,41 +136,12 @@ class StudentAdmin(admin.ModelAdmin):
 
     get_role.short_description = "Role"
 
-    def current_project(self, obj):
-        """Return current Project of Student."""
-        if not obj.registration_set.order_by("semester").first():
-            return None
-
-        field = forms.ModelChoiceField(
-            queryset=Project.objects.filter(semester=obj.registration_set.order_by("semester").first().semester),
-            required=False,
-        )
-        template = get_template("registrations/project_widget.html")
-        project = Project.objects.filter(user=obj).first()
-        project_id = project.id if project else ""
-        context = {"field": field.widget.render("project", ""), "obj": obj, "project_id": project_id}
-        return template.render(context)
-
-    current_project.short_description = "Current Project"
-
     def place_in_first_project_preference(self, request, queryset):
         """Place the selected users in their first project preference."""
         for user in queryset:
             registration = user.registration_set.order_by("semester").first()
             user.groups.add(registration.preference1)
             user.save()
-
-    def get_urls(self):
-        """Override the admin urls."""
-        urls = super().get_urls()
-        my_urls = [
-            path(
-                "change-project-for-student/",
-                self.admin_site.admin_view(ChangeRequestView.as_view()),
-                name="changeproject",
-            )
-        ]
-        return my_urls + urls
 
 
 admin.site.register(Role)
