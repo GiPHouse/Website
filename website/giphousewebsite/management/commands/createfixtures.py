@@ -23,7 +23,7 @@ from questionnaires.models import (
     QuestionnaireSubmission,
 )
 
-from registrations.models import GiphouseProfile, Registration, Role
+from registrations.models import GiphouseProfile, Registration
 
 from room_reservation.models import Reservation, Room
 
@@ -41,7 +41,6 @@ DEFAULTS = {
     "lecture": 8,
     "project": 5,
     "student": 25,
-    "director": 2,
     "questionnaire": 2,
     "question": 8,
     "submission": 23,
@@ -88,8 +87,6 @@ class Command(BaseCommand):
                 "registration_end": timezone.now() + timezone.timedelta(days=30),
             },
         )
-        self.sdm, _ = Role.objects.get_or_create(name=Role.SDM)
-        self.se, _ = Role.objects.get_or_create(name=Role.SE)
 
     def create_lecture(self):
         """Create one fake lecture."""
@@ -140,32 +137,17 @@ class Command(BaseCommand):
             last_name=fake.last_name(),
         )
         user.groups.add(Project.objects.order_by("?").first())
-        user.groups.add(random.choice([self.sdm, self.se]))
         user.save()
         GiphouseProfile.objects.create(
             user=user, github_id=github_id, github_username=fake.user_name(), student_number=fake.bothify("s#######")
         )
         Registration.objects.create(
             user=user,
+            course=Course.objects.order_by("?").first(),
             semester=Semester.objects.get_current_semester(),
             preference1=Project.objects.order_by("?").first(),
             comments=random.choice([fake.sentence(), ""]),
             experience=Registration.EXPERIENCE_INTERMEDIATE,
-        )
-
-    def create_director(self):
-        """Create one fake director."""
-        github_id = random.randint(1, 999_999)
-        user = User.objects.create(
-            username="github_" + str(github_id),
-            email=fake.ascii_free_email(),
-            first_name=fake.first_name(),
-            last_name=fake.last_name(),
-        )
-        user.groups.add(Project.objects.order_by("?").first())
-        user.save()
-        GiphouseProfile.objects.create(
-            user=user, github_id=github_id, github_username=fake.user_name(), student_number=fake.bothify("s#######")
         )
 
     def create_questionnaire(self):

@@ -5,12 +5,12 @@ from django.shortcuts import reverse
 from django.test import Client, TestCase
 from django.utils import timezone
 
-from courses.models import Semester, current_season
+from courses.models import Course, Semester, current_season
 
 from projects.models import Project
 
-from registrations.admin import StudentAdminProjectFilter, StudentAdminRoleFilter, StudentAdminSemesterFilter
-from registrations.models import GiphouseProfile, Registration, Role
+from registrations.admin import StudentAdminProjectFilter, StudentAdminSemesterFilter
+from registrations.models import GiphouseProfile, Registration
 
 User: DjangoUser = get_user_model()
 
@@ -21,7 +21,7 @@ class RegistrationAdminTest(TestCase):
         cls.admin_password = "hunter2"
         cls.admin = User.objects.create_superuser(username="admin", email="", password=cls.admin_password)
 
-        sdm, _ = Role.objects.get_or_create(name=Role.SDM)
+        cls.course = Course.objects.sdm()
         cls.semester, _ = Semester.objects.get_or_create(
             year=timezone.now().year,
             season=current_season(),
@@ -34,8 +34,17 @@ class RegistrationAdminTest(TestCase):
 
         cls.manager = User.objects.create(username="manager")
         GiphouseProfile.objects.create(user=cls.manager, github_id="0", github_username="manager")
-        cls.manager.groups.add(sdm)
-        cls.manager.save()
+
+        cls.registration = Registration.objects.create(
+            user=cls.manager,
+            semester=cls.semester,
+            experience=Registration.EXPERIENCE_BEGINNER,
+            preference1=project,
+            course=cls.course,
+        )
+
+        cls.user = User.objects.create(username="user")
+        GiphouseProfile.objects.create(user=cls.user, github_id="20", github_username="lol")
 
         cls.message = {
             "date_joined_0": "2000-12-01",
@@ -43,7 +52,6 @@ class RegistrationAdminTest(TestCase):
             "initial-date_joined_0": "2000-12-01",
             "initial-date_joined_1": "12:00:00",
             "project": project.id,
-            "role": sdm.id,
             "giphouseprofile-TOTAL_FORMS": 1,
             "giphouseprofile-INITIAL_FORMS": 0,
             "giphouseprofile-MIN_NUM_FORMS": 0,
@@ -57,16 +65,10 @@ class RegistrationAdminTest(TestCase):
             "registration_set-MAX_NUM_FORMS": 1,
             "registration_set-0-preference1": project.id,
             "registration_set-0-semester": cls.semester.id,
+            "registration_set-0-course": cls.course.id,
             "registration_set-0-experience": Registration.EXPERIENCE_BEGINNER,
             "_save": "Save",
         }
-
-        cls.registration = Registration.objects.create(
-            user=cls.manager, semester=cls.semester, experience=Registration.EXPERIENCE_BEGINNER, preference1=project
-        )
-
-        cls.user = User.objects.create(username="user")
-        GiphouseProfile.objects.create(user=cls.user, github_id="20", github_username="lol")
 
     def setUp(self):
         self.client = Client()
@@ -80,13 +82,12 @@ class RegistrationAdminTest(TestCase):
         response = self.client.get(reverse("admin:registrations_student_change", args=[self.manager.id]), follow=True)
         self.assertEqual(response.status_code, 200)
 
-    def test_form_save_with_role_and_project(self):
+    def test_form_save_with_project(self):
         response = self.client.post(reverse("admin:registrations_student_add"), self.message, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(User.objects.get(giphouseprofile__student_number="s0000000"))
 
-    def test_form_save_without_role_and_project(self):
-        self.message["role"] = ""
+    def test_form_save_without_project(self):
         self.message["project"] = ""
         response = self.client.post(reverse("admin:registrations_student_add"), self.message, follow=True)
         self.assertEqual(response.status_code, 200)
@@ -122,14 +123,6 @@ class RegistrationAdminTest(TestCase):
         response = self.client.get(
             reverse("admin:registrations_student_changelist"),
             data={StudentAdminSemesterFilter.parameter_name: 0},
-            follow=True,
-        )
-        self.assertEqual(response.status_code, 200)
-
-    def test_get_student_changelist_role_filter(self):
-        response = self.client.get(
-            reverse("admin:registrations_student_changelist"),
-            data={StudentAdminRoleFilter.parameter_name: 0},
             follow=True,
         )
         self.assertEqual(response.status_code, 200)

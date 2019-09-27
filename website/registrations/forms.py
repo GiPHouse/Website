@@ -6,11 +6,11 @@ from django.contrib.auth.models import User as DjangoUser
 from django.core.exceptions import ValidationError
 from django.forms import widgets
 
-from courses.models import Semester
+from courses.models import Course, Semester
 
 from projects.models import Project
 
-from registrations.models import GiphouseProfile, Registration, Role, Student
+from registrations.models import GiphouseProfile, Registration, Student
 
 student_number_regex = re.compile(r"^[sS]?(\d{7})$")
 User: DjangoUser = get_user_model()
@@ -23,14 +23,7 @@ class Step2Form(forms.Form):
         """Set querysets dynamically."""
         super().__init__(*args, **kwargs)
 
-        se, _ = Role.objects.get_or_create(name=Role.SE)
-        sdm, _ = Role.objects.get_or_create(name=Role.SDM)
-
-        self.fields["course"].choices = (
-            ("", "---------"),
-            (se.id, "Software Engineering"),
-            (sdm.id, "System Development Management"),
-        )
+        self.fields["course"].queryset = Course.objects.all()
 
         self.fields["project1"].queryset = Project.objects.filter(semester=Semester.objects.get_current_semester())
         self.fields["project2"].queryset = Project.objects.filter(semester=Semester.objects.get_current_semester())
@@ -44,7 +37,7 @@ class Step2Form(forms.Form):
     )
     github_username = forms.CharField(disabled=True)
 
-    course = forms.ChoiceField(choices=())
+    course = forms.ModelChoiceField(queryset=None, empty_label=None)
 
     email = forms.EmailField()
 
@@ -110,15 +103,12 @@ class StudentAdminForm(forms.ModelForm):
         fields = ("first_name", "last_name", "email", "date_joined")
         exclude = []
 
-    role = forms.ModelChoiceField(queryset=Role.objects.all(), required=False)
-
     project = forms.ModelChoiceField(queryset=Project.objects.all(), required=False)
 
     def __init__(self, *args, **kwargs):
         """Dynamically setup form."""
         super().__init__(*args, **kwargs)
 
-        self.fields["role"].initial = Role.objects.filter(user=self.instance).first()
         self.fields["project"].initial = Project.objects.filter(user=self.instance).first()
 
         user_registration = self.instance.registration_set.order_by("-semester").first()
@@ -128,10 +118,7 @@ class StudentAdminForm(forms.ModelForm):
     def save_m2m(self):
         """Add the user to the specified groups."""
         groups = []
-        role = self.cleaned_data["role"]
         project = self.cleaned_data["project"]
-        if role:
-            groups.append(role)
         if project:
             groups.append(project)
         self.instance.groups.set(groups)

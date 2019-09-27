@@ -9,7 +9,7 @@ from courses.models import Semester
 
 from projects.models import Project
 
-from registrations.models import GiphouseProfile, Role
+from registrations.models import GiphouseProfile
 
 User: DjangoUser = get_user_model()
 
@@ -24,12 +24,9 @@ class GetProjectsTest(TestCase):
             year=2018, season=Semester.SPRING, registration_start=timezone.now(), registration_end=timezone.now()
         )
 
-        cls.sdm, _ = Role.objects.get_or_create(name=Role.SDM)
+        cls.project = Project.objects.create(name="test", semester=cls.semester)
         cls.manager = User.objects.create(username="manager")
         GiphouseProfile.objects.create(user=cls.manager, github_id="0", github_username="manager")
-        cls.manager.groups.add(cls.sdm)
-
-        cls.project = Project.objects.create(name="test", semester=cls.semester)
 
     def setUp(self):
         self.client = Client()

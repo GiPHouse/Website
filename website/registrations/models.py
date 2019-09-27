@@ -1,28 +1,12 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
 from django.contrib.auth.models import User as DjangoUser
 from django.db import models
 
-from courses.models import Semester
+from courses.models import Course, Semester
 
 from projects.models import Project
 
 User: DjangoUser = get_user_model()
-
-
-class Role(Group):
-    """Role Group that contains multiple users."""
-
-    SE = "SE Student"
-    SDM = "SDM Student"
-    DIRECTOR = "Director"
-    ADMIN = "Admin"
-
-    objects = models.Manager()
-
-    def __str__(self):
-        """Return role name."""
-        return f"{self.name}"
 
 
 class Student(User):
@@ -90,16 +74,14 @@ class Registration(models.Model):
 
     user = models.ForeignKey(Student, on_delete=models.CASCADE)
 
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
 
-    experience = models.PositiveSmallIntegerField(choices=EXPERIENCE_CHOICES)
-
     preference1 = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="+")
-
     preference2 = models.ForeignKey(Project, null=True, blank=True, on_delete=models.CASCADE, related_name="+")
-
     preference3 = models.ForeignKey(Project, null=True, blank=True, on_delete=models.CASCADE, related_name="+")
 
+    experience = models.PositiveSmallIntegerField(choices=EXPERIENCE_CHOICES)
     comments = models.TextField(null=True, blank=True)
 
     def __str__(self):

@@ -7,7 +7,7 @@ from courses.models import Semester
 from projects.models import Project
 
 from registrations.forms import StudentAdminForm
-from registrations.models import GiphouseProfile, Registration, Role, Student
+from registrations.models import GiphouseProfile, Registration, Student
 
 User: DjangoUser = get_user_model()
 
@@ -50,23 +50,6 @@ class StudentAdminSemesterFilter(admin.SimpleListFilter):
         return queryset
 
 
-class StudentAdminRoleFilter(admin.SimpleListFilter):
-    """Filter class to filter current Project objects."""
-
-    title = "Roles"
-    parameter_name = "role"
-
-    def lookups(self, request, model_admin):
-        """List the current projects."""
-        return ((role.id, role.name) for role in Role.objects.all())
-
-    def queryset(self, request, queryset):
-        """Filter out participants in the specified Project."""
-        if self.value():
-            return queryset.filter(groups__id=self.value())
-        return queryset
-
-
 class GiphouseProfileInline(admin.StackedInline):
     """Inline form for GiphouseProfile."""
 
@@ -89,10 +72,10 @@ class StudentAdmin(admin.ModelAdmin):
 
     form = StudentAdminForm
     inlines = [GiphouseProfileInline, RegistrationInline]
-    list_display = ("full_name", "get_role", "get_preference1", "get_preference2", "get_preference3")
+    list_display = ("full_name", "get_preference1", "get_preference2", "get_preference3")
     actions = ["place_in_first_project_preference"]
 
-    list_filter = (StudentAdminProjectFilter, StudentAdminSemesterFilter, StudentAdminRoleFilter)
+    list_filter = (StudentAdminProjectFilter, StudentAdminSemesterFilter)
 
     # Necessary for the autocomplete filter
     search_fields = ("first_name", "last_name")
@@ -129,18 +112,9 @@ class StudentAdmin(admin.ModelAdmin):
     get_preference3.short_description = "Preference3"
     get_preference3.admin_order_field = "giphouseprofile__github_username"
 
-    def get_role(self, obj):
-        """Return role of Student."""
-        return Role.objects.get(user=obj)
-
-    get_role.short_description = "Role"
-
     def place_in_first_project_preference(self, request, queryset):
         """Place the selected users in their first project preference."""
         for user in queryset:
             registration = user.registration_set.order_by("semester").first()
             user.groups.add(registration.preference1)
             user.save()
-
-
-admin.site.register(Role)

@@ -4,11 +4,11 @@ from django.shortcuts import reverse
 from django.test import Client, TestCase
 from django.utils import timezone
 
-from courses.models import Semester, current_season
+from courses.models import Course, Semester, current_season
 
 from projects.models import Project
 
-from registrations.models import GiphouseProfile, Registration, Role
+from registrations.models import GiphouseProfile, Registration
 
 User: DjangoUser = get_user_model()
 
@@ -116,7 +116,7 @@ class Step2Test(TestCase):
             semester=cls.semester, name="project3", description="Test Project 3"
         )
 
-        cls.se, _ = Role.objects.get_or_create(name=Role.SE)
+        cls.se = Course.objects.se()
 
     def setUp(self):
         self.client = Client()
