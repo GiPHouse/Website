@@ -8,6 +8,8 @@ from courses.models import Course, Semester
 
 from projects.models import Project
 
+from registrations.models import Registration
+
 User: DjangoUser = get_user_model()
 
 
@@ -34,10 +36,13 @@ class ProjectAdminForm(forms.ModelForm):
         )
 
         if self.instance.pk:
-            self.fields["managers"].initial = User.objects.filter(registration__course=Course.objects.sdm())
+            self.fields["managers"].initial = User.objects.filter(
+                registration__course=Course.objects.sdm(), registration__project=self.instance
+            )
 
             self.fields["engineers"].initial = User.objects.filter(
-                Q(registration__course=Course.objects.se()) | Q(registration__course=Course.objects.sde())
+                Q(registration__course=Course.objects.se()) | Q(registration__course=Course.objects.sde()),
+                registration__project=self.instance,
             )
 
     name = forms.CharField(widget=forms.TextInput)
@@ -53,8 +58,12 @@ class ProjectAdminForm(forms.ModelForm):
     )
 
     def save_m2m(self):
-        """Add the users to the Group."""
-        self.instance.user_set.set([*self.cleaned_data["managers"], *self.cleaned_data["engineers"]])
+        """Add the users to the Project and remove other users from the Project."""
+        new_users = [*self.cleaned_data["managers"], *self.cleaned_data["engineers"]]
+        Registration.objects.filter(semester=self.instance.semester, user_id__in=new_users).update(
+            project=self.instance
+        )
+        Registration.objects.filter(project=self.instance).exclude(user_id__in=new_users).update(project=None)
 
     def save(self, *args, **kwargs):
         """Save the form data, including many-to-many data."""

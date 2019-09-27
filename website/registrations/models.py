@@ -74,6 +74,7 @@ class Registration(models.Model):
 
     user = models.ForeignKey(Student, on_delete=models.CASCADE)
 
+    project = models.ForeignKey(Project, null=True, blank=True, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
 

@@ -30,16 +30,17 @@ class RegistrationAdminTest(TestCase):
                 "registration_end": timezone.now() + timezone.timedelta(days=30),
             },
         )
-        project = Project.objects.create(name="GiPHouse1234", description="Test", semester=cls.semester)
+        cls.project = Project.objects.create(name="GiPHouse1234", description="Test", semester=cls.semester)
 
         cls.manager = User.objects.create(username="manager")
         GiphouseProfile.objects.create(user=cls.manager, github_id="0", github_username="manager")
 
         cls.registration = Registration.objects.create(
             user=cls.manager,
+            project=cls.project,
             semester=cls.semester,
             experience=Registration.EXPERIENCE_BEGINNER,
-            preference1=project,
+            preference1=cls.project,
             course=cls.course,
         )
 
@@ -51,7 +52,6 @@ class RegistrationAdminTest(TestCase):
             "date_joined_1": "12:00:00",
             "initial-date_joined_0": "2000-12-01",
             "initial-date_joined_1": "12:00:00",
-            "project": project.id,
             "giphouseprofile-TOTAL_FORMS": 1,
             "giphouseprofile-INITIAL_FORMS": 0,
             "giphouseprofile-MIN_NUM_FORMS": 0,
@@ -63,9 +63,10 @@ class RegistrationAdminTest(TestCase):
             "registration_set-INITIAL_FORMS": 0,
             "registration_set-MIN_NUM_FORMS": 0,
             "registration_set-MAX_NUM_FORMS": 1,
-            "registration_set-0-preference1": project.id,
+            "registration_set-0-preference1": cls.project.id,
             "registration_set-0-semester": cls.semester.id,
             "registration_set-0-course": cls.course.id,
+            "registration_set-0-project": cls.project.id,
             "registration_set-0-experience": Registration.EXPERIENCE_BEGINNER,
             "_save": "Save",
         }
@@ -82,20 +83,10 @@ class RegistrationAdminTest(TestCase):
         response = self.client.get(reverse("admin:registrations_student_change", args=[self.manager.id]), follow=True)
         self.assertEqual(response.status_code, 200)
 
-    def test_form_save_with_project(self):
+    def test_form_save(self):
         response = self.client.post(reverse("admin:registrations_student_add"), self.message, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(User.objects.get(giphouseprofile__student_number="s0000000"))
-
-    def test_form_save_without_project(self):
-        self.message["project"] = ""
-        response = self.client.post(reverse("admin:registrations_student_add"), self.message, follow=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertIsNotNone(User.objects.get(giphouseprofile__student_number="s0000000"))
-
-    def test_project_queryset_contains_projects_from_registration_semester(self):
-        response = self.client.get(reverse("admin:auth_user_change", args=[self.manager.pk]))
-        self.assertContains(response, "GiPHouse1234")
 
     def test_place_in_first_project_preference(self):
         response = self.client.post(
@@ -104,8 +95,7 @@ class RegistrationAdminTest(TestCase):
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
-        project = Project.objects.filter(user=self.manager).first()
-        self.assertEqual(project, self.registration.preference1)
+        self.assertIn(self.registration.preference1, Project.objects.filter(registration__user=self.manager))
 
     def test_student_change_list_without_registration(self):
         response = self.client.get(reverse("admin:registrations_student_change", args=[self.user.pk]), follow=True)

@@ -122,7 +122,7 @@ class Command(BaseCommand):
                     ]
                 )
             ),
-            semester=Semester.objects.order_by("?").first(),
+            semester=Semester.objects.get_current_semester(),
             description=" ".join(fake.paragraphs(nb=3)),
             client=client,
         )
@@ -136,8 +136,6 @@ class Command(BaseCommand):
             first_name=fake.first_name(),
             last_name=fake.last_name(),
         )
-        user.groups.add(Project.objects.order_by("?").first())
-        user.save()
         GiphouseProfile.objects.create(
             user=user, github_id=github_id, github_username=fake.user_name(), student_number=fake.bothify("s#######")
         )
@@ -145,7 +143,10 @@ class Command(BaseCommand):
             user=user,
             course=Course.objects.order_by("?").first(),
             semester=Semester.objects.get_current_semester(),
+            project=Project.objects.order_by("?").first(),
             preference1=Project.objects.order_by("?").first(),
+            preference2=Project.objects.order_by("?").first(),
+            preference3=Project.objects.order_by("?").first(),
             comments=random.choice([fake.sentence(), ""]),
             experience=Registration.EXPERIENCE_INTERMEDIATE,
         )
@@ -183,9 +184,10 @@ class Command(BaseCommand):
         """Create one fake submission."""
         questionnaire = Questionnaire.objects.order_by("?").first()
         user = User.objects.exclude(questionnairesubmission__questionnaire=questionnaire).order_by("?").first()
-        peers = User.objects.exclude(pk=user.pk).filter(
-            groups__in=user.groups.filter(project__semester=Semester.objects.first())
-        )
+
+        user_project = Project.objects.get(registration__user=user, semester=Semester.objects.get_current_semester())
+        project_registrations = Registration.objects.filter(project=user_project)
+        peers = User.objects.exclude(pk=user.pk).filter(registration__in=project_registrations)
 
         submission = QuestionnaireSubmission.objects.create(
             questionnaire=questionnaire,

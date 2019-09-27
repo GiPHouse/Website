@@ -4,12 +4,14 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from courses.models import Semester, current_season
+from courses.models import Course, Semester, current_season
 
 from projects.models import Project
 
 from questionnaires.forms import QuestionnaireForm
 from questionnaires.models import Question, Questionnaire
+
+from registrations.models import Registration
 
 User: DjangoUser = get_user_model()
 
@@ -43,13 +45,26 @@ class QuestionnaireTest(TestCase):
 
         cls.team = Project.objects.create(semester=semester, name="Test Project", description="Description")
         cls.user = User.objects.create_user(username="myself", password="123")
-        cls.user.groups.add(cls.team)
-        cls.user.save()
+        Registration.objects.create(
+            user=cls.user,
+            semester=semester,
+            project=cls.team,
+            course=Course.objects.sdm(),
+            preference1=cls.team,
+            experience=Registration.EXPERIENCE_ADVANCED,
+        )
+
         cls.alone_user = User.objects.create_user(username="loner", password="123")
 
         cls.peer = User.objects.create_user(username="Jack")
-        cls.peer.groups.add(cls.team)
-        cls.peer.save()
+        Registration.objects.create(
+            user=cls.peer,
+            semester=semester,
+            project=cls.team,
+            course=Course.objects.sdm(),
+            preference1=cls.team,
+            experience=Registration.EXPERIENCE_ADVANCED,
+        )
 
         cls.active_questions = Questionnaire.objects.create(
             semester=semester,
