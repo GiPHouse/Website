@@ -1,13 +1,14 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User as DjangoUser
 
 import requests
 from requests.exceptions import RequestException
 
 from github_oauth.links import URL_GITHUB_ACCESS_TOKEN, URL_GITHUB_USER_INFO
 
-User: DjangoUser = get_user_model()
+from registrations.models import Employee
+
+User: Employee = get_user_model()
 
 
 class GithubOAuthError(Exception):
@@ -93,7 +94,7 @@ class GithubOAuthBackend:
         :return: A user with github_id as GitHub id or None.
         """
         try:
-            return User.objects.get(giphouseprofile__github_id=github_id)
+            return User.objects.get(github_id=github_id)
         except User.DoesNotExist:
             return None
 

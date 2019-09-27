@@ -1,7 +1,6 @@
 import random
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User as DjangoUser
 from django.core.management import BaseCommand
 from django.db import IntegrityError
 from django.utils import timezone
@@ -23,11 +22,11 @@ from questionnaires.models import (
     QuestionnaireSubmission,
 )
 
-from registrations.models import GiphouseProfile, Registration
+from registrations.models import Employee, Registration
 
 from room_reservation.models import Reservation, Room
 
-User: DjangoUser = get_user_model()
+User: Employee = get_user_model()
 
 fake = Faker()
 fake.add_provider(date_time)
@@ -129,16 +128,15 @@ class Command(BaseCommand):
 
     def create_student(self):
         """Create one fake student."""
-        github_id = random.randint(1, 999_999)
         user = User.objects.create(
-            username="github_" + str(github_id),
             email=fake.ascii_free_email(),
             first_name=fake.first_name(),
             last_name=fake.last_name(),
+            github_id=random.randint(1, 999_999),
+            github_username=fake.user_name(),
+            student_number=fake.bothify("s#######"),
         )
-        GiphouseProfile.objects.create(
-            user=user, github_id=github_id, github_username=fake.user_name(), student_number=fake.bothify("s#######")
-        )
+
         Registration.objects.create(
             user=user,
             course=Course.objects.order_by("?").first(),

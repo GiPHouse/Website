@@ -1,6 +1,5 @@
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User as DjangoUser
 from django.shortcuts import reverse
 from django.test import Client, TestCase
 from django.utils import timezone
@@ -9,16 +8,16 @@ from courses.models import Course, Semester, current_season
 
 from projects.models import Project
 
-from registrations.models import GiphouseProfile, Registration
+from registrations.models import Employee, Registration
 
-User: DjangoUser = get_user_model()
+User: Employee = get_user_model()
 
 
 class GetProjectsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.admin_password = "hunter2"
-        cls.admin = User.objects.create_superuser(username="admin", email="", password=cls.admin_password)
+        cls.admin = User.objects.create_superuser(github_id=0, github_username="admin")
 
         cls.semester = Semester.objects.create(
             year=timezone.now().year,
@@ -28,8 +27,8 @@ class GetProjectsTest(TestCase):
         )
 
         cls.project = Project.objects.create(name="test", semester=cls.semester)
-        cls.manager = User.objects.create(username="manager")
-        GiphouseProfile.objects.create(user=cls.manager, github_id="0", github_username="manager")
+        cls.manager = User.objects.create(github_id=1, github_username="manager")
+
         Registration.objects.create(
             user=cls.manager,
             semester=cls.semester,
@@ -41,7 +40,7 @@ class GetProjectsTest(TestCase):
 
     def setUp(self):
         self.client = Client()
-        self.client.login(username=self.admin.username, password=self.admin_password)
+        self.client.force_login(self.admin)
 
     def test_get_form(self):
         response = self.client.get(reverse("admin:projects_project_change", args=(self.project.id,)))

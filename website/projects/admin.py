@@ -3,13 +3,14 @@ from io import BytesIO, StringIO
 
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User as DjangoUser
 from django.http import HttpResponse
 
 from projects.forms import ProjectAdminForm
 from projects.models import Client, Project
 
-User: DjangoUser = get_user_model()
+from registrations.models import Employee
+
+User: Employee = get_user_model()
 
 
 @admin.register(Project)

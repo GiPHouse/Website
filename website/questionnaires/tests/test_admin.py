@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User as DjangoUser
 from django.shortcuts import reverse
 from django.test import Client, TestCase
 from django.utils import timezone
@@ -19,14 +18,16 @@ from questionnaires.filters import (
 )
 from questionnaires.models import Answer, Question, Questionnaire, QuestionnaireSubmission
 
-User: DjangoUser = get_user_model()
+from registrations.models import Employee
+
+User: Employee = get_user_model()
 
 
 class QuestionnaireTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.admin_password = "hunter2"
-        cls.admin = User.objects.create_superuser(username="admin", email="", password=cls.admin_password)
+        cls.admin = User.objects.create_superuser(github_id=0, github_username="test")
 
         cls.semester = Semester.objects.create(
             year=2019,
@@ -35,11 +36,11 @@ class QuestionnaireTest(TestCase):
             registration_end=timezone.now() + timezone.timedelta(days=60),
         )
 
-        cls.user = User.objects.create_user(username="user", password="123", first_name="User", last_name="Name")
+        cls.user = User.objects.create_user(github_id=1, github_username="test2")
 
         cls.project = Project.objects.create(semester=cls.semester, name="Project")
 
-        peer = User.objects.create_user(username="peer", password="123", first_name="Peer", last_name="Name")
+        peer = User.objects.create_user(github_id=2, github_username="test3")
 
         cls.active_questions = Questionnaire.objects.create(
             semester=cls.semester,
@@ -75,7 +76,7 @@ class QuestionnaireTest(TestCase):
 
     def setUp(self):
         self.client = Client()
-        self.client.login(username=self.admin.username, password=self.admin_password)
+        self.client.force_login(self.admin)
 
     def test_get_submission_changelist(self):
         response = self.client.get(reverse("admin:questionnaires_questionnairesubmission_changelist"), follow=True)

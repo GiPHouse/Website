@@ -1,16 +1,15 @@
 from django import forms
 from django.contrib.admin import widgets
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User as DjangoUser
 from django.db.models import Q
 
 from courses.models import Course, Semester
 
 from projects.models import Project
 
-from registrations.models import Registration
+from registrations.models import Employee, Registration
 
-User: DjangoUser = get_user_model()
+User: Employee = get_user_model()
 
 
 class ProjectAdminForm(forms.ModelForm):

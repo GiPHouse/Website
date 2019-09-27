@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User as DjangoUser
 
 from questionnaires.filters import (
     AnswerAdminParticipantFilter,
@@ -17,7 +16,9 @@ from questionnaires.filters import (
 )
 from questionnaires.models import Answer, Question, Questionnaire, QuestionnaireSubmission
 
-User: DjangoUser = get_user_model()
+from registrations.models import Employee
+
+User: Employee = get_user_model()
 
 
 class QuestionInline(admin.TabularInline):

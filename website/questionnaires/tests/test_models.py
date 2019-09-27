@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User as DjangoUser
 from django.test import TestCase
 from django.utils import timezone
 
@@ -14,7 +13,9 @@ from questionnaires.models import (
     QuestionnaireSubmission,
 )
 
-User: DjangoUser = get_user_model()
+from registrations.models import Employee
+
+User: Employee = get_user_model()
 
 
 class QuestionnairesTest(TestCase):
@@ -36,7 +37,7 @@ class QuestionnairesTest(TestCase):
             available_until_hard=timezone.now() + timezone.timedelta(days=1),
         )
 
-        user = User.objects.create_user(username="Jack")
+        user = User.objects.create_user(github_id=0)
 
         cls.submission = QuestionnaireSubmission.objects.create(
             questionnaire_id=cls.questionnaire.id, participant=user

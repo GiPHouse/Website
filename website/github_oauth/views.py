@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login
-from django.contrib.auth.models import User as DjangoUser
 from django.http.response import HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
@@ -9,7 +8,9 @@ from django.views import View
 
 from github_oauth.backends import GithubOAuthBackend, GithubOAuthError
 
-User: DjangoUser = get_user_model()
+from registrations.models import Employee
+
+User: Employee = get_user_model()
 
 
 class BaseGithubView(View):
@@ -71,7 +72,7 @@ class GithubRegisterView(BaseGithubView):
             return redirect(self.redirect_url_failure)
 
         try:
-            user = User.objects.get(giphouseprofile__github_id=github_info["id"])
+            user = User.objects.get(github_id=github_info["id"])
         except User.DoesNotExist:
             pass
         else:

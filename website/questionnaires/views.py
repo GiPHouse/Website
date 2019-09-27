@@ -1,6 +1,5 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User as DjangoUser
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic.base import TemplateView
@@ -15,9 +14,9 @@ from projects.models import Project
 from questionnaires.forms import QuestionnaireForm
 from questionnaires.models import Answer, Questionnaire, QuestionnaireSubmission
 
-from registrations.models import Registration
+from registrations.models import Employee, Registration
 
-User: DjangoUser = get_user_model()
+User: Employee = get_user_model()
 
 
 class OverviewView(LoginRequiredMessageMixin, TemplateView):
