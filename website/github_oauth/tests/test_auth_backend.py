@@ -1,7 +1,6 @@
 from unittest import mock
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User as DjangoUser
 from django.test import TestCase
 
 from requests.exceptions import RequestException
@@ -14,9 +13,9 @@ from github_oauth.backends import (
     GithubOAuthJSONDecodeError,
 )
 
-from registrations.models import GiphouseProfile
+from registrations.models import Employee
 
-User: DjangoUser = get_user_model()
+User: Employee = get_user_model()
 
 
 class GithubOAuthBackendTest(TestCase):
@@ -28,9 +27,7 @@ class GithubOAuthBackendTest(TestCase):
         cls.github_code = "fake code"
         cls.github_access_token = "fake token"
 
-        cls.test_user = User.objects.create_user(username=cls.github_username)
-
-        cls.test_giphouse_user = GiphouseProfile.objects.create(user=cls.test_user, github_id=cls.github_id)
+        cls.test_user = User.objects.create_user(github_id=cls.github_id)
 
     def test_authenticate_success(self):
         backend = GithubOAuthBackend()

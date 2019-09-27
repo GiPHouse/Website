@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User as DjangoUser
 from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -11,9 +10,9 @@ from projects.models import Project
 from questionnaires.forms import QuestionnaireForm
 from questionnaires.models import Question, Questionnaire
 
-from registrations.models import Registration
+from registrations.models import Employee, Registration
 
-User: DjangoUser = get_user_model()
+User: Employee = get_user_model()
 
 
 def generate_post_data(questionnaire_id, peers):
@@ -44,7 +43,7 @@ class QuestionnaireTest(TestCase):
         )
 
         cls.team = Project.objects.create(semester=semester, name="Test Project", description="Description")
-        cls.user = User.objects.create_user(username="myself", password="123")
+        cls.user = User.objects.create_user(github_id=0, github_username="test")
         Registration.objects.create(
             user=cls.user,
             semester=semester,
@@ -54,9 +53,9 @@ class QuestionnaireTest(TestCase):
             experience=Registration.EXPERIENCE_ADVANCED,
         )
 
-        cls.alone_user = User.objects.create_user(username="loner", password="123")
+        cls.alone_user = User.objects.create_user(github_id=1, github_username="test1")
 
-        cls.peer = User.objects.create_user(username="Jack")
+        cls.peer = User.objects.create_user(github_id=2, github_username="test2")
         Registration.objects.create(
             user=cls.peer,
             semester=semester,
@@ -119,7 +118,7 @@ class QuestionnaireTest(TestCase):
 
     def setUp(self):
         self.client = Client()
-        self.client.login(username="myself", password="123")
+        self.client.force_login(self.user)
 
     def test_get_overview(self):
         response = self.client.get(reverse("questionnaires:overview"))
@@ -196,7 +195,7 @@ class QuestionnaireTest(TestCase):
         )
 
     def test_warning_message_shown_when_user_is_alone(self):
-        self.client.login(username="loner", password="123")
+        self.client.force_login(self.alone_user)
         response = self.client.get(
             reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id})
         )

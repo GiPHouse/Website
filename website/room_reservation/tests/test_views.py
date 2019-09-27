@@ -3,18 +3,19 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from registrations.models import Employee
+
 from room_reservation.models import Reservation, Room
 
-User = get_user_model()
+User: Employee = get_user_model()
 
 
 class ReservationTest(TestCase):
     @classmethod
     def setUpTestData(cls):
 
-        cls.user = User.objects.create_user(username="myself", password="123")
-
-        cls.other_user = User.objects.create_user(username="someone else", password="123")
+        cls.user = User.objects.create_user(github_id=0, github_username="test")
+        cls.other_user = User.objects.create_user(github_id=1, github_username="test2")
 
         cls.room = Room.objects.create(name="New York", location="Merc 0.1337")
 
@@ -34,7 +35,7 @@ class ReservationTest(TestCase):
 
     def setUp(self):
         self.client = Client()
-        self.client.login(username="myself", password="123")
+        self.client.force_login(self.user)
 
     def test_get_calendar(self):
         response = self.client.get(reverse("room_reservation:calendar"))

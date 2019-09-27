@@ -1,6 +1,5 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
-from django.contrib.auth.models import User as DjangoUser
 from django.db import IntegrityError, transaction
 from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect
@@ -10,9 +9,9 @@ from courses.models import Semester
 
 
 from registrations.forms import Step2Form
-from registrations.models import GiphouseProfile, Registration
+from registrations.models import Employee, Registration
 
-User: DjangoUser = get_user_model()
+User: Employee = get_user_model()
 
 
 class Step1View(TemplateView):
@@ -76,7 +75,27 @@ class Step2View(FormView):
     def form_valid(self, form):
         """Register new user if the form is valid."""
         try:
-            user = self._register_user(form)
+            with transaction.atomic():
+                user = User.objects.create(
+                    first_name=form.cleaned_data["first_name"],
+                    last_name=form.cleaned_data["last_name"],
+                    email=form.cleaned_data["email"],
+                    github_username=self.request.session["github_username"],
+                    github_id=self.request.session["github_id"],
+                    student_number=form.cleaned_data["student_number"],
+                )
+
+                Registration.objects.create(
+                    user=user,
+                    semester=Semester.objects.get_current_semester(),
+                    course=form.cleaned_data["course"],
+                    experience=form.cleaned_data["experience"],
+                    preference1=form.cleaned_data["project1"],
+                    preference2=form.cleaned_data["project2"],
+                    preference3=form.cleaned_data["project3"],
+                    comments=form.cleaned_data["comments"],
+                )
+
         except IntegrityError:
             messages.warning(self.request, "User already exists", extra_tags="danger")
             return redirect("home")
@@ -91,31 +110,3 @@ class Step2View(FormView):
         login(self.request, user, backend="github_oauth.backends.GithubOAuthBackend")
 
         return redirect("home")
-
-    def _register_user(self, form):
-        with transaction.atomic():
-            github_id = self.request.session["github_id"]
-            user = User.objects.create(
-                first_name=form.cleaned_data["first_name"],
-                last_name=form.cleaned_data["last_name"],
-                email=form.cleaned_data["email"],
-            )
-
-            GiphouseProfile.objects.create(
-                user=user,
-                github_username=self.request.session["github_username"],
-                github_id=github_id,
-                student_number=form.cleaned_data["student_number"],
-            )
-
-            Registration.objects.create(
-                user=user,
-                course=form.cleaned_data["course"],
-                semester=Semester.objects.get_current_semester(),
-                experience=form.cleaned_data["experience"],
-                preference1=form.cleaned_data["project1"],
-                preference2=form.cleaned_data["project2"],
-                preference3=form.cleaned_data["project3"],
-                comments=form.cleaned_data["comments"],
-            )
-        return user

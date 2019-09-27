@@ -1,9 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 
-from registrations.models import Student
+from registrations.models import Employee
 
-User = get_user_model()
+User: Employee = get_user_model()
 
 
 class Room(models.Model):
@@ -20,7 +20,7 @@ class Room(models.Model):
 class Reservation(models.Model):
     """Model for a reservation that is made by a reservee for a certain room, with an start and end date."""
 
-    reservee = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="reservee")
+    reservee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="reservee")
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="room")
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()

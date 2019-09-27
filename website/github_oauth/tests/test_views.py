@@ -2,16 +2,15 @@ from unittest import mock
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.auth.models import User as DjangoUser
 from django.shortcuts import reverse
 from django.test import Client, RequestFactory, TestCase
 
 from github_oauth.backends import GithubOAuthError
 from github_oauth.views import BaseGithubView, GithubRegisterView
 
-from registrations.models import GiphouseProfile
+from registrations.models import Employee
 
-User: DjangoUser = get_user_model()
+User: Employee = get_user_model()
 
 
 class LoginTest(TestCase):
@@ -20,8 +19,7 @@ class LoginTest(TestCase):
 
         cls.test_user_password = "password"
 
-        cls.test_user = User.objects.create_user(username="test_user", password=cls.test_user_password)
-        cls.test_user.backend = ""
+        cls.test_user = User.objects.create_user(github_id=0)
 
     def setUp(self):
         self.client = Client()
@@ -61,7 +59,7 @@ class LoginTest(TestCase):
 
     def test_login_authenticated(self):
 
-        self.client.login(username=self.test_user.username, password=self.test_user_password)
+        self.client.force_login(self.test_user)
 
         response = self.client.get("/oauth/login/?code=fakecode")
 
@@ -76,12 +74,7 @@ class RegisterTest(TestCase):
 
         cls.test_user_password = "password"
 
-        cls.test_user = User.objects.create_user(username="test_user", password=cls.test_user_password)
-        cls.test_user.backend = ""
-
-        cls.giphouse_profile = GiphouseProfile.objects.create(
-            user=cls.test_user, github_username="test_user", github_id=cls.github_id
-        )
+        cls.test_user = User.objects.create_user(github_id=0)
 
     def setUp(self):
         self.client = Client()
@@ -113,7 +106,7 @@ class RegisterTest(TestCase):
 
     def test_register_authenticated(self):
 
-        self.client.login(username=self.test_user.username, password=self.test_user_password)
+        self.client.force_login(self.test_user)
 
         response = self.client.get("/oauth/register/?code=fakecode")
 

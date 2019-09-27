@@ -1,80 +1,28 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User as DjangoUser
 
-from courses.models import Semester
+from registrations.models import Employee, Registration
 
-from projects.models import Project
-
-from registrations.models import GiphouseProfile, Registration, Student
-
-User: DjangoUser = get_user_model()
-
-
-class StudentAdminProjectFilter(admin.SimpleListFilter):
-    """Filter class to filter current Project objects."""
-
-    title = "Current Projects"
-    parameter_name = "project"
-
-    def lookups(self, request, model_admin):
-        """List the current projects."""
-        return (
-            (project.id, project.name)
-            for project in Project.objects.filter(semester=Semester.objects.get_current_semester())
-        )
-
-    def queryset(self, request, queryset):
-        """Filter out participants in the specified Project."""
-        if self.value():
-            return queryset.filter(groups__id=self.value())
-        return queryset
-
-
-class StudentAdminSemesterFilter(admin.SimpleListFilter):
-    """Filter class to filter current Semester objects."""
-
-    title = "Semester"
-    parameter_name = "semester"
-
-    def lookups(self, request, model_admin):
-        """List the current projects."""
-        return ((semester.id, str(semester)) for semester in Semester.objects.all())
-
-    def queryset(self, request, queryset):
-        """Filter out participants in the specified Project."""
-        if self.value():
-            project_ids = Project.objects.filter(semester__id=self.value())
-            return queryset.filter(groups__id__in=project_ids)
-        return queryset
-
-
-class GiphouseProfileInline(admin.StackedInline):
-    """Inline form for GiphouseProfile."""
-
-    model = GiphouseProfile
-    max_num = 1
-    min_num = 0
+User: Employee = get_user_model()
 
 
 class RegistrationInline(admin.StackedInline):
     """Inline form for Registration."""
 
     model = Registration
-    max_num = 1
-    min_num = 0
+    extra = 0
 
 
-@admin.register(Student)
-class StudentAdmin(admin.ModelAdmin):
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
     """Custom admin for Student."""
 
-    fields = ("first_name", "last_name", "email", "date_joined")
-    inlines = [GiphouseProfileInline, RegistrationInline]
+    fields = ("first_name", "last_name", "email", "student_number", "github_id", "github_username", "date_joined")
+    inlines = [RegistrationInline]
     list_display = ("full_name", "get_preference1", "get_preference2", "get_preference3")
     actions = ["place_in_first_project_preference"]
 
-    list_filter = (StudentAdminProjectFilter, StudentAdminSemesterFilter)
+    list_filter = ("registration__semester", "registration__project", "registration__course")
 
     # Necessary for the autocomplete filter
     search_fields = ("first_name", "last_name")
@@ -83,17 +31,13 @@ class StudentAdmin(admin.ModelAdmin):
         """Return full name of student."""
         return f"{obj.first_name} {obj.last_name}"
 
-    def get_queryset(self, request):
-        """Return queryset of all GiPHouse users."""
-        return self.model.objects.filter(giphouseprofile__isnull=False)
-
     def get_preference1(self, obj):
         """Return 1st project preference of Student."""
         registration = obj.registration_set.order_by("semester").first()
         return registration.preference1 if registration else None
 
     get_preference1.short_description = "Preference1"
-    get_preference1.admin_order_field = "giphouseprofile__github_username"
+    get_preference1.admin_order_field = "github_username"
 
     def get_preference2(self, obj):
         """Return 2nd project preference of Student."""
@@ -101,7 +45,7 @@ class StudentAdmin(admin.ModelAdmin):
         return registration.preference2 if registration else None
 
     get_preference2.short_description = "Preference2"
-    get_preference2.admin_order_field = "giphouseprofile__github_username"
+    get_preference2.admin_order_field = "github_username"
 
     def get_preference3(self, obj):
         """Return 3rd project preference of Student."""
@@ -109,7 +53,7 @@ class StudentAdmin(admin.ModelAdmin):
         return registration.preference3 if registration else None
 
     get_preference3.short_description = "Preference3"
-    get_preference3.admin_order_field = "giphouseprofile__github_username"
+    get_preference3.admin_order_field = "github_username"
 
     def place_in_first_project_preference(self, request, queryset):
         """Place the selected users in their first project preference."""

@@ -1,9 +1,12 @@
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
 
 from courses.models import Semester
 
-from registrations.models import Student
+from registrations.models import Employee
+
+User: Employee = get_user_model()
 
 
 class QuestionnaireManager(models.Manager):
@@ -80,7 +83,7 @@ class QuestionnaireSubmission(models.Model):
     """Submission of a questionnaire by a user."""
 
     questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
-    participant = models.ForeignKey(Student, on_delete=models.CASCADE)
+    participant = models.ForeignKey(Employee, on_delete=models.CASCADE)
 
     late = models.BooleanField()
     created = models.DateTimeField(auto_now_add=True)
@@ -140,7 +143,7 @@ class Answer(models.Model):
     submission = models.ForeignKey(QuestionnaireSubmission, on_delete=models.CASCADE)
 
     peer = models.ForeignKey(
-        Student, on_delete=models.CASCADE, related_name="answer_about_user", blank=True, null=True
+        Employee, on_delete=models.CASCADE, related_name="answer_about_user", blank=True, null=True
     )
 
     @property

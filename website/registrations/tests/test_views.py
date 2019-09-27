@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User as DjangoUser
 from django.shortcuts import reverse
 from django.test import Client, TestCase
 from django.utils import timezone
@@ -8,9 +7,9 @@ from courses.models import Course, Semester, current_season
 
 from projects.models import Project
 
-from registrations.models import GiphouseProfile, Registration
+from registrations.models import Employee, Registration
 
-User: DjangoUser = get_user_model()
+User: Employee = get_user_model()
 
 
 class RedirectTest(TestCase):
@@ -26,9 +25,8 @@ class RedirectTest(TestCase):
 class Step1Test(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.test_user_password = "password"
 
-        cls.test_user = User.objects.create_user(username="test_user", password=cls.test_user_password)
+        cls.test_user = User.objects.create_user(github_id=0)
         cls.test_user.backend = ""
 
     def setUp(self):
@@ -47,7 +45,7 @@ class Step1Test(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_step1_authenticated(self):
-        self.client.login(username=self.test_user.username, password=self.test_user_password)
+        self.client.force_login(self.test_user)
 
         response = self.client.get("/register/step1")
 
@@ -208,8 +206,7 @@ class Step2Test(TestCase):
         self.assertContains(response, "You should fill in all preferences with unique values")
 
     def test_post_step2_existing_user(self):
-        test_user = User.objects.create_user(username="test", first_name=self.first_name, last_name=self.last_name)
-        GiphouseProfile.objects.create(user=test_user, github_id=1, student_number=self.student_number)
+        User.objects.create_user(github_id=1, student_number=self.student_number)
 
         response = self.client.post(
             "/register/step2",
@@ -231,10 +228,7 @@ class Step2Test(TestCase):
         self.assertContains(response, "User already exists")
 
     def test_post_step2_existing_email(self):
-        test_user = User.objects.create_user(
-            username="test", first_name=self.first_name, last_name=self.last_name, email=self.email
-        )
-        GiphouseProfile.objects.create(user=test_user, github_id=1, student_number=self.student_number)
+        User.objects.create_user(github_id=1, student_number=self.student_number, email=self.email)
 
         response = self.client.post(
             "/register/step2",

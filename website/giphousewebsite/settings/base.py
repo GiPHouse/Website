@@ -109,6 +109,7 @@ USE_L10N = True
 
 USE_TZ = True
 
+AUTH_USER_MODEL = 'registrations.Employee'
 
 # SASS processor variables
 SASS_PROCESSOR_INCLUDE_DIRS = [
@@ -125,9 +126,7 @@ STATICFILES_FINDERS = [
     'sass_processor.finders.CssFinder',
 ]
 
-
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
     'github_oauth.backends.GithubOAuthBackend',
 ]
 
