@@ -10,7 +10,7 @@ from courses.models import Course, Semester
 
 from projects.models import Project
 
-from registrations.models import GiphouseProfile, Registration, Student
+from registrations.models import GiphouseProfile, Registration
 
 student_number_regex = re.compile(r"^[sS]?(\d{7})$")
 User: DjangoUser = get_user_model()
@@ -91,40 +91,3 @@ class Step2Form(forms.Form):
             ValidationError("Student Number already in use", code="exists")
 
         return student_number
-
-
-class StudentAdminForm(forms.ModelForm):
-    """Admin form to edit Students."""
-
-    class Meta:
-        """Meta class for StudentForm."""
-
-        model = Student
-        fields = ("first_name", "last_name", "email", "date_joined")
-        exclude = []
-
-    project = forms.ModelChoiceField(queryset=Project.objects.all(), required=False)
-
-    def __init__(self, *args, **kwargs):
-        """Dynamically setup form."""
-        super().__init__(*args, **kwargs)
-
-        self.fields["project"].initial = Project.objects.filter(user=self.instance).first()
-
-        user_registration = self.instance.registration_set.order_by("-semester").first()
-        if user_registration is not None:
-            self.fields["project"].queryset = Project.objects.filter(semester=user_registration.semester)
-
-    def save_m2m(self):
-        """Add the user to the specified groups."""
-        groups = []
-        project = self.cleaned_data["project"]
-        if project:
-            groups.append(project)
-        self.instance.groups.set(groups)
-
-    def save(self, *args, **kwargs):
-        """Save the form data, including many-to-many data."""
-        instance = super().save()
-        self.save_m2m()
-        return instance

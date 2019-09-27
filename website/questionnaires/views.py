@@ -10,8 +10,12 @@ from courses.models import Semester
 
 from giphousewebsite.mixins import LoginRequiredMessageMixin
 
+from projects.models import Project
+
 from questionnaires.forms import QuestionnaireForm
 from questionnaires.models import Answer, Questionnaire, QuestionnaireSubmission
+
+from registrations.models import Registration
 
 User: DjangoUser = get_user_model()
 
@@ -57,9 +61,17 @@ class QuestionnaireView(LoginRequiredMessageMixin, FormView):
             raise Http404
 
         kwargs["questionnaire"] = questionnaire
-        kwargs["peers"] = User.objects.exclude(pk=participant.pk).filter(
-            groups__in=participant.groups.filter(project__semester=Semester.objects.get_current_semester())
-        )
+
+        try:
+            participant_project = Project.objects.get(
+                registration__user=participant, semester=Semester.objects.get_current_semester()
+            )
+        except Project.DoesNotExist:
+            kwargs["peers"] = []
+        else:
+            project_registrations = Registration.objects.filter(project=participant_project)
+            kwargs["peers"] = User.objects.exclude(pk=participant.pk).filter(registration__in=project_registrations)
+
         kwargs["no_peers_warning"] = (
             questionnaire.question_set.filter(about_team_member=True).exists() and not kwargs["peers"]
         )

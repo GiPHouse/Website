@@ -2,10 +2,14 @@ import zipfile
 from io import BytesIO, StringIO
 
 from django.contrib import admin
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User as DjangoUser
 from django.http import HttpResponse
 
 from projects.forms import ProjectAdminForm
 from projects.models import Client, Project
+
+User: DjangoUser = get_user_model()
 
 
 @admin.register(Project)
@@ -29,7 +33,7 @@ class ProjectAdmin(admin.ModelAdmin):
                     '"Group Email [Required]","Member Email","Member Name","Member Role","Member Type"', file=content
                 )
                 print(f'"{project_email}","watchers@giphouse.nl","Archive GiPHouse","MEMBER","USER"', file=content)
-                for user in project.user_set.all():
+                for user in User.objects.filter(registration__project=project):
                     print(f'"{project_email}","{user.email}","Member","MEMBER","USER"', file=content)
 
                 zip_file.writestr(project_email + ".csv", content.getvalue())

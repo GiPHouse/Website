@@ -5,11 +5,11 @@ from django.shortcuts import reverse
 from django.test import Client, TestCase
 from django.utils import timezone
 
-from courses.models import Semester
+from courses.models import Course, Semester, current_season
 
 from projects.models import Project
 
-from registrations.models import GiphouseProfile
+from registrations.models import GiphouseProfile, Registration
 
 User: DjangoUser = get_user_model()
 
@@ -21,12 +21,23 @@ class GetProjectsTest(TestCase):
         cls.admin = User.objects.create_superuser(username="admin", email="", password=cls.admin_password)
 
         cls.semester = Semester.objects.create(
-            year=2018, season=Semester.SPRING, registration_start=timezone.now(), registration_end=timezone.now()
+            year=timezone.now().year,
+            season=current_season(),
+            registration_start=timezone.now(),
+            registration_end=timezone.now(),
         )
 
         cls.project = Project.objects.create(name="test", semester=cls.semester)
         cls.manager = User.objects.create(username="manager")
         GiphouseProfile.objects.create(user=cls.manager, github_id="0", github_username="manager")
+        Registration.objects.create(
+            user=cls.manager,
+            semester=cls.semester,
+            project=cls.project,
+            course=Course.objects.sdm(),
+            preference1=cls.project,
+            experience=Registration.EXPERIENCE_ADVANCED,
+        )
 
     def setUp(self):
         self.client = Client()
@@ -40,7 +51,7 @@ class GetProjectsTest(TestCase):
         response = self.client.get(reverse("admin:projects_project_add"))
         self.assertEqual(response.status_code, 200)
 
-    def test_form_save(self):
+    def test_form_save_new(self):
         response = self.client.post(
             reverse("admin:projects_project_add"),
             {
@@ -48,6 +59,7 @@ class GetProjectsTest(TestCase):
                 "semester": self.semester.id,
                 "email": "a@a.com",
                 "description": "Test project description",
+                "managers": self.manager.id,
             },
             follow=True,
         )
@@ -56,8 +68,6 @@ class GetProjectsTest(TestCase):
         self.assertIsNotNone(Project.objects.get(name="Test project"))
 
     def test_csv_export(self):
-        self.project.user_set.add(self.manager)
-        self.project.save()
         response = self.client.post(
             reverse("admin:projects_project_changelist"),
             {ACTION_CHECKBOX_NAME: [self.project.pk], "action": "export_addresses_csv", "index": 0},

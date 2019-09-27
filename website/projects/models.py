@@ -1,4 +1,3 @@
-from django.contrib.auth.models import Group
 from django.db import models
 from django.utils.text import slugify
 
@@ -17,18 +16,20 @@ class Client(models.Model):
         return f"{self.name}"
 
 
-class Project(Group):
+class Project(models.Model):
     """Project group that contains multiple users."""
 
+    class Meta:
+        """Meta class for Project model."""
+
+        unique_together = [["name", "semester"]]
+
+    name = models.CharField("name", max_length=50)
+
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
-
     email = models.EmailField(blank=True)
-
     description = models.TextField()
-
     client = models.ForeignKey(Client, on_delete=models.SET_NULL, blank=True, null=True)
-
-    objects = models.Manager()
 
     def __str__(self):
         """Return project name and semester."""

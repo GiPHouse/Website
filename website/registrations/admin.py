@@ -6,7 +6,6 @@ from courses.models import Semester
 
 from projects.models import Project
 
-from registrations.forms import StudentAdminForm
 from registrations.models import GiphouseProfile, Registration, Student
 
 User: DjangoUser = get_user_model()
@@ -70,7 +69,7 @@ class RegistrationInline(admin.StackedInline):
 class StudentAdmin(admin.ModelAdmin):
     """Custom admin for Student."""
 
-    form = StudentAdminForm
+    fields = ("first_name", "last_name", "email", "date_joined")
     inlines = [GiphouseProfileInline, RegistrationInline]
     list_display = ("full_name", "get_preference1", "get_preference2", "get_preference3")
     actions = ["place_in_first_project_preference"]
@@ -116,5 +115,5 @@ class StudentAdmin(admin.ModelAdmin):
         """Place the selected users in their first project preference."""
         for user in queryset:
             registration = user.registration_set.order_by("semester").first()
-            user.groups.add(registration.preference1)
+            registration.project = registration.preference1
             user.save()
