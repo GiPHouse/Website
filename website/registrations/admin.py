@@ -34,7 +34,7 @@ class StudentAdminProjectFilter(admin.SimpleListFilter):
 
 
 class StudentAdminSemesterFilter(admin.SimpleListFilter):
-    """Filter class to filter current Project objects."""
+    """Filter class to filter current Semester objects."""
 
     title = "Semester"
     parameter_name = "semester"
