@@ -2,7 +2,7 @@
 
 set -e
 
-until pg_isready --host="$POSTGRES_HOST" --username="$POSTGRES_USER" --quiet; do
+until pg_isready --host="${POSTGRES_HOST}" --username="${POSTGRES_USER}" --quiet; do
     sleep 1;
 done
 
@@ -20,8 +20,8 @@ cd /giphouse/src/website/
 cat << EOF | python website/manage.py shell
 from django.contrib.auth import get_user_model
 User = get_user_model()
-if not User.objects.filter(github_id=$GITHUB_SUPERUSER_ID).exists():
-  User.objects.create_superuser(github_id=$GITHUB_SUPERUSER_ID)
+if not User.objects.filter(github_id=${GITHUB_SUPERUSER_ID}).exists():
+  User.objects.create_superuser(github_id=${GITHUB_SUPERUSER_ID})
 EOF
 
 chown --recursive www-data:www-data /giphouse/
