@@ -39,7 +39,7 @@ class UserAdmin(admin.ModelAdmin):
     )
 
     # Necessary for the autocomplete filter
-    search_fields = ("first_name", "last_name", "student_number")
+    search_fields = ("first_name", "last_name", "student_number", "github_username")
 
     def get_preference1(self, obj):
         """Return 1st project preference."""
