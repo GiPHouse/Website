@@ -37,3 +37,5 @@ jobs:
           SSH_PRIVATE_KEY: "${{ secrets.SSH_PRIVATE_KEY }}"
 
           COMMIT_HASH: "${{ github.sha }}"
+
+          GITHUB_SUPERUSER_ID: "${{ secrets.GITHUB_SUPERUSER_ID }}"
