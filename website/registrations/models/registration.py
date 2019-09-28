@@ -44,4 +44,4 @@ class Registration(models.Model):
 
     def __str__(self):
         """Give user information about this object."""
-        return f"{self.user}"
+        return f"{self.user.get_full_name()} ({self.semester})"
