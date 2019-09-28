@@ -44,8 +44,6 @@ class ProjectAdminForm(forms.ModelForm):
                 registration__project=self.instance,
             )
 
-    name = forms.CharField(widget=forms.TextInput)
-
     email = forms.EmailField(help_text="The email address that is used for the CSV export feature", required=False)
 
     managers = forms.ModelMultipleChoiceField(
