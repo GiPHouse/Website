@@ -1,3 +1,4 @@
+import csv
 import zipfile
 from io import BytesIO, StringIO
 
@@ -29,15 +30,15 @@ class ProjectAdmin(admin.ModelAdmin):
 
             for project in queryset:
                 content = StringIO()
-                project_email = project.email
-                print(
-                    '"Group Email [Required]","Member Email","Member Name","Member Role","Member Type"', file=content
+                writer = csv.writer(content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
+                writer.writerow(
+                    ["Group Email [Required]", "Member Email", "Member Name", "Member Role", "Member Type"]
                 )
-                print(f'"{project_email}","watchers@giphouse.nl","Archive GiPHouse","MEMBER","USER"', file=content)
-                for user in User.objects.filter(registration__project=project):
-                    print(f'"{project_email}","{user.email}","Member","MEMBER","USER"', file=content)
 
-                zip_file.writestr(project_email + ".csv", content.getvalue())
+                for user in User.objects.filter(registration__project=project):
+                    writer.writerow([project.email, user.email, "Member", "MEMBER", "USER"])
+
+                zip_file.writestr(project.email + ".csv", content.getvalue())
 
         response = HttpResponse(zip_content.getvalue(), content_type="application/x-zip-compressed")
         response["Content-Disposition"] = "attachment; filename=" + "project-addresses-export.zip"
