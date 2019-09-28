@@ -6,6 +6,8 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views import View
 
+from courses.models import Semester
+
 from github_oauth.backends import GithubOAuthBackend, GithubOAuthError
 
 from registrations.models import Employee
@@ -72,7 +74,9 @@ class GithubRegisterView(BaseGithubView):
             return redirect(self.redirect_url_failure)
 
         try:
-            user = User.objects.get(github_id=github_info["id"])
+            user = User.objects.get(
+                github_id=github_info["id"], registration__semester=Semester.objects.get_current_semester()
+            )
         except User.DoesNotExist:
             pass
         else:

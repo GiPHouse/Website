@@ -154,6 +154,7 @@ class Step2Test(TestCase):
                 "first_name": self.first_name,
                 "last_name": self.last_name,
                 "student_number": self.student_number,
+                "github_id": self.github_id + 1,
                 "github_username": self.github_username,
                 "semester": self.semester.id,
                 "course": self.se.id,
@@ -165,8 +166,9 @@ class Step2Test(TestCase):
             },
             follow=True,
         )
+
         self.assertRedirects(response, "/")
-        self.assertContains(response, "User created successfully")
+        self.assertContains(response, "Registration created successfully")
 
     def test_post_step2_wrong_student_number(self):
         response = self.client.post(
@@ -175,6 +177,7 @@ class Step2Test(TestCase):
                 "first_name": self.first_name,
                 "last_name": self.last_name,
                 "student_number": "wrong format",
+                "github_id": self.github_id,
                 "github_username": self.github_username,
                 "course": self.se.id,
                 "email": self.email,
@@ -194,6 +197,7 @@ class Step2Test(TestCase):
                 "first_name": self.first_name,
                 "last_name": self.last_name,
                 "student_number": self.student_number,
+                "github_id": self.github_id,
                 "github_username": self.github_username,
                 "course": self.se.id,
                 "email": self.email,
@@ -206,7 +210,16 @@ class Step2Test(TestCase):
         self.assertContains(response, "You should fill in all preferences with unique values")
 
     def test_post_step2_existing_user(self):
-        User.objects.create_user(github_id=1, student_number=self.student_number)
+        existing_user = User.objects.create_user(github_id=self.github_id, student_number=self.student_number)
+        Registration.objects.create(
+            user=existing_user,
+            experience=self.experience,
+            course_id=self.se.id,
+            preference1_id=self.project_preference1.id,
+            preference2_id=self.project_preference2.id,
+            preference3_id=self.project_preference3.id,
+            semester=Semester.objects.get_current_semester(),
+        )
 
         response = self.client.post(
             "/register/step2",
@@ -214,6 +227,37 @@ class Step2Test(TestCase):
                 "first_name": self.first_name,
                 "last_name": self.last_name,
                 "student_number": self.student_number,
+                "github_id": self.github_id,
+                "github_username": self.github_username,
+                "course": self.se.id,
+                "email": self.email,
+                "experience": self.experience,
+                "project1": self.project_preference1.id,
+                "project2": self.project_preference2.id,
+                "project3": self.project_preference3.id,
+            },
+        )
+        self.assertContains(response, "User already registered for this semester.")
+
+    def test_post_step2_existing_user_different_semester(self):
+        existing_user = User.objects.create_user(github_id=self.github_id, student_number=self.student_number)
+        Registration.objects.create(
+            user=existing_user,
+            experience=self.experience,
+            course_id=self.se.id,
+            preference1_id=self.project_preference1.id,
+            preference2_id=self.project_preference2.id,
+            preference3_id=self.project_preference3.id,
+            semester=Semester.objects.create(year=timezone.now().year - 1, season=Semester.FALL),
+        )
+
+        response = self.client.post(
+            "/register/step2",
+            {
+                "first_name": self.first_name,
+                "last_name": self.last_name,
+                "student_number": self.student_number,
+                "github_id": self.github_id,
                 "github_username": self.github_username,
                 "course": self.se.id,
                 "email": self.email,
@@ -225,10 +269,24 @@ class Step2Test(TestCase):
             follow=True,
         )
         self.assertRedirects(response, "/")
-        self.assertContains(response, "User already exists")
+        self.assertContains(response, "Registration created successfully")
 
     def test_post_step2_existing_email(self):
-        User.objects.create_user(github_id=1, student_number=self.student_number, email=self.email)
+        existing_user = User.objects.create_user(
+            github_id=self.github_id, student_number=self.student_number, email=self.email
+        )
+        Registration.objects.create(
+            user=existing_user,
+            experience=self.experience,
+            course_id=self.se.id,
+            preference1_id=self.project_preference1.id,
+            preference2_id=self.project_preference2.id,
+            preference3_id=self.project_preference3.id,
+            semester=Semester.objects.get_current_semester(),
+        )
+
+        self.session["github_id"] += 1
+        self.session.save()
 
         response = self.client.post(
             "/register/step2",
@@ -236,11 +294,14 @@ class Step2Test(TestCase):
                 "first_name": self.first_name,
                 "last_name": self.last_name,
                 "student_number": self.student_number,
+                "github_id": self.github_id + 1,
                 "github_username": self.github_username,
                 "experience": self.experience,
                 "course": self.se.id,
                 "email": self.email,
                 "project1": self.project_preference1.id,
+                "project2": self.project_preference2.id,
+                "project3": self.project_preference3.id,
             },
             follow=True,
         )
@@ -255,6 +316,7 @@ class Step2Test(TestCase):
                 "first_name": self.first_name,
                 "last_name": self.last_name,
                 "student_number": self.student_number,
+                "github_id": self.github_id,
                 "github_username": self.github_username,
                 "semester": self.semester.id,
                 "course": self.se.id,
@@ -267,4 +329,4 @@ class Step2Test(TestCase):
             follow=True,
         )
         self.assertRedirects(response, "/")
-        self.assertContains(response, "User created successfully")
+        self.assertContains(response, "Registration created successfully")

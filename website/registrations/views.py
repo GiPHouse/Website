@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.views.generic import FormView, TemplateView
@@ -64,6 +64,7 @@ class Step2View(FormView):
         initial.update(
             {
                 "email": self.request.session.get("github_email") or "",
+                "github_id": self.request.session.get("github_id") or "",
                 "github_username": self.request.session.get("github_username") or "",
                 "first_name": first_name,
                 "last_name": last_name,
@@ -74,38 +75,33 @@ class Step2View(FormView):
 
     def form_valid(self, form):
         """Register new user if the form is valid."""
-        try:
-            with transaction.atomic():
-                user = User.objects.create(
-                    first_name=form.cleaned_data["first_name"],
-                    last_name=form.cleaned_data["last_name"],
-                    email=form.cleaned_data["email"],
-                    github_username=self.request.session["github_username"],
-                    github_id=self.request.session["github_id"],
-                    student_number=form.cleaned_data["student_number"],
-                )
+        with transaction.atomic():
+            user, _ = User.objects.get_or_create(github_id=self.request.session["github_id"])
 
-                Registration.objects.create(
-                    user=user,
-                    semester=Semester.objects.get_current_semester(),
-                    course=form.cleaned_data["course"],
-                    experience=form.cleaned_data["experience"],
-                    preference1=form.cleaned_data["project1"],
-                    preference2=form.cleaned_data["project2"],
-                    preference3=form.cleaned_data["project3"],
-                    comments=form.cleaned_data["comments"],
-                )
+            user.first_name = form.cleaned_data["first_name"]
+            user.last_name = form.cleaned_data["last_name"]
+            user.email = form.cleaned_data["email"]
+            user.github_username = form.cleaned_data["github_username"]
+            user.student_number = form.cleaned_data["student_number"]
+            user.save()
 
-        except IntegrityError:
-            messages.warning(self.request, "User already exists", extra_tags="danger")
-            return redirect("home")
-        finally:
-            del self.request.session["github_id"]
-            del self.request.session["github_username"]
-            del self.request.session["github_name"]
-            del self.request.session["github_email"]
+            Registration.objects.create(
+                user=user,
+                semester=Semester.objects.get_current_semester(),
+                course=form.cleaned_data["course"],
+                experience=form.cleaned_data["experience"],
+                preference1=form.cleaned_data["project1"],
+                preference2=form.cleaned_data["project2"],
+                preference3=form.cleaned_data["project3"],
+                comments=form.cleaned_data["comments"],
+            )
 
-        messages.success(self.request, "User created successfully", extra_tags="success")
+        del self.request.session["github_id"]
+        del self.request.session["github_username"]
+        del self.request.session["github_name"]
+        del self.request.session["github_email"]
+
+        messages.success(self.request, "Registration created successfully", extra_tags="success")
 
         login(self.request, user, backend="github_oauth.backends.GithubOAuthBackend")
 
