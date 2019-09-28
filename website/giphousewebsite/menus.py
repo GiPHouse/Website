@@ -50,4 +50,5 @@ MAIN_MENU = [
         "visible": lambda request: request.user.is_authenticated,
         "url": reverse("questionnaires:overview"),
     },
+    {"title": "Admin", "visible": lambda request: request.user.is_staff, "url": reverse("admin:index")},
 ]
