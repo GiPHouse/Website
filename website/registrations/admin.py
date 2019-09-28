@@ -19,7 +19,12 @@ class UserAdmin(admin.ModelAdmin):
 
     actions = ["place_in_first_project_preference"]
 
-    fields = ("first_name", "last_name", "email", "student_number", "github_id", "github_username", "date_joined")
+    fieldsets = (
+        ("Personal", {"fields": ("first_name", "last_name", "email", "student_number")}),
+        ("Administration", {"fields": ("date_joined", "is_staff", "is_active", "is_superuser")}),
+        ("GitHub", {"fields": ("github_id", "github_username"), "classes": ("collapse",)}),
+    )
+
     inlines = [RegistrationInline]
     list_display = (
         "__str__",
@@ -29,6 +34,7 @@ class UserAdmin(admin.ModelAdmin):
         "get_preference1",
         "get_preference2",
         "get_preference3",
+        "is_staff",
     )
 
     list_filter = (
