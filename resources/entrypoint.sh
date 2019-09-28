@@ -17,7 +17,7 @@ cd /giphouse/src/website/
 ./manage.py collectstatic --no-input -v0 --ignore="*.scss"
 ./manage.py migrate --no-input
 
-cat << EOF | python website/manage.py shell
+cat << EOF | ./manage.py shell
 from django.contrib.auth import get_user_model
 User = get_user_model()
 if not User.objects.filter(github_id=${GITHUB_SUPERUSER_ID}).exists():
