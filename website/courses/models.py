@@ -71,7 +71,7 @@ class Semester(models.Model):
         - Spring 2019 comes before fall 2018.
         """
 
-        ordering = ["-year", "season"]
+        ordering = ["-year", "-season"]
         unique_together = [["year", "season"]]
 
     SPRING = 0

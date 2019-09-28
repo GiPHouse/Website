@@ -33,7 +33,7 @@ class UserAdmin(admin.ModelAdmin):
 
     def get_preference1(self, obj):
         """Return 1st project preference of Student."""
-        registration = obj.registration_set.order_by("semester").first()
+        registration = obj.registration_set.first()
         return registration.preference1 if registration else None
 
     get_preference1.short_description = "Preference1"
@@ -41,7 +41,7 @@ class UserAdmin(admin.ModelAdmin):
 
     def get_preference2(self, obj):
         """Return 2nd project preference of Student."""
-        registration = obj.registration_set.order_by("semester").first()
+        registration = obj.registration_set.first()
         return registration.preference2 if registration else None
 
     get_preference2.short_description = "Preference2"
@@ -49,7 +49,7 @@ class UserAdmin(admin.ModelAdmin):
 
     def get_preference3(self, obj):
         """Return 3rd project preference of Student."""
-        registration = obj.registration_set.order_by("semester").first()
+        registration = obj.registration_set.first()
         return registration.preference3 if registration else None
 
     get_preference3.short_description = "Preference3"
@@ -58,6 +58,6 @@ class UserAdmin(admin.ModelAdmin):
     def place_in_first_project_preference(self, request, queryset):
         """Place the selected users in their first project preference."""
         for user in queryset:
-            registration = user.registration_set.order_by("semester").first()
+            registration = user.registration_set.first()
             registration.project = registration.preference1
-            user.save()
+            registration.save()
