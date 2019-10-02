@@ -28,13 +28,15 @@ class Step2Form(forms.Form):
         self.fields["project2"].queryset = Project.objects.filter(semester=Semester.objects.get_current_semester())
         self.fields["project3"].queryset = Project.objects.filter(semester=Semester.objects.get_current_semester())
 
-    first_name = forms.CharField(widget=widgets.TextInput(attrs={"class": "form-control"}))
-    last_name = forms.CharField()
+    github_id = forms.IntegerField(disabled=True, label="GitHub ID")
+    github_username = forms.CharField(disabled=True, label="GitHub Username")
+
+    first_name = forms.CharField(label="First Name")
+    last_name = forms.CharField(label="Last Name")
 
     student_number = forms.CharField(
         label="Student Number", widget=widgets.TextInput(attrs={"placeholder": "s1234567"})
     )
-    github_username = forms.CharField(disabled=True)
 
     course = forms.ModelChoiceField(queryset=None, empty_label=None)
 
@@ -58,26 +60,28 @@ class Step2Form(forms.Form):
         required=False,
     )
 
-    def clean(self):
-        """Validate form variables."""
-        cleaned_data = super(Step2Form, self).clean()
-
-        project1 = cleaned_data.get("project1")
-        project2 = cleaned_data.get("project2")
-        project3 = cleaned_data.get("project3")
-
-        if len(set(filter(None, (project1, project2, project3)))) != 3:
-            raise ValidationError("You should fill in all preferences with unique values.")
-        return cleaned_data
-
     def clean_email(self):
-        """Check if email is already used."""
-        if User.objects.filter(email=self.cleaned_data["email"]).exists():
-            raise ValidationError("Email already in use", code="exists")
+        """
+        Check if email is already used.
+
+        If the user has already registered, this check should pass.
+        If they try to register twice, the clean method should fail.
+        """
+        if (
+            User.objects.exclude(github_id=self.cleaned_data["github_id"])
+            .filter(email=self.cleaned_data["email"])
+            .exists()
+        ):
+            raise ValidationError("Email already in use.", code="exists")
         return self.cleaned_data["email"]
 
     def clean_student_number(self):
-        """Validate student number."""
+        """
+        Validate student number.
+
+        If the user has already registered, this check should pass.
+        If they try to register twice, the clean method should fail.
+        """
         student_number = self.cleaned_data["student_number"]
 
         m = student_number_regex.match(student_number)
@@ -86,7 +90,31 @@ class Step2Form(forms.Form):
 
         student_number = "s" + m.group(1)
 
-        if Employee.objects.filter(student_number=student_number).exists():
-            ValidationError("Student Number already in use", code="exists")
-
+        if (
+            User.objects.exclude(github_id=self.cleaned_data["github_id"])
+            .filter(student_number=student_number)
+            .exists()
+        ):
+            ValidationError("Student Number already in use.", code="exists")
         return student_number
+
+    def clean(self):
+        """
+        Validate form variables.
+
+        Allow existing users to register if they have not already registered in the current semester.
+        """
+        cleaned_data = super(Step2Form, self).clean()
+
+        if User.objects.filter(
+            github_id=cleaned_data["github_id"], registration__semester=Semester.objects.get_current_semester()
+        ).exists():
+            raise ValidationError("User already registered for this semester.", code="exists")
+
+        project1 = cleaned_data.get("project1")
+        project2 = cleaned_data.get("project2")
+        project3 = cleaned_data.get("project3")
+
+        if len(set(filter(None, (project1, project2, project3)))) != 3:
+            raise ValidationError("You should fill in all preferences with unique values.")
+        return cleaned_data
