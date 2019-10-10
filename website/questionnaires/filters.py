@@ -1,12 +1,10 @@
 from admin_auto_filters.filters import AutocompleteFilter
 
-from django.contrib import admin
-
-from courses.models import Semester
-
 from projects.models import Project
 
 from questionnaires.models import Answer, Questionnaire, QuestionnaireSubmission
+
+from registrations.models import Registration
 
 
 class SubmissionAdminSemesterFilter(AutocompleteFilter):
@@ -30,23 +28,21 @@ class SubmissionAdminQuestionnaireFilter(AutocompleteFilter):
     field_name = "questionnaire"
 
 
-class SubmissionAdminProjectFilter(admin.SimpleListFilter):
-    """Filter class to filter current Project objects."""
+class SubmissionAdminProjectFilter(AutocompleteFilter):
+    """Filter class to filter Project objects."""
 
-    title = "Current Projects"
-    parameter_name = "project"
+    title = "Projects"
+    field_name = "project"
+    rel_model = Registration
 
     def lookups(self, request, model_admin):
-        """List the current projects."""
-        return (
-            (project.id, project.name)
-            for project in Project.objects.filter(semester=Semester.objects.get_current_semester())
-        )
+        """List the projects."""
+        return ((project.id, project.name) for project in Project.objects.all())
 
     def queryset(self, request, queryset):
         """Filter out participants in the specified Project."""
         if self.value():
-            return queryset.filter(participant__groups__id=self.value())
+            return queryset.filter(participant__registration__project=self.value())
         return queryset
 
 
@@ -92,23 +88,21 @@ class AnswerAdminQuestionFilter(AutocompleteFilter):
     field_name = "question"
 
 
-class AnswerAdminProjectFilter(admin.SimpleListFilter):
-    """Filter class to filter current Project objects."""
+class AnswerAdminProjectFilter(AutocompleteFilter):
+    """Filter class to filter Project objects."""
 
-    title = "Current Projects"
-    parameter_name = "project"
+    title = "Projects"
+    field_name = "project"
+    rel_model = Registration
 
     def lookups(self, request, model_admin):
-        """List the current projects."""
-        return (
-            (project.id, project.name)
-            for project in Project.objects.filter(semester=Semester.objects.get_current_semester())
-        )
+        """List the projects."""
+        return ((project.id, project.name) for project in Project.objects.all())
 
     def queryset(self, request, queryset):
         """Filter out participants in the specified Project."""
         if self.value():
-            return queryset.filter(submission__participant__groups__id=self.value())
+            return queryset.filter(submission__participant__registration__project=self.value())
         return queryset
 
 
