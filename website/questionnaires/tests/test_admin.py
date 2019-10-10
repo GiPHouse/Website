@@ -93,7 +93,7 @@ class QuestionnaireTest(TestCase):
     def test_get_submission_changelist_projectfilter(self):
         response = self.client.get(
             reverse("admin:questionnaires_questionnairesubmission_changelist"),
-            data={SubmissionAdminProjectFilter.parameter_name: self.project.id},
+            data={f"{SubmissionAdminProjectFilter.field_name}__id__exact": self.project.id},
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
@@ -128,7 +128,7 @@ class QuestionnaireTest(TestCase):
     def test_get_answer_changelist_projectfilter(self):
         response = self.client.get(
             reverse("admin:questionnaires_answer_changelist"),
-            data={AnswerAdminProjectFilter.parameter_name: self.project.id},
+            data={f"{AnswerAdminProjectFilter.field_name}__id__exact": self.project.id},
             follow=True,
         )
         self.assertEqual(response.status_code, 200)

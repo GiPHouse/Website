@@ -38,7 +38,7 @@ class ProjectAdmin(admin.ModelAdmin):
     list_filter = [ProjectAdminClientFilter, ProjectAdminSemesterFilter]
     actions = ["export_addresses_csv"]
 
-    search_fields = ("name", "semester")
+    search_fields = ("name",)
 
     def export_addresses_csv(self, request, queryset):
         """Export the selected projects as email CSV zip."""
