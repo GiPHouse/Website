@@ -22,6 +22,7 @@ class Project(models.Model):
     class Meta:
         """Meta class for Project model."""
 
+        ordering = ["semester", "name"]
         unique_together = [["name", "semester"]]
 
     name = models.CharField("name", max_length=50)
