@@ -8,6 +8,7 @@ from courses.models import Course, Semester, current_season
 
 from projects.models import Project
 
+from registrations.admin import UserAdminProjectFilter, UserAdminSemesterFilter
 from registrations.models import Employee, Registration
 
 User: Employee = get_user_model()
@@ -91,4 +92,20 @@ class RegistrationAdminTest(TestCase):
 
     def test_student_change_list_without_registration(self):
         response = self.client.get(reverse("admin:registrations_employee_change", args=[self.user.pk]), follow=True)
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_user_changelist_semesterfilter(self):
+        response = self.client.get(
+            reverse("admin:registrations_employee_changelist"),
+            data={f"{UserAdminSemesterFilter.field_name}__id__exact": self.semester.id},
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_user_changelist_projectfilter(self):
+        response = self.client.get(
+            reverse("admin:registrations_employee_changelist"),
+            data={f"{UserAdminProjectFilter.field_name}__id__exact": self.project.id},
+            follow=True,
+        )
         self.assertEqual(response.status_code, 200)

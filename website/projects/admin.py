@@ -2,6 +2,8 @@ import csv
 import zipfile
 from io import BytesIO, StringIO
 
+from admin_auto_filters.filters import AutocompleteFilter
+
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
@@ -14,14 +16,29 @@ from registrations.models import Employee
 User: Employee = get_user_model()
 
 
+class ProjectAdminClientFilter(AutocompleteFilter):
+    """Filter class to filter Client objects."""
+
+    title = "Client"
+    field_name = "client"
+
+
+class ProjectAdminSemesterFilter(AutocompleteFilter):
+    """Filter class to filter Semester objects."""
+
+    title = "Semester"
+    field_name = "semester"
+
+
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     """Custom admin for projects."""
 
     form = ProjectAdminForm
-    list_filter = ["semester"]
-    exclude = ["permissions"]
+    list_filter = [ProjectAdminClientFilter, ProjectAdminSemesterFilter]
     actions = ["export_addresses_csv"]
+
+    search_fields = ("name", "semester")
 
     def export_addresses_csv(self, request, queryset):
         """Export the selected projects as email CSV zip."""
@@ -44,5 +61,12 @@ class ProjectAdmin(admin.ModelAdmin):
         response["Content-Disposition"] = "attachment; filename=" + "project-addresses-export.zip"
         return response
 
+    class Media:
+        """Necessary to use AutocompleteFilter."""
 
-admin.site.register(Client)
+
+@admin.register(Client)
+class ClientAdmin(admin.ModelAdmin):
+    """Custom admin for clients."""
+
+    search_fields = ("name",)
