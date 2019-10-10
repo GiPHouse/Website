@@ -20,8 +20,7 @@ class SubmissionAdminSemesterFilter(AutocompleteFilter):
         """Filter semesters."""
         if self.value():
             return queryset.filter(questionnaire__semester=self.value())
-        else:
-            return queryset
+        return queryset
 
 
 class SubmissionAdminQuestionnaireFilter(AutocompleteFilter):
@@ -69,8 +68,7 @@ class SubmissionAdminPeerFilter(AutocompleteFilter):
         """Filter the specified peer."""
         if self.value():
             return queryset.filter(answer__peer=self.value()).distinct()
-        else:
-            return queryset
+        return queryset
 
 
 class AnswerAdminQuestionnaireFilter(AutocompleteFilter):
@@ -84,8 +82,7 @@ class AnswerAdminQuestionnaireFilter(AutocompleteFilter):
         """Filter the specified Questionnaire object."""
         if self.value():
             return queryset.filter(submission__questionnaire=self.value())
-        else:
-            return queryset
+        return queryset
 
 
 class AnswerAdminQuestionFilter(AutocompleteFilter):
@@ -126,8 +123,7 @@ class AnswerAdminParticipantFilter(AutocompleteFilter):
         """Filter participants."""
         if self.value():
             return queryset.filter(submission__participant=self.value())
-        else:
-            return queryset
+        return queryset
 
 
 class AnswerAdminPeerFilter(AutocompleteFilter):
@@ -148,5 +144,4 @@ class AnswerAdminSemesterFilter(AutocompleteFilter):
         """Filter semesters."""
         if self.value():
             return queryset.filter(submission__questionnaire__semester=self.value())
-        else:
-            return queryset
+        return queryset

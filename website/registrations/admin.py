@@ -1,9 +1,40 @@
+from admin_auto_filters.filters import AutocompleteFilter
+
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 
 from registrations.models import Employee, Registration
 
 User: Employee = get_user_model()
+
+
+class UserAdminSemesterFilter(AutocompleteFilter):
+    """Filter class to filter Semester objects."""
+
+    title = "Semester"
+    field_name = "semester"
+    rel_model = Registration
+
+    def queryset(self, request, queryset):
+        """Filter semesters."""
+        if self.value():
+            return queryset.filter(registration__semester=self.value())
+        else:
+            return queryset
+
+
+class UserAdminProjectFilter(AutocompleteFilter):
+    """Filter class to filter current Project objects."""
+
+    title = "Projects"
+    field_name = "project"
+    rel_model = Registration
+
+    def queryset(self, request, queryset):
+        """Filter out participants in the specified Project."""
+        if self.value():
+            return queryset.filter(registration__project=self.value())
+        return queryset
 
 
 class RegistrationInline(admin.StackedInline):
@@ -38,10 +69,11 @@ class UserAdmin(admin.ModelAdmin):
     )
 
     list_filter = (
-        "registration__semester",
-        "registration__project",
+        UserAdminSemesterFilter,
+        UserAdminProjectFilter,
         "registration__course",
         "registration__experience",
+        "is_staff",
     )
 
     # Necessary for the autocomplete filter
@@ -88,3 +120,6 @@ class UserAdmin(admin.ModelAdmin):
             registration = user.registration_set.first()
             registration.project = registration.preference1
             registration.save()
+
+    class Media:
+        """Necessary to use AutocompleteFilter."""
