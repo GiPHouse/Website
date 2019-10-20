@@ -52,7 +52,13 @@ class UserAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ("Personal", {"fields": ("first_name", "last_name", "email", "student_number")}),
-        ("Administration", {"fields": ("date_joined", "is_staff", "is_active", "is_superuser")}),
+        (
+            "Administration",
+            {
+                "fields": ("date_joined", "is_staff", "is_active", "is_superuser", "user_permissions"),
+                "classes": ("collapse",),
+            },
+        ),
         ("GitHub", {"fields": ("github_id", "github_username"), "classes": ("collapse",)}),
     )
 
