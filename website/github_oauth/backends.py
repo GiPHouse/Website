@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.backends import ModelBackend
 
 import requests
 from requests.exceptions import RequestException
@@ -34,8 +35,13 @@ class GithubOAuthBadResponse(GithubOAuthError):
     """Bad response from Github OAuth."""
 
 
-class GithubOAuthBackend:
-    """Authentication backend using the GitHub OAuth provider."""
+class GithubOAuthBackend(ModelBackend):
+    """
+    Authentication backend using the GitHub OAuth provider.
+
+    This class inherits ModelBackend to make sure non-superuser staff
+    can correctly access the admin in the backend.
+    """
 
     def authenticate(self, request, code):
         """
