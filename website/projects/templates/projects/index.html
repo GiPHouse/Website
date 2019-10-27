@@ -3,10 +3,10 @@
 {% block title %}Projects - {{ block.super }}{% endblock %}
 
 {% block content %}
+    <h2>Projects from {{ projects_semester }}</h2>
     {% if not projects %}
         <h5>No projects found.</h5>
     {% else %}
-        <h1>Projects from {{ projects_semester }}</h1>
         {% for project in projects %}
             <div class="" id={{ project.id }}>
                 <div class="card my-4">
