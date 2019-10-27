@@ -57,6 +57,14 @@ class Step1Test(TestCase):
         self.assertRedirects(response, reverse("home"))
         self.assertContains(response, "Registrations are currently not open")
 
+    def test_step1_semester_without_registrations(self):
+        Semester.objects.create(year=timezone.now().year, season=current_season())
+
+        response = self.client.get("/register/step1", follow=True)
+
+        self.assertRedirects(response, reverse("home"))
+        self.assertContains(response, "Registrations are currently not open")
+
     def test_step1_current_semester_closed_registration(self):
         Semester.objects.create(
             year=timezone.now().year,
