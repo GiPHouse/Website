@@ -81,13 +81,19 @@ class Semester(models.Model):
     year = models.IntegerField(validators=[MinValueValidator(2008), max_value_current_year])
     season = models.PositiveSmallIntegerField(choices=CHOICES, default=SPRING)
 
-    registration_start = models.DateTimeField(blank=True, null=True)
-    registration_end = models.DateTimeField(blank=True, null=True)
+    registration_start = models.DateTimeField(
+        blank=True, null=True, help_text="This must be filled in to open the registration."
+    )
+    registration_end = models.DateTimeField(
+        blank=True, null=True, help_text="This must be filled in to open the registration."
+    )
 
     objects = SemesterManager()
 
     def registration_open(self):
         """Return if registration is open."""
+        if self.registration_start is None or self.registration_end is None:
+            return False
         return self.registration_start <= timezone.now() <= self.registration_end
 
     def __str__(self):
