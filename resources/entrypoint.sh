@@ -39,4 +39,7 @@ uwsgi --chdir=/giphouse/src/website \
     --thunder-lock \
     --vacuum \
     --logfile-chown \
-    --logto2=/giphouse/log/uwsgi.log
+    --logto2=/giphouse/log/uwsgi.log \
+    --ignore-sigpipe \
+    --ignore-write-errors \
+    --disable-write-exception
