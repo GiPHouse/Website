@@ -32,7 +32,9 @@ class Project(models.Model):
     description = models.TextField()
     client = models.ForeignKey(Client, on_delete=models.SET_NULL, blank=True, null=True)
 
-    comments = models.TextField(null=True, blank=True)
+    comments = models.TextField(
+        null=True, blank=True, help_text="This is for private comments that are only available here."
+    )
 
     def __str__(self):
         """Return project name and semester."""

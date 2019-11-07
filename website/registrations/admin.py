@@ -60,6 +60,7 @@ class UserAdmin(admin.ModelAdmin):
             },
         ),
         ("GitHub", {"fields": ("github_id", "github_username"), "classes": ("collapse",)}),
+        ("Private comments", {"fields": ("comments",)}),
     )
 
     inlines = [RegistrationInline]

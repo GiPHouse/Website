@@ -39,6 +39,10 @@ class Employee(AbstractUser):
 
     student_number = models.CharField(unique=True, blank=True, null=True, max_length=8)
 
+    comments = models.TextField(
+        null=True, blank=True, help_text="This is for private comments that are only available here."
+    )
+
     objects = EmployeeManager()
 
     def __str__(self):
