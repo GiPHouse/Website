@@ -74,10 +74,10 @@ jobs:
 
       - name: "Upload setup.sql"
         run: "scp -o StrictHostKeyChecking=no resources/setup.sql \"${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}:${DEPLOY_DIRECTORY}/database_init/setup.sql\""
-      
+
       - name: "Upload docker-compose.yaml"
         run: "scp -o StrictHostKeyChecking=no resources/docker-compose.yaml \"${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}:${DEPLOY_DIRECTORY}/docker-compose.yaml\""
-      
+
       - name: "Deploy new Docker image"
         run: |
           ssh -o StrictHostKeyChecking=no "${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}" /bin/bash << EOF
