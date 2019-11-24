@@ -12,10 +12,10 @@ jobs:
     - name: "Checkout the repository"
       uses: "actions/checkout@v1"
 
-    - name: "Setup Python 3.7"
+    - name: "Setup Python"
       uses: "actions/setup-python@v1"
       with:
-        python-version: '3.7'
+        python-version: '3.8'
 
     - name: "Setup Poetry"
       run: |
@@ -46,10 +46,10 @@ jobs:
     - name: "Checkout the repository"
       uses: "actions/checkout@v1"
 
-    - name: "Setup Python 3.7"
+    - name: "Setup Python"
       uses: "actions/setup-python@v1"
       with:
-        python-version: '3.7'
+        python-version: '3.8'
 
     - name: "Setup Poetry"
       run: |

@@ -6,7 +6,7 @@ This is the code for the website of [GiPHouse](http://giphouse.nl/) powered by [
 
 ### Getting Started
 
-1. Install Python 3.7 and [poetry](https://poetry.eustace.io/) (a Python dependency manager).
+1. Install Python 3.8+ and [poetry](https://poetry.eustace.io/) (a Python dependency manager).
 2. Clone this repository.
 3. Run `poetry install` to install all dependencies into virtual environment.
 4. Run `poetry shell` to enter the virtual environment.
