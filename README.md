@@ -1,4 +1,4 @@
-# GiPHouse website 
+# GiPHouse website
 
 ![](https://github.com/giphouse/Website/workflows/Linting%20and%20Testing/badge.svg) ![](https://github.com/giphouse/Website/workflows/Deploy%20to%20production/badge.svg) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) ![](https://img.shields.io/badge/coverage-100%25-brightgreen)
 
@@ -20,7 +20,7 @@ To test our code we use multiple testing methods. All of these tests are automat
 All of these tests need to pass, before a pull request is allowed to be merged into the `master` branch.
 
 If you want to run the tests locally, please look up the relevant test command in the [CI workflow](/.github/workflows/ci.yaml) file.
- 
+
 ### Tests
 
 The test suite can be run with the `manage.py` command. The following command can be executed to quickly run all the tests:
@@ -28,7 +28,7 @@ The test suite can be run with the `manage.py` command. The following command ca
 ```bash
 poetry run website/manage.py test
 ```
-Every Django app has its own tests (located in the `tests` directory inside the app root). We enforce 100% statement and 100% branch coverage in our tests, to make sure that every line of code and branch is run at least once during testing. We use [`coverage`](https://coverage.readthedocs.io/en/v4.5.x/) to run and analyse these tests. 
+Every Django app has its own tests (located in the `tests` directory inside the app root). We enforce 100% statement and 100% branch coverage in our tests, to make sure that every line of code and branch is run at least once during testing. We use [`coverage`](https://coverage.readthedocs.io/en/v4.5.x/) to run and analyse these tests.
 
 #### Built-in Django tests
 The CI runs built-in Django tests. These tests include checking if there are any database migrations needed but not created yet and checking for common problems.
@@ -42,7 +42,7 @@ We also use a few Bash scripts (e.g. for deployment). These are checked using [`
 
 #### Loading Fixtures
 
-To make manual testing easier, we have the `createfixtures` command to automatically create test data. We also test if that command works correctly. 
+To make manual testing easier, we have the `createfixtures` command to automatically create test data. We also test if that command works correctly.
 
 You can  create and load fixtures with the `manage.py createfixtures` command. The fixtures dynamically generated using the [faker](https://pypi.org/project/Faker/) package.
 
