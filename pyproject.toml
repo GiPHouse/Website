@@ -6,7 +6,7 @@ authors = ["joren485", "pingiun", "keukentrap", "adiehl96", "Pegasystem", "BierB
 license = "AGPL-3.0-only"
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.8"
 Django = "^2.1"
 requests = "^2.21"
 libsass = "^0.17.0"
