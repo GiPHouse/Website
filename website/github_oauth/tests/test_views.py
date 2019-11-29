@@ -41,12 +41,32 @@ class LoginTest(TestCase):
         self.assertRedirects(response, reverse("home"))
 
     @mock.patch("github_oauth.views.authenticate")
+    def test_login_get_success_next(self, mock_auth):
+        mock_auth.return_value = self.test_user
+        redirect_view = "contact"
+        redirect_path = reverse(redirect_view)
+
+        response = self.client.get(f"/oauth/login/?code=fakecode&next={redirect_path}")
+
+        self.assertRedirects(response, redirect_path)
+
+    @mock.patch("github_oauth.views.authenticate")
     def test_login_get_fail(self, mock_auth):
         mock_auth.return_value = None
 
         response = self.client.get("/oauth/login/?code=fakecode")
 
         self.assertRedirects(response, reverse("home"))
+
+    @mock.patch("github_oauth.views.authenticate")
+    def test_login_get_fail_next(self, mock_auth):
+        mock_auth.return_value = None
+        redirect_view = "contact"
+        redirect_path = reverse(redirect_view)
+
+        response = self.client.get(f"/oauth/login/?code=fakecode&next={redirect_path}")
+
+        self.assertRedirects(response, redirect_path)
 
     def test_login_get_no_params(self):
         response = self.client.get("/oauth/login/")
@@ -64,6 +84,26 @@ class LoginTest(TestCase):
         response = self.client.get("/oauth/login/?code=fakecode")
 
         self.assertRedirects(response, reverse("home"))
+
+    def test_logout(self):
+
+        self.client.force_login(self.test_user)
+
+        response = self.client.get("/logout/")
+
+        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertRedirects(response, reverse("home"))
+
+    def test_logout_next(self):
+        redirect_view = "contact"
+        redirect_path = reverse(redirect_view)
+
+        self.client.force_login(self.test_user)
+
+        response = self.client.get(f"/logout/?next={redirect_path}")
+
+        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertRedirects(response, redirect_path)
 
 
 class RegisterTest(TestCase):

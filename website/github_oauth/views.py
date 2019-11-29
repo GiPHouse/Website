@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login
 from django.http.response import HttpResponseBadRequest
 from django.shortcuts import redirect
-from django.urls import reverse_lazy
+from django.urls import Resolver404, resolve, reverse_lazy
 from django.views import View
 
 from courses.models import Semester
@@ -23,7 +23,7 @@ class BaseGithubView(View):
 
     def get(self, request, code):
         """Handle GET request made by Github OAuth."""
-        return redirect(self.redirect_url_success)
+        return redirect(self._get_redirect_url(request))
 
     def dispatch(self, request, *args, **kwargs):
         """Check if user is authenticated and if the code GET parameter exists."""
@@ -41,6 +41,21 @@ class BaseGithubView(View):
 
         return self.get(request, code)
 
+    @staticmethod
+    def _get_redirect_url(request, default_url=redirect_url_success):
+        """
+        Return the path to redirect to.
+
+        If the 'next' parameter is present and resolves to a known view, use it.
+        Otherwise return the 'default_url'.
+        """
+        try:
+            redirect_path = request.GET["next"]
+            resolve(redirect_path)
+            return redirect_path
+        except (Resolver404, KeyError):
+            return default_url
+
 
 class GithubLoginView(BaseGithubView):
     """View accessed by GitHub after an authorization request of a user trying to login."""
@@ -52,10 +67,10 @@ class GithubLoginView(BaseGithubView):
         if user is not None:
             login(request, user)
             messages.success(request, "Login Successful", extra_tags="success")
-            return redirect(self.redirect_url_failure)
+            return redirect(self._get_redirect_url(request, default_url=self.redirect_url_failure))
 
         messages.warning(request, "Login Failed", extra_tags="danger")
-        return redirect(self.redirect_url_success)
+        return redirect(self._get_redirect_url(request, default_url=self.redirect_url_failure))
 
 
 class GithubRegisterView(BaseGithubView):
@@ -71,7 +86,7 @@ class GithubRegisterView(BaseGithubView):
             github_info = backend.get_github_info(code)
         except GithubOAuthError as error_message:
             messages.warning(request, str(error_message), extra_tags="danger")
-            return redirect(self.redirect_url_failure)
+            return redirect(self._get_redirect_url(request, default_url=self.redirect_url_failure))
 
         try:
             user = User.objects.get(
@@ -82,7 +97,7 @@ class GithubRegisterView(BaseGithubView):
         else:
             login(request, user, backend="github_oauth.backends.GithubOAuthBackend")
             messages.success(request, "You already have an account.", extra_tags="success")
-            return redirect(self.redirect_url_failure)
+            return redirect(self._get_redirect_url(request, default_url=self.redirect_url_failure))
 
         request.session.update(
             {
