@@ -40,11 +40,7 @@ MAIN_MENU = [
         ],
     },
     {"title": "Contact", "url": reverse("contact")},
-    {
-        "title": "Room Reservation",
-        "url": reverse("room_reservation:calendar"),
-        "visible": lambda request: request.user.is_authenticated,
-    },
+    {"title": "Room Reservation", "url": reverse("room_reservation:calendar")},
     {
         "title": "Questionnaires",
         "visible": lambda request: request.user.is_authenticated,
