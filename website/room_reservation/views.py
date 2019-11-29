@@ -9,8 +9,6 @@ from django.utils import dateparse, timezone
 from django.views import View
 from django.views.generic import TemplateView
 
-from giphousewebsite.mixins import LoginRequiredMessageMixin
-
 from room_reservation.models import Reservation, Room
 
 
@@ -72,7 +70,7 @@ class BaseReservationView(View):
         )
 
 
-class ShowCalendarView(LoginRequiredMessageMixin, TemplateView, BaseReservationView):
+class ShowCalendarView(TemplateView, BaseReservationView):
     """
     Show a week-calendar and showing the current reservations.
 
@@ -108,7 +106,6 @@ class ShowCalendarView(LoginRequiredMessageMixin, TemplateView, BaseReservationV
             ]
         )
         context["rooms"] = Room.objects.all()
-
         return context
 
 

@@ -2,18 +2,22 @@
 {% load static %}
 
 {% block content %}
+    <h2>Room Reservations</h2>
     <div id="notifications">
 {# This is where calendar-init.js will place notifications for deleted events. #}
     </div>
-    <div id="external-events">
-        <h4>Bookable Rooms</h4>
-        <p>Drag a room to the calendar to make a reservation. Click events to remove them.</p>
-        <div id="external-events-list" class="row">
-            {% for room in rooms %}
-            <div class="fc-event col-2" data-event='{ "title": "{{ room }}", "duration": "02:00", "editable": true, "extendedProps": { "room": {{ room.id }} } }'>{{ room }}</div>
-            {% endfor %}
-      </div>
-    </div>
+    {% if request.user.is_authenticated %}
+        <div id="external-events">
+            <h4>Bookable Rooms</h4>
+            <p>Drag a room to the calendar to make a reservation. Click events to remove them.</p>
+            <div id="external-events-list" class="row">
+                {% for room in rooms %}
+                    <div class="fc-event col-2" data-event='{ "title": "{{ room }}", "duration": "02:00", "editable": true, "extendedProps": { "room": {{ room.id }} } }'>{{ room }}</div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
     <div id="calendar" data-events='{{ reservations|safe }}' data-csrf="{{ csrf_token }}"></div>
 
     <script src="{% static 'js/fullcalendar/core/main.min.js' %}"></script>

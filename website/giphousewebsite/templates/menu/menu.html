@@ -43,11 +43,11 @@
         <ul class="navbar-nav my-2 my-lg-0">
                 <li class="nav-item">
                     {% if not request.user.is_authenticated %}
-                    <a href="{% url_github_callback 'login' %}" class="nav-link">
+                    <a href="{% url_github_callback 'login'  %}" class="nav-link">
                         <i class="fab fa-github"></i> Login with GitHub
                     </a>
                     {% else %}
-                    <a class="nav-link" href="{%  url 'logout' %}">Logout</a>
+                    <a class="nav-link" href="{%  url 'logout' %}?next={{ request.path | urlencode }}">Logout</a>
                     {% endif %}
                 </li>
             </ul>

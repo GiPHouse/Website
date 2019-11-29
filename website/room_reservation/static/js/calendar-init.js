@@ -102,10 +102,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const Draggable = FullCalendarInteraction.Draggable;
 
   const containerEl = document.getElementById('external-events-list');
-  new Draggable(containerEl, {
-    itemSelector: '.fc-event',
-  });
-
+  if (containerEl !== null) {
+    new Draggable(containerEl, {
+      itemSelector: '.fc-event',
+    });
+  }
   const calendar = new FullCalendar.Calendar(calendarEl, {
     plugins: [ 'dayGrid', 'timeGrid', 'bootstrap', 'interaction' ],
     themeSystem: 'bootstrap',
