@@ -116,6 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
     defaultView: 'timeGridWeek',
     weekNumbers: true,
     weekNumbersWithinDays: true,
+    weekends: false,
     firstDay: 1,
     slotLabelFormat: {
       hour: 'numeric',
