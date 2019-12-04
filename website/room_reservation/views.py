@@ -37,6 +37,9 @@ class BaseReservationView(View):
         if start_time.hour < 8 or start_time.hour >= 18 or end_time.hour < 8 or start_time.hour > 18:
             return False, "Please enter times between 8:00 and 18:00"
 
+        if start_time.weekday() in (5, 6):
+            return False, "Rooms cannot be reserved in the weekends"
+
         already_taken = (
             Reservation.objects.filter(room=room)
             .filter(
