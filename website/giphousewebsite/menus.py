@@ -39,12 +39,12 @@ MAIN_MENU = [
             for semester in Semester.objects.all()
         ],
     },
-    {"title": "Contact", "url": reverse("contact")},
-    {"title": "Room Reservation", "url": reverse("room_reservation:calendar")},
+    {"title": "Room Reservations", "url": reverse("room_reservation:calendar")},
     {
         "title": "Questionnaires",
         "visible": lambda request: request.user.is_authenticated,
         "url": reverse("questionnaires:overview"),
     },
+    {"title": "Contact", "url": reverse("contact")},
     {"title": "Admin", "visible": lambda request: request.user.is_staff, "url": reverse("admin:index")},
 ]
