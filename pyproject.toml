@@ -28,7 +28,7 @@ coverage = "^4.5"
 pydocstyle = "^4.0"
 freezegun = "^0.3.11"
 Faker = "^2"
-black = {version = "^18.3-alpha.0",allows-prereleases = true}
+black = {version = "^18.3-alpha.0",allow-prereleases = true}
 
 [tool.black]
 # Django Default
