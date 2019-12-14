@@ -102,9 +102,9 @@ document.addEventListener('DOMContentLoaded', function() {
   const Draggable = FullCalendarInteraction.Draggable;
 
   const containerEl = document.getElementById('external-events-list');
-  if (containerEl !== null && containerEl.hasAttribute("draggable"))  {
+  if (containerEl !== null) {
     new Draggable(containerEl, {
-      itemSelector: '.fc-event',
+      itemSelector: '.fc-event.draggable',
     });
   }
   const calendar = new FullCalendar.Calendar(calendarEl, {

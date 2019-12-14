@@ -10,10 +10,10 @@
     <div id="external-events">
         <h4>Bookable Rooms</h4>
         <p>If you are logged in, you can drag a room to the calendar to make a reservation and click your events to remove them.</p>
-        {# The `draggable` attribute is used in calendar-init.js to make the rooms draggable. #}
-        <div id="external-events-list" class="row" {% if request.user.is_authenticated %}draggable="true"{% endif %}>
+        <div id="external-events-list" class="row {% if request.user.is_authenticated %}draggable{% endif %}">
             {% for room in rooms %}
-                <div class="fc-event col-2" data-event='{ "title": "{{ room.name }}", "duration": "02:00", "editable": true, "extendedProps": { "room": {{ room.id }} } }'>{{ room }}</div>
+                {# The `draggable` attribute is used in calendar-init.js to make the rooms draggable. #}
+                <div class="fc-event col-2 {% if request.user.is_authenticated %}draggable{% endif %}" data-event='{ "title": "{{ room.name }}", "duration": "02:00", "editable": true, "extendedProps": { "room": {{ room.id }} } }'>{{ room }}</div>
             {% endfor %}
         </div>
     </div>

@@ -3,10 +3,13 @@
 @import "fullcalendar/timegrid/main.css";
 @import "fullcalendar/bootstrap/main.css";
 
+#external-events .fc-event.draggable {
+  cursor: pointer;
+}
+
 #external-events .fc-event {
   margin: 10px;
   padding: 10px 8px;
-  cursor: pointer;
 }
 
 #notifications {
