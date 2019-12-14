@@ -28,8 +28,7 @@ COPY poetry.lock /giphouse/src/
 COPY pyproject.toml /giphouse/src/
 
 RUN pip install --no-cache-dir poetry && \
-    poetry config --no-interaction --no-ansi settings.virtualenvs.create false && \
-    poetry install --no-interaction --no-ansi --no-dev --extras "production" && \
-    poetry cache:clear --no-interaction --no-ansi --all pypi
+    poetry config --no-interaction --no-ansi virtualenvs.create false && \
+    poetry install --no-interaction --no-ansi --no-dev --extras "production"
 
 COPY website /giphouse/src/website/
