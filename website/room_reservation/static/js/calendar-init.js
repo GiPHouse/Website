@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const Draggable = FullCalendarInteraction.Draggable;
 
   const containerEl = document.getElementById('external-events-list');
-  if (containerEl !== null) {
+  if (containerEl !== null && containerEl.hasAttribute("draggable"))  {
     new Draggable(containerEl, {
       itemSelector: '.fc-event',
     });
@@ -118,8 +118,14 @@ document.addEventListener('DOMContentLoaded', function() {
     weekNumbersWithinDays: true,
     weekends: false,
     firstDay: 1,
+    timeFormat: "HH:mm",
     slotLabelFormat: {
-      hour: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    },
+    eventTimeFormat: {
+      hour: '2-digit',
       minute: '2-digit',
       hour12: false,
     },
@@ -137,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
         event.remove();
         return;
       }
-      event.setProp('title', event.title + ' reserved by you');
+      event.setProp('title', event.title + ' (you)');
       event.setExtendedProp('pk', message.pk);
     },
     eventClick: async function({event}) {

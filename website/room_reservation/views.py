@@ -91,12 +91,8 @@ class ShowCalendarView(TemplateView, BaseReservationView):
             [
                 {
                     "pk": reservation.pk,
-                    "title": str(reservation.room)
-                    + " reserved by "
-                    + ("you" if self.request.user == reservation.reservee else str(reservation.reservee)),
-                    "reservee": str(reservation.reservee)
-                    if self.request.user.has_perm("room_reservation.view_reservation")
-                    else None,
+                    "title": f"{reservation.room.name} ({reservation.reservee.get_full_name()})",
+                    "reservee": reservation.reservee.get_full_name(),
                     "room": reservation.room_id,
                     "start": reservation.start_time.isoformat(),
                     "end": reservation.end_time.isoformat(),
