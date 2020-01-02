@@ -85,7 +85,10 @@ class QuestionnaireTest(TestCase):
     def test_get_submission_changelist_semesterfilter(self):
         response = self.client.get(
             reverse("admin:questionnaires_questionnairesubmission_changelist"),
-            data={f"{SubmissionAdminSemesterFilter.field_name}__id__exact": self.semester.id},
+            data={
+                f"{SubmissionAdminSemesterFilter.field_name}__"
+                f"{SubmissionAdminSemesterFilter.field_pk}__exact": self.semester.id
+            },
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
@@ -93,7 +96,10 @@ class QuestionnaireTest(TestCase):
     def test_get_submission_changelist_projectfilter(self):
         response = self.client.get(
             reverse("admin:questionnaires_questionnairesubmission_changelist"),
-            data={f"{SubmissionAdminProjectFilter.field_name}__id__exact": self.project.id},
+            data={
+                f"{SubmissionAdminProjectFilter.field_name}__"
+                f"{SubmissionAdminProjectFilter.field_pk}__exact": self.project.id
+            },
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
@@ -101,7 +107,9 @@ class QuestionnaireTest(TestCase):
     def test_get_submission_changelist_peerfilter(self):
         response = self.client.get(
             reverse("admin:questionnaires_questionnairesubmission_changelist"),
-            data={f"{SubmissionAdminPeerFilter.field_name}__id__exact": self.user.id},
+            data={
+                f"{SubmissionAdminPeerFilter.field_name}__{SubmissionAdminPeerFilter.field_pk}__exact": self.user.id
+            },
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
@@ -120,7 +128,10 @@ class QuestionnaireTest(TestCase):
     def test_get_answer_changelist_questionnairefilter(self):
         response = self.client.get(
             reverse("admin:questionnaires_answer_changelist"),
-            data={f"{AnswerAdminQuestionnaireFilter.field_name}__id__exact": self.active_questions.id},
+            data={
+                f"{AnswerAdminQuestionnaireFilter.field_name}__"
+                f"{AnswerAdminQuestionnaireFilter.field_pk}__exact": self.active_questions.id
+            },
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
@@ -128,7 +139,10 @@ class QuestionnaireTest(TestCase):
     def test_get_answer_changelist_projectfilter(self):
         response = self.client.get(
             reverse("admin:questionnaires_answer_changelist"),
-            data={f"{AnswerAdminProjectFilter.field_name}__id__exact": self.project.id},
+            data={
+                f"{AnswerAdminProjectFilter.field_name}__"
+                f"{AnswerAdminProjectFilter.field_pk}__exact": self.project.id
+            },
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
@@ -136,7 +150,10 @@ class QuestionnaireTest(TestCase):
     def test_get_answer_changelist_participantfilter(self):
         response = self.client.get(
             reverse("admin:questionnaires_answer_changelist"),
-            data={f"{AnswerAdminParticipantFilter.field_name}__id__exact": self.user.id},
+            data={
+                f"{AnswerAdminParticipantFilter.field_name}__"
+                f"{AnswerAdminParticipantFilter.field_pk}__exact": self.user.id
+            },
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
@@ -144,7 +161,10 @@ class QuestionnaireTest(TestCase):
     def test_get_answer_changelist_semesterfilter(self):
         response = self.client.get(
             reverse("admin:questionnaires_answer_changelist"),
-            data={f"{AnswerAdminSemesterFilter.field_name}__id__exact": self.semester.id},
+            data={
+                f"{AnswerAdminSemesterFilter.field_name}__"
+                f"{AnswerAdminSemesterFilter.field_pk}__exact": self.semester.id
+            },
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
