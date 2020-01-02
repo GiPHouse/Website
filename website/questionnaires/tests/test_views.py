@@ -36,7 +36,7 @@ class QuestionnaireTest(TestCase):
     def setUpTestData(cls):
 
         semester = Semester.objects.create(
-            year=2019,
+            year=timezone.now().year,
             season=current_season(),
             registration_start=timezone.now(),
             registration_end=timezone.now() + timezone.timedelta(days=60),
