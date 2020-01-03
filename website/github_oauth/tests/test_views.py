@@ -5,10 +5,14 @@ from django.contrib.auth.models import AnonymousUser
 from django.shortcuts import reverse
 from django.test import Client, RequestFactory, TestCase
 
+from courses.models import Course, Semester
+
 from github_oauth.backends import GithubOAuthError
 from github_oauth.views import BaseGithubView, GithubRegisterView
 
-from registrations.models import Employee
+from projects.models import Project
+
+from registrations.models import Employee, Registration
 
 User: Employee = get_user_model()
 
@@ -16,8 +20,6 @@ User: Employee = get_user_model()
 class LoginTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-
-        cls.test_user_password = "password"
 
         cls.test_user = User.objects.create_user(github_id=0)
 
@@ -110,19 +112,31 @@ class RegisterTest(TestCase):
     @classmethod
     def setUpTestData(cls):
 
-        cls.github_id = 0
-
-        cls.test_user_password = "password"
-
         cls.test_user = User.objects.create_user(github_id=0)
+
+        project = Project.objects.create(
+            name="test project", semester=Semester.objects.get_or_create_current_semester(),
+        )
+
+        Registration.objects.create(
+            user=cls.test_user,
+            semester=Semester.objects.get_or_create_current_semester(),
+            experience=Registration.EXPERIENCE_ADVANCED,
+            course=Course.objects.se(),
+            preference1=project,
+        )
 
     def setUp(self):
         self.client = Client()
 
     @mock.patch("github_oauth.backends.GithubOAuthBackend.get_github_info")
     def test_register(self, mock_get_github_info):
-
-        mock_get_github_info.return_value = {"id": self.github_id + 1, "email": None, "login": None, "name": None}
+        mock_get_github_info.return_value = {
+            "id": self.test_user.github_id + 1,
+            "email": None,
+            "login": None,
+            "name": None,
+        }
 
         response = self.client.get("/oauth/register/?code=fakecode")
 
@@ -130,7 +144,7 @@ class RegisterTest(TestCase):
 
     @mock.patch("github_oauth.backends.GithubOAuthBackend.get_github_info")
     def test_register_user_exists(self, mock_get_github_info):
-        mock_get_github_info.return_value = {"id": self.github_id}
+        mock_get_github_info.return_value = {"id": self.test_user.github_id}
 
         response = self.client.get("/oauth/register/?code=fakecode")
         self.assertRedirects(response, reverse("home"))

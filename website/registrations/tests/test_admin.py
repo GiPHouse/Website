@@ -4,7 +4,7 @@ from django.shortcuts import reverse
 from django.test import Client, TestCase
 from django.utils import timezone
 
-from courses.models import Course, Semester, current_season
+from courses.models import Course, Semester
 
 from projects.models import Project
 
@@ -21,14 +21,12 @@ class RegistrationAdminTest(TestCase):
         cls.admin = User.objects.create_superuser(github_id=0, github_username="super")
 
         cls.course = Course.objects.sdm()
-        cls.semester, _ = Semester.objects.get_or_create(
-            year=timezone.now().year,
-            season=current_season(),
-            defaults={
-                "registration_start": timezone.now() - timezone.timedelta(days=30),
-                "registration_end": timezone.now() + timezone.timedelta(days=30),
-            },
-        )
+
+        cls.semester = Semester.objects.get_or_create_current_semester()
+        cls.semester.registration_start = timezone.now() - timezone.timedelta(days=30)
+        cls.semester.registration_end = timezone.now() + timezone.timedelta(days=30)
+        cls.semester.save()
+
         cls.project = Project.objects.create(name="GiPHouse1234", description="Test", semester=cls.semester)
 
         cls.manager = User.objects.create(github_id=1, github_username="manager")

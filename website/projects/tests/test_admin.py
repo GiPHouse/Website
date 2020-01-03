@@ -2,9 +2,8 @@ from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.contrib.auth import get_user_model
 from django.shortcuts import reverse
 from django.test import Client, TestCase
-from django.utils import timezone
 
-from courses.models import Course, Semester, current_season
+from courses.models import Course, Semester
 
 from projects.models import Project
 
@@ -19,12 +18,7 @@ class GetProjectsTest(TestCase):
         cls.admin_password = "hunter2"
         cls.admin = User.objects.create_superuser(github_id=0, github_username="admin")
 
-        cls.semester = Semester.objects.create(
-            year=timezone.now().year,
-            season=current_season(),
-            registration_start=timezone.now(),
-            registration_end=timezone.now(),
-        )
+        cls.semester = Semester.objects.get_or_create_current_semester()
 
         cls.project = Project.objects.create(name="test", semester=cls.semester)
         cls.manager = User.objects.create(github_id=1, github_username="manager")

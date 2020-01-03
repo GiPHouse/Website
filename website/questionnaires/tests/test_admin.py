@@ -3,7 +3,7 @@ from django.shortcuts import reverse
 from django.test import Client, TestCase
 from django.utils import timezone
 
-from courses.models import Semester, current_season
+from courses.models import Semester
 
 from projects.models import Project
 
@@ -29,12 +29,7 @@ class QuestionnaireTest(TestCase):
         cls.admin_password = "hunter2"
         cls.admin = User.objects.create_superuser(github_id=0, github_username="test")
 
-        cls.semester = Semester.objects.create(
-            year=2019,
-            season=current_season(),
-            registration_start=timezone.now(),
-            registration_end=timezone.now() + timezone.timedelta(days=60),
-        )
+        cls.semester = Semester.objects.get_or_create_current_semester()
 
         cls.user = User.objects.create_user(github_id=1, github_username="test2")
 

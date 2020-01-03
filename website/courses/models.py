@@ -13,13 +13,6 @@ def max_value_current_year(value):
     return MaxValueValidator(current_year() + 1)(value)
 
 
-def current_season():
-    """Return the current season based on the current time."""
-    if timezone.now() < timezone.now().replace(month=8, day=1):
-        return Semester.SPRING
-    return Semester.FALL
-
-
 class CourseManager(models.Manager):
     """Manager for the Course model."""
 
@@ -51,12 +44,40 @@ class Course(models.Model):
 class SemesterManager(models.Manager):
     """Manager for the Semester model."""
 
-    def get_current_semester(self):
-        """Return the current semester based on the current time."""
-        try:
-            return self.get(year=current_year(), season=current_season())
-        except Semester.DoesNotExist:
-            self.none()
+    def get_or_create_current_semester(self):
+        """
+        Return the current semester based on the current time.
+
+        Dates before the start of the spring semester are seen as the fall semester of the calendar year before.
+        For example, 10 january 2020 is seen as the fall semester of 2019.
+
+        The spring semester starts in the week that has the first week day of february.
+        For example, if 2 february is a thursday, the spring semester will start on monday january 30th.
+        For example, if 1 february is a saturday, the spring semester will start on monday february 3rd.
+
+        August is considered spring semester for simplicity.
+        """
+        february_first = timezone.now().replace(
+            year=timezone.now().year, month=2, day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+        if february_first.weekday() < 5:
+            spring_semester_start = february_first - timezone.timedelta(days=february_first.weekday())
+        else:
+            spring_semester_start = february_first + timezone.timedelta(days=7 - february_first.weekday())
+
+        fall_semester_start = timezone.now().replace(
+            year=timezone.now().year, month=9, day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+
+        if timezone.now() < spring_semester_start:
+            return self.get_or_create(year=timezone.now().year - 1, season=Semester.FALL)[0]
+
+        elif spring_semester_start <= timezone.now() < fall_semester_start:
+            return self.get_or_create(year=timezone.now().year, season=Semester.SPRING)[0]
+
+        # In the case fall_semester_start <= timezone.now()
+        # In other words, if the start of the fall semester has passed.
+        return self.get_or_create(year=current_year(), season=Semester.FALL)[0]
 
 
 class Semester(models.Model):

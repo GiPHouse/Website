@@ -24,9 +24,15 @@ class Step2Form(forms.Form):
 
         self.fields["course"].queryset = Course.objects.all()
 
-        self.fields["project1"].queryset = Project.objects.filter(semester=Semester.objects.get_current_semester())
-        self.fields["project2"].queryset = Project.objects.filter(semester=Semester.objects.get_current_semester())
-        self.fields["project3"].queryset = Project.objects.filter(semester=Semester.objects.get_current_semester())
+        self.fields["project1"].queryset = Project.objects.filter(
+            semester=Semester.objects.get_or_create_current_semester()
+        )
+        self.fields["project2"].queryset = Project.objects.filter(
+            semester=Semester.objects.get_or_create_current_semester()
+        )
+        self.fields["project3"].queryset = Project.objects.filter(
+            semester=Semester.objects.get_or_create_current_semester()
+        )
 
     github_id = forms.IntegerField(disabled=True, label="GitHub ID")
     github_username = forms.CharField(disabled=True, label="GitHub Username")
@@ -107,7 +113,8 @@ class Step2Form(forms.Form):
         cleaned_data = super(Step2Form, self).clean()
 
         if User.objects.filter(
-            github_id=cleaned_data["github_id"], registration__semester=Semester.objects.get_current_semester()
+            github_id=cleaned_data["github_id"],
+            registration__semester=Semester.objects.get_or_create_current_semester(),
         ).exists():
             raise ValidationError("User already registered for this semester.", code="exists")
 
