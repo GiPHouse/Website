@@ -1,5 +1,5 @@
+from django.shortcuts import reverse
 from django.test import Client, TestCase
-from django.utils import timezone
 
 from courses.models import Course, Semester
 
@@ -9,16 +9,29 @@ class GetCoursesTest(TestCase):
     def setUpTestData(cls):
 
         cls.course = Course.objects.create(name="Test Course")
-        cls.season = Semester.SPRING
-        cls.year = 2019
+        cls.spring = Semester.objects.create(year=2019, season=Semester.SPRING)
 
-        cls.semester = Semester.objects.create(
-            year=cls.year, season=cls.season, registration_start=timezone.now(), registration_end=timezone.now()
-        )
+        cls.fall = Semester.objects.create(year=2019, season=Semester.FALL)
 
     def setUp(self):
         self.client = Client()
 
-    def test_get_success(self):
-        response = self.client.get(f"/lectures/{self.year}/{self.season}/")
-        self.assertEqual(response.status_code, 200)
+    def test_get_success_spring(self):
+        response = self.client.get(
+            reverse(
+                "courses:lectures", kwargs={"year": self.spring.year, "season_slug": self.spring.get_season_display()}
+            )
+        )
+        self.assertContains(response, self.course.name, status_code=200)
+
+    def test_get_success_fall(self):
+        response = self.client.get(
+            reverse(
+                "courses:lectures", kwargs={"year": self.spring.year, "season_slug": self.fall.get_season_display()}
+            )
+        )
+        self.assertContains(response, self.course.name, status_code=200)
+
+    def test_get_fail(self):
+        response = self.client.get(f"/projects/{self.spring.year}/not-a-season/")
+        self.assertEqual(response.status_code, 404)
