@@ -14,7 +14,7 @@ class QuestionnaireManager(models.Manager):
 
     def current_questionnaires(self):
         """Get all questionnaires of the current semester."""
-        return self.filter(semester=Semester.objects.get_current_semester())
+        return self.filter(semester=Semester.objects.get_or_create_current_semester())
 
 
 class Questionnaire(models.Model):

@@ -1,8 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-from django.utils import timezone
 
-from courses.models import Semester, current_season
+from courses.models import Semester
 
 from projects.models import Project
 
@@ -21,12 +20,7 @@ class ModelsTest(TestCase):
 
         cls.test_user = User.objects.create_user(github_id=1, first_name=cls.first_name, last_name=cls.last_name)
 
-        cls.test_semester = Semester.objects.create(
-            year=timezone.now().year,
-            season=current_season(),
-            registration_start=timezone.now(),
-            registration_end=timezone.now() + timezone.timedelta(days=1),
-        )
+        cls.test_semester = Semester.objects.get_or_create_current_semester()
 
         cls.test_project = Project.objects.create(name=cls.project_name, semester=cls.test_semester)
 

@@ -26,12 +26,13 @@ class ProjectAdminForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.fields["managers"].queryset = User.objects.filter(
-            registration__course=Course.objects.sdm(), registration__semester=Semester.objects.get_current_semester()
+            registration__course=Course.objects.sdm(),
+            registration__semester=Semester.objects.get_or_create_current_semester(),
         )
 
         self.fields["engineers"].queryset = User.objects.filter(
             Q(registration__course=Course.objects.se()) | Q(registration__course=Course.objects.sde()),
-            registration__semester=Semester.objects.get_current_semester(),
+            registration__semester=Semester.objects.get_or_create_current_semester(),
         )
 
         if self.instance.pk:

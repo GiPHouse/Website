@@ -90,7 +90,7 @@ class GithubRegisterView(BaseGithubView):
 
         try:
             user = User.objects.get(
-                github_id=github_info["id"], registration__semester=Semester.objects.get_current_semester()
+                github_id=github_info["id"], registration__semester=Semester.objects.get_or_create_current_semester()
             )
         except User.DoesNotExist:
             pass

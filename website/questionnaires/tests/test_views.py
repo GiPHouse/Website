@@ -3,7 +3,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from courses.models import Course, Semester, current_season
+from courses.models import Course, Semester
 
 from projects.models import Project
 
@@ -35,12 +35,7 @@ class QuestionnaireTest(TestCase):
     @classmethod
     def setUpTestData(cls):
 
-        semester = Semester.objects.create(
-            year=timezone.now().year,
-            season=current_season(),
-            registration_start=timezone.now(),
-            registration_end=timezone.now() + timezone.timedelta(days=60),
-        )
+        semester = Semester.objects.get_or_create_current_semester()
 
         cls.team = Project.objects.create(semester=semester, name="Test Project", description="Description")
         cls.user = User.objects.create_user(github_id=0, github_username="test")

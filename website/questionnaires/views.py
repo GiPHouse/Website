@@ -63,7 +63,7 @@ class QuestionnaireView(LoginRequiredMessageMixin, FormView):
 
         try:
             participant_project = Project.objects.get(
-                registration__user=participant, semester=Semester.objects.get_current_semester()
+                registration__user=participant, semester=Semester.objects.get_or_create_current_semester()
             )
         except Project.DoesNotExist:
             kwargs["peers"] = []

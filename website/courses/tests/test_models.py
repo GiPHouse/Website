@@ -44,19 +44,31 @@ class ModelTest(TestCase):
         self.assertRaises(ValidationError, max_value_current_year, 2020)
 
     @freeze_time("2018-03-03")
-    def test_current_semester(self):
+    def test_current_semester_spring(self):
         startreg = timezone.now().replace(year=2018, month=3, day=3, hour=0, minute=0, second=0, microsecond=1)
         endreg = timezone.now().replace(year=2018, month=6, day=6, hour=0, minute=0, second=0, microsecond=1)
         testsem = Semester.objects.create(
             year=2018, season=Semester.SPRING, registration_start=startreg, registration_end=endreg
         )
-        self.assertEqual(testsem, Semester.objects.get_current_semester())
+        self.assertEqual(testsem, Semester.objects.get_or_create_current_semester())
 
     @freeze_time("2018-09-09")
-    def test_current_semester2(self):
+    def test_current_semester_fall(self):
         startreg = timezone.now().replace(year=2018, month=9, day=9, hour=0, minute=0, second=0, microsecond=1)
         endreg = timezone.now().replace(year=2018, month=10, day=6, hour=0, minute=0, second=0, microsecond=1)
         testsem = Semester.objects.create(
             year=2018, season=Semester.FALL, registration_start=startreg, registration_end=endreg
         )
-        self.assertEqual(testsem, Semester.objects.get_current_semester())
+        self.assertEqual(testsem, Semester.objects.get_or_create_current_semester())
+
+    @freeze_time("2018-01-01")
+    def test_create_current_semester_fall_last_year(self):
+        self.assertEqual(Semester.objects.get_or_create_current_semester().season, Semester.FALL)
+
+    @freeze_time("2018-03-03")
+    def test_create_current_semester_spring(self):
+        self.assertEqual(Semester.objects.get_or_create_current_semester().season, Semester.SPRING)
+
+    @freeze_time("2018-09-09")
+    def test_create_current_semester_fall(self):
+        self.assertEqual(Semester.objects.get_or_create_current_semester().season, Semester.FALL)

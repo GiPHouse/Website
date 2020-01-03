@@ -3,7 +3,7 @@ from django.shortcuts import reverse
 from django.test import Client, TestCase
 from django.utils import timezone
 
-from courses.models import Course, Semester, current_season
+from courses.models import Course, Semester
 
 from projects.models import Project
 
@@ -33,12 +33,10 @@ class Step1Test(TestCase):
         self.client = Client()
 
     def test_step1(self):
-        Semester.objects.create(
-            year=timezone.now().year,
-            season=current_season(),
-            registration_start=timezone.now(),
-            registration_end=timezone.now() + timezone.timedelta(days=1),
-        )
+        semester = Semester.objects.get_or_create_current_semester()
+        semester.registration_start = timezone.now()
+        semester.registration_end = timezone.now() + timezone.timedelta(days=1)
+        semester.save()
 
         response = self.client.get("/register/step1")
 
@@ -58,7 +56,7 @@ class Step1Test(TestCase):
         self.assertContains(response, "Registrations are currently not open")
 
     def test_step1_semester_without_registrations(self):
-        Semester.objects.create(year=timezone.now().year, season=current_season())
+        Semester.objects.get_or_create_current_semester()
 
         response = self.client.get("/register/step1", follow=True)
 
@@ -66,12 +64,10 @@ class Step1Test(TestCase):
         self.assertContains(response, "Registrations are currently not open")
 
     def test_step1_current_semester_closed_registration(self):
-        Semester.objects.create(
-            year=timezone.now().year,
-            season=current_season(),
-            registration_start=timezone.now() - timezone.timedelta(days=2),
-            registration_end=timezone.now() - timezone.timedelta(days=1),
-        )
+        semester = Semester.objects.get_or_create_current_semester()
+        semester.registration_start = timezone.now() - timezone.timedelta(days=2)
+        semester.registration_end = timezone.now() - timezone.timedelta(days=1)
+        semester.save()
 
         response = self.client.get("/register/step1", follow=True)
 
@@ -80,8 +76,8 @@ class Step1Test(TestCase):
 
     def test_step1_old_semester_open_registration(self):
         Semester.objects.create(
-            year=timezone.now().year - 1,
-            season=current_season(),
+            year=2017,
+            season=Semester.SPRING,
             registration_start=timezone.now(),
             registration_end=timezone.now() + timezone.timedelta(days=1),
         )
@@ -95,12 +91,10 @@ class Step1Test(TestCase):
 class Step2Test(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.semester = Semester.objects.create(
-            year=timezone.now().year,
-            season=current_season(),
-            registration_start=timezone.now(),
-            registration_end=timezone.now() + timezone.timedelta(days=1),
-        )
+        cls.semester = Semester.objects.get_or_create_current_semester()
+        cls.semester.registration_start = timezone.now()
+        cls.semester.registration_end = timezone.now() + timezone.timedelta(days=1)
+        cls.semester.save()
 
         cls.first_name = "FirstTest"
         cls.last_name = "LastTest"
@@ -226,7 +220,7 @@ class Step2Test(TestCase):
             preference1_id=self.project_preference1.id,
             preference2_id=self.project_preference2.id,
             preference3_id=self.project_preference3.id,
-            semester=Semester.objects.get_current_semester(),
+            semester=Semester.objects.get_or_create_current_semester(),
         )
 
         response = self.client.post(
@@ -249,6 +243,9 @@ class Step2Test(TestCase):
 
     def test_post_step2_existing_user_different_semester(self):
         existing_user = User.objects.create_user(github_id=self.github_id, student_number=self.student_number)
+
+        older_semester = Semester.objects.create(year=timezone.now().year - 2, season=Semester.FALL)
+
         Registration.objects.create(
             user=existing_user,
             experience=self.experience,
@@ -256,7 +253,7 @@ class Step2Test(TestCase):
             preference1_id=self.project_preference1.id,
             preference2_id=self.project_preference2.id,
             preference3_id=self.project_preference3.id,
-            semester=Semester.objects.create(year=timezone.now().year - 1, season=Semester.FALL),
+            semester=older_semester,
         )
 
         response = self.client.post(
@@ -290,7 +287,7 @@ class Step2Test(TestCase):
             preference1_id=self.project_preference1.id,
             preference2_id=self.project_preference2.id,
             preference3_id=self.project_preference3.id,
-            semester=Semester.objects.get_current_semester(),
+            semester=Semester.objects.get_or_create_current_semester(),
         )
 
         self.session["github_id"] += 1

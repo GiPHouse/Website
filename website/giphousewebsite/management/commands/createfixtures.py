@@ -71,19 +71,29 @@ class Command(BaseCommand):
     def create_base(self):
         """Create basic instances used by other fixtures."""
         Semester.objects.get_or_create(
-            year=timezone.now().year,
+            year=timezone.now().year - 1,
             season=Semester.FALL,
             defaults={
                 "registration_start": timezone.now() - timezone.timedelta(days=90),
                 "registration_end": timezone.now() - timezone.timedelta(days=60),
             },
         )
+
         Semester.objects.get_or_create(
             year=timezone.now().year,
             season=Semester.SPRING,
             defaults={
                 "registration_start": timezone.now() - timezone.timedelta(days=30),
                 "registration_end": timezone.now() + timezone.timedelta(days=30),
+            },
+        )
+
+        Semester.objects.get_or_create(
+            year=timezone.now().year,
+            season=Semester.FALL,
+            defaults={
+                "registration_start": timezone.now() + timezone.timedelta(days=60),
+                "registration_end": timezone.now() + timezone.timedelta(days=90),
             },
         )
 
@@ -121,7 +131,7 @@ class Command(BaseCommand):
                     ]
                 )
             ),
-            semester=Semester.objects.get_current_semester(),
+            semester=Semester.objects.get_or_create_current_semester(),
             description=" ".join(fake.paragraphs(nb=3)),
             client=client,
         )
@@ -140,7 +150,7 @@ class Command(BaseCommand):
         Registration.objects.create(
             user=user,
             course=Course.objects.order_by("?").first(),
-            semester=Semester.objects.get_current_semester(),
+            semester=Semester.objects.get_or_create_current_semester(),
             project=Project.objects.order_by("?").first(),
             preference1=Project.objects.order_by("?").first(),
             preference2=Project.objects.order_by("?").first(),
@@ -183,7 +193,9 @@ class Command(BaseCommand):
         questionnaire = Questionnaire.objects.order_by("?").first()
         user = User.objects.exclude(questionnairesubmission__questionnaire=questionnaire).order_by("?").first()
 
-        user_project = Project.objects.get(registration__user=user, semester=Semester.objects.get_current_semester())
+        user_project = Project.objects.get(
+            registration__user=user, semester=Semester.objects.get_or_create_current_semester()
+        )
         project_registrations = Registration.objects.filter(project=user_project)
         peers = User.objects.exclude(pk=user.pk).filter(registration__in=project_registrations)
 
