@@ -28,14 +28,26 @@ MAIN_MENU = [
     {
         "title": "Course Content",
         "submenu": lambda: [
-            {"title": str(semester), "url": reverse("courses:lectures", args=(semester.year, semester.season))}
+            {
+                "title": str(semester),
+                "url": reverse(
+                    "courses:lectures",
+                    kwargs={"year": semester.year, "season_slug": semester.get_season_display().lower()},
+                ),
+            }
             for semester in Semester.objects.all()
         ],
     },
     {
         "title": "Projects",
         "submenu": lambda: [
-            {"title": str(semester), "url": reverse("projects:projects", args=(semester.year, semester.season))}
+            {
+                "title": str(semester),
+                "url": reverse(
+                    "projects:projects",
+                    kwargs={"year": semester.year, "season_slug": semester.get_season_display().lower()},
+                ),
+            }
             for semester in Semester.objects.all()
         ],
     },

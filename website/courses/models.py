@@ -117,6 +117,15 @@ class Semester(models.Model):
             return False
         return self.registration_start <= timezone.now() <= self.registration_end
 
+    @staticmethod
+    def slug_to_season(slug_string):
+        """Return season id when given a slug."""
+        if slug_string.lower() == "spring":
+            return Semester.SPRING
+
+        elif slug_string.lower() == "fall":
+            return Semester.FALL
+
     def __str__(self):
         """Return semester season and year as string."""
         return f"{self.get_season_display()} {self.year}"

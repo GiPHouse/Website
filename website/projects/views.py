@@ -11,7 +11,7 @@ class ProjectsView(TemplateView):
 
     template_name = "projects/index.html"
 
-    def get_context_data(self, year, season, **kwargs):
+    def get_context_data(self, year, season_slug, **kwargs):
         """
         Overridden get_context_data method to add a list of projects to the template.
 
@@ -19,6 +19,10 @@ class ProjectsView(TemplateView):
         """
         context = super(ProjectsView, self).get_context_data(**kwargs)
 
-        context["projects_semester"] = get_object_or_404(Semester, year=year, season=season)
-        context["projects"] = Project.objects.filter(semester__year=year, semester__season=season)
+        context["projects_semester"] = get_object_or_404(
+            Semester, year=year, season=Semester.slug_to_season(season_slug)
+        )
+        context["projects"] = Project.objects.filter(
+            semester__year=year, semester__season=Semester.slug_to_season(season_slug)
+        )
         return context

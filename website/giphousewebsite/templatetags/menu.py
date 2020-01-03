@@ -9,7 +9,7 @@ register = template.Library()
 def _is_active(item, path):
     if "url" not in item:
         return False
-    return item["url"] == path
+    return item["url"].lower() == path.lower()
 
 
 @register.inclusion_tag("menu/menu.html", takes_context=True)
@@ -23,10 +23,9 @@ def render_main_menu(context):
     for item in MAIN_MENU:
         active = _is_active(item, path)
         if not active and "submenu" in item:
-            subitems = item["submenu"]
-            if callable(subitems):
-                subitems = subitems()
-            for subitem in subitems:
+            if callable(item["submenu"]):
+                item["submenu"] = item["submenu"]()
+            for subitem in item["submenu"]:
                 if _is_active(subitem, path):
                     subitem["active"] = True
                     active = True
