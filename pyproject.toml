@@ -27,7 +27,7 @@ flake8-import-order = "^0.18.1"
 coverage = "^5.0"
 pydocstyle = "^5.0"
 freezegun = "^0.3.11"
-Faker = "^3"
+Faker = "^4"
 black = {version = "^19.10b0"}
 
 [tool.black]
