@@ -13,4 +13,4 @@ class LoginRequiredMessageMixinTest(TestCase):
 
         mixin = LoginRequiredMessageMixin()
         self.assertRedirects(response, f"{mixin.get_login_url()}?next={reverse('questionnaires:overview')}")
-        self.assertEquals(list(map(str, response.context["messages"])), [mixin.message])
+        self.assertEqual(list(map(str, response.context["messages"])), [mixin.message])
