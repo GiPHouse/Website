@@ -66,16 +66,10 @@ jobs:
         poetry run python website/manage.py migrate
 
     - name: "Run Django tests using Coverage"
-      run: >-
-        poetry run
-        coverage run
-        --omit="website/manage.py,website/giphousewebsite/wsgi.py,website/*/migrations/*,website/*/tests/*"
-        --branch
-        --source 'website'
-        website/manage.py test
+      run: "poetry run coverage run website/manage.py test"
 
     - name: "Check Coverage report"
-      run: "poetry run coverage report --show-missing --skip-covered --fail-under=100"
+      run: "poetry run coverage report"
 
     - name: "Test createfixtures command"
       run: "poetry run python website/manage.py createfixtures"

@@ -91,7 +91,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "7.0"
 
 [[package]]
-category = "dev"
+category = "main"
 description = "Code coverage measurement for Python"
 name = "coverage"
 optional = false
@@ -133,6 +133,7 @@ django = ">=2.0"
 reference = "2f4f80bfca31426faf1b7dab3f8366296f4fe67e"
 type = "git"
 url = "https://github.com/farhan0581/django-admin-autocomplete-filter.git"
+
 [[package]]
 category = "main"
 description = "A helper class for handling configuration defaults of packaged apps gracefully."
@@ -460,7 +461,7 @@ version = "2.0.18"
 production = ["uwsgi", "psycopg2-binary"]
 
 [metadata]
-content-hash = "a8d485280e5e0831937d770e5e04ea921459754a9f09eb18abb06f85d031c890"
+content-hash = "2d3fe2b797f1fbb964f0a2070546bed177435cc2f685f4900db75f8262b401df"
 python-versions = "^3.8"
 
 [metadata.files]
