@@ -165,13 +165,13 @@ class QuestionnaireTest(TestCase):
             {},
             follow=True,
         )
-        self.assertEquals(response.status_code, 404)
+        self.assertEqual(response.status_code, 404)
 
     def test_get_closed_questionnaire(self):
         response = self.client.get(
             reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.closed_questions.id})
         )
-        self.assertEquals(response.status_code, 404)
+        self.assertEqual(response.status_code, 404)
 
     def test_all_questionnaires_visible(self):
         response = self.client.get(reverse("questionnaires:overview"))
