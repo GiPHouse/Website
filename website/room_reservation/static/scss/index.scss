@@ -1,7 +1,7 @@
-@import "fullcalendar/core/main.css";
-@import "fullcalendar/daygrid/main.css";
-@import "fullcalendar/timegrid/main.css";
-@import "fullcalendar/bootstrap/main.css";
+@import "fullcalendar/core/main.scss";
+@import "fullcalendar/daygrid/main.scss";
+@import "fullcalendar/timegrid/main.scss";
+@import "fullcalendar/bootstrap/main.scss";
 
 #external-events .fc-event.draggable {
   cursor: pointer;
