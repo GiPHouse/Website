@@ -26,7 +26,7 @@ If you want to run the tests locally, please look up the relevant test command i
 The test suite can be run with the `manage.py` command. The following command can be executed to quickly run all the tests:
 
 ```bash
-poetry run website/manage.py test
+poetry run website/manage.py test website/
 ```
 Every Django app has its own tests (located in the `tests` directory inside the app root). We enforce 100% statement and 100% branch coverage in our tests, to make sure that every line of code and branch is run at least once during testing. We use [`coverage`](https://coverage.readthedocs.io/en/v4.5.x/) to run and analyse these tests.
 
