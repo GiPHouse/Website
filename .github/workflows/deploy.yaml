@@ -69,8 +69,12 @@ jobs:
           ssh -o StrictHostKeyChecking=no "${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}" /bin/bash << EOF
             sudo mkdir --parents "${DEPLOY_DIRECTORY}"
             sudo chown "${{ secrets.SSH_USER }}":"${{ secrets.SSH_USER }}" "${DEPLOY_DIRECTORY}"
-            mkdir --parents "${DEPLOY_DIRECTORY}/database_init"
+            mkdir --parents "${DEPLOY_DIRECTORY}/database_init/"
+            mkdir --parents "${DEPLOY_DIRECTORY}/nginx/vhost.d/"
           EOF
+
+      - name: "Upload nginx config"
+        run: "scp -o StrictHostKeyChecking=no resources/giphouse.nginx.conf \"${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}:${DEPLOY_DIRECTORY}/nginx/vhost.d/giphouse.nl\""
 
       - name: "Upload setup.sql"
         run: "scp -o StrictHostKeyChecking=no resources/setup.sql \"${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}:${DEPLOY_DIRECTORY}/database_init/setup.sql\""
