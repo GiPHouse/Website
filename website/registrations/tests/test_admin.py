@@ -38,6 +38,7 @@ class RegistrationAdminTest(TestCase):
             experience=Registration.EXPERIENCE_BEGINNER,
             preference1=cls.project,
             course=cls.course,
+            education_background="background",
         )
 
         cls.user = User.objects.create(github_id=2, github_username="lol")
@@ -59,6 +60,7 @@ class RegistrationAdminTest(TestCase):
             "registration_set-0-course": cls.course.id,
             "registration_set-0-project": cls.project.id,
             "registration_set-0-experience": Registration.EXPERIENCE_BEGINNER,
+            "registration_set-0-education_background": "background",
             "_save": "Save",
         }
 

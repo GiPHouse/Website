@@ -40,6 +40,7 @@ class Registration(models.Model):
     preference3 = models.ForeignKey(Project, null=True, blank=True, on_delete=models.CASCADE, related_name="+")
 
     experience = models.PositiveSmallIntegerField(choices=EXPERIENCE_CHOICES)
+    education_background = models.TextField(max_length=200)
     comments = models.TextField(null=True, blank=True)
 
     def __str__(self):

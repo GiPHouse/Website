@@ -44,7 +44,6 @@ class Step2View(FormView):
         """Check whether github_id is set in the session."""
         if not self.request.session.get("github_id"):
             return HttpResponseBadRequest()
-
         return super().dispatch(request, *args, **kwargs)
 
     def get_initial(self):
@@ -91,6 +90,7 @@ class Step2View(FormView):
                 preference2=form.cleaned_data["project2"],
                 preference3=form.cleaned_data["project3"],
                 comments=form.cleaned_data["comments"],
+                education_background=form.cleaned_data["background"],
             )
 
         del self.request.session["github_id"]
