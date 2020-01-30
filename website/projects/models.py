@@ -7,7 +7,7 @@ from courses.models import Semester
 class Client(models.Model):
     """Project client with logo."""
 
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
 
     logo = models.ImageField(upload_to="projects/images/", blank=True, null=True)
 
