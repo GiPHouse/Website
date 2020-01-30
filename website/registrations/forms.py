@@ -60,6 +60,12 @@ class Step2Form(forms.Form):
 
     project3 = forms.ModelChoiceField(label="Third project preference", queryset=None)
 
+    background = forms.CharField(
+        label="What is your educational background?",
+        widget=forms.Textarea(attrs={"placeholder": "Did you study abroad?\nWhat diploma(s) do you have?"}),
+        max_length=200,
+    )
+
     comments = forms.CharField(
         widget=forms.Textarea(attrs={"placeholder": "Who do you want to work with? \n" "Any other comments?"}),
         help_text="Optional",
