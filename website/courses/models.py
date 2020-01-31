@@ -44,6 +44,10 @@ class Course(models.Model):
 class SemesterManager(models.Manager):
     """Manager for the Semester model."""
 
+    def get_first_semester_with_open_registration(self):
+        """Get the first semester with an open registration."""
+        return self.filter(registration_start__lte=timezone.now(), registration_end__gte=timezone.now()).first()
+
     def get_or_create_current_semester(self):
         """
         Return the current semester based on the current time.
@@ -110,12 +114,6 @@ class Semester(models.Model):
     )
 
     objects = SemesterManager()
-
-    def registration_open(self):
-        """Return if registration is open."""
-        if self.registration_start is None or self.registration_end is None:
-            return False
-        return self.registration_start <= timezone.now() <= self.registration_end
 
     @staticmethod
     def slug_to_season(slug_string):
