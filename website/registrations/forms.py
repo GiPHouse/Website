@@ -25,13 +25,13 @@ class Step2Form(forms.Form):
         self.fields["course"].queryset = Course.objects.all()
 
         self.fields["project1"].queryset = Project.objects.filter(
-            semester=Semester.objects.get_or_create_current_semester()
+            semester=Semester.objects.get_first_semester_with_open_registration()
         )
         self.fields["project2"].queryset = Project.objects.filter(
-            semester=Semester.objects.get_or_create_current_semester()
+            semester=Semester.objects.get_first_semester_with_open_registration()
         )
         self.fields["project3"].queryset = Project.objects.filter(
-            semester=Semester.objects.get_or_create_current_semester()
+            semester=Semester.objects.get_first_semester_with_open_registration()
         )
 
     github_id = forms.IntegerField(disabled=True, label="GitHub ID")
