@@ -7,6 +7,11 @@ from courses.models import Semester
 class Client(models.Model):
     """Project client with logo."""
 
+    class Meta:
+        """Meta class for Client model."""
+
+        ordering = ["name"]
+
     name = models.CharField(max_length=50, unique=True)
 
     logo = models.ImageField(upload_to="projects/images/", blank=True, null=True)
