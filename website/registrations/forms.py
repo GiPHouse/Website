@@ -114,13 +114,13 @@ class Step2Form(forms.Form):
         """
         Validate form variables.
 
-        Allow existing users to register if they have not already registered in the current semester.
+        Allow existing users to register if they have not already registered in the semester.
         """
         cleaned_data = super(Step2Form, self).clean()
 
         if User.objects.filter(
             github_id=cleaned_data["github_id"],
-            registration__semester=Semester.objects.get_or_create_current_semester(),
+            registration__semester=Semester.objects.get_first_semester_with_open_registration(),
         ).exists():
             raise ValidationError("User already registered for this semester.", code="exists")
 
