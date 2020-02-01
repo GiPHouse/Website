@@ -24,7 +24,7 @@ jobs:
         poetry install
 
     - name: "Run Black"
-      run: "poetry run black --check website"
+      run: "poetry run black --quiet --check website"
 
     - name: "Run flake8"
       run: >-
