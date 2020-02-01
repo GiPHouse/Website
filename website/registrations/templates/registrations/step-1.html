@@ -4,7 +4,10 @@
     Link Account - {{ block.super }}
 {% endblock %}
 {% block content %}
-    <p>Start by linking your GitHub account, this will be your login method</p>
+    <h3>GiPHouse Registration - Step 1</h3>
+    <h6>{{ registration_semester }}</h6>
+    <hr>
+    <p>Start by linking your GitHub account, this will be your login method.</p>
     <a href="{% url_github_callback 'register' %}" class="btn btn-primary">
         <i class="fab fa-github"></i> Register your account
     </a>
