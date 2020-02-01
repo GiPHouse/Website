@@ -18,13 +18,7 @@ be visible for logged-in users. *Do not* rely on that for authentication!
 """
 MAIN_MENU = [
     {"title": "Home", "url": reverse("home")},
-    {
-        "title": "About",
-        "submenu": [
-            {"title": "About GiPHouse", "url": reverse("about")},
-            {"title": "Way of working", "url": reverse("wayofworking")},
-        ],
-    },
+    {"title": "About", "url": reverse("about")},
     {
         "title": "Course Content",
         "submenu": lambda: [

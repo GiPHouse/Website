@@ -11,7 +11,6 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="logout"),
     path("oauth/", include("github_oauth.urls")),
     path("lectures/", include("courses.urls")),
-    path("about/wayofworking", TemplateView.as_view(template_name="wayofworking.html"), name="wayofworking"),
     path("about/", TemplateView.as_view(template_name="about.html"), name="about"),
     path("contact/", TemplateView.as_view(template_name="contact.html"), name="contact"),
     path("questionnaires/", include("questionnaires.urls")),
