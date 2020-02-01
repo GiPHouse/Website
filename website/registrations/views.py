@@ -19,6 +19,12 @@ class Step1View(TemplateView):
 
     template_name = "registrations/step-1.html"
 
+    def get_context_data(self, *args, **kwargs):
+        """Add semester to register form."""
+        return super().get_context_data(
+            registration_semester=Semester.objects.get_first_semester_with_open_registration(), **kwargs
+        )
+
     def dispatch(self, request, *args, **kwargs):
         """Check whether user is authenticated and if registration is possible."""
         if request.user.is_authenticated:
@@ -45,6 +51,12 @@ class Step2View(FormView):
         if not self.request.session.get("github_id"):
             return HttpResponseBadRequest()
         return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        """Add semester to register form."""
+        return super().get_context_data(
+            registration_semester=Semester.objects.get_first_semester_with_open_registration(), **kwargs
+        )
 
     def get_initial(self):
         """Get the initial data for the form."""
