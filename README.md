@@ -4,85 +4,229 @@
 
 This is the code for the website of [GiPHouse](http://giphouse.nl/) powered by [Django](https://www.djangoproject.com/).
 
-### Getting Started
+## Table of Contents
+- [GiPHouse website](#giphouse-website)
+  - [Features](#features)
+    - [Authentication and Users](#authentication-and-users)
+    - [GitHub OAuth](#github-oauth)
+      - [Creating Admin Users](#creating-admin-users)
+    - [Semesters](#semesters)
+    - [Registrations](#registrations)
+    - [Questionnaires](#questionnaires)
+    - [Room Reservations](#room-reservations)
+    - [Course, Project and Static Information](#course-project-and-static-information)
+  - [Development and Contributing](#development-and-contributing)
+    - [Getting Started](#getting-started)
+      - [Logging into the Backend](#logging-into-the-backend)
+    - [Dependency Management](#dependency-management)
+    - [Fixtures](#fixtures)
+    - [Tests](#tests)
+    - [Code quality](#code-quality)
+  - [Deployment](#deployment)
+    - [Docker](#docker)
+      - [Dockerfile](#dockerfile)
+      - [Entrypoint](#entrypoint)
+      - [Docker Hub](#docker-hub)
+      - [Docker-compose](#docker-compose)
+        - [`nginx`](#nginx)
+        - [`letsencrypt`](#letsencrypt)
+        - [`postgres`](#postgres)
+        - [`web`](#web)
+    - [Deployment Pipeline](#deployment-pipeline)
+      - [`deploy.yaml` workflow](#deployyaml-workflow)
+        - [`build-docker` job](#build-docker-job)
+        - [`deploy` job](#deploy-job)
+      - [Secrets](#secrets)
+    - [Server](#server)
+    - [Keeping Everything Up to Date](#keeping-everything-up-to-date)
 
-1. Install Python 3.8+ and [poetry](https://poetry.eustace.io/) (a Python dependency manager).
+## Features
+
+The GiPHouse website is meant to support all the GiPHouse courses. To do this, it has three main features: registrations, questionnaires and room reservations. Besides these features, the website also has some smaller features to provide information about GiPHouse and its courses.
+
+### Authentication and Users
+Because every student needs to have an Github account to participate in the GiPHouse courses, authentication is based on Github OAuth. This removes the need to save separate usernames and passwords. Instead of usernames and passwords, the website uses GitHub IDs to authenticate users.
+
+A [custom user model](https://docs.djangoproject.com/en/dev/topics/auth/customizing/#using-a-custom-user-model-when-starting-a-project) (called `Employee`) has been created to make this possible.
+
+### GitHub OAuth
+The website has single click login because it uses [GitHub's OAuth implementation](https://developer.github.com/apps/building-oauth-apps/authorizing-oauth-apps/).
+
+The GiPHouse GitHub organization has a GitHub OAuth App set up, which allows users to authorize the GiPHouse GitHub organization to see (limited) information about them. This App has credentials (a client ID and a client secret key), which are loaded into the Django settings using environment variables.
+
+The authentication flow is as follows.
+1. A user requests to login or register.
+2. The user is redirected to `https://github.com/login/oauth/authorize`.
+3. If the user has not authorized the GiPHouse GitHuB OAuth App, GitHub asks the user to do so.
+4. If the user has authorized the GiPHouse Github OAuth App, they are redirected to the GiPHouse website with a temporary code as GET parameter.
+5. The website uses this code to request an access token from the GitHub API.
+6. The website uses the access token to request information about the user.
+
+To support this authentication flow, [a custom authentication backend](https://docs.djangoproject.com/en/dev/topics/auth/customizing/) (called `GithubOAuthBackend`) has been created.
+
+#### Creating Admin Users
+Admin users (i.e. teacher, director or student assistant) do not have to register, they need to be created manually. In the backend it is possible to add new users. Every user should have their GitHub ID and GitHub username set. To promote a user to superuser, they should have the "Staff status", "Active" and "Superuser status" checkboxes checked.
+
+### Semesters
+The website makes the distinction between the spring semester (February - August) and the fall semester (September - January). Most of the content on the site is split by semester and year, because the content of the course that are given in the spring semester generally have nothing to do with the courses of the fall semester.
+
+### Registrations
+Every semester has a registration start and end date. Users will be able to between the start and end of the registration. They can do this by going to [https://giphouse.nl/register/](https://giphouse.nl/register/).
+
+The registration process consists of two steps:
+1. Authorizing the GiPHouse GitHub OAuth App.
+2. A form that asks question about the registration (e.g. email, student number and project preferences).
+
+If multiple semesters have open registrations at one moment, the chronologically newest semester is picked. For example, if the fall 2019 and spring 2020 semester both allow registrations at one moment, users will register for the spring 2020 semester (even if at the moment of registration it is officially fall 2019).
+
+It is possible for users to register multiple times. For example, if a user wants to follow a course in the fall semester and a different course in the spring semester. However, users cannot register multiple times within the same semester.
+
+### Questionnaires
+During the courses, the students need to fill out surveys about the course, their project progress and their team. Admin users are able to create questionnaires and view submission by students in the backend. 
+
+The questions in the questionnaires are of the following types:
+1. Poor/good likert scale,
+2. Disagree/agree likert scale and
+3. Open question.
+
+It is also possible to ask a question multiple times about each teammate. 
+
+Questionnaires have a soft deadline and a hard deadline, which allows students to submit their answers late (i.e. after the soft deadline but before the hard deadline).
+
+### Room Reservations
+The room reservation is built using [FullCalendar](https://fullcalendar.io/), a popular JavaScript Calendar. FullCalendar allows users to drag rooms that they want to reserve into timeslots. FullCalendar makes requests to the website to save changes in the database. The rooms are created in the backend by admin users.
+
+### Course, Project and Static Information
+Admin users can add information about the course lectures and the projects in the backend. There are also a small amount of static HTML webpages with information about GiPHouse.
+
+### Styling
+[Bootstrap](https://getbootstrap.com/) and [Font Awesome](https://fontawesome.com/) are used to style the website. Their respective SCSS versions are used.
+
+## Development and Contributing
+The website (and Django) have features to make developing and testing changes to the code locally easy.
+
+The website has multiple settings. By default, the development settings are used.
+
+### Getting Started
+Follow the following steps to setup your own personal development environment.
+1. Install Python 3.8+ and [poetry](https://poetry.eustace.io/).
 2. Clone this repository.
 3. Run `poetry install` to install all dependencies into virtual environment.
 4. Run `poetry shell` to enter the virtual environment.
-5. Run `python website/manage.py migrate` to initialise the database.
-5. Run `python website/manage.py createsuperuser` to create an admin account.
+5. Run `python website/manage.py migrate` to initialize the database.
 6. Run `python website/manage.py runserver` to start the local testing server.
 
-# Testing, Linting and Continuous Integration
+#### Logging into the Backend
+Because the authentication is based on Github OAuth authentication, some setup is required for users to be able to login in their own development environment.
+You will need to set up [your own GitHub OAuth App](https://developer.github.com/apps/building-oauth-apps/creating-an-oauth-app/) and set your client ID and client secret key as environment variables (`GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` respectively). [direnv](https://direnv.net/) is a tool that allows Linux users to do this automatically.
 
-To test our code we use multiple testing methods. All of these tests are automatically run by Github Actions when a new pull request is made.
-All of these tests need to pass, before a pull request is allowed to be merged into the `master` branch.
+You will then be able to create a new superuser with the `createsuperuser` management command.
+```Bash
+$ python website/manage.py createsuperuser --github_id=<your_github_id> --github_username=<your_github_username> --no-input
+```
 
-If you want to run the tests locally, please look up the relevant test command in the [CI workflow](/.github/workflows/ci.yaml) file.
+### Dependency Management
+The Python dependencies are managed using a tool called [Poetry](https://python-poetry.org/), which automatically creates virtual environments that ease development and makes it easy to manage the dependencies. See the [Poetry documentation](https://python-poetry.org/docs/) for more information.
+
+### Fixtures
+To make testing in your development environment easier, the management command `createfixtures` exists. This management command creates dummy data in your local database.
+```Bash
+$ python website/manage.py createfixtures
+```
+
+Use the `--help` argument to get more information.
 
 ### Tests
-
-The test suite can be run with the `manage.py` command. The following command can be executed to quickly run all the tests:
-
-```bash
-poetry run website/manage.py test website/
-```
-Every Django app has its own tests (located in the `tests` directory inside the app root). We enforce 100% statement and 100% branch coverage in our tests, to make sure that every line of code and branch is run at least once during testing. We use [`coverage`](https://coverage.readthedocs.io/en/v4.5.x/) to run and analyse these tests.
-
-#### Built-in Django tests
-The CI runs built-in Django tests. These tests include checking if there are any database migrations needed but not created yet and checking for common problems.
-
-#### Linting
-We use multiple to perform static analyis on our code. The most important one is [`flake8`](http://flake8.pycqa.org/en/latest/), a Python linter that checks whether code is formatted according to [PEP8](https://www.python.org/dev/peps/pep-0008/). In addition we also use the [flake8-import-order](https://github.com/PyCQA/flake8-import-order) to make sure the imports are neatly ordered. We enforce the code style of [Black](https://github.com/psf/black).
-
-We also use [`pydocstyle`](https://github.com/PyCQA/pydocstyle) to enforce that every method, function and class is documented and that documentation is formatted according to [PEP 257](https://www.python.org/dev/peps/pep-0257/).
-
-We also use a few Bash scripts (e.g. for deployment). These are checked using [`shellcheck`](https://github.com/koalaman/shellcheck).
-
-#### Loading Fixtures
-
-To make manual testing easier, we have the `createfixtures` command to automatically create test data. We also test if that command works correctly.
-
-You can  create and load fixtures with the `manage.py createfixtures` command. The fixtures dynamically generated using the [faker](https://pypi.org/project/Faker/) package.
-
-Then you can load the courses testdata fixture with this command:
-```bash
-python website/manage.py createfixtures
+To make sure everything functions correctly, the website has tests (using [Djangos built-in test framework](https://docs.djangoproject.com/en/dev/topics/testing/)). To run these manually use
+```Bash
+$ python website/manage.py test website/
 ```
 
-See
-```bash
-python website/manage.py createfixtures --help
-```
-for more information.
+### Code quality
+The code of this project has high standards. This is enforced by continuous integration ([GitHub Actions](https://help.github.com/en/actions/automating-your-workflow-with-github-actions)).
 
-# Serverconfig
+- [PEP 8](https://www.python.org/dev/peps/pep-0008/) (Python styling) is enforced by using [Black](https://github.com/psf/black) and [flake8](https://gitlab.com/pycqa/flake8).
+  - `black` is a tool that formats Python code. It is meant to be run on Python code and always return the same well-formatted code. This removes the need of manually formatting Python code, because if a formatting mistake is made, running `black` on the project will fix the mistake.
+- Test coverage (both statement and branch coverage) is enforced by using [Coverage.py](https://coverage.readthedocs.io/en/coverage-5.0.3/).
+  - The website has 100% test coverage.
+- [PEP 257](https://www.python.org/dev/peps/pep-0257/) (Python docstring conventions) is enforced by [`pydocstyle`](https://github.com/PyCQA/pydocstyle).
+  - PEP 257 forces every function, method and class to have documentation.
 
-The GiPHouse website runs on an AWS EC2 instance. This server can be reached via SSH (only with publickey).
+## Deployment
+Django is only a web framework it cannot run without a web server and a database. Django needs a WSGI server to run the Python code. We use `uWSGI`. `uWSGI` needs a webserver that handles the web traffic, for this we use `NGINX` (which also handles all the static files). In development a simple SQLite3 database is used, because it is easy to setup and easy to delete. In production a more robust solution is necessary, that is why Postgres is used as production database.
 
-Some basic information about the server can be configured in the Lightsail dashboard. This includes the firewall.
-We opened ports `22`, `80` and `443` to enable SSH, HTTP and HTTPS respectively.
+### Docker
+The website is meant to be run as a Docker container on a Linux server. The use of Docker containers, allows us to create a tailor-made environment (a Docker image) that has all the dependencies (i.e. files, libraries and packages) pre-installed. 
 
-### Server Info
-OS: Ubuntu 18.04
-user: `ubuntu`
+#### Dockerfile
+The [Dockerfile](https://docs.docker.com/engine/reference/builder/) which steps should be executed to create the Docker image. This Docker image has all dependencies and the source code of the website. It also specifies that the production settings should be used.
 
-### Continuous Deployment
-Whenever a commit is merged into `master`, [`deploy.sh`](https://github.com/GipHouse/GiPHouse-Spring-2019/blob/master/resources/deploy.sh) is executed. This scripts runs on a Github Actions runner and gets secrets through the secrets settings of this repository.
+#### Entrypoint
+The entrypoint (`/usr/local/bin/entrypoint.sh` inside the Docker image) is executed whenever a container is created from the Docker image, it waits for the Postgres database to come up, makes the necessary changes to the static files and the database, creates a superuser (if it does not exist yet) and starts `uWSGI`.
 
-This script does the following:
-- Builds a new version of [the Docker image](https://hub.docker.com/r/giphouse/giphousewebsite) and pushes it to the Docker Hub Registry.
-- Puts the right secrets into `docker-compose.yaml` and the database initialization file (`setup.sql`).
-- Creates all necessary directories and files on the production server.
-- Restarts the running docker containers using the new images.
+#### Docker Hub
+A Docker image of the website ([giphouse/giphousewebsite](https://hub.docker.com/r/giphouse/giphousewebsite)) is (publicly) available on Docker Hub. This image is refreshed every time a change is merged into the `master` branch.
 
-### Setup steps
-Some manual steps are taken to setup the server. These steps are not done in the deployment script, because these steps are only necessary once.
+#### Docker-compose
+`docker-compose` is a tool that allows us to run multiple Docker containers that are connected to make them work together. Please see the [`docker-compose.yaml`](resources/docker-compose.yaml.template) file for the exact settings. This file contains all the configuration to pass the correct environment variables to the containers and save the correct files to the host.  
 
-1. Add the SSH public keys of engineers to the authorized keys of the `ubuntu` user.
+The following services are created by `docker-compose`.
+
+##### `nginx`
+[`nginx-proxy`](https://github.com/jwilder/nginx-proxy) is a Docker image containing that automatically generates correct `NGINX` configuration for other Docker Images. It listens on port 80 (HTTP) and 443 (HTTPS) and acts as the main access point for all web traffic to the website.
+
+##### `letsencrypt`
+[`letsencrypt-nginx-proxy-companion`](https://github.com/JrCs/docker-letsencrypt-nginx-proxy-companion) is a Docker image that uses Let's Encrypt to request a TLS certificate to make the website available over HTTPS.`
+
+##### `postgres`
+Runs a Postgres Database.
+
+##### `web`
+[`giphouse/giphousewebsite`](https://hub.docker.com/r/giphouse/giphousewebsite) is the Docker image that runs the actual website using `uWSGI` as server.
+
+### Deployment Pipeline
+#### `deploy.yaml` workflow
+Whenever a change is merged into the `master` branch, the `deploy.yaml` GitHub Actions workflow is run. This workflow does the following:
+
+##### `build-docker` job
+1. Build a Docker image using the `master` branch.
+2. Push this Docker image (`giphouse/giphousewebsite:latest`) to Docker Hub.
+
+##### `deploy` job
+After the `build-docker` job is finished, the `deploy` job runs.
+1. Sets up SSH key that allows the runner to login to the production server using SSH.
+2. Fills in passwords and secrets in the necessary files.
+3. Create the necessary directories and files on the production server.
+4. Pulls the new Docker image.
+5. Restarts the production website with the new Docker image.
+
+#### Secrets
+This repository is public and the GitHub Actions CI runner logs are also public, but some deployment information is secret. The secret information is setup using [GitHub repository secrets](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets). These are passed as environment variables to the GitHub Actions CI runners. The following secrets are setup.
+- `DJANGO_SECRET_KEY`: The [`SECRET_KEY`](https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-SECRET_KEY) for Django.
+- `DOCKER_USERNAME`: The username used to login to Docker Hub.
+- `DOCKER_PASSWORD`: The password used to login to Docker Hub.
+- `GITHUB_CLIENT_ID`: The GiPHouse organization GitHub OAuth App client ID.
+- `GITHUB_CLIENT_SECRET`: The GiPHouse organization GitHub OAuth App client secret key.
+- `GITHUB_SUPERUSER_ID`: The Github ID of the initial superuser.
+- `POSTGRES_NAME`: The name of the Postgres database.
+- `POSTGRES_USER`: The username that is used to interact with the Postgres database.
+- `POSTGRES_PASSWORD`: The password that is used to interact with the Postgres database.
+- `SSH_USER`: The user that the CI runner uses to login to the production server using SSH.
+- `SSH_PRIVATE_KEY`: The private key that allows the `SSH_USER` user to login to the production server using SSH.
+
+### Server Configuration
+The current server is an Amazon Web Services Elastic Cloud Computing (AWS EC2) instance that runs Ubuntu 18.04. EC2 instances have a default `ubuntu` user, that is allowed to execute `sudo` without password. The `docker-compose.yaml` file includes all services that are necessary to run the website in a production environment. That is why Docker is the only dependency on the host.
+
+These steps are the necessary setup for a production server.
+1. Add the SSH public keys of engineers to the `authorized_keys` of the `ubuntu` user.
 2. Disable SSH password login.
-3. Install `docker`.
-4. Install `nginx`.
-5. Place the general `nginx` config (`nginx.conf`), the domain specific `nginx` config (`giphouse.conf`) and `dhparam.pem`.
-6. Install `letsencrypt` and request a certificate using the `cerbot` `nginx` module.
+3. Install `docker` and `docker-compose`.
+4. Add the public key of the `SSH_PRIVATE_KEY` GitHub secret to the `authorized_keys` file of the `SSH_USER` GitHub secret user.
+
+### Keeping Everything Up to Date
+All moving parts should be regularly updated to make sure all code is up to date and secure. There is no process in place to automate updates, because that may break something.
+The following 
+
+1. The Ubuntu server should be updated.
+2. The Python dependencies should be updated (through `poetry`).
+3. The JavaScript, font and [S]CSS files should be updated by replacing the current files with new ones.
