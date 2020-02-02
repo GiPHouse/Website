@@ -10,6 +10,8 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['staging.giphouse.nl', 'giphouse.nl']
 
+SESSION_COOKIE_SECURE = True
+
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
