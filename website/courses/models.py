@@ -20,11 +20,11 @@ class CourseManager(models.Manager):
         """Create Software Engineering course."""
         return self.get(name="Software Engineering")
 
-    def sde(self):
+    def sdm(self):
         """Create System Development Management course."""
         return self.get(name="System Development Management")
 
-    def sdm(self):
+    def sde(self):
         """Create Software Development Entrepreneurship course."""
         return self.get(name="Software Development Entrepreneurship")
 
