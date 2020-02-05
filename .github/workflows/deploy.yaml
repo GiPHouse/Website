@@ -2,9 +2,7 @@
 
 name: "Deploy to production"
 on:
-  push:
-    branches:
-      - "master"
+  deployment
 
 env:
   DOCKER_IMAGE: "giphouse/giphousewebsite:latest"
@@ -33,7 +31,7 @@ jobs:
 
     env:
       DEPLOY_DIRECTORY: "/usr/local/giphouse"
-      DEPLOYMENT_HOST: "giphouse.nl"
+      DEPLOYMENT_HOST: "staging.giphouse.nl"
       POSTGRES_NAME: "${{ secrets.POSTGRES_NAME }}"
       POSTGRES_USER: "${{ secrets.POSTGRES_USER }}"
       POSTGRES_PASSWORD: "${{ secrets.POSTGRES_PASSWORD }}"
