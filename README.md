@@ -115,6 +115,7 @@ Follow the following steps to setup your own personal development environment.
 4. Run `poetry shell` to enter the virtual environment.
 5. Run `python website/manage.py migrate` to initialize the database.
 6. Run `python website/manage.py runserver` to start the local testing server.
+7. Run `python website/manage.py runserver` again, to make sure the server discovers the just created `/static/` files.
 
 #### Logging into the Backend
 Because the authentication is based on Github OAuth authentication, some setup is required for users to be able to login in their own development environment.
