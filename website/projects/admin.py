@@ -9,7 +9,7 @@ from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 
 from projects.forms import ProjectAdminForm
-from projects.models import Client, Project
+from projects.models import Client, Project, Repository
 
 from registrations.models import Employee
 
@@ -70,3 +70,10 @@ class ClientAdmin(admin.ModelAdmin):
     """Custom admin for clients."""
 
     search_fields = ("name",)
+
+
+@admin.register(Repository)
+class RepositoryAdmin(admin.ModelAdmin):
+    """Custom admin for repositories."""
+
+    actions = []

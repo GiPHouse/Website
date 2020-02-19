@@ -18,6 +18,8 @@ psycopg2-binary = {version = "^2.8",optional = true}
 Pillow = "^7.0"
 django-admin-autocomplete-filter = {git = "https://github.com/farhan0581/django-admin-autocomplete-filter.git"}
 coverage = {extras = ["toml"], version = "^5.0.3"}
+pygithub = "^1.46"
+cryptography = "^2.8"
 
 [tool.poetry.extras]
 production = ["uwsgi", "psycopg2-binary"]
@@ -30,10 +32,6 @@ pydocstyle = "^5.0"
 freezegun = "^0.3.11"
 Faker = "^4"
 black = {version = "^19.10b0"}
-
-[build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
 
 [tool.black]
 line-length = 119
@@ -54,3 +52,7 @@ omit = ["website/manage.py", "website/giphousewebsite/wsgi.py", "website/*/migra
 show_missing = true
 skip_covered = true
 fail_under = 100.0
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
+

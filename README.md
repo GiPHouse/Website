@@ -15,9 +15,11 @@ This is the code for the website of [GiPHouse](http://giphouse.nl/) powered by [
     - [Questionnaires](#questionnaires)
     - [Room Reservations](#room-reservations)
     - [Course, Project and Static Information](#course-project-and-static-information)
+    - [Projects and repositories](#projects-and-repositories) 
   - [Development and Contributing](#development-and-contributing)
     - [Getting Started](#getting-started)
       - [Logging into the Backend](#logging-into-the-backend)
+      - [Registering an GitHub App for repository synchronisation](#registering-an-github-app-for-repository-synchronisation)
     - [Dependency Management](#dependency-management)
     - [Fixtures](#fixtures)
     - [Tests](#tests)
@@ -52,13 +54,13 @@ A [custom user model](https://docs.djangoproject.com/en/dev/topics/auth/customiz
 ### GitHub OAuth
 The website has single click login because it uses [GitHub's OAuth implementation](https://developer.github.com/apps/building-oauth-apps/authorizing-oauth-apps/).
 
-The GiPHouse GitHub organization has a GitHub OAuth App set up, which allows users to authorize the GiPHouse GitHub organization to see (limited) information about them. This App has credentials (a client ID and a client secret key), which are loaded into the Django settings using environment variables.
+The GiPHouse GitHub organization has a GitHub App set up which is used for both repository synchronisation (explained later) and GitHub OAuth, which allows users to authorize the GiPHouse GitHub organization to see (limited) information about them. This App has credentials (a client ID and a client secret key), which are loaded into the Django settings using environment variables.
 
 The authentication flow is as follows.
 1. A user requests to login or register.
 2. The user is redirected to `https://github.com/login/oauth/authorize`.
-3. If the user has not authorized the GiPHouse GitHuB OAuth App, GitHub asks the user to do so.
-4. If the user has authorized the GiPHouse Github OAuth App, they are redirected to the GiPHouse website with a temporary code as GET parameter.
+3. If the user has not authorized the GiPHouse GitHuB (OAuth) App, GitHub asks the user to do so.
+4. If the user has authorized the GiPHouse Github (OAuth) App, they are redirected to the GiPHouse website with a temporary code as GET parameter.
 5. The website uses this code to request an access token from the GitHub API.
 6. The website uses the access token to request information about the user.
 
@@ -74,7 +76,7 @@ The website makes the distinction between the spring semester (February - August
 Every semester has a registration start and end date. Users will be able to between the start and end of the registration. They can do this by going to [https://giphouse.nl/register/](https://giphouse.nl/register/).
 
 The registration process consists of two steps:
-1. Authorizing the GiPHouse GitHub OAuth App.
+1. Authorizing the GiPHouse GitHub (OAuth) App.
 2. A form that asks question about the registration (e.g. email, student number and project preferences).
 
 If multiple semesters have open registrations at one moment, the chronologically newest semester is picked. For example, if the fall 2019 and spring 2020 semester both allow registrations at one moment, users will register for the spring 2020 semester (even if at the moment of registration it is officially fall 2019).
@@ -99,6 +101,9 @@ The room reservation is built using [FullCalendar](https://fullcalendar.io/), a 
 ### Course, Project and Static Information
 Admin users can add information about the course lectures and the projects in the backend. There are also a small amount of static HTML webpages with information about GiPHouse.
 
+### Projects and repositories
+The projects module provides synchronisation functionality with a GitHub organization using the [GitHub API v3](https://developer.github.com/v3/). For this, a repository model is included in Django. Project(team)s can have one or multiple repositories, which are then synchronised with GitHub. For this functionality, a [GitHub App](https://developer.github.com/v3/apps/) must be registered and installed in the organization. Details on this are explained later.
+
 ### Styling
 [Bootstrap](https://getbootstrap.com/) and [Font Awesome](https://fontawesome.com/) are used to style the website. Their respective SCSS versions are used.
 
@@ -119,12 +124,23 @@ Follow the following steps to setup your own personal development environment.
 
 #### Logging into the Backend
 Because the authentication is based on Github OAuth authentication, some setup is required for users to be able to login in their own development environment.
-You will need to set up [your own GitHub OAuth App](https://developer.github.com/apps/building-oauth-apps/creating-an-oauth-app/) and set your client ID and client secret key as environment variables (`GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` respectively). [direnv](https://direnv.net/) is a tool that allows Linux users to do this automatically.
+You will need to set up [your own GitHub App](https://developer.github.com/apps/building-github-apps/creating-a-github-app/) that we will use for OAuth (and for repository synchronisation as well, as explained in the next step) and set your client ID and client secret key as environment variables (`GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` respectively). [direnv](https://direnv.net/) is a tool that allows Linux users to do this automatically.
 
 You will then be able to create a new superuser with the `createsuperuser` management command.
 ```Bash
 $ python website/manage.py createsuperuser --github_id=<your_github_id> --github_username=<your_github_username> --no-input
 ```
+
+#### Registering an GitHub App for repository synchronisation
+To enable the synchronisation functionality of repositories and project(team)s, a GitHub App must be registered and installed in an organization. We assume you already have a [GitHub organization](https://help.github.com/en/github/setting-up-and-managing-organizations-and-teams/creating-a-new-organization-from-scratch) setup
+
+- As an organization, you can develop an GitHub app and register this app at GitHub. People can then install that app in their own account or organization, giving your app access to that account or organization.
+For this project, you will need to first [create your own GitHub app](https://developer.github.com/apps/building-github-apps/creating-a-github-app/) and then install it in your organization. 
+After this, you can find an `GITHUB_APP_ID`, and download the RSA `GITHUB_APP_PRIVATE_KEY`. These will be used as environment variables in this project and need to be set as GitHub Actions secrets in the repository (which will be explained later). 
+
+- After the app is created, it needs to be [installed in your own organization](https://developer.github.com/apps/installing-github-apps/) (although technically speaking, it is also possible to publish the app in the previous step and install the app in a different organization!).
+On installation, you can find the `GITHUB_APP_INSTALLATION_ID` which we also need to set in this project. This installation id is hidden in the overview of installed GitHub Apps in your organization.
+Additionally, you need to set the `GITHUB_ORGANIZATION_NAME` to the name of the organization the app is installed in.
 
 ### Dependency Management
 The Python dependencies are managed using a tool called [Poetry](https://python-poetry.org/), which automatically creates virtual environments that ease development and makes it easy to manage the dependencies. See the [Poetry documentation](https://python-poetry.org/docs/) for more information.
@@ -206,8 +222,12 @@ This repository is public and the GitHub Actions CI runner logs are also public,
 - `DJANGO_SECRET_KEY`: The [`SECRET_KEY`](https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-SECRET_KEY) for Django.
 - `DOCKER_USERNAME`: The username used to login to Docker Hub.
 - `DOCKER_PASSWORD`: The password used to login to Docker Hub.
-- `GITHUB_CLIENT_ID`: The GiPHouse organization GitHub OAuth App client ID.
-- `GITHUB_CLIENT_SECRET`: The GiPHouse organization GitHub OAuth App client secret key.
+- `GITHUB_APP_ID`: The App ID of the registered GitHub App installed in the GiPHouse organization.
+- `GITHUB_APP_PRIVATE_KEY`: The private RSA key ([PEM formatted](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail)) of the registered GitHub App installed in the GiPHouse organization.
+- `GITHUB_APP_INSTALLATION_ID`: The Installation ID of the registered GitHub App installed in the GiPHouse organization.
+- `GITHUB_ORGANIZATION_NAME`: The name of the organization the registered GitHub App is installed in.
+- `GITHUB_CLIENT_ID`: The GiPHouse organization GitHub (OAuth) App client ID.
+- `GITHUB_CLIENT_SECRET`: The GiPHouse organization GitHub (OAuth) App client secret key.
 - `GITHUB_SUPERUSER_ID`: The Github ID of the initial superuser.
 - `POSTGRES_NAME`: The name of the Postgres database.
 - `POSTGRES_USER`: The username that is used to interact with the Postgres database.

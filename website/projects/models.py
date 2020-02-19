@@ -77,3 +77,23 @@ class Project(models.Model):
         return Employee.objects.filter(
             id__in=self.registration_set.values("user"), registration__course=Course.objects.sdm()
         )
+
+
+class Repository(models.Model):
+    """
+    GitHub repository for a project team.
+
+    This is a separate model since teams can have multiple repositories.
+    """
+
+    class Meta:
+        """Meta class for Repository."""
+
+        verbose_name_plural = "Repositories"
+
+    name = models.CharField("name", max_length=50)
+    project = models.ForeignKey(Project, blank=True, null=True, on_delete=models.SET_NULL)
+
+    def __str__(self):
+        """Return repository name."""
+        return self.name
