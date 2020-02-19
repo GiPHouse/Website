@@ -13,6 +13,13 @@ about: Feature request template
 
 ### Motivation
 <!-- Why does this feature need to be added?. -->
+    If: (customer)
+    I want: (description of what needs to be developed)
+    So that I can: (description of why that needs to be developed)
+
+Example:
+As a system administrator, I want to have be able to create repositories by clicking on a button, so that I can easily create and see the newly created repositories.
+
 
 
 ### Suggested implementation
