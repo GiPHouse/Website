@@ -191,7 +191,7 @@ Whenever a change is merged into the `master` branch, the `deploy.yaml` GitHub A
 
 ##### `build-docker` job
 1. Build a Docker image using the `master` branch.
-2. Push this Docker image (`giphouse/giphousewebsite:latest`) to Docker Hub.
+2. Push this Docker image (`giphouse/giphousewebsite:staging`) to Docker Hub.
 
 ##### `deploy` job
 After the `build-docker` job is finished, the `deploy` job runs.
