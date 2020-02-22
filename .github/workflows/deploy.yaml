@@ -2,10 +2,12 @@
 
 name: "Deploy to production"
 on:
-  deployment
+  push:
+    branches:
+      - "master"
 
 env:
-  DOCKER_IMAGE: "giphouse/giphousewebsite:latest"
+  DOCKER_IMAGE: "giphouse/giphousewebsite:staging"
 
 jobs:
   build-docker:
