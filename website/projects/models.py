@@ -1,7 +1,7 @@
-from courses.models import Semester
-
 from django.db import models
 from django.utils.text import slugify
+
+from courses.models import Semester
 
 from registrations.models import Employee
 

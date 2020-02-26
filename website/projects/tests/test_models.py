@@ -1,6 +1,6 @@
-from courses.models import Course, Semester
-
 from django.test import TestCase
+
+from courses.models import Course, Semester
 
 from projects.models import Project
 
