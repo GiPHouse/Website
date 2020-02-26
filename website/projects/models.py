@@ -1,7 +1,9 @@
+from courses.models import Semester
+
 from django.db import models
 from django.utils.text import slugify
 
-from courses.models import Semester
+from registrations.models import Employee
 
 
 class Client(models.Model):
@@ -59,3 +61,7 @@ class Project(models.Model):
             f"{slugify(self.name)}"
             f"@giphouse.nl"
         )
+
+    def get_employees(self):
+        """Query all employee registrations assigned to this project."""
+        return Employee.objects.filter(id__in=self.registration_set.values("user"))
