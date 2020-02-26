@@ -74,7 +74,7 @@ jobs:
           EOF
 
       - name: "Upload nginx config"
-        run: "scp -o StrictHostKeyChecking=no resources/giphouse.nginx.conf \"${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}:${DEPLOY_DIRECTORY}/nginx/vhost.d/giphouse.nl\""
+        run: "scp -o StrictHostKeyChecking=no resources/giphouse.nginx.conf \"${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}:${DEPLOY_DIRECTORY}/nginx/vhost.d/staging.giphouse.nl\""
 
       - name: "Upload setup.sql"
         run: "scp -o StrictHostKeyChecking=no resources/setup.sql \"${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}:${DEPLOY_DIRECTORY}/database_init/setup.sql\""
