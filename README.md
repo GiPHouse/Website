@@ -211,7 +211,7 @@ This repository is public and the GitHub Actions CI runner logs are also public,
 - `POSTGRES_NAME`: The name of the Postgres database.
 - `POSTGRES_USER`: The username that is used to interact with the Postgres database.
 - `POSTGRES_PASSWORD`: The password that is used to interact with the Postgres database.
-- `SSH_USER`: The user that the CI runner uses to login to the production server using SSH.
+- `SSH_USER`: The user that the CI runner uses to login to the production server using SSH. This user should be allowed to use Docker (e.g. be a member of the `docker` group).
 - `SSH_PRIVATE_KEY`: The private key that allows the `SSH_USER` user to login to the production server using SSH.
 
 ### Server Configuration
@@ -221,7 +221,8 @@ These steps are the necessary setup for a production server.
 1. Add the SSH public keys of engineers to the `authorized_keys` of the `ubuntu` user.
 2. Disable SSH password login.
 3. Install `docker` and `docker-compose`.
-4. Add the public key of the `SSH_PRIVATE_KEY` GitHub secret to the `authorized_keys` file of the `SSH_USER` GitHub secret user.
+4. Add the `ubuntu` user to the `docker` group.
+5. Add the public key of the `SSH_PRIVATE_KEY` GitHub secret to the `authorized_keys` file of the `SSH_USER` GitHub secret user.
 
 ### Keeping Everything Up to Date
 All moving parts should be regularly updated to make sure all code is up to date and secure. There is no process in place to automate updates, because that may break something.
