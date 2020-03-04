@@ -131,12 +131,12 @@ You will then be able to create a new superuser with the `createsuperuser` manag
 $ python website/manage.py createsuperuser --github_id=<your_github_id> --github_username=<your_github_username> --no-input
 ```
 
-#### Registering an GitHub App for repository synchronisation
+#### Registering a GitHub App for repository synchronisation
 To enable the synchronisation functionality of repositories and project(team)s, a GitHub App must be registered and installed in an organization. We assume you already have a [GitHub organization](https://help.github.com/en/github/setting-up-and-managing-organizations-and-teams/creating-a-new-organization-from-scratch) setup
 
-- As an organization, you can develop an GitHub app and register this app at GitHub. People can then install that app in their own account or organization, giving your app access to that account or organization.
+- As an organization, you can develop a GitHub app and register this app at GitHub. People can then install that app in their own account or organization, giving your app access to that account or organization.
 For this project, you will need to first [create your own GitHub app](https://developer.github.com/apps/building-github-apps/creating-a-github-app/) and then install it in your organization. 
-After this, you can find an `GITHUB_APP_ID`, and download the RSA `GITHUB_APP_PRIVATE_KEY`. These will be used as environment variables in this project and need to be set as GitHub Actions secrets in the repository (which will be explained later). 
+After this, you can find a `GITHUB_APP_ID`, and download the RSA `GITHUB_APP_PRIVATE_KEY`. These will be used as environment variables in this project and need to be set as GitHub Actions secrets in the repository (which will be explained later). 
 
 - After the app is created, it needs to be [installed in your own organization](https://developer.github.com/apps/installing-github-apps/) (although technically speaking, it is also possible to publish the app in the previous step and install the app in a different organization!).
 On installation, you can find the `GITHUB_APP_INSTALLATION_ID` which we also need to set in this project. This installation id is hidden in the overview of installed GitHub Apps in your organization.
