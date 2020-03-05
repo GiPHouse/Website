@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'courses.apps.CoursesConfig',
     'projects.apps.ProjectsConfig',
     'room_reservation.apps.RoomReservationConfig',
+    'mailing_lists.apps.MailingListsConfig'
 ]
 
 MIDDLEWARE = [
@@ -140,3 +141,5 @@ BOOTSTRAP4 = {
     'error_css_class': '',
     'success_css_class': '',
 }
+
+GSUITE_DOMAIN = "staging.giphouse.nl"

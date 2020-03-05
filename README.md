@@ -16,6 +16,7 @@ This is the code for the website of [GiPHouse](http://giphouse.nl/) powered by [
     - [Room Reservations](#room-reservations)
     - [Course, Project and Static Information](#course-project-and-static-information)
     - [Projects and repositories](#projects-and-repositories) 
+    - [Mailing Lists](#mailing-lists)
   - [Development and Contributing](#development-and-contributing)
     - [Getting Started](#getting-started)
       - [Logging into the Backend](#logging-into-the-backend)
@@ -103,6 +104,10 @@ Admin users can add information about the course lectures and the projects in th
 
 ### Projects and repositories
 The projects module provides synchronisation functionality with a GitHub organization using the [GitHub API v3](https://developer.github.com/v3/). For this, a repository model is included in Django. Project(team)s can have one or multiple repositories, which are then synchronised with GitHub. For this functionality, a [GitHub App](https://developer.github.com/v3/apps/) must be registered and installed in the organization. Details on this are explained later.
+
+### Mailing Lists
+Admin users can create mailing lists using the Django admin interface. A mailing list can be connected to projects, users and 'extra' email addresses that are not tied to a user. Relating a mailing list to a project implicitly makes the members of that project a member of the mailing list. Currently, these mailing lists are not functional and not synchronized with Gsuite.
+
 
 ### Styling
 [Bootstrap](https://getbootstrap.com/) and [Font Awesome](https://fontawesome.com/) are used to style the website. Their respective SCSS versions are used.
