@@ -11,7 +11,7 @@ class EmployeeQueryTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         """Sets up one semester, two projects and three employees"""
-        cls.semester = Semester.objects.get_or_create_current_semester()
+        cls.semester = Semester.objects.create(year=2020, season=Semester.SPRING)
         cls.project1 = Project.objects.create(name="test1", semester=cls.semester)
         cls.project2 = Project.objects.create(name="test2", semester=cls.semester)
         cls.employee1 = Employee.objects.create(github_id=0, github_username="user1")
@@ -40,6 +40,13 @@ class EmployeeQueryTest(TestCase):
             course=Course.objects.sde(),
             preference1=project,
             semester=cls.semester,
+        )
+
+    def test_generate_team_description(self):
+        """Tests a correct team description for a project."""
+        self.assertEquals(
+            self.project1.generate_team_description(),
+            "Team for the GiPHouse project 'test1' for the 'Spring 2020' semester.",
         )
 
     def test_empty(self):

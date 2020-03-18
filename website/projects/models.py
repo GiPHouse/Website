@@ -43,6 +43,14 @@ class Project(models.Model):
         null=True, blank=True, help_text="This is for private comments that are only available here."
     )
 
+    github_team_id = models.IntegerField(
+        null=True,
+        blank=True,
+        unique=True,
+        help_text="This is the id of the team in the GitHub organization. Do not touch unless "
+        "you are absolutely certain about what you are doing. ",
+    )
+
     def __str__(self):
         """Return project name and semester."""
         return f"{self.name} ({self.semester})"
@@ -62,6 +70,10 @@ class Project(models.Model):
             f"@giphouse.nl"
         )
 
+    def generate_team_description(self):
+        """Generate the standardized team description for this project."""
+        return f"Team for the GiPHouse project '{self.name}' for the '{self.semester}' semester."
+
     def get_employees(self):
         """Query all employees assigned to this project."""
         return Employee.objects.filter(id__in=self.registration_set.values("user"))
@@ -80,11 +92,7 @@ class Project(models.Model):
 
 
 class Repository(models.Model):
-    """
-    GitHub repository for a project team.
-
-    This is a separate model since teams can have multiple repositories.
-    """
+    """GitHub repository for a project team. Teams can have multiple repositories."""
 
     class Meta:
         """Meta class for Repository."""
@@ -93,6 +101,14 @@ class Repository(models.Model):
 
     name = models.CharField("name", max_length=50)
     project = models.ForeignKey(Project, blank=True, null=True, on_delete=models.SET_NULL)
+
+    github_repo_id = models.IntegerField(
+        null=True,
+        blank=True,
+        unique=True,
+        help_text="This is the id of the GitHub repository. Do not touch unless "
+        "you are absolutely certain about what you are doing. ",
+    )
 
     def __str__(self):
         """Return repository name."""

@@ -11,3 +11,4 @@ db.sqlite3
 .coverage
 website/media/
 website/static/
+*.pem

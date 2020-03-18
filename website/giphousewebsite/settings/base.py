@@ -115,6 +115,7 @@ AUTH_USER_MODEL = 'registrations.Employee'
 # SASS processor variables
 SASS_PROCESSOR_INCLUDE_DIRS = [
     os.path.join(BASE_DIR, 'giphousewebsite/static/scss'),
+    os.path.join(BASE_DIR, 'projects/static/scss'),
 ]
 
 SASS_PRECISION = 8

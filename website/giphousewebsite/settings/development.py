@@ -1,5 +1,7 @@
 import os
 
+import github
+
 from giphousewebsite.settings.base import *
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -35,3 +37,7 @@ GITHUB_ORGANIZATION_NAME = os.environ.get('GITHUB_ORGANIZATION_NAME', '')
 GITHUB_APP_ID = os.environ.get('GITHUB_APP_ID', '')
 GITHUB_APP_PRIVATE_KEY = os.environ.get('GITHUB_APP_PRIVATE_KEY', '')
 GITHUB_APP_INSTALLATION_ID = os.environ.get('GITHUB_APP_INSTALLATION_ID', '')
+GITHUB_REPO_PRIVATE = os.environ.get('GITHUB_REPO_PRIVATE', '')
+
+# Use debug-level logging for GitHub synchronisation
+github.enable_console_debug_logging()
