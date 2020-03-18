@@ -63,7 +63,7 @@ jobs:
           GITHUB_CLIENT_ID: "${{ secrets.GITHUB_CLIENT_ID }}"
           GITHUB_CLIENT_SECRET: "${{ secrets.GITHUB_CLIENT_SECRET }}"
           GITHUB_SUPERUSER_ID: "${{ secrets.GITHUB_SUPERUSER_ID }}"
-          GITHUB_APP_PRIVATE_KEY: "${{ secrets.GITHUB_APP_PRIVATE_KEY }}"
+          GITHUB_APP_PRIVATE_KEY_BASE64: "${{ secrets.GITHUB_APP_PRIVATE_KEY_BASE64 }}"
       - name: "Create necessary directories"
         run: |
           ssh -o StrictHostKeyChecking=no "${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}" /bin/bash << EOF

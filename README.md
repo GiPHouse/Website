@@ -141,7 +141,7 @@ To enable the synchronisation functionality of repositories and project(team)s, 
 
 - As an organization, you can develop a GitHub app and register this app at GitHub. People can then install that app in their own account or organization, giving your app access to that account or organization.
 For this project, you will need to first [create your own GitHub app](https://developer.github.com/apps/building-github-apps/creating-a-github-app/) and then install it in your organization. 
-After this, you can find a `GITHUB_APP_ID`, and download the RSA `GITHUB_APP_PRIVATE_KEY`. These will be used as environment variables in this project and need to be set as GitHub Actions secrets in the repository (which will be explained later). 
+After this, you can find a `GITHUB_APP_ID`, and download the RSA `GITHUB_APP_PRIVATE_KEY`. To use this key, encode it `base64` to ``GITHUB_APP_PRIVATE_KEY_BASE64`. These will be used as environment variables in this project and need to be set as GitHub Actions secrets in the repository (which will be explained later). 
 
 - After the app is created, it needs to be [installed in your own organization](https://developer.github.com/apps/installing-github-apps/) (although technically speaking, it is also possible to publish the app in the previous step and install the app in a different organization!).
 On installation, you can find the `GITHUB_APP_INSTALLATION_ID` which we also need to set in this project. This installation id is hidden in the overview of installed GitHub Apps in your organization.
@@ -228,7 +228,7 @@ This repository is public and the GitHub Actions CI runner logs are also public,
 - `DOCKER_USERNAME`: The username used to login to Docker Hub.
 - `DOCKER_PASSWORD`: The password used to login to Docker Hub.
 - `GITHUB_APP_ID`: The App ID of the registered GitHub App installed in the GiPHouse organization.
-- `GITHUB_APP_PRIVATE_KEY`: The private RSA key ([PEM formatted](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail)) of the registered GitHub App installed in the GiPHouse organization.
+- `GITHUB_APP_PRIVATE_KEY_BASE64`: The private RSA key ([PEM formatted](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail)) of the registered GitHub App installed in the GiPHouse organization, `base64` encoded.
 - `GITHUB_APP_INSTALLATION_ID`: The Installation ID of the registered GitHub App installed in the GiPHouse organization.
 - `GITHUB_ORGANIZATION_NAME`: The name of the organization the registered GitHub App is installed in.
 - `GITHUB_CLIENT_ID`: The GiPHouse organization GitHub (OAuth) App client ID.
