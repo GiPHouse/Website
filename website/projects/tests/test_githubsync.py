@@ -271,3 +271,15 @@ class GitHubAPITalkerTest(TestCase):
 
         github_team.remove_membership.assert_called_once_with(github_user)
         self.assertEquals(errors_removing, [github_user.login])
+
+    def test_username_exists(self):
+        self.talker._github.get_user = MagicMock()
+        result = self.talker.username_exists("Fake username")
+        self.assertTrue(result)
+        self.talker._github.get_user.assert_called_once_with("Fake username")
+
+    def test_username_exists__not(self):
+        self.talker._github.get_user = MagicMock(side_effect=GithubException(status=mock.Mock(status=404), data="abc"))
+        result = self.talker.username_exists("Fake username")
+        self.assertFalse(result)
+        self.talker._github.get_user.assert_called_once_with("Fake username")

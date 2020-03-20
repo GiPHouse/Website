@@ -9,7 +9,7 @@ class GitHubAPITalker:
     """Communicate with GitHub API v3."""
 
     _access_token = None  # token to use when talking to github
-    _github = None  # used to talk to GitHub as our own app
+    _github = Github()  # used to talk to GitHub as our own app
     _organization = None  # the organization to sync with
 
     _gi = GithubIntegration(settings.GITHUB_APP_ID, settings.GITHUB_APP_PRIVATE_KEY)
@@ -147,6 +147,14 @@ class GitHubAPITalker:
                     errors_removing.append(github_user.login)
 
         return users_removed, errors_removing
+
+    def username_exists(self, username):
+        """Check if username is an existing Github username."""
+        try:
+            self._github.get_user(username)
+            return True
+        except GithubException:
+            return False
 
 
 talker = GitHubAPITalker()

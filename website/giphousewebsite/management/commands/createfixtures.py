@@ -1,4 +1,5 @@
 import random
+import string
 
 from django.contrib.auth import get_user_model
 from django.core.management import BaseCommand
@@ -10,6 +11,7 @@ from faker.providers import address, company, date_time, internet, lorem, person
 
 from courses.models import Course, Lecture, Semester
 
+from projects import githubsync
 from projects.models import Client, Project
 
 from questionnaires.models import (
@@ -136,6 +138,13 @@ class Command(BaseCommand):
             client=client,
         )
 
+    def generate_fake_github_username(self):
+        """Generate a random username that isn't an existing Github username."""
+        github_username = "".join(random.choices(string.ascii_letters + string.digits, k=20))
+        while githubsync.talker.username_exists(github_username):
+            github_username = "".join(random.choices(string.ascii_letters + string.digits, k=20))
+        return github_username
+
     def create_student(self):
         """Create one fake student."""
         user = User.objects.create(
@@ -143,7 +152,7 @@ class Command(BaseCommand):
             first_name=fake.first_name(),
             last_name=fake.last_name(),
             github_id=random.randint(1, 999_999),
-            github_username=fake.user_name(),
+            github_username=self.generate_fake_github_username(),
             student_number=fake.bothify("s#######"),
         )
 
@@ -192,7 +201,6 @@ class Command(BaseCommand):
         """Create one fake submission."""
         questionnaire = Questionnaire.objects.order_by("?").first()
         user = User.objects.exclude(questionnairesubmission__questionnaire=questionnaire).order_by("?").first()
-
         user_project = Project.objects.get(
             registration__user=user, semester=Semester.objects.get_or_create_current_semester()
         )
