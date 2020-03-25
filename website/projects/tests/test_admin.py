@@ -89,6 +89,10 @@ class GetProjectsTest(TestCase):
                 "email": "a@a.com",
                 "description": "Test project description",
                 "managers": self.manager.id,
+                "repository_set-TOTAL_FORMS": 1,
+                "repository_set-INITIAL_FORMS": 0,
+                "repository_set-MIN_NUM_FORMS": 0,
+                "repository_set-MAX_NUM_FORMS": 1,
             },
             follow=True,
         )

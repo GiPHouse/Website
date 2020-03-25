@@ -35,6 +35,17 @@ class ProjectAdminSemesterFilter(AutocompleteFilter):
     field_name = "semester"
 
 
+class RepositoryInline(admin.StackedInline):
+    """Inline form for Repository."""
+
+    model = Repository
+    extra = 1
+
+    def __init__(self, *args, **kwargs):
+        """Initialize the form."""
+        super().__init__(*args, **kwargs)
+
+
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     """Custom admin for projects."""
@@ -42,6 +53,7 @@ class ProjectAdmin(admin.ModelAdmin):
     form = ProjectAdminForm
     list_filter = [ProjectAdminClientFilter, ProjectAdminSemesterFilter]
     actions = ["export_addresses_csv", "synchronise_to_GitHub"]
+    inlines = [RepositoryInline]
 
     search_fields = ("name",)
 
@@ -202,14 +214,14 @@ class ProjectAdmin(admin.ModelAdmin):
     class Media:
         """Necessary to use AutocompleteFilter."""
 
+        js = (
+            "js/jquery-3.4.1.slim.min.js",
+            "js/repo_naming.js",
+        )
+
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
     """Custom admin for clients."""
 
     search_fields = ("name",)
-
-
-@admin.register(Repository)
-class RepositoryAdmin(admin.ModelAdmin):
-    """Custom admin for repositories."""
