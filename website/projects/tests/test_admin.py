@@ -28,11 +28,15 @@ class GetProjectsTest(TestCase):
         cls.admin_password = "hunter2"
         cls.admin = User.objects.create_superuser(github_id=0, github_username="admin")
 
-        cls.semester = Semester.objects.get_or_create_current_semester()
+        cls.semester = Semester.objects.create(year=2020, season=Semester.SPRING)
+        cls.semester_archived = Semester.objects.create(year=2020, season=Semester.FALL, is_archived=True)
 
         cls.project = Project.objects.create(name="test", semester=cls.semester)
+        cls.project_archived = Project.objects.create(name="test-archived", semester=cls.semester_archived)
+
         cls.manager = User.objects.create(github_id=1, github_username="manager")
         cls.repo = Repository.objects.create(name="testrepo", project=cls.project)
+        cls.repo_archived = Repository.objects.create(name="testrepo-archived", project=cls.project_archived)
 
         Registration.objects.create(
             user=cls.manager,
@@ -63,13 +67,20 @@ class GetProjectsTest(TestCase):
         self.talker.remove_users_not_in_team = MagicMock(return_value=(1, []))
         self.talker.create_team = MagicMock(return_value=MagicMock(id=1234))
         self.talker.create_repo = MagicMock(return_value=MagicMock(id=1234))
+        self.talker.remove_team = MagicMock()
+        self.talker.archive_repo = MagicMock()
         githubsync.talker = self.talker
         self.old_error = messages.error
+        self.old_warning = messages.warning
         self.old_success = messages.success
+        messages.error = MagicMock()
+        messages.warning = MagicMock()
+        messages.success = MagicMock()
 
     def tearDown(self):
         githubsync.talker = self.old_talker
         messages.error = self.old_error
+        messages.warning = self.old_warning
         messages.success = self.old_success
 
     def test_get_form(self):
@@ -170,7 +181,6 @@ class GetProjectsTest(TestCase):
         self.talker.update_team = MagicMock(side_effect=GithubException(status=mock.Mock(status=404), data="abc"))
         self.talker.sync_team_member = MagicMock(side_effect=GithubException(status=mock.Mock(status=404), data="abc"))
         self.talker.remove_users_not_in_team = MagicMock(return_value=(1, ["Piet"]))
-        messages.error = MagicMock()
         with mock.patch("github.MainClass.Github.__init__", return_value=None):
             with mock.patch("github.MainClass.Github.get_organization"):
                 team_created, members_invited, users_removed = self.project_admin.create_or_update_team(
@@ -199,7 +209,6 @@ class GetProjectsTest(TestCase):
         self.repo.github_repo_id = None
         self.repo.save()
         self.talker.create_repo = MagicMock(side_effect=GithubException(status=mock.Mock(status=404), data="abc"))
-        messages.error = MagicMock()
         with mock.patch("github.MainClass.Github.__init__", return_value=None):
             with mock.patch("github.MainClass.Github.get_organization"):
                 new_repos_created = self.project_admin.create_or_update_repos(self.request, self.project)
@@ -222,7 +231,6 @@ class GetProjectsTest(TestCase):
         self.repo.github_repo_id = 4321
         self.repo.save()
         self.talker.update_repo = MagicMock(side_effect=GithubException(status=mock.Mock(status=404), data="abc"))
-        messages.error = MagicMock()
         with mock.patch("github.MainClass.Github.__init__", return_value=None):
             with mock.patch("github.MainClass.Github.get_organization"):
                 new_repos_created = self.project_admin.create_or_update_repos(self.request, self.project)
@@ -231,8 +239,59 @@ class GetProjectsTest(TestCase):
         self.talker.create_repo.assert_not_called()
         self.assertEqual(new_repos_created, 0)
 
+    def test_archive_project__repo_unarchived(self):
+        self.repo_archived.github_repo_id = 123456789
+        self.repo_archived.save()
+        self.talker.archive_repo = MagicMock(return_value=True)
+        result = self.project_admin.archive_project(self.request, self.project_archived)
+        self.talker.archive_repo.assert_called_once_with(self.repo_archived)
+        self.assertEqual(result, 1)
+
+    def test_archive_project__repo_already_archived(self):
+        self.repo_archived.github_repo_id = 123456789
+        self.repo_archived.save()
+        self.talker.archive_repo = MagicMock(return_value=False)
+        result = self.project_admin.archive_project(self.request, self.project_archived)
+        self.talker.archive_repo.assert_called_once_with(self.repo_archived)
+        self.assertEqual(result, 0)
+
+    def test_archive_project__uncreated_repo(self):
+        self.repo_archived.github_repo_id = None
+        self.project_archived.save()
+        result = self.project_admin.archive_project(self.request, self.project_archived)
+        self.talker.archive_repo.assert_not_called()
+        messages.warning.assert_called_once()  # TODO check content of message
+        self.assertEqual(result, 0)
+
+    def test_archive_project__repo_error(self):
+        self.repo_archived.github_repo_id = 123456789
+        self.repo_archived.save()
+        self.talker.archive_repo = MagicMock(side_effect=GithubException(status=mock.Mock(status=404), data="abc"))
+        self.project_admin.archive_project(self.request, self.project_archived)
+        messages.error.assert_called_once()  # TODO check content of message
+
+    def test_archive_project__team(self):
+        self.project_archived.github_team_id = 987654321
+        self.project_archived.save()
+        self.project_admin.archive_project(self.request, self.project_archived)
+        self.talker.remove_team.assert_called_once_with(self.project_archived)
+        self.assertIsNone(self.project_archived.github_team_id)
+
+    def test_archive_project__uncreated_team(self):
+        self.project_archived.github_team_id = None
+        self.project_archived.save()
+        self.project_admin.archive_project(self.request, self.project_archived)
+        self.talker.remove_team.assert_not_called()
+        messages.warning.assert_called()  # Can be called multiple times, because repo's can fail too,
+        # TODO check content of message
+
+    def test_archive_project__team_error(self):
+        self.project_archived.github_team_id = 987654321
+        self.talker.remove_team = MagicMock(side_effect=GithubException(status=mock.Mock(status=404), data="abc"))
+        self.project_admin.archive_project(self.request, self.project_archived)
+        messages.error.assert_called_once()  # TODO check content of message
+
     def test_synchronise_to_GitHub__create(self):
-        messages.success = MagicMock()
         self.project_admin.create_or_update_team = MagicMock(return_value=(True, 1, 1))
         self.project_admin.create_or_update_repos = MagicMock(return_value=1)
         self.project_admin.synchronise_to_GitHub(self.request, Project.objects.all())
@@ -241,13 +300,17 @@ class GetProjectsTest(TestCase):
         self.project_admin.create_or_update_repos.assert_called_once_with(self.request, self.project)
 
     def test_synchronise_to_GitHub__update(self):
-        messages.success = MagicMock()
         self.project_admin.create_or_update_team = MagicMock(return_value=(False, 1, 1))
         self.project_admin.create_or_update_repos = MagicMock(return_value=1)
         self.project_admin.synchronise_to_GitHub(self.request, Project.objects.all())
         messages.success.assert_called_once()  # TODO check content of message
         self.project_admin.create_or_update_team.assert_called_once_with(self.request, self.project)
         self.project_admin.create_or_update_repos.assert_called_once_with(self.request, self.project)
+
+    def test_synchronise_to_GitHub__archive(self):
+        self.project_admin.archive_project = MagicMock(return_value=1)
+        self.project_admin.synchronise_to_GitHub(self.request, Project.objects.all())
+        self.project_admin.archive_project.assert_called_once_with(self.request, self.project_archived)
 
     def test_synchronise_all_projects_to_GitHub(self):
         self.project_admin.synchronise_to_GitHub = MagicMock()
@@ -256,5 +319,5 @@ class GetProjectsTest(TestCase):
         self.project_admin.synchronise_to_GitHub.assert_called_once()
         args = self.project_admin.synchronise_to_GitHub.call_args.args
         self.assertEqual(args[0], self.request)
-        self.assertEqual(args[1].count(), 1)
+        self.assertEqual(args[1].count(), 2)
         self.assertIn(self.project, args[1])

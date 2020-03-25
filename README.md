@@ -15,7 +15,8 @@ This is the code for the website of [GiPHouse](http://giphouse.nl/) powered by [
     - [Questionnaires](#questionnaires)
     - [Room Reservations](#room-reservations)
     - [Course, Project and Static Information](#course-project-and-static-information)
-    - [Projects and repositories](#projects-and-repositories) 
+    - [Projects and Repositories](#projects-and-repositories) 
+      - [GitHub Synchronization](#github-synchronization)
     - [Mailing Lists](#mailing-lists)
   - [Development and Contributing](#development-and-contributing)
     - [Getting Started](#getting-started)
@@ -102,8 +103,29 @@ The room reservation is built using [FullCalendar](https://fullcalendar.io/), a 
 ### Course, Project and Static Information
 Admin users can add information about the course lectures and the projects in the backend. There are also a small amount of static HTML webpages with information about GiPHouse.
 
-### Projects and repositories
+### Projects and Repositories
 The projects module provides synchronisation functionality with a GitHub organization using the [GitHub API v3](https://developer.github.com/v3/). For this, a repository model is included in Django. Project(team)s can have one or multiple repositories, which are then synchronised with GitHub. For this functionality, a [GitHub App](https://developer.github.com/v3/apps/) must be registered and installed in the organization. Details on this are explained later.
+
+#### GitHub Synchronization
+Projects and repositories contain a field `github_team_id` and `github_repo_id` that corresponds to the respective `id` of the object on GitHub. These fields are automatically set and should not be touched under normal circumstances. Teams and repositories on GitHub that do not match one of these id's will not be touched by the GitHub synchronization. 
+If the `github_team_id` or `github_repo_id` are `None`, it is assumed the objects do not exist and new objects will be created on synchronization (except for archived projects and teams).
+
+Repositories and project(team)s are synchronized with GitHub in the following manner:
+
+- For each project, a GitHub Team is created in the organization.
+    - Employees of a project are added to the team as "member"s.
+    - All users (employee or not) that do not belong in a team, are removed from both the team and the organization.
+    - Organization owners will never be removed from the organization, only from the team.
+    - Teams that are manually created in GitHub and not linked in Django, are ignored and will not be removed.
+- Each repository is created on GitHub in the organization.
+    - Depending on the environment variables, either a private or public repository is created.
+    - The associated team is given "admin" access to the repository.
+    - Other additional permissions of a repository stay untouched.
+- Semesters can be archived, which cascades to all project(team)s and repositories. 
+    - If a repository is archived, it will be archived on GitHub as well. This action is final and can only be undone manually via [github.com]()
+    - If a project is archived, the team will be removed and consequently, all employees will be removed from the organization (again, organization owners are ignored).
+
+Synchronization can only be initialized via actions on specific sets of objects in their changelists, or via the big 'synchronize to GitHub' button (to perform synchronization on all objects) in the admin. Synchronization is implemented in a [idempotent](https://en.wikipedia.org/wiki/Idempotence) manner. 
 
 ### Mailing Lists
 Admin users can create mailing lists using the Django admin interface. A mailing list can be connected to projects, users and 'extra' email addresses that are not tied to a user. Relating a mailing list to a project implicitly makes the members of that project a member of the mailing list. Currently, these mailing lists are not functional and not synchronized with Gsuite.

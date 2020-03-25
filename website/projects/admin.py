@@ -99,12 +99,12 @@ class ProjectAdmin(admin.ModelAdmin):
                 project_team.github_team_id = github.create_team(project_team).id
                 project_team.save()
                 team_created = True
-            except GithubException or AssertionError:
+            except (GithubException, AssertionError):
                 messages.error(request, f"Something went wrong creating the project team for '{project_team}'.")
         else:
             try:
                 github.update_team(project_team)  # if this fails, we might have a problem with the github_team_id
-            except GithubException or AssertionError:
+            except (GithubException, AssertionError):
                 messages.error(request, f"Something went wrong syncing the project team for '{project_team}'.")
                 # TODO: If the exception is that the github team is not found, someone removed the team manually
                 #  from GitHub and we maybe want to create the team again and save a new team_id, or someone
@@ -114,7 +114,7 @@ class ProjectAdmin(admin.ModelAdmin):
         for employee in project_team.get_employees():
             try:
                 members_invited += github.sync_team_member(employee, project_team)
-            except GithubException or AssertionError:
+            except (GithubException, AssertionError):
                 messages.error(
                     request, f"Something went wrong syncing {employee} with the GitHub team for '{project_team}'."
                 )
@@ -127,7 +127,7 @@ class ProjectAdmin(admin.ModelAdmin):
                     f"Those users should be removed from GitHub team for '{project_team}' but could not be "
                     f"removed: {errors_removing}.",
                 )
-        except GithubException or AssertionError:
+        except (GithubException, AssertionError):
             messages.error(
                 request, f"Something went wrong removing unwanted users from GitHub team for '{project_team}'."
             )
@@ -153,34 +153,72 @@ class ProjectAdmin(admin.ModelAdmin):
                     project_repo.github_repo_id = github.create_repo(project_repo).id
                     project_repo.save()
                     new_repos_created += 1
-                except GithubException or AssertionError:
+                except (GithubException, AssertionError):
                     messages.error(
                         request, f"Something went wrong creating repository '{project_repo}' for '{project_team}'."
                     )
             else:
                 try:
                     github.update_repo(project_repo)  # if this fails, we might have a problem with the github_repo_id
-                except GithubException or AssertionError:
+                except (GithubException, AssertionError):
                     messages.error(
                         request, f"Something went wrong syncing the repository '{project_repo}' for '{project_team}'.",
                     )
         return new_repos_created
 
+    def archive_project(self, request, project_team):
+        """Archive a project by deleting the team, removing the employees and archiving the repositories."""
+        github = githubsync.talker
+        repos_archived = 0
+
+        for project_repo in Repository.objects.filter(project=project_team):
+            try:
+                if project_repo.github_repo_id is not None:
+                    if github.archive_repo(project_repo):
+                        repos_archived += 1
+                else:
+                    messages.warning(
+                        request,
+                        f"Repository {project_repo} was not archived, because it does not exist on GitHub either.",
+                    )
+            except (GithubException, AssertionError):
+                messages.error(
+                    request, f"Something went wrong archiving the repository '{project_repo}'.",
+                )
+        if project_team.github_team_id is not None:
+            try:
+                github.remove_team(project_team)
+                project_team.github_team_id = None
+                project_team.save()
+            except (GithubException, AssertionError):
+                messages.error(
+                    request, f"Something went wrong removing the GitHub team for '{project_team}'.",
+                )
+        else:
+            messages.warning(
+                request, f"Project team {project_team} was not archived, because it does not exist on GitHub either.",
+            )
+        return repos_archived
+
     def synchronise_to_GitHub(self, request, queryset):
         """Synchronise projects to GitHub."""
         new_teams_created = 0
         new_repos_created = 0
+        repos_archived = 0
         total_invited = 0
         total_removed = 0
 
         for project_team in queryset:
-            team_created, members_invited, users_removed = self.create_or_update_team(request, project_team)
-            if team_created:
-                new_teams_created += 1
-            total_invited += members_invited
-            total_removed += users_removed
+            if not project_team.is_archived:
+                team_created, members_invited, users_removed = self.create_or_update_team(request, project_team)
+                if team_created:
+                    new_teams_created += 1
+                total_invited += members_invited
+                total_removed += users_removed
 
-            new_repos_created += self.create_or_update_repos(request, project_team)
+                new_repos_created += self.create_or_update_repos(request, project_team)
+            else:
+                repos_archived += self.archive_project(request, project_team)
 
         # TODO: maybe improve error handling and success messages
 
@@ -188,7 +226,8 @@ class ProjectAdmin(admin.ModelAdmin):
             request,
             f"A total of {new_teams_created} teams and {new_repos_created} repositories have been created, a total of "
             f"{total_invited} employees have been invited to their teams and a total of "
-            f"{total_removed} users have been removed from GitHub teams.",
+            f"{total_removed} users have been removed from GitHub teams. {repos_archived} repositories have been "
+            f"archived.",
         )
 
     synchronise_to_GitHub.short_description = "Synchronise selected projects to GitHub"
@@ -196,6 +235,9 @@ class ProjectAdmin(admin.ModelAdmin):
     def synchronise_all_projects_to_GitHub(self, request):
         """Synchronise all project(teams) to GitHub."""
         self.synchronise_to_GitHub(request, Project.objects.all())
+        # TODO: it might become a problem if we keep doing this for all projects, since this set will get increasingly
+        #  large. However only doing it for unarchived projects does not work either, since we would then not delete
+        #  and archive anything ever. There are multiple solutions to this...
         # TODO: check for teams that shouldn't be there and remove them
         return redirect("/admin/projects/project")
 

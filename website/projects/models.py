@@ -90,6 +90,11 @@ class Project(models.Model):
             id__in=self.registration_set.values("user"), registration__course=Course.objects.sdm()
         )
 
+    @property
+    def is_archived(self):
+        """Check if a project is archived."""
+        return self.semester.is_archived
+
 
 class Repository(models.Model):
     """GitHub repository for a project team. Teams can have multiple repositories."""
@@ -99,7 +104,7 @@ class Repository(models.Model):
 
         verbose_name_plural = "Repositories"
 
-    name = models.CharField("name", max_length=50)
+    name = models.CharField("name", unique=True, max_length=50)
     project = models.ForeignKey(Project, blank=True, null=True, on_delete=models.SET_NULL)
 
     github_repo_id = models.IntegerField(

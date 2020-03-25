@@ -39,7 +39,7 @@ GITHUB_APP_ID = os.environ.get('GITHUB_APP_ID', '')
 GITHUB_APP_PRIVATE_KEY_BASE64 = os.environ.get('GITHUB_APP_PRIVATE_KEY_BASE64', '')
 GITHUB_APP_PRIVATE_KEY = base64.urlsafe_b64decode(GITHUB_APP_PRIVATE_KEY_BASE64)
 GITHUB_APP_INSTALLATION_ID = os.environ.get('GITHUB_APP_INSTALLATION_ID', '')
-GITHUB_REPO_PRIVATE = os.environ.get('GITHUB_REPO_PRIVATE', '')
+GITHUB_REPO_PRIVATE = os.environ.get('GITHUB_REPO_PRIVATE', 'False') == 'True'
 
 # Use debug-level logging for GitHub synchronisation
 github.enable_console_debug_logging()

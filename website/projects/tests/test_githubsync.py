@@ -167,12 +167,51 @@ class GitHubAPITalkerTest(TestCase):
 
         github_team = MagicMock()
         github_team.has_in_repos = MagicMock(return_value=False)
+        test_permissions = MagicMock()
+        test_permissions.admin = False
+        github_team.get_repo_permission = MagicMock(return_value=test_permissions)
         self.talker._organization.get_team = MagicMock(return_value=github_team)
 
         self.talker.update_repo(self.repo1)
 
         github_team.add_to_repos.assert_called_once_with(github_repo)
         github_team.set_repo_permission.assert_called_once_with(github_repo, "admin")
+        github_repo.edit.assert_not_called()
+
+    def test_update_repo__semi_correct_permissions(self):
+        github_repo = MagicMock()
+        github_repo.name = "test-repo1"
+        self.talker._github.get_repo = MagicMock(return_value=github_repo)
+
+        github_team = MagicMock()
+        github_team.has_in_repos = MagicMock(return_value=True)
+        test_permissions = MagicMock()
+        test_permissions.admin = False
+        github_team.get_repo_permission = MagicMock(return_value=test_permissions)
+        self.talker._organization.get_team = MagicMock(return_value=github_team)
+
+        self.talker.update_repo(self.repo1)
+
+        github_team.add_to_repos.assert_not_called()
+        github_team.set_repo_permission.assert_called_once_with(github_repo, "admin")
+        github_repo.edit.assert_not_called()
+
+    def test_update_repo__correct_permissions(self):
+        github_repo = MagicMock()
+        github_repo.name = "test-repo1"
+        self.talker._github.get_repo = MagicMock(return_value=github_repo)
+
+        github_team = MagicMock()
+        github_team.has_in_repos = MagicMock(return_value=True)
+        test_permissions = MagicMock()
+        test_permissions.admin = True
+        github_team.get_repo_permission = MagicMock(return_value=test_permissions)
+        self.talker._organization.get_team = MagicMock(return_value=github_team)
+
+        self.talker.update_repo(self.repo1)
+
+        github_team.add_to_repos.assert_not_called()
+        github_team.set_repo_permission.assert_not_called()
         github_repo.edit.assert_not_called()
 
     def test_update_repo__all_correct(self):
@@ -226,6 +265,9 @@ class GitHubAPITalkerTest(TestCase):
         github_team = MagicMock()
         github_user = MagicMock()
         github_user.login = self.employee1.github_username
+        test_permissions = MagicMock
+        test_permissions.role = "member"
+        github_user.get_organization_membership = MagicMock(return_value=test_permissions)
         github_team.get_members = MagicMock(return_value=[github_user])
         github_team.remove_membership = MagicMock()
         self.talker._organization.get_team = MagicMock(return_value=github_team)
@@ -242,6 +284,9 @@ class GitHubAPITalkerTest(TestCase):
         github_team = MagicMock()
         github_user = MagicMock()
         github_user.login = "anunwanteduser"
+        test_permissions = MagicMock
+        test_permissions.role = "member"
+        github_user.get_organization_membership = MagicMock(return_value=test_permissions)
         github_team.get_members = MagicMock(return_value=[github_user])
         github_team.remove_membership = MagicMock()
         self.talker._organization.get_team = MagicMock(return_value=github_team)
@@ -251,14 +296,58 @@ class GitHubAPITalkerTest(TestCase):
 
         users_removed, errors_removing = self.talker.remove_users_not_in_team(self.project1)
 
+        self.talker._organization.remove_from_members.assert_called_once_with(github_user)
+        self.assertEquals(users_removed, 1)
+
+    def test_remove_users_not_in_team__owner(self):
+        github_team = MagicMock()
+        github_user = MagicMock()
+        github_user.login = "anunwanteduser"
+        test_permissions = MagicMock
+        test_permissions.role = "admin"
+        github_user.get_organization_membership = MagicMock(return_value=test_permissions)
+        github_team.get_members = MagicMock(return_value=[github_user])
+        github_team.remove_membership = MagicMock()
+        self.talker._organization.get_team = MagicMock(return_value=github_team)
+        employees_queryset = MagicMock()
+        employees_queryset.values_list = MagicMock(return_value=[(self.employee1.github_username,)])
+        self.project1.get_employees = MagicMock(return_value=employees_queryset)
+
+        users_removed, errors_removing = self.talker.remove_users_not_in_team(self.project1)
+
+        self.talker._organization.remove_from_members.assert_not_called()
         github_team.remove_membership.assert_called_once_with(github_user)
         self.assertEquals(users_removed, 1)
 
-    def test_remove_users_not_in_team__exception(self):
+    def test_remove_users_not_in_team__exception_employee(self):
         github_team = MagicMock()
         github_user = MagicMock()
         github_user.login = "anunwanteduser"
         github_team.get_members = MagicMock(return_value=[github_user])
+        test_permissions = MagicMock
+        test_permissions.role = "member"
+        github_user.get_organization_membership = MagicMock(return_value=test_permissions)
+        self.talker._organization.remove_from_members = MagicMock(
+            side_effect=GithubException(status=mock.Mock(status=404), data="abc")
+        )
+        self.talker._organization.get_team = MagicMock(return_value=github_team)
+        employees_queryset = MagicMock()
+        employees_queryset.values_list = MagicMock(return_value=[(self.employee1.github_username,)])
+        self.project1.get_employees = MagicMock(return_value=employees_queryset)
+
+        users_removed, errors_removing = self.talker.remove_users_not_in_team(self.project1)
+
+        self.talker._organization.remove_from_members.assert_called_once_with(github_user)
+        self.assertEquals(errors_removing, [github_user.login])
+
+    def test_remove_users_not_in_team__exception_owner(self):
+        github_team = MagicMock()
+        github_user = MagicMock()
+        github_user.login = "anunwanteduser"
+        github_team.get_members = MagicMock(return_value=[github_user])
+        test_permissions = MagicMock
+        test_permissions.role = "admin"
+        github_user.get_organization_membership = MagicMock(return_value=test_permissions)
         github_team.remove_membership = MagicMock(
             side_effect=GithubException(status=mock.Mock(status=404), data="abc")
         )
@@ -269,8 +358,68 @@ class GitHubAPITalkerTest(TestCase):
 
         users_removed, errors_removing = self.talker.remove_users_not_in_team(self.project1)
 
+        self.talker._organization.remove_from_members.assert_not_called()
         github_team.remove_membership.assert_called_once_with(github_user)
         self.assertEquals(errors_removing, [github_user.login])
+
+    def test_remove_team__user_in_employees(self):
+        github_team = MagicMock()
+        github_employee = MagicMock()
+        github_employee.login = self.employee1.github_username
+        test_permissions = MagicMock
+        test_permissions.role = "member"
+        github_employee.get_organization_membership = MagicMock(return_value=test_permissions)
+        github_team.get_members = MagicMock(return_value=[github_employee])
+
+        employees_queryset = MagicMock()
+        employees_queryset.values_list = MagicMock(return_value=[(self.employee1.github_username,)])
+        self.project1.get_employees = MagicMock(return_value=employees_queryset)
+        self.talker._github.get_user = MagicMock(return_value=github_employee)
+        self.talker._organization.get_team = MagicMock(return_value=github_team)
+
+        self.talker.remove_team(self.project1)
+
+        self.talker._organization.remove_from_members.assert_called_once_with(github_employee)
+        github_team.delete.assert_called_once_with()
+
+    def test_remove_team__user_not_in_employees(self):
+        github_team = MagicMock()
+        github_employee = MagicMock()
+        github_employee.login = "thisuserisownerandshouldnotberemovedfromtheorganization"
+        test_permissions = MagicMock
+        test_permissions.role = "admin"
+        github_employee.get_organization_membership = MagicMock(return_value=test_permissions)
+        github_team.get_members = MagicMock(return_value=[github_employee])
+        employees_queryset = MagicMock()
+        employees_queryset.values_list = MagicMock(return_value=[(self.employee1.github_username,)])
+        self.project1.get_employees = MagicMock(return_value=employees_queryset)
+        self.talker._github.get_user = MagicMock(return_value=github_employee)
+        self.talker._organization.get_team = MagicMock(return_value=github_team)
+
+        self.talker.remove_team(self.project1)
+
+        self.talker._organization.remove_from_members.assert_not_called()
+        github_team.delete.assert_called_once_with()
+
+    def test_archive_repo__already_archived(self):
+        github_repo = MagicMock()
+        github_repo.name = "test-repo1"
+        github_repo.archived = True
+        self.talker._github.get_repo = MagicMock(return_value=github_repo)
+
+        self.assertFalse(self.talker.archive_repo(self.repo1))
+
+        github_repo.edit.assert_not_called()
+
+    def test_archive_repo__not_yet_archived(self):
+        github_repo = MagicMock()
+        github_repo.name = "test-repo1"
+        github_repo.archived = False
+        self.talker._github.get_repo = MagicMock(return_value=github_repo)
+
+        self.assertTrue(self.talker.archive_repo(self.repo1))
+
+        github_repo.edit.assert_called_once_with(archived=True)
 
     def test_username_exists(self):
         self.talker._github.get_user = MagicMock()

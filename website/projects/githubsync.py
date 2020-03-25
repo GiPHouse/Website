@@ -99,8 +99,9 @@ class GitHubAPITalker:
 
         if not github_team.has_in_repos(github_repo):
             github_team.add_to_repos(github_repo)
-        github_team.set_repo_permission(github_repo, "admin")  # we sadly not first check whether the team is already
-        # admin in their repo (as should be normally), so we set it always
+
+        if not github_team.get_repo_permission(github_repo).admin:
+            github_team.set_repo_permission(github_repo, "admin")
 
         if github_repo.name != repo.name:
             github_repo.edit(name=repo.name)
@@ -141,12 +142,36 @@ class GitHubAPITalker:
         for github_user in github_team.get_members():
             if github_user.login not in employee_list:
                 try:
-                    github_team.remove_membership(github_user)
+                    if (
+                        not github_user.get_organization_membership(self.github_organization).role == "admin"
+                    ):  # Prevent removing organization owners
+                        self.github_organization.remove_from_members(github_user)
+                    else:
+                        github_team.remove_membership(github_user)
                     users_removed += 1
                 except GithubException:
                     errors_removing.append(github_user.login)
 
         return users_removed, errors_removing
+
+    def remove_team(self, project):
+        """Remove a team for a project from GitHub and remove all employees of the project from the organization."""
+        github_team = self.github_organization.get_team(project.github_team_id)
+
+        for github_user in github_team.get_members():
+            if (
+                not github_user.get_organization_membership(self.github_organization).role == "admin"
+            ):  # Prevent removing organization owners
+                self.github_organization.remove_from_members(github_user)
+        github_team.delete()
+
+    def archive_repo(self, repo):
+        """Archive a repository and return whether it is archived (True) or was already archived (False)."""
+        github_repo = self.github_service.get_repo(repo.github_repo_id)
+        if not github_repo.archived:
+            github_repo.edit(archived=True)
+            return True
+        return False
 
     def username_exists(self, username):
         """Check if username is an existing Github username."""
