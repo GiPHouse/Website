@@ -4,7 +4,9 @@ import string
 from django.contrib.auth import get_user_model
 from django.core.management import BaseCommand
 from django.db import IntegrityError
+from django.db.models import Count
 from django.utils import timezone
+from django.utils.text import slugify
 
 from faker import Faker
 from faker.providers import address, company, date_time, internet, lorem, person
@@ -12,7 +14,7 @@ from faker.providers import address, company, date_time, internet, lorem, person
 from courses.models import Course, Lecture, Semester
 
 from projects import githubsync
-from projects.models import Client, Project
+from projects.models import Client, Project, Repository
 
 from questionnaires.models import (
     AgreementAnswerData,
@@ -79,6 +81,7 @@ class Command(BaseCommand):
                 "registration_start": timezone.now() - timezone.timedelta(days=90),
                 "registration_end": timezone.now() - timezone.timedelta(days=60),
             },
+            is_archived=True,
         )
 
         Semester.objects.get_or_create(
@@ -114,7 +117,15 @@ class Command(BaseCommand):
     def create_project(self):
         """Create one fake project."""
         client = Client.objects.create(name=fake.company())
-        Project.objects.create(
+        ordered_semesters = Semester.objects.order_by("year", "season")
+        first_semester = ordered_semesters.first()
+        semester = (
+            ordered_semesters.annotate(project_count=Count("project"))
+            .exclude(project_count__gte=2, pk=first_semester.pk)
+            .first()
+        )
+        repo_count = semester.project_set.count() % 3
+        project = Project.objects.create(
             name=(
                 fake.word().capitalize()
                 + " "
@@ -133,10 +144,16 @@ class Command(BaseCommand):
                     ]
                 )
             ),
-            semester=Semester.objects.get_or_create_current_semester(),
+            semester=semester,
             description=" ".join(fake.paragraphs(nb=3)),
             client=client,
         )
+        for i in range(repo_count):
+            suffix = "" if i == 0 else f"-{i}"
+            Repository.objects.create(
+                name=f"{slugify(project.name)}-{semester.get_season_display()}-{semester.year}{suffix}",
+                project=project,
+            )
 
     def generate_fake_github_username(self):
         """Generate a random username that isn't an existing Github username."""
@@ -155,12 +172,13 @@ class Command(BaseCommand):
             github_username=self.generate_fake_github_username(),
             student_number=fake.bothify("s#######"),
         )
+        project = Project.objects.order_by("?").first()
 
         Registration.objects.create(
             user=user,
             course=Course.objects.order_by("?").first(),
-            semester=Semester.objects.get_or_create_current_semester(),
-            project=Project.objects.order_by("?").first(),
+            semester=project.semester,
+            project=project,
             preference1=Project.objects.order_by("?").first(),
             preference2=Project.objects.order_by("?").first(),
             preference3=Project.objects.order_by("?").first(),
@@ -200,10 +218,13 @@ class Command(BaseCommand):
     def create_submission(self):
         """Create one fake submission."""
         questionnaire = Questionnaire.objects.order_by("?").first()
-        user = User.objects.exclude(questionnairesubmission__questionnaire=questionnaire).order_by("?").first()
-        user_project = Project.objects.get(
-            registration__user=user, semester=Semester.objects.get_or_create_current_semester()
+        user = (
+            User.objects.exclude(questionnairesubmission__questionnaire=questionnaire)
+            .exclude(registration__isnull=True)
+            .order_by("?")
+            .first()
         )
+        user_project = Project.objects.get(registration__user=user)
         project_registrations = Registration.objects.filter(project=user_project)
         peers = User.objects.exclude(pk=user.pk).filter(registration__in=project_registrations)
 

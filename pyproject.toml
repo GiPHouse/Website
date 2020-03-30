@@ -20,6 +20,7 @@ django-admin-autocomplete-filter = {git = "https://github.com/farhan0581/django-
 coverage = {extras = ["toml"], version = "^5.0.3"}
 pygithub = "^1.46"
 cryptography = "^2.8"
+Faker = "^4.0.2"
 
 [tool.poetry.extras]
 production = ["uwsgi", "psycopg2-binary"]
