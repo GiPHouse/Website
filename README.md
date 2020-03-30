@@ -159,7 +159,14 @@ $ python website/manage.py createsuperuser --github_id=<your_github_id> --github
 ```
 
 #### Registering a GitHub App for repository synchronisation
-To enable the synchronisation functionality of repositories and project(team)s, a GitHub App must be registered and installed in an organization. We assume you already have a [GitHub organization](https://help.github.com/en/github/setting-up-and-managing-organizations-and-teams/creating-a-new-organization-from-scratch) setup
+To enable the synchronisation functionality of repositories and project(team)s, a GitHub App must be registered and installed in an organization. This GitHub App needs the following permissions:
+
+- Repository/Metadata: read-only
+- Repository/Administration: read and write
+- Organization/Members: read and write
+- User/Email addresses: read-only
+
+We assume you already have a [GitHub organization](https://help.github.com/en/github/setting-up-and-managing-organizations-and-teams/creating-a-new-organization-from-scratch) setup.
 
 - As an organization, you can develop a GitHub app and register this app at GitHub. People can then install that app in their own account or organization, giving your app access to that account or organization.
 For this project, you will need to first [create your own GitHub app](https://developer.github.com/apps/building-github-apps/creating-a-github-app/) and then install it in your organization. 
