@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils.text import slugify
 
@@ -35,7 +36,6 @@ class Project(models.Model):
     name = models.CharField("name", max_length=50)
 
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
-    email = models.EmailField(blank=True)
     description = models.TextField()
     client = models.ForeignKey(Client, on_delete=models.SET_NULL, blank=True, null=True)
 
@@ -55,19 +55,13 @@ class Project(models.Model):
         """Return project name and semester."""
         return f"{self.name} ({self.semester})"
 
-    def save(self, *args, **kwargs):
-        """Save project and add email if not set."""
-        if not self.email:
-            self.email = self.generate_email()
-        super().save(*args, **kwargs)
-
     def generate_email(self):
         """Generate the standard email for this project."""
         return (
             f"{self.semester.year}"
             f"{self.semester.get_season_display().lower()}-"
             f"{slugify(self.name)}"
-            f"@giphouse.nl"
+            f"@{settings.GSUITE_DOMAIN}"
         )
 
     def generate_team_description(self):

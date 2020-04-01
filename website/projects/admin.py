@@ -1,16 +1,14 @@
-import csv
-import zipfile
-from io import BytesIO, StringIO
-
 from admin_auto_filters.filters import AutocompleteFilter
 
 from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
-from django.http import HttpResponse
+from django.core.exceptions import ValidationError
 from django.shortcuts import redirect
 from django.urls import path
 
 from github import GithubException
+
+from mailing_lists.models import MailingList
 
 from projects import githubsync
 from projects.forms import ProjectAdminForm
@@ -52,31 +50,34 @@ class ProjectAdmin(admin.ModelAdmin):
 
     form = ProjectAdminForm
     list_filter = [ProjectAdminClientFilter, ProjectAdminSemesterFilter]
-    actions = ["export_addresses_csv", "synchronise_to_GitHub"]
+    actions = ["create_mailing_lists", "synchronise_to_GitHub"]
     inlines = [RepositoryInline]
 
     search_fields = ("name",)
 
-    def export_addresses_csv(self, request, queryset):
-        """Export the selected projects as email CSV zip."""
-        zip_content = BytesIO()
-        with zipfile.ZipFile(zip_content, "w") as zip_file:
+    def create_mailing_lists(self, request, queryset):
+        """Create mailing lists for the selected projects."""
+        for project in queryset:
 
-            for project in queryset:
-                content = StringIO()
-                writer = csv.writer(content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
-                writer.writerow(
-                    ["Group Email [Required]", "Member Email", "Member Name", "Member Role", "Member Type"]
+            address = project.generate_email()
+            try:
+                mailing_list = MailingList.objects.create(
+                    address=project.generate_email(), name=project.name, description=project.description,
                 )
 
-                for user in User.objects.filter(registration__project=project):
-                    writer.writerow([project.email, user.email, "Member", "MEMBER", "USER"])
+                mailing_list.projects.add(project)
 
-                zip_file.writestr(project.email + ".csv", content.getvalue())
-
-        response = HttpResponse(zip_content.getvalue(), content_type="application/x-zip-compressed")
-        response["Content-Disposition"] = "attachment; filename=" + "project-addresses-export.zip"
-        return response
+                messages.success(
+                    request, "Successfully created mailing list " + mailing_list.address + " for " + project.name
+                )
+            except ValidationError:
+                messages.error(
+                    request,
+                    "Could not create mailing list for "
+                    + project.name
+                    + ", this project already has the mailing list: "
+                    + address,
+                )
 
     def create_or_update_team(self, request, project_team):
         """
