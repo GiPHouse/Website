@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timedelta
 
 from django.conf import settings
 
@@ -40,9 +40,7 @@ class GitHubAPITalker:
 
         :except: GithubException when requesting a new access token fails
         """
-        if self._access_token is None or self._access_token.expires_at < datetime.datetime.now() + datetime.timedelta(
-            seconds=60
-        ):
+        if self._access_token is None or self._access_token.expires_at < datetime.utcnow() + timedelta(seconds=60):
             self._access_token = self._gi.get_access_token(self.installation_id)
             self._github = Github(self._access_token.token)
             self._organization = self._github.get_organization(self.organization_name)

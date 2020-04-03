@@ -58,7 +58,7 @@ class GitHubAPITalkerTest(TestCase):
 
     def test_renew_access_token_if_required__expired(self):
         """Test if when requesting an expired token, a new token is requested."""
-        self.talker._access_token.expires_at = datetime.now() - timedelta(hours=1)
+        self.talker._access_token.expires_at = datetime.utcnow() - timedelta(hours=1)
         with mock.patch("github.MainClass.Github.__init__", return_value=None):
             with mock.patch("github.MainClass.Github.get_organization"):
                 self.talker.renew_access_token_if_required()
@@ -67,7 +67,7 @@ class GitHubAPITalkerTest(TestCase):
 
     def test_renew_access_token_if_required__almost_expired(self):
         """Test if when requesting an almost expiring token, a new token is requested."""
-        self.talker._access_token.expires_at = datetime.now() + timedelta(seconds=30)
+        self.talker._access_token.expires_at = datetime.utcnow() + timedelta(seconds=30)
         with mock.patch("github.MainClass.Github.__init__", return_value=None):
             with mock.patch("github.MainClass.Github.get_organization"):
                 self.talker.renew_access_token_if_required()
