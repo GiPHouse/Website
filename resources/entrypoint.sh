@@ -33,7 +33,7 @@ uwsgi --chdir=/giphouse/src/website \
     --socket=:8000 \
     --processes=5 \
     --uid=www-data --gid=www-data \
-    --harakiri=600 \
+    --harakiri=20 \
     --post-buffering=16384 \
     --max-requests=5000 \
     --thunder-lock \
