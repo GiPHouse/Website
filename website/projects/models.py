@@ -44,11 +44,7 @@ class Project(models.Model):
     )
 
     github_team_id = models.IntegerField(
-        null=True,
-        blank=True,
-        unique=True,
-        help_text="This is the id of the team in the GitHub organization. Do not touch unless "
-        "you are absolutely certain about what you are doing. ",
+        null=True, blank=True, unique=True, help_text="This is the id of the team in the GitHub organization. ",
     )
 
     def __str__(self):
@@ -102,11 +98,7 @@ class Repository(models.Model):
     project = models.ForeignKey(Project, blank=True, null=True, on_delete=models.SET_NULL)
 
     github_repo_id = models.IntegerField(
-        null=True,
-        blank=True,
-        unique=True,
-        help_text="This is the id of the GitHub repository. Do not touch unless "
-        "you are absolutely certain about what you are doing. ",
+        null=True, blank=True, unique=True, help_text="This is the id of the GitHub repository.",
     )
 
     def __str__(self):

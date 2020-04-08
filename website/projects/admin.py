@@ -39,6 +39,8 @@ class RepositoryInline(admin.StackedInline):
     model = Repository
     extra = 1
 
+    readonly_fields = ("github_repo_id",)
+
     def __init__(self, *args, **kwargs):
         """Initialize the form."""
         super().__init__(*args, **kwargs)
@@ -54,6 +56,7 @@ class ProjectAdmin(admin.ModelAdmin):
     inlines = [RepositoryInline]
 
     search_fields = ("name",)
+    readonly_fields = ("github_team_id",)
 
     def create_mailing_lists(self, request, queryset):
         """Create mailing lists for the selected projects."""
