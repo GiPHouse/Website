@@ -21,7 +21,8 @@ This is the code for the website of [GiPHouse](http://giphouse.nl/) powered by [
   - [Development and Contributing](#development-and-contributing)
     - [Getting Started](#getting-started)
       - [Logging into the Backend](#logging-into-the-backend)
-      - [Registering an GitHub App for repository synchronisation](#registering-an-github-app-for-repository-synchronisation)
+      - [Registering a GitHub App for repository synchronisation](#registering-a-github-app-for-repository-synchronisation)
+      - [Registering a GSuite service account for mailing list synchronisation](#registering-a-gsuite-service-account-for-mailing-list-synchronisation)
     - [Dependency Management](#dependency-management)
     - [Fixtures](#fixtures)
     - [Tests](#tests)
@@ -132,7 +133,9 @@ Synchronization can only be initialized via actions on specific sets of objects 
 Synchronization currently does not regard the role of directors of GipHouse. This needs to be configured manually. Note that it is however not possible to add directors manually to a team on GitHub, since they will be removed after each sync.
 
 ### Mailing Lists
-Admin users can create mailing lists using the Django admin interface. A mailing list can be connected to projects, users and 'extra' email addresses that are not tied to a user. Relating a mailing list to a project implicitly makes the members of that project a member of the mailing list. Currently, these mailing lists are not functional and not synchronized with Gsuite.
+Admin users can create mailing lists using the Django admin interface. A mailing list can be connected to projects, users and 'extra' email addresses that are not tied to a user. Relating a mailing list to a project implicitly makes the members of that project a member of the mailing list. To sync a mailing list with GSuite, one can run the management command: `./manage.py sync_gsuite_list` or use the button in the model admin. This will sync all mailing lists and the automatic lists into GSuite at the specified domain.
+
+This sync starts by creating groups in GSuite for all mailing lists currently not in there, after they are created a request is done per member of that group to add them to the group. For the already existing groups a list is made of existing members in the group and the needed inserts or deletes are done to update the group. Deletion of groups is done by removing all members and setting the list to archived, thus preserving the messages but removing all other uses of the group.
 
 
 ### Styling
@@ -179,6 +182,17 @@ After this, you can find a `GITHUB_APP_ID`, and download the RSA `GITHUB_APP_PRI
 - After the app is created, it needs to be [installed in your own organization](https://developer.github.com/apps/installing-github-apps/) (although technically speaking, it is also possible to publish the app in the previous step and install the app in a different organization!).
 On installation, you can find the `GITHUB_APP_INSTALLATION_ID` which we also need to set in this project. This installation id is hidden in the overview of installed GitHub Apps in your organization.
 Additionally, you need to set the `GITHUB_ORGANIZATION_NAME` to the name of the organization the app is installed in.
+
+#### Registering a GSuite service account for mailing list synchronisation
+To enable the synchronisation feature of mailing lists to GSuite, a project and service account need to be setup.
+
+- Create a project in the [google cloud console](https://console.cloud.google.com).
+- Create a [service account and credentials](https://developers.google.com/admin-sdk/directory/v1/guides/delegation#create_the_service_account_and_credentials)
+- Enable [domain wide delegation of authority](https://developers.google.com/admin-sdk/directory/v1/guides/delegation#delegate_domain-wide_authority_to_your_service_account), with the scopes:
+  - `https://www.googleapis.com/auth/admin.directory.group` (for accessing groups and adding or deleting members)
+  - `https://www.googleapis.com/auth/apps.groups.settings` (for changing settings of groups and adding aliases)
+
+The credentials and admin user can then be setup in Github secrets. The username of the user used to manage to the the GSuite domain has to be stored in the Github secret `DJANGO_GSUITE_ADMIN_USER`. The credentials json file has to be `base64` encoded and stored in the Github secret `DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64` (you can use the linux command `base64` for encoding the json file).
 
 ### Dependency Management
 The Python dependencies are managed using a tool called [Poetry](https://python-poetry.org/), which automatically creates virtual environments that ease development and makes it easy to manage the dependencies. See the [Poetry documentation](https://python-poetry.org/docs/) for more information.
@@ -267,6 +281,8 @@ This repository is public and the GitHub Actions CI runner logs are also public,
 - `GITHUB_CLIENT_ID`: The GiPHouse organization GitHub (OAuth) App client ID.
 - `GITHUB_CLIENT_SECRET`: The GiPHouse organization GitHub (OAuth) App client secret key.
 - `GITHUB_SUPERUSER_ID`: The Github ID of the initial superuser.
+- `DJANGO_GSUITE_ADMIN_USER`: The user which the GSuite api will impersonate when logging in with the credentials.
+- `DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64`: The GSuite service account key file in json format, then `base64` encoded.
 - `POSTGRES_NAME`: The name of the Postgres database.
 - `POSTGRES_USER`: The username that is used to interact with the Postgres database.
 - `POSTGRES_PASSWORD`: The password that is used to interact with the Postgres database.

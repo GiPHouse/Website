@@ -65,7 +65,7 @@ class ProjectAdmin(admin.ModelAdmin):
             address = project.generate_email()
             try:
                 mailing_list = MailingList.objects.create(
-                    address=project.generate_email(), name=project.name, description=project.description,
+                    address=project.generate_email(), description=project.description,
                 )
 
                 mailing_list.projects.add(project)

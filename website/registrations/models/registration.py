@@ -43,6 +43,11 @@ class Registration(models.Model):
     education_background = models.TextField(max_length=200)
     comments = models.TextField(null=True, blank=True)
 
+    @property
+    def is_director(self):
+        """Check if a registration is a director."""
+        return self.project is None and self.course == Course.objects.sdm()
+
     def __str__(self):
         """Give user information about this object."""
         return f"{self.user.get_full_name()} ({self.semester})"

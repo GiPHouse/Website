@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.db import models
 from django.utils.text import slugify
 
@@ -53,12 +52,7 @@ class Project(models.Model):
 
     def generate_email(self):
         """Generate the standard email for this project."""
-        return (
-            f"{self.semester.year}"
-            f"{self.semester.get_season_display().lower()}-"
-            f"{slugify(self.name)}"
-            f"@{settings.GSUITE_DOMAIN}"
-        )
+        return f"{self.semester.year}{self.semester.get_season_display().lower()}-{slugify(self.name)}"
 
     def generate_team_description(self):
         """Generate the standardized team description for this project."""

@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 from unittest import mock
 from unittest.mock import MagicMock
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.contrib.admin.sites import AdminSite
@@ -42,9 +41,7 @@ class GetProjectsTest(TestCase):
         cls.repo = Repository.objects.create(name="testrepo", project=cls.project)
         cls.repo_archived = Repository.objects.create(name="testrepo-archived", project=cls.project_archived)
 
-        cls.mailing_list = MailingList.objects.create(
-            address="test@" f"{settings.GSUITE_DOMAIN}", name=cls.project.name, description=cls.project.description
-        )
+        cls.mailing_list = MailingList.objects.create(address="test", description=cls.project.description)
 
         Registration.objects.create(
             user=cls.manager,
@@ -131,7 +128,7 @@ class GetProjectsTest(TestCase):
         self.assertNotEqual(MailingList.objects.filter(projects=p1), [])
         self.assertNotEqual(MailingList.objects.filter(projects=p2), [])
 
-    def test_create_mailinglists(self):
+    def test_create_mailing_lists(self):
         response = self.client.post(
             reverse("admin:projects_project_changelist"),
             {ACTION_CHECKBOX_NAME: [self.project.pk], "action": "create_mailing_lists", "index": 0},
@@ -139,7 +136,7 @@ class GetProjectsTest(TestCase):
 
         self.assertEqual(response.status_code, 302)
 
-    def test_projectteam_added_in_mailinglist(self):
+    def test_projectteam_added_in_mailing_list(self):
         pa = ProjectAdmin(ProjectAdminForm, admin_site=None)
 
         sem1 = Semester.objects.create(year=2024, season=1)
@@ -180,8 +177,6 @@ class GetProjectsTest(TestCase):
             education_background="nothing",
         )
 
-        messages.success = MagicMock()
-
         pa.create_mailing_lists(self.request, [test_project, test_project2])
 
         messages.success.assert_called()
@@ -189,15 +184,25 @@ class GetProjectsTest(TestCase):
         lists = MailingList.objects.all()
         user_list = []
 
-        for mailinglist in lists:
+        for mailing_list in lists:
             reg = Registration.objects.all()
             for r in reg:
-                if mailinglist.address == r.project.generate_email():
+                if mailing_list.address == r.project.generate_email():
                     user_list.append(r.user.github_id)
 
         self.assertIn(test_user1.github_id, user_list)
         self.assertIn(test_user2.github_id, user_list)
         self.assertIn(test_user3.github_id, user_list)
+
+    def test_non_duplicate_project_in_mailing_list(self):
+        pa = ProjectAdmin(ProjectAdminForm, admin_site=None)
+        sem1 = Semester.objects.create(year=2024, season=1)
+        test_project = Project.objects.create(name="test_project", semester=sem1, description="1")
+
+        pa.create_mailing_lists(self.request, [test_project])
+        pa.create_mailing_lists(self.request, [test_project])
+
+        messages.error.assert_called()
 
     def test_create_or_update_team__create(self):
         self.project.github_team_id = None

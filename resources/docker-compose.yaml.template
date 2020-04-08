@@ -70,6 +70,8 @@ services:
             GITHUB_CLIENT_SECRET: '${GITHUB_CLIENT_SECRET}'
             GITHUB_SUPERUSER_ID: '${GITHUB_SUPERUSER_ID}'
             GITHUB_REPO_PRIVATE: 'False'
+            DJANGO_GSUITE_ADMIN_USER: '${DJANGO_GSUITE_ADMIN_USER}'
+            DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64: '${DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64}'
             VIRTUAL_HOST: 'staging.giphouse.nl'
             VIRTUAL_PROTO: 'uwsgi'
             LETSENCRYPT_HOST: 'staging.giphouse.nl'

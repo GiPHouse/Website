@@ -116,6 +116,7 @@ AUTH_USER_MODEL = 'registrations.Employee'
 SASS_PROCESSOR_INCLUDE_DIRS = [
     os.path.join(BASE_DIR, 'giphousewebsite/static/scss'),
     os.path.join(BASE_DIR, 'projects/static/scss'),
+    os.path.join(BASE_DIR, 'mailing_lists/static/scss')
 ]
 
 SASS_PRECISION = 8
@@ -144,3 +145,7 @@ BOOTSTRAP4 = {
 }
 
 GSUITE_DOMAIN = "staging.giphouse.nl"
+GSUITE_SCOPES = [
+    "https://www.googleapis.com/auth/admin.directory.group",
+    "https://www.googleapis.com/auth/apps.groups.settings",
+]
