@@ -85,6 +85,8 @@ If multiple semesters have open registrations at one moment, the chronologically
 
 It is possible for users to register multiple times. For example, if a user wants to follow a course in the fall semester and a different course in the spring semester. However, users cannot register multiple times within the same semester.
 
+There is no built-in support for directors (which will look like registrations that are not appointed to a project).
+
 ### Questionnaires
 During the courses, the students need to fill out surveys about the course, their project progress and their team. Admin users are able to create questionnaires and view submission by students in the backend. 
 
@@ -126,6 +128,8 @@ Repositories and project(team)s are synchronized with GitHub in the following ma
     - If a project is archived, the team will be removed and consequently, all employees will be removed from the organization (again, organization owners are ignored).
 
 Synchronization can only be initialized via actions on specific sets of objects in their changelists, or via the big 'synchronize to GitHub' button (to perform synchronization on all objects) in the admin. Synchronization is implemented in a [idempotent](https://en.wikipedia.org/wiki/Idempotence) manner. 
+
+Synchronization currently does not regard the role of directors of GipHouse. This needs to be configured manually. Note that it is however not possible to add directors manually to a team on GitHub, since they will be removed after each sync.
 
 ### Mailing Lists
 Admin users can create mailing lists using the Django admin interface. A mailing list can be connected to projects, users and 'extra' email addresses that are not tied to a user. Relating a mailing list to a project implicitly makes the members of that project a member of the mailing list. Currently, these mailing lists are not functional and not synchronized with Gsuite.
