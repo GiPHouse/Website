@@ -1,5 +1,6 @@
 from admin_auto_filters.filters import AutocompleteFilter
 
+from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -65,7 +66,9 @@ class ProjectAdmin(admin.ModelAdmin):
             address = project.generate_email()
             try:
                 mailing_list = MailingList.objects.create(
-                    address=project.generate_email(), description=project.description,
+                    address=project.generate_email(),
+                    description=f"Mailinglist '{address}@{settings.GSUITE_DOMAIN}' for  GiPHouse project"
+                    f" '{project.name}' in the '{project.semester}' semester",
                 )
 
                 mailing_list.projects.add(project)
