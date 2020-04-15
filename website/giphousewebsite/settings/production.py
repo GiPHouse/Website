@@ -30,10 +30,24 @@ DATABASES = {
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s %(name)s %(levelname)s %(message)s'
+        },
+        'brief': {
+            'format': '%(name)s %(levelname)s %(message)s'
+        },
+    },
     'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'brief',
+        },
         'file': {
             'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
             'class': 'logging.FileHandler',
+            'formatter': 'verbose',
             'filename': '/giphouse/log/django.log',
         },
     },
@@ -41,7 +55,12 @@ LOGGING = {
         'django': {
             'handlers': ['file'],
             'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
-            'propagate': True,
+            'propagate': False,
+        },
+        'gsuitesync': {
+            'handlers': ['console', 'file'],
+            'level': os.environ.get('DJANGO_LOG_LEVEL', 'DEBUG'),
+            'propagate': False,
         },
     },
 }

@@ -18,6 +18,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 import asyncio
+import logging
 
 from django.conf import settings
 from django.utils.datastructures import ImmutableList
@@ -30,6 +31,8 @@ from googleapiclient.errors import HttpError
 
 from mailing_lists.models import MailingList
 from mailing_lists.services import get_automatic_lists
+
+logger = logging.getLogger("gsuitesync")
 
 
 class MemoryCache(Cache):
@@ -189,8 +192,8 @@ class GSuiteSyncService:
             self.groups_settings_api.groups().update(
                 groupUniqueId=f"{group.name}@{settings.GSUITE_DOMAIN}", body=self._group_settings(),
             ).execute()
-        except HttpError as e:
-            print(f"Could not successfully finish creating the list {group.name}: ", e.content)
+        except HttpError:
+            logger.exception(f"Could not successfully finish creating the list {group.name}:")
             return
 
         self._update_group_members(group)
@@ -215,9 +218,9 @@ class GSuiteSyncService:
             self.groups_settings_api.groups().update(
                 groupUniqueId=f"{group.name}@{settings.GSUITE_DOMAIN}", body=self._group_settings(),
             ).execute()
-            print(f"List {group.name} updated")
-        except HttpError as e:
-            print(f"Could not update list {group.name}", e.content)
+            logger.info(f"List {group.name} updated")
+        except HttpError:
+            logger.exception(f"Could not update list {group.name}")
             return
 
         self._update_group_members(group)
@@ -236,8 +239,8 @@ class GSuiteSyncService:
                 .list(groupKey=f"{group.name}@{settings.GSUITE_DOMAIN}",)
                 .execute()
             )
-        except HttpError as e:
-            print(f"Could not obtain existing aliases " f"for list {group.name}", e.content)
+        except HttpError:
+            logger.exception(f"Could not obtain existing aliases for list {group.name}:")
             return
 
         existing_aliases = [a["alias"] for a in aliases_response.get("aliases", [])]
@@ -251,18 +254,17 @@ class GSuiteSyncService:
                 self.directory_api.groups().aliases().delete(
                     groupKey=f"{group.name}@{settings.GSUITE_DOMAIN}", alias=remove_alias,
                 ).execute()
-            except HttpError as e:
-                print(f"Could not remove alias " f"{remove_alias} for list {group.name}", e.content)
+            except HttpError:
+                logger.exception(f"Could not remove alias {remove_alias} for list {group.name}")
 
         for insert_alias in insert_list:
             try:
                 self.directory_api.groups().aliases().insert(
                     groupKey=f"{group.name}@{settings.GSUITE_DOMAIN}", body={"alias": insert_alias},
                 ).execute()
-            except HttpError as e:
-                print(f"Could not insert alias " f"{insert_alias} for list {group.name}", e.content)
-
-        print(f"List {group.name} aliases updated")
+            except HttpError:
+                logger.exception(f"Could not insert alias {insert_alias} for list {group.name}")
+        logger.info(f"List {group.name} aliases updated")
 
     async def delete_group(self, name):
         """
@@ -277,9 +279,9 @@ class GSuiteSyncService:
             ).execute()
             self._update_group_members(GSuiteSyncService.GroupData(name, addresses=[]))
             self._update_group_aliases(GSuiteSyncService.GroupData(name, aliases=[]))
-            print(f"List {name} deleted")
-        except HttpError as e:
-            print(f"Could not delete list {name}", e.content)
+            logger.info(f"List {name} deleted")
+        except HttpError:
+            logger.exception(f"Could not delete list {name}")
 
     def _update_group_members(self, group):
         """
@@ -304,8 +306,8 @@ class GSuiteSyncService:
 
             existing_members = [m["email"] for m in members_list if m["role"] == "MEMBER"]
             existing_managers = [m["email"] for m in members_list if m["role"] == "MANAGER"]
-        except HttpError as e:
-            print("Could not obtain list member data", e.content)
+        except HttpError:
+            logger.exception(f"Could not obtain list member data for {group.name}")
             return  # the list does not exist or something else is wrong
         new_members = group.addresses
 
@@ -317,18 +319,18 @@ class GSuiteSyncService:
                 self.directory_api.members().delete(
                     groupKey=f"{group.name}@{settings.GSUITE_DOMAIN}", memberKey=remove_member,
                 ).execute()
-            except HttpError as e:
-                print(f"Could not remove list member " f"{remove_member} from {group.name}", e.content)
+            except HttpError:
+                logger.exception(f"Could not remove list member {remove_member} from {group.name}")
 
         for insert_member in insert_list:
             try:
                 self.directory_api.members().insert(
                     groupKey=f"{group.name}@{settings.GSUITE_DOMAIN}", body={"email": insert_member, "role": "MEMBER"},
                 ).execute()
-            except HttpError as e:
-                print(f"Could not insert list member " f"{insert_member} in {group.name}", e.content)
+            except HttpError:
+                logger.exception(f"Could not insert list member {insert_member} in {group.name}")
 
-        print(f"List {group.name} members updated")
+        logger.info(f"List {group.name} members updated")
 
     @staticmethod
     def mailing_list_to_group(mailing_list):
@@ -370,6 +372,7 @@ class GSuiteSyncService:
 
         :param lists: optional parameter to determine which lists to sync
         """
+        logger.info("Starting synchronization with Gsuite.")
         remove_lists = lists is None
         if lists is None:
             lists = self._get_all_lists()
@@ -386,8 +389,8 @@ class GSuiteSyncService:
                 groups_list += groups_response.get("groups", [])
             existing_groups = [g["name"] for g in groups_list if int(g["directMembersCount"]) > 0]
             archived_groups = [g["name"] for g in groups_list if g["directMembersCount"] == "0"]
-        except HttpError as e:
-            print("Could not get the existing groups", e.content)
+        except HttpError:
+            logger.exception("Could not get the existing groups")
             return  # there are no groups or something went wrong
 
         new_groups = [g.name for g in lists if len(g.addresses) > 0]
@@ -413,3 +416,4 @@ class GSuiteSyncService:
             asyncio.set_event_loop(loop)
 
         loop.run_until_complete(asyncio.gather(*group_tasks))
+        logger.info("Synchronization ended.")
