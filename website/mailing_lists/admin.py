@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.shortcuts import redirect
 from django.urls import path
 
+from mailing_lists.forms import AddressSuffixedForm
 from mailing_lists.gsuite import GSuiteSyncService
 from mailing_lists.models import (
     ExtraEmailAddress,
@@ -22,12 +23,14 @@ class AliasInline(admin.TabularInline):
 
     model = MailingListAlias
     extra = 0
+    form = AddressSuffixedForm
 
 
 @admin.register(MailingList)
 class MailingListAdmin(admin.ModelAdmin):
     """Admin class for Mailing List."""
 
+    form = AddressSuffixedForm
     list_display = ("address", "description")
     list_filter = ("address",)
     inlines = [ExtraEmailInline, AliasInline]
