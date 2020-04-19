@@ -1,3 +1,4 @@
+from django.core import validators
 from django.db import models
 from django.utils.text import slugify
 
@@ -88,7 +89,7 @@ class Repository(models.Model):
 
         verbose_name_plural = "Repositories"
 
-    name = models.CharField("name", unique=True, max_length=50)
+    name = models.CharField("name", unique=True, max_length=50, validators=[validators.validate_slug])
     project = models.ForeignKey(Project, blank=True, null=True, on_delete=models.SET_NULL)
 
     github_repo_id = models.IntegerField(
