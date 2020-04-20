@@ -158,7 +158,7 @@ Follow the following steps to setup your own personal development environment.
 
 #### Logging into the Backend
 Because the authentication is based on Github OAuth authentication, some setup is required for users to be able to login in their own development environment.
-You will need to set up [your own GitHub App](https://developer.github.com/apps/building-github-apps/creating-a-github-app/) that we will use for OAuth (and for repository synchronisation as well, as explained in the next step) and set your client ID and client secret key as environment variables (`GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` respectively). [direnv](https://direnv.net/) is a tool that allows Linux users to do this automatically.
+You will need to set up [your own GitHub App](https://developer.github.com/apps/building-github-apps/creating-a-github-app/) that we will use for OAuth (and for repository synchronisation as well, as explained in the next step) and set your client ID and client secret key as environment variables (`DJANGO_GITHUB_CLIENT_ID` and `DJANGO_GITHUB_CLIENT_SECRET` respectively). [direnv](https://direnv.net/) is a tool that allows Linux users to do this automatically.
 
 You will then be able to create a new superuser with the `createsuperuser` management command.
 ```Bash
@@ -177,11 +177,11 @@ We assume you already have a [GitHub organization](https://help.github.com/en/gi
 
 - As an organization, you can develop a GitHub app and register this app at GitHub. People can then install that app in their own account or organization, giving your app access to that account or organization.
 For this project, you will need to first [create your own GitHub app](https://developer.github.com/apps/building-github-apps/creating-a-github-app/) and then install it in your organization. 
-After this, you can find a `GITHUB_APP_ID`, and download the RSA `GITHUB_APP_PRIVATE_KEY`. To use this key, encode it `base64` to ``GITHUB_APP_PRIVATE_KEY_BASE64`. These will be used as environment variables in this project and need to be set as GitHub Actions secrets in the repository (which will be explained later). 
+After this, you can find a `DJANGO_GITHUB_SYNC_APP_ID`, and download the RSA `DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY`. To use this key, encode it `base64` to `DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64`. These will be used as environment variables in this project and need to be set as GitHub Actions secrets in the repository (which will be explained later). 
 
 - After the app is created, it needs to be [installed in your own organization](https://developer.github.com/apps/installing-github-apps/) (although technically speaking, it is also possible to publish the app in the previous step and install the app in a different organization!).
-On installation, you can find the `GITHUB_APP_INSTALLATION_ID` which we also need to set in this project. This installation id is hidden in the overview of installed GitHub Apps in your organization.
-Additionally, you need to set the `GITHUB_ORGANIZATION_NAME` to the name of the organization the app is installed in.
+On installation, you can find the `DJANGO_GITHUB_SYNC_APP_INSTALLATION_ID` which we also need to set in this project. This installation id is hidden in the overview of installed GitHub Apps in your organization.
+Additionally, you need to set the `DJANGO_GITHUB_SYNC_ORGANIZATION_NAME` to the name of the organization the app is installed in.
 
 #### Registering a GSuite service account for mailing list synchronisation
 To enable the synchronisation feature of mailing lists to GSuite, a project and service account need to be setup.
@@ -274,13 +274,12 @@ This repository is public and the GitHub Actions CI runner logs are also public,
 - `DJANGO_SECRET_KEY`: The [`SECRET_KEY`](https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-SECRET_KEY) for Django.
 - `DOCKER_USERNAME`: The username used to login to Docker Hub.
 - `DOCKER_PASSWORD`: The password used to login to Docker Hub.
-- `GITHUB_APP_ID`: The App ID of the registered GitHub App installed in the GiPHouse organization.
-- `GITHUB_APP_PRIVATE_KEY_BASE64`: The private RSA key ([PEM formatted](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail)) of the registered GitHub App installed in the GiPHouse organization, `base64` encoded.
-- `GITHUB_APP_INSTALLATION_ID`: The Installation ID of the registered GitHub App installed in the GiPHouse organization.
-- `GITHUB_ORGANIZATION_NAME`: The name of the organization the registered GitHub App is installed in.
-- `GITHUB_CLIENT_ID`: The GiPHouse organization GitHub (OAuth) App client ID.
-- `GITHUB_CLIENT_SECRET`: The GiPHouse organization GitHub (OAuth) App client secret key.
-- `GITHUB_SUPERUSER_ID`: The Github ID of the initial superuser.
+- `DJANGO_GITHUB_SYNC_APP_ID`: The App ID of the registered GitHub App installed in the GiPHouse organization.
+- `DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64`: The private RSA key ([PEM formatted](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail)) of the registered GitHub App installed in the GiPHouse organization, `base64` encoded.
+- `DJANGO_GITHUB_SYNC_APP_INSTALLATION_ID`: The Installation ID of the registered GitHub App installed in the GiPHouse organization.
+- `DJANGO_GITHUB_SYNC_ORGANIZATION_NAME`: The name of the organization the registered GitHub App is installed in.
+- `DJANGO_GITHUB_CLIENT_ID`: The GiPHouse organization GitHub (OAuth) App client ID.
+- `DJANGO_GITHUB_CLIENT_SECRET`: The GiPHouse organization GitHub (OAuth) App client secret key.
 - `DJANGO_GSUITE_ADMIN_USER`: The user which the GSuite api will impersonate when logging in with the credentials.
 - `DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64`: The GSuite service account key file in json format, then `base64` encoded.
 - `POSTGRES_NAME`: The name of the Postgres database.
