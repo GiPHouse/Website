@@ -140,7 +140,7 @@ class GitHubAPITalkerTest(TestCase):
         returned_repo = self.talker.create_repo(self.repo1)
 
         self.talker._organization.create_repo.assert_called_once_with(
-            name=self.repo1.name, private=settings.GITHUB_REPO_PRIVATE
+            name=self.repo1.name, private=settings.DJANGO_GITHUB_SYNC_REPO_PRIVATE
         )
         self.assertEquals(returned_repo, "ThisShouldBeAPyGithubRepo")
         mock_team.add_to_repos.assert_called_once_with(returned_repo)

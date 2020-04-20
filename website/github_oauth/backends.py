@@ -116,8 +116,8 @@ class GithubOAuthBackend(ModelBackend):
             response = requests.post(
                 URL_GITHUB_ACCESS_TOKEN,
                 data={
-                    "client_id": settings.GITHUB_CLIENT_ID,
-                    "client_secret": settings.GITHUB_CLIENT_SECRET,
+                    "client_id": settings.DJANGO_GITHUB_CLIENT_ID,
+                    "client_secret": settings.DJANGO_GITHUB_CLIENT_SECRET,
                     "code": code,
                 },
                 headers={"Accept": "application/json"},

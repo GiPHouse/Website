@@ -60,13 +60,12 @@ jobs:
           mv /tmp/out.tmp resources/docker-compose.yaml
         env:
           DJANGO_SECRET_KEY: "${{ secrets.DJANGO_SECRET_KEY }}"
-          GITHUB_CLIENT_ID: "${{ secrets.GITHUB_CLIENT_ID }}"
-          GITHUB_CLIENT_SECRET: "${{ secrets.GITHUB_CLIENT_SECRET }}"
-          GITHUB_SUPERUSER_ID: "${{ secrets.GITHUB_SUPERUSER_ID }}"
+          DJANGO_GITHUB_CLIENT_ID: "${{ secrets.DJANGO_GITHUB_CLIENT_ID }}"
+          DJANGO_GITHUB_CLIENT_SECRET: "${{ secrets.DJANGO_GITHUB_CLIENT_SECRET }}"
+          DJANGO_GITHUB_SYNC_SUPERUSER_ID: "${{ secrets.DJANGO_GITHUB_SYNC_SUPERUSER_ID }}"
+          DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64: "${{ secrets.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64 }}"
           DJANGO_GSUITE_ADMIN_USER: "${{ secrets.DJANGO_GSUITE_ADMIN_USER }}"
           DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64: "${{ secrets.DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64 }}"
-          GITHUB_APP_PRIVATE_KEY_BASE64: "${{ secrets.GITHUB_APP_PRIVATE_KEY_BASE64 }}"
-
       - name: "Create necessary directories"
         run: |
           ssh -o StrictHostKeyChecking=no "${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}" /bin/bash << EOF

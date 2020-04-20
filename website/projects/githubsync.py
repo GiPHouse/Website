@@ -12,9 +12,9 @@ class GitHubAPITalker:
     _github = Github()  # used to talk to GitHub as our own app
     _organization = None  # the organization to sync with
 
-    _gi = GithubIntegration(settings.GITHUB_APP_ID, settings.GITHUB_APP_PRIVATE_KEY)
-    installation_id = settings.GITHUB_APP_INSTALLATION_ID
-    organization_name = settings.GITHUB_ORGANIZATION_NAME
+    _gi = GithubIntegration(settings.DJANGO_GITHUB_SYNC_APP_ID, settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY)
+    installation_id = settings.DJANGO_GITHUB_SYNC_APP_INSTALLATION_ID
+    organization_name = settings.DJANGO_GITHUB_SYNC_ORGANIZATION_NAME
 
     @property
     def github_service(self):
@@ -76,7 +76,7 @@ class GitHubAPITalker:
         """
         github_repo = self.github_organization.create_repo(
             name=repo.name,
-            private=settings.GITHUB_REPO_PRIVATE,
+            private=settings.DJANGO_GITHUB_SYNC_REPO_PRIVATE,
             # TODO: ask client if more settings are desired, or we maybe want to use a repo template
             # For some reason, adding the team directly by setting team_id does not work
         )
