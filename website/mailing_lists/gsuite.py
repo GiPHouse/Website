@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 import asyncio
 import logging
+from random import random
 
 from django.conf import settings
 from django.utils.datastructures import ImmutableList
@@ -188,10 +189,19 @@ class GSuiteSyncService:
             ).execute()
             # Wait for mailing list creation to complete. Docs say we need to
             # wait a minute.
-            await asyncio.sleep(60)
-            self.groups_settings_api.groups().update(
-                groupUniqueId=f"{group.name}@{settings.GSUITE_DOMAIN}", body=self._group_settings(),
-            ).execute()
+            n = 0
+            while True:
+                await asyncio.sleep(min(2 ** n + random(), 64))
+                try:
+                    self.groups_settings_api.groups().update(
+                        groupUniqueId=f"{group.name}@{settings.GSUITE_DOMAIN}", body=self._group_settings(),
+                    ).execute()
+                    break
+                except HttpError as e:
+                    if n > 6:
+                        raise e
+                    else:
+                        n += 1
         except HttpError:
             logger.exception(f"Could not successfully finish creating the list {group.name}:")
             return

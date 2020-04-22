@@ -237,7 +237,7 @@ class GSuiteSyncTestCase(TestCase):
 
             self.directory_api.members().list.assert_called()
             self.directory_api.groups().aliases().list.assert_called()
-            asyncio_sleep.assert_awaited_with(60)
+            asyncio_sleep.assert_awaited()
 
         self.settings_api.reset_mock()
         self.directory_api.reset_mock()
@@ -255,6 +255,29 @@ class GSuiteSyncTestCase(TestCase):
 
             self.directory_api.members().list.assert_not_called()
             self.directory_api.groups().aliases().list.assert_not_called()
+
+        self.settings_api.reset_mock()
+        self.directory_api.reset_mock()
+        self.directory_api.groups().insert().execute.reset_mock(side_effect=True)
+
+        with self.subTest("> 64 second wait for insert"):
+            self.settings_api.groups().update().execute.side_effect = HttpError(Response({"status": 500}), bytes())
+
+            asyncio.run(
+                self.sync_service.create_group(
+                    GSuiteSyncService.GroupData(
+                        "new_group", "some description", ["alias2"], [f"test2@{settings.GSUITE_DOMAIN}"],
+                    )
+                )
+            )
+
+            self.settings_api.groups().update.assert_called()
+            self.directory_api.members().list.assert_not_called()
+            self.directory_api.groups().aliases().list.assert_not_called()
+
+        self.settings_api.reset_mock()
+        self.settings_api.groups().update().execute.reset_mock(side_effect=True)
+        self.directory_api.reset_mock()
 
     def test_update_group(self):
         with self.subTest("Successful"):
