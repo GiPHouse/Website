@@ -4,14 +4,14 @@ from unittest.mock import MagicMock
 
 from django.test import TestCase
 
-from github import GithubException
+from github import GithubException, MainClass
 
-from courses.models import Semester
+from courses.models import Course, Semester
 
 from projects import githubsync
 from projects.models import Project, Repository
 
-from registrations.models import Employee
+from registrations.models import Employee, Registration
 
 
 class GitHubAPITalkerTest(TestCase):
@@ -34,11 +34,17 @@ class GitHubAPITalkerTest(TestCase):
         self.talker._access_token = MagicMock()
         self.talker._access_token.expires_at = datetime.now() + timedelta(hours=1)
         self.talker._organization = MagicMock()
-        self.talker._organization.create_team = MagicMock()
         self.talker._github = MagicMock()
+
+        self.old_github_init = MainClass.Github.__init__
+        self.old_github_get_org = MainClass.Github.get_organization
+        MainClass.Github.__init__ = MagicMock(return_value=None)
+        MainClass.Github.get_organization = MagicMock()
 
     def tearDown(self):
         """Remove objects after a test is performed."""
+        MainClass.Github.__init__ = self.old_github_init
+        MainClass.Github.get_organization = self.old_github_get_org
         del self.talker
 
     def test_singleton(self):
@@ -58,385 +64,56 @@ class GitHubAPITalkerTest(TestCase):
     def test_renew_access_token_if_required__expired(self):
         """Test if when requesting an expired token, a new token is requested."""
         self.talker._access_token.expires_at = datetime.utcnow() - timedelta(hours=1)
-        with mock.patch("github.MainClass.Github.__init__", return_value=None):
-            with mock.patch("github.MainClass.Github.get_organization"):
-                self.talker.renew_access_token_if_required()
+        self.talker.renew_access_token_if_required()
         self.talker._gi.get_access_token.assert_called_once_with(self.talker.installation_id)
         self.assertIsNotNone(self.talker._organization)
 
     def test_renew_access_token_if_required__almost_expired(self):
         """Test if when requesting an almost expiring token, a new token is requested."""
         self.talker._access_token.expires_at = datetime.utcnow() + timedelta(seconds=30)
-        with mock.patch("github.MainClass.Github.__init__", return_value=None):
-            with mock.patch("github.MainClass.Github.get_organization"):
-                self.talker.renew_access_token_if_required()
+        self.talker.renew_access_token_if_required()
         self.talker._gi.get_access_token.assert_called_once_with(self.talker.installation_id)
         self.assertIsNotNone(self.talker._organization)
 
     def test_renew_access_token_if_required__no_token(self):
         """Test if when requesting a token when no token exists yet, a new token is requested."""
         self.talker._access_token = None
-        with mock.patch("github.MainClass.Github.__init__", return_value=None):
-            with mock.patch("github.MainClass.Github.get_organization"):
-                self.talker.renew_access_token_if_required()
+        self.talker.renew_access_token_if_required()
         self.talker._gi.get_access_token.assert_called_once_with(self.talker.installation_id)
         self.assertIsNotNone(self.talker._organization)
 
     def test_create_team(self):
-        with mock.patch("github.MainClass.Github.__init__", return_value=None):
-            with mock.patch("github.MainClass.Github.get_organization"):
-                self.talker.create_team(self.project1)
+        self.talker.create_team(self.project1)
         self.talker._organization.create_team.assert_called_once_with(
             "test1",
             description=f"Team for the GiPHouse project 'test1' for the 'Fall 2020' semester.",
             privacy="closed",
         )
 
-    def test_update_team__incorrect_description(self):
-        result = MagicMock()
-        result.name = "test"
-        result.description = "The wrong description"
-        result.edit = MagicMock()
-        self.talker._organization.get_team = MagicMock(return_value=result)
-        with mock.patch("github.MainClass.Github.__init__", return_value=None):
-            with mock.patch("github.MainClass.Github.get_organization"):
-                self.talker.update_team(self.project1)
-        result.edit.assert_called_once_with(
-            name="test1", description=f"Team for the GiPHouse project 'test1' for the 'Fall 2020' semester."
-        )
-
-    def test_update_team__incorrect_team_name(self):
-        result = MagicMock()
-        result.name = "The wrong name"
-        result.description = "Team for the GiPHouse project 'test1' for the 'Fall 2020' semester."
-        result.edit = MagicMock()
-        self.talker._organization.get_team = MagicMock(return_value=result)
-        with mock.patch("github.MainClass.Github.__init__", return_value=None):
-            with mock.patch("github.MainClass.Github.get_organization"):
-                self.talker.update_team(self.project1)
-        result.edit.assert_called_once_with(
-            name="test1", description=f"Team for the GiPHouse project 'test1' for the 'Fall 2020' semester."
-        )
-
-    def test_update_team__all_correct(self):
-        result = MagicMock()
-        result.name = "test1"
-        result.description = "Team for the GiPHouse project 'test1' for the 'Fall 2020' semester."
-        result.edit = MagicMock()
-        self.talker._organization.get_team = MagicMock(return_value=result)
-        with mock.patch("github.MainClass.Github.__init__", return_value=None):
-            with mock.patch("github.MainClass.Github.get_organization"):
-                self.talker.update_team(self.project1)
-        result.edit.assert_not_called()
-
     def test_create_repo(self):
-        self.talker._organization.create_repo = MagicMock(return_value="ThisShouldBeAPyGithubRepo")
+        self.talker.create_repo(self.repo1)
+        self.talker._organization.create_repo.assert_called_once_with(name="test-repo1", private=self.repo1.private)
 
-        mock_team = MagicMock()
-        mock_team.add_to_repos = MagicMock()
-        mock_team.set_repo_permission = MagicMock()
-        self.talker._organization.get_team = MagicMock(return_value=mock_team)
-        returned_repo = self.talker.create_repo(self.repo1)
+    def test_get_team(self):
+        self.talker.get_team(self.project1.github_team_id)
+        self.talker._organization.get_team.assert_called_once_with(self.project1.github_team_id)
 
-        self.talker._organization.create_repo.assert_called_once_with(name=self.repo1.name, private=self.repo1.private)
-        self.assertEquals(returned_repo, "ThisShouldBeAPyGithubRepo")
-        mock_team.add_to_repos.assert_called_once_with(returned_repo)
-        mock_team.set_repo_permission.assert_called_once_with(returned_repo, "admin")
-
-    def test_update_repo__incorrect_name(self):
-        github_repo = MagicMock()
-        github_repo.name = "test-repo2"
-        github_repo.private = True
-        self.talker._github.get_repo = MagicMock(return_value=github_repo)
-
-        github_team = MagicMock()
-        github_team.has_in_repos = MagicMock(return_value=True)
-        self.talker._organization.get_team = MagicMock(return_value=github_team)
-
-        self.talker.update_repo(self.repo1)
-
-        github_team.add_to_repos.assert_not_called()
-        github_repo.edit.assert_called_once_with(name=self.repo1.name)
-
-    def test_update_repo__incorrect_privacy(self):
-        github_repo = MagicMock()
-        github_repo.name = "test-repo1"
-        github_repo.private = False
-        self.talker._github.get_repo = MagicMock(return_value=github_repo)
-
-        github_team = MagicMock()
-        github_team.has_in_repos = MagicMock(return_value=True)
-        self.talker._organization.get_team = MagicMock(return_value=github_team)
-
-        self.talker.update_repo(self.repo1)
-
-        github_team.add_to_repos.assert_not_called()
-        github_repo.edit.assert_called_once_with(private=self.repo1.private)
-
-    def test_update_repo__incorrect_permissions(self):
-        github_repo = MagicMock()
-        github_repo.name = "test-repo1"
-        github_repo.private = True
-        self.talker._github.get_repo = MagicMock(return_value=github_repo)
-
-        github_team = MagicMock()
-        github_team.has_in_repos = MagicMock(return_value=False)
-        test_permissions = MagicMock()
-        test_permissions.admin = False
-        github_team.get_repo_permission = MagicMock(return_value=test_permissions)
-        self.talker._organization.get_team = MagicMock(return_value=github_team)
-
-        self.talker.update_repo(self.repo1)
-
-        github_team.add_to_repos.assert_called_once_with(github_repo)
-        github_team.set_repo_permission.assert_called_once_with(github_repo, "admin")
-        github_repo.edit.assert_not_called()
-
-    def test_update_repo__semi_correct_permissions(self):
-        github_repo = MagicMock()
-        github_repo.name = "test-repo1"
-        github_repo.private = True
-        self.talker._github.get_repo = MagicMock(return_value=github_repo)
-
-        github_team = MagicMock()
-        github_team.has_in_repos = MagicMock(return_value=True)
-        test_permissions = MagicMock()
-        test_permissions.admin = False
-        github_team.get_repo_permission = MagicMock(return_value=test_permissions)
-        self.talker._organization.get_team = MagicMock(return_value=github_team)
-
-        self.talker.update_repo(self.repo1)
-
-        github_team.add_to_repos.assert_not_called()
-        github_team.set_repo_permission.assert_called_once_with(github_repo, "admin")
-        github_repo.edit.assert_not_called()
-
-    def test_update_repo__correct_permissions(self):
-        github_repo = MagicMock()
-        github_repo.name = "test-repo1"
-        github_repo.private = True
-        self.talker._github.get_repo = MagicMock(return_value=github_repo)
-
-        github_team = MagicMock()
-        github_team.has_in_repos = MagicMock(return_value=True)
-        test_permissions = MagicMock()
-        test_permissions.admin = True
-        github_team.get_repo_permission = MagicMock(return_value=test_permissions)
-        self.talker._organization.get_team = MagicMock(return_value=github_team)
-
-        self.talker.update_repo(self.repo1)
-
-        github_team.add_to_repos.assert_not_called()
-        github_team.set_repo_permission.assert_not_called()
-        github_repo.edit.assert_not_called()
-
-    def test_update_repo__all_correct(self):
-        github_repo = MagicMock()
-        github_repo.name = "test-repo1"
-        github_repo.private = True
-        self.talker._github.get_repo = MagicMock(return_value=github_repo)
-
-        github_team = MagicMock()
-        github_team.has_in_repos = MagicMock(return_value=True)
-        self.talker._organization = MagicMock()
-        self.talker._organization.get_team = MagicMock(return_value=github_team)
-
-        self.talker.update_repo(self.repo1)
-
-        github_team.add_to_repos.assert_not_called()
-        github_repo.edit.assert_not_called()
-
-    def test_sync_team_member__not_in_team(self):
-        github_employee = MagicMock()
-        github_employee.login = self.employee1.github_username
-        self.project1.get_employees = MagicMock(return_value=[self.employee1])
-        self.talker._github.get_user = MagicMock(return_value=github_employee)
-        github_team = MagicMock()
-        github_team.has_in_members = MagicMock(return_value=False)
-        github_team.add_membership = MagicMock()
-        self.talker._organization.get_team = MagicMock(return_value=github_team)
-
-        return_value = self.talker.sync_team_member(self.employee1, self.project1)
-
+    def test_get_user(self):
+        self.talker.get_user(self.employee1.github_username)
         self.talker._github.get_user.assert_called_once_with(self.employee1.github_username)
-        github_team.add_membership.assert_called_once_with(github_employee, role="member")
-        self.assertTrue(return_value)
 
-    def test_sync_team_member__already_in_team(self):
-        github_employee = MagicMock()
-        github_employee.login = self.employee1.github_username
-        self.project1.get_employees = MagicMock(return_value=[self.employee1])
-        self.talker._github.get_user = MagicMock(return_value=github_employee)
-        github_team = MagicMock()
-        github_team.has_in_members = MagicMock(return_value=True)
-        github_team.add_membership = MagicMock()
-        self.talker._organization.get_team = MagicMock(return_value=github_team)
+    def test_get_repo(self):
+        self.talker.get_repo(self.repo1.github_repo_id)
+        self.talker._github.get_repo.assert_called_once_with(self.repo1.github_repo_id)
 
-        return_value = self.talker.sync_team_member(self.employee1, self.project1)
+    def test_remove_user(self):
+        self.talker.remove_user(self.employee1.github_username)
+        self.talker._organization.remove_from_members.assert_called_once_with(self.employee1.github_username)
 
-        self.talker._github.get_user.assert_called_once_with(self.employee1.github_username)
-        github_team.add_membership.assert_not_called()
-        self.assertFalse(return_value)
-
-    def test_remove_users_not_in_team__employee(self):
-        github_team = MagicMock()
-        github_user = MagicMock()
-        github_user.login = self.employee1.github_username
-        test_permissions = MagicMock
-        test_permissions.role = "member"
-        github_user.get_organization_membership = MagicMock(return_value=test_permissions)
-        github_team.get_members = MagicMock(return_value=[github_user])
-        github_team.remove_membership = MagicMock()
-        self.talker._organization.get_team = MagicMock(return_value=github_team)
-        employees_queryset = MagicMock()
-        employees_queryset.values_list = MagicMock(return_value=[(self.employee1.github_username,)])
-        self.project1.get_employees = MagicMock(return_value=employees_queryset)
-
-        users_removed, errors_removing = self.talker.remove_users_not_in_team(self.project1)
-
-        github_team.remove_membership.assert_not_called()
-        self.assertEquals(users_removed, 0)
-
-    def test_remove_users_not_in_team__no_employee(self):
-        github_team = MagicMock()
-        github_user = MagicMock()
-        github_user.login = "anunwanteduser"
-        test_permissions = MagicMock
-        test_permissions.role = "member"
-        github_user.get_organization_membership = MagicMock(return_value=test_permissions)
-        github_team.get_members = MagicMock(return_value=[github_user])
-        github_team.remove_membership = MagicMock()
-        self.talker._organization.get_team = MagicMock(return_value=github_team)
-        employees_queryset = MagicMock()
-        employees_queryset.values_list = MagicMock(return_value=[(self.employee1.github_username,)])
-        self.project1.get_employees = MagicMock(return_value=employees_queryset)
-
-        users_removed, errors_removing = self.talker.remove_users_not_in_team(self.project1)
-
-        self.talker._organization.remove_from_members.assert_called_once_with(github_user)
-        self.assertEquals(users_removed, 1)
-
-    def test_remove_users_not_in_team__owner(self):
-        github_team = MagicMock()
-        github_user = MagicMock()
-        github_user.login = "anunwanteduser"
-        test_permissions = MagicMock
-        test_permissions.role = "admin"
-        github_user.get_organization_membership = MagicMock(return_value=test_permissions)
-        github_team.get_members = MagicMock(return_value=[github_user])
-        github_team.remove_membership = MagicMock()
-        self.talker._organization.get_team = MagicMock(return_value=github_team)
-        employees_queryset = MagicMock()
-        employees_queryset.values_list = MagicMock(return_value=[(self.employee1.github_username,)])
-        self.project1.get_employees = MagicMock(return_value=employees_queryset)
-
-        users_removed, errors_removing = self.talker.remove_users_not_in_team(self.project1)
-
-        self.talker._organization.remove_from_members.assert_not_called()
-        github_team.remove_membership.assert_called_once_with(github_user)
-        self.assertEquals(users_removed, 1)
-
-    def test_remove_users_not_in_team__exception_employee(self):
-        github_team = MagicMock()
-        github_user = MagicMock()
-        github_user.login = "anunwanteduser"
-        github_team.get_members = MagicMock(return_value=[github_user])
-        test_permissions = MagicMock
-        test_permissions.role = "member"
-        github_user.get_organization_membership = MagicMock(return_value=test_permissions)
-        self.talker._organization.remove_from_members = MagicMock(
-            side_effect=GithubException(status=mock.Mock(status=404), data="abc")
-        )
-        self.talker._organization.get_team = MagicMock(return_value=github_team)
-        employees_queryset = MagicMock()
-        employees_queryset.values_list = MagicMock(return_value=[(self.employee1.github_username,)])
-        self.project1.get_employees = MagicMock(return_value=employees_queryset)
-
-        users_removed, errors_removing = self.talker.remove_users_not_in_team(self.project1)
-
-        self.talker._organization.remove_from_members.assert_called_once_with(github_user)
-        self.assertEquals(errors_removing, [github_user.login])
-
-    def test_remove_users_not_in_team__exception_owner(self):
-        github_team = MagicMock()
-        github_user = MagicMock()
-        github_user.login = "anunwanteduser"
-        github_team.get_members = MagicMock(return_value=[github_user])
-        test_permissions = MagicMock
-        test_permissions.role = "admin"
-        github_user.get_organization_membership = MagicMock(return_value=test_permissions)
-        github_team.remove_membership = MagicMock(
-            side_effect=GithubException(status=mock.Mock(status=404), data="abc")
-        )
-        self.talker._organization.get_team = MagicMock(return_value=github_team)
-        employees_queryset = MagicMock()
-        employees_queryset.values_list = MagicMock(return_value=[(self.employee1.github_username,)])
-        self.project1.get_employees = MagicMock(return_value=employees_queryset)
-
-        users_removed, errors_removing = self.talker.remove_users_not_in_team(self.project1)
-
-        self.talker._organization.remove_from_members.assert_not_called()
-        github_team.remove_membership.assert_called_once_with(github_user)
-        self.assertEquals(errors_removing, [github_user.login])
-
-    def test_remove_team__user_in_employees(self):
-        github_team = MagicMock()
-        github_employee = MagicMock()
-        github_employee.login = self.employee1.github_username
-        test_permissions = MagicMock
-        test_permissions.role = "member"
-        github_employee.get_organization_membership = MagicMock(return_value=test_permissions)
-        github_team.get_members = MagicMock(return_value=[github_employee])
-
-        employees_queryset = MagicMock()
-        employees_queryset.values_list = MagicMock(return_value=[(self.employee1.github_username,)])
-        self.project1.get_employees = MagicMock(return_value=employees_queryset)
-        self.talker._github.get_user = MagicMock(return_value=github_employee)
-        self.talker._organization.get_team = MagicMock(return_value=github_team)
-
-        self.talker.remove_team(self.project1)
-
-        self.talker._organization.remove_from_members.assert_called_once_with(github_employee)
-        github_team.delete.assert_called_once_with()
-
-    def test_remove_team__user_not_in_employees(self):
-        github_team = MagicMock()
-        github_employee = MagicMock()
-        github_employee.login = "thisuserisownerandshouldnotberemovedfromtheorganization"
-        test_permissions = MagicMock
-        test_permissions.role = "admin"
-        github_employee.get_organization_membership = MagicMock(return_value=test_permissions)
-        github_team.get_members = MagicMock(return_value=[github_employee])
-        employees_queryset = MagicMock()
-        employees_queryset.values_list = MagicMock(return_value=[(self.employee1.github_username,)])
-        self.project1.get_employees = MagicMock(return_value=employees_queryset)
-        self.talker._github.get_user = MagicMock(return_value=github_employee)
-        self.talker._organization.get_team = MagicMock(return_value=github_team)
-
-        self.talker.remove_team(self.project1)
-
-        self.talker._organization.remove_from_members.assert_not_called()
-        github_team.delete.assert_called_once_with()
-
-    def test_archive_repo__already_archived(self):
-        github_repo = MagicMock()
-        github_repo.name = "test-repo1"
-        github_repo.archived = True
-        self.talker._github.get_repo = MagicMock(return_value=github_repo)
-
-        self.assertFalse(self.talker.archive_repo(self.repo1))
-
-        github_repo.edit.assert_not_called()
-
-    def test_archive_repo__not_yet_archived(self):
-        github_repo = MagicMock()
-        github_repo.name = "test-repo1"
-        github_repo.archived = False
-        self.talker._github.get_repo = MagicMock(return_value=github_repo)
-
-        self.assertTrue(self.talker.archive_repo(self.repo1))
-
-        github_repo.edit.assert_called_once_with(archived=True)
+    def test_get_role_of_user(self):
+        user = MagicMock()
+        self.talker.get_role_of_user(user)
+        user.get_organization_membership.assert_called_once_with(self.talker._organization)
 
     def test_username_exists(self):
         self.talker._github.get_user = MagicMock()
@@ -449,3 +126,444 @@ class GitHubAPITalkerTest(TestCase):
         result = self.talker.username_exists("Fake username")
         self.assertFalse(result)
         self.talker._github.get_user.assert_called_once_with("Fake username")
+
+
+class GitHubSyncTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.semester = Semester.objects.create(year=2020, season=Semester.FALL)
+        cls.project1 = Project.objects.create(name="test1", github_team_id="87654321", semester=cls.semester)
+        cls.repo1 = Repository(name="test-repo1", github_repo_id="987654321", project=cls.project1, private=True)
+        cls.employee1 = Employee.objects.create(github_username="testgithubuser", github_id=123456)
+        Registration.objects.create(
+            user=cls.employee1,
+            project=cls.project1,
+            experience=Registration.EXPERIENCE_BEGINNER,
+            course=Course.objects.se(),
+            preference1=cls.project1,
+            semester=cls.semester,
+        )
+        cls.exception = GithubException(status=MagicMock(status=404), data="abc")
+
+    def setUp(self):
+        self.project1.github_team_id = "87654321"
+        self.project1.save()
+        self.repo1.github_repo_id = "987654321"
+        self.repo1.save()
+        self.semester.is_archived = False
+        self.semester.save()
+        self.sync = githubsync.GitHubSync(Project.objects.all())
+
+        self.talker = MagicMock()
+        self.github_user = MagicMock()
+        self.github_user.login = self.employee1.github_username
+        self.github_team = MagicMock()
+        self.github_team.name = self.project1.name
+        self.github_team.description = self.project1.generate_team_description()
+        self.github_team.get_members.return_value = [self.github_user]
+        self.github_team.get_repo_permission.return_value = MagicMock(admin=True)
+        self.github_team.has_in_repos.return_value = True
+        self.github_repo = MagicMock()
+        self.github_repo.name = "test-repo1"
+        self.github_repo.private = True
+        self.talker.get_user.return_value = self.github_user
+        self.talker.get_team.return_value = self.github_team
+        self.talker.get_repo.return_value = self.github_repo
+
+        self.sync.github = self.talker
+
+        self.logger = MagicMock()
+        self.sync.logger = self.logger
+
+    def setUpUser(self, login, role):
+        self.github_user.login = login
+        self.talker.get_role_of_user.return_value = role
+
+    def mockSyncMembers(self):
+        self.sync.sync_team_member = MagicMock()
+        self.sync.remove_users_not_in_team = MagicMock()
+        self.sync.update_team = MagicMock()
+        self.sync.update_repo = MagicMock()
+        self.sync.archive_repo = MagicMock()
+        self.sync.remove_team = MagicMock()
+
+    def assert_no_log(self):
+        self.logger.info.assert_not_called()
+        self.logger.warning.assert_not_called()
+        self.logger.error.assert_not_called()
+        self.assertFalse(self.sync.fail)
+
+    def assert_info(self):
+        self.logger.info.assert_called_once()
+        self.logger.warning.assert_not_called()
+        self.logger.error.assert_not_called()
+        self.assertFalse(self.sync.fail)
+
+    def assert_warning(self):
+        self.logger.info.assert_not_called()
+        self.logger.warning.assert_called_once()
+        self.logger.error.assert_not_called()
+        self.assertFalse(self.sync.fail)
+
+    def assert_error(self):
+        self.logger.info.assert_not_called()
+        self.logger.warning.assert_not_called()
+        self.logger.error.assert_called_once()
+        self.assertTrue(self.sync.fail)
+
+    def test_sync_team_member__not_in_team(self):
+        self.github_team.has_in_members.return_value = False
+        return_value = self.sync.sync_team_member(self.employee1, self.project1)
+        self.talker.get_user.assert_called_once_with(self.employee1.github_username)
+        self.github_team.add_membership.assert_called_once_with(self.github_user, role="member")
+        self.assert_info()
+        self.assertTrue(return_value)
+
+    def test_sync_team_member__already_in_team(self):
+        self.github_team.has_in_members.return_value = True
+        return_value = self.sync.sync_team_member(self.employee1, self.project1)
+        self.talker.get_user.assert_called_once_with(self.employee1.github_username)
+        self.github_team.add_membership.assert_not_called()
+        self.assert_no_log()
+        self.assertFalse(return_value)
+
+    def create_or_update_team__create(self, side_effect=None):
+        self.mockSyncMembers()
+        self.talker.create_team = MagicMock(return_value=MagicMock(id="25"))
+        self.talker.create_team.side_effect = side_effect
+        self.project1.github_team_id = None
+        self.project1.save()
+        self.sync.create_or_update_team(self.project1)
+        self.talker.create_team.assert_called_once_with(self.project1)
+        self.sync.update_team.assert_not_called()
+
+    def test_create_or_update_team__create(self):
+        self.create_or_update_team__create()
+        self.assertEqual(self.project1.github_team_id, "25")
+        self.assert_info()
+
+    def test_create_or_update_team__create_exception(self):
+        self.create_or_update_team__create(self.exception)
+        self.assert_error()
+
+    def create_or_update_team__update(self, side_effect=None):
+        self.mockSyncMembers()
+        self.sync.update_team.side_effect = side_effect
+        self.sync.create_or_update_team(self.project1)
+        self.talker.create_team.assert_not_called()
+        self.sync.update_team.assert_called_once_with(self.project1)
+
+    def test_create_or_update_team__update(self):
+        self.create_or_update_team__update()
+        self.assert_no_log()
+
+    def test_create_or_update_team__update_exception(self):
+        self.create_or_update_team__update(self.exception)
+        self.assert_error()
+
+    def create_or_update_team__team_members(self, side_effect=None):
+        self.mockSyncMembers()
+        self.sync.sync_team_member.side_effect = side_effect
+        self.sync.create_or_update_team(self.project1)
+        self.sync.sync_team_member.assert_called_once_with(self.employee1, self.project1)
+        self.sync.update_team.assert_called_once_with(self.project1)
+        self.talker.create_team.assert_not_called()
+
+    def test_create_or_update_team__team_members(self):
+        self.create_or_update_team__team_members()
+        self.assert_no_log()
+
+    def test_create_or_update_team__team_members_exception(self):
+        self.create_or_update_team__team_members(self.exception)
+        self.assert_error()
+
+    def create_or_update_team__remove_users(self, side_effect=None):
+        self.mockSyncMembers()
+        self.sync.remove_users_not_in_team.side_effect = side_effect
+        self.sync.create_or_update_team(self.project1)
+        self.sync.sync_team_member(self.project1)
+        self.sync.remove_users_not_in_team.assert_called_once_with(self.project1)
+        self.sync.update_team.assert_called_once_with(self.project1)
+        self.talker.create_team.assert_not_called()
+
+    def test_create_or_update_team__remove_users(self):
+        self.create_or_update_team__remove_users()
+        self.assert_no_log()
+
+    def test_create_or_update_team__remove_users_exception(self):
+        self.create_or_update_team__remove_users(self.exception)
+        self.assert_error()
+
+    def remove_users_not_in_team(self, login, role, side_effect1=None, side_effect2=None):
+        self.setUpUser(login, role)
+        self.talker.remove_user.side_effect = side_effect1
+        self.github_team.remove_membership.side_effect = side_effect2
+        self.sync.remove_users_not_in_team(self.project1)
+
+    def test_remove_users_not_in_team__employee(self):
+        self.remove_users_not_in_team(self.employee1.github_username, "member")
+        self.github_team.remove_membership.assert_not_called()
+        self.talker.remove_user.assert_not_called()
+        self.assertEquals(self.sync.users_removed, 0)
+        self.assert_no_log()
+
+    def test_remove_users_not_in_team__no_employee(self):
+        self.remove_users_not_in_team("anunwanteduser", "member")
+        self.github_team.remove_membership.assert_not_called()
+        self.talker.remove_user.assert_called_once_with(self.github_user)
+        self.assertEquals(self.sync.users_removed, 1)
+        self.assert_info()
+
+    def test_remove_users_not_in_team__owner(self):
+        self.remove_users_not_in_team("anunwanteduser", "admin")
+        self.github_team.remove_membership.assert_called_once_with(self.github_user)
+        self.talker.remove_user.assert_not_called()
+        self.assertEquals(self.sync.users_removed, 1)
+        self.assert_info()
+
+    def test_remove_users_not_in_team__exception_employee(self):
+        self.remove_users_not_in_team("anunwanteduser", "member", self.exception, None)
+        self.github_team.remove_membership.assert_not_called()
+        self.talker.remove_user.assert_called_once_with(self.github_user)
+        self.assertEquals(self.sync.users_removed, 0)
+        self.assert_error()
+
+    def test_remove_users_not_in_team__exception_owner(self):
+        self.remove_users_not_in_team("anunwanteduser", "admin", None, self.exception)
+        self.github_team.remove_membership.assert_called_once_with(self.github_user)
+        self.talker.remove_user.assert_not_called()
+        self.assertEquals(self.sync.users_removed, 0)
+        self.assert_error()
+
+    def test_remove_team__user_in_employees(self):
+        self.setUpUser(self.employee1.github_username, "member")
+        self.sync.remove_team(self.project1)
+
+        self.talker.remove_user.assert_called_once_with(self.github_user)
+        self.github_team.delete.assert_called_once_with()
+        self.assertEqual(self.sync.users_removed, 1)
+        self.assertEqual(self.logger.info.call_count, 2)
+        self.logger.info.reset_mock()
+        self.assert_no_log()
+
+    def test_remove_team__user_in_employees__exception(self):
+        self.setUpUser(self.employee1.github_username, "member")
+        self.talker.remove_user.side_effect = self.exception
+        self.sync.remove_team(self.project1)
+
+        self.talker.remove_user.assert_called_once_with(self.github_user)
+        self.github_team.delete.assert_called_once_with()
+        self.assertEqual(self.sync.users_removed, 0)
+        self.logger.info.assert_called_once()
+        self.logger.info.reset_mock()
+        self.assert_error()
+
+    def test_remove_team__user_not_in_employees(self):
+        self.setUpUser("thisuserisownerandshouldnotberemovedfromtheorganization", "admin")
+        self.sync.remove_team(self.project1)
+
+        self.talker.remove_userremove_from_members.assert_not_called()
+        self.github_team.delete.assert_called_once_with()
+        self.assertEqual(self.sync.users_removed, 0)
+        self.assert_info()
+
+    def test_remove_team__user_not_in_employees__exception(self):
+        self.setUpUser("thisuserisownerandshouldnotberemovedfromtheorganization", "admin")
+        self.github_team.delete.side_effect = self.exception
+        self.sync.remove_team(self.project1)
+
+        self.talker.remove_user.assert_not_called()
+        self.github_team.delete.assert_called_once_with()
+        self.assertEqual(self.sync.users_removed, 0)
+        self.assert_error()
+
+    def test_archive_repo__already_archived(self):
+        self.github_repo.archived = True
+        self.assertFalse(self.sync.archive_repo(self.repo1))
+        self.talker.get_repo.assert_called_once_with(self.repo1.github_repo_id)
+        self.github_repo.edit.assert_not_called()
+        self.assertEqual(self.sync.repos_archived, 0)
+        self.assert_no_log()
+
+    def test_archive_repo__not_yet_archived(self):
+        self.github_repo.archived = False
+        self.assertTrue(self.sync.archive_repo(self.repo1))
+        self.talker.get_repo.assert_called_once_with(self.repo1.github_repo_id)
+        self.github_repo.edit.assert_called_once_with(archived=True)
+        self.assertEqual(self.sync.repos_archived, 1)
+        self.assert_info()
+
+    def test_archive_project__on_github(self):
+        self.mockSyncMembers()
+        self.sync.archive_project(self.project1)
+        self.sync.archive_repo.assert_called_once_with(self.repo1)
+        self.sync.remove_team.assert_called_once_with(self.project1)
+        self.assertIsNone(self.project1.github_team_id)
+        self.assert_no_log()
+
+    def test_archive_project__repo_not_on_github(self):
+        self.mockSyncMembers()
+        self.repo1.github_repo_id = None
+        self.repo1.save()
+        self.sync.archive_project(self.project1)
+        self.sync.archive_repo.assert_not_called()
+        self.sync.remove_team.assert_called_once_with(self.project1)
+        self.assertIsNone(self.project1.github_team_id)
+        self.assert_warning()
+
+    def test_archive_project__repo_exception(self):
+        self.mockSyncMembers()
+        self.sync.archive_repo.side_effect = self.exception
+        self.sync.archive_project(self.project1)
+        self.sync.archive_repo.assert_called_once_with(self.repo1)
+        self.sync.remove_team.assert_called_once_with(self.project1)
+        self.assertIsNone(self.project1.github_team_id)
+        self.assert_error()
+
+    def test_archive_project__team_not_on_github(self):
+        self.mockSyncMembers()
+        self.project1.github_team_id = None
+        self.project1.save()
+        self.sync.archive_project(self.project1)
+        self.sync.archive_repo.assert_called_once_with(self.repo1)
+        self.sync.remove_team.assert_not_called()
+        self.assertIsNone(self.project1.github_team_id)
+        self.assert_warning()
+
+    def test_archive_project__team_exception(self):
+        self.mockSyncMembers()
+        self.sync.remove_team.side_effect = self.exception
+        self.sync.archive_project(self.project1)
+        self.sync.archive_repo.assert_called_once_with(self.repo1)
+        self.sync.remove_team.assert_called_once_with(self.project1)
+        self.assert_error()
+
+    def test_update_repo__incorrect_name(self):
+        self.github_repo.name = "test-repo2"
+        self.sync.update_repo(self.repo1)
+        self.github_team.add_to_repos.assert_not_called()
+        self.github_repo.edit.assert_called_once_with(name=self.repo1.name)
+        self.github_team.set_repo_permission.assert_not_called()
+        self.assert_info()
+
+    def test_update_repo__incorrect_permissions(self):
+        self.github_team.get_repo_permission.return_value = MagicMock(admin=False)
+        self.sync.update_repo(self.repo1)
+        self.github_team.add_to_repos.assert_not_called()
+        self.github_repo.edit.assert_not_called()
+        self.github_team.set_repo_permission.assert_called_once_with(self.github_repo, "admin")
+        self.assert_info()
+
+    def test_update_repo__incorrect_privacy(self):
+        self.github_repo.private = False
+        self.sync.update_repo(self.repo1)
+        self.github_team.add_to_repos.assert_not_called()
+        self.github_repo.edit.assert_called_once_with(private=self.repo1.private)
+        self.github_team.set_repo_permission.assert_not_called()
+        self.assert_info()
+
+    def test_update_repo__not_in_repos(self):
+        self.github_team.has_in_repos.return_value = False
+        self.sync.update_repo(self.repo1)
+        self.github_team.add_to_repos.assert_called_once_with(self.github_repo)
+        self.github_repo.edit.assert_not_called()
+        self.github_team.set_repo_permission.assert_not_called()
+        self.assert_info()
+
+    def test_update_repo__all_correct(self):
+        self.sync.update_repo(self.repo1)
+        self.github_team.add_to_repos.assert_not_called()
+        self.github_repo.edit.assert_not_called()
+        self.github_team.set_repo_permission.assert_not_called()
+        self.assert_no_log()
+
+    def create_or_update_repo__create(self, side_effect=None):
+        self.mockSyncMembers()
+        self.talker.create_repo = MagicMock(return_value=MagicMock(id=25))
+        self.talker.create_repo.side_effect = side_effect
+        self.repo1.github_repo_id = None
+        self.repo1.save()
+        self.sync.create_or_update_repos(self.project1)
+        self.repo1.refresh_from_db()
+        self.talker.create_repo.assert_called_once_with(self.repo1)
+        self.sync.update_repo.assert_not_called()
+
+    def test_create_or_update_repo__create(self):
+        self.create_or_update_repo__create()
+        self.assertEqual(self.repo1.github_repo_id, 25)
+        self.assertEqual(self.sync.repos_created, 1)
+        self.assert_info()
+
+    def test_create_or_update_repo__create_exception(self):
+        self.create_or_update_repo__create(self.exception)
+        self.assert_error()
+
+    def create_or_update_repo__update(self, side_effect=None):
+        self.mockSyncMembers()
+        self.sync.update_repo.side_effect = side_effect
+        self.sync.create_or_update_repos(self.project1)
+        self.talker.create_repo.assert_not_called()
+        self.sync.update_repo.assert_called_once_with(self.repo1)
+        self.assertEqual(self.sync.repos_created, 0)
+
+    def test_create_or_update_repo__update(self):
+        self.create_or_update_repo__update()
+        self.assert_no_log()
+
+    def test_create_or_update_repo__update_exception(self):
+        self.create_or_update_repo__update(self.exception)
+        self.assert_error()
+
+    def test_update_team__all_correct(self):
+        self.assertFalse(self.sync.update_team(self.project1))
+        self.github_team.edit.assert_not_called()
+        self.assert_no_log()
+
+    def test_update_team__incorrect_description(self):
+        self.github_team.description = "Wrong description"
+        self.assertTrue(self.sync.update_team(self.project1))
+        self.github_team.edit.assert_called_with(
+            name=self.project1.name, description=self.project1.generate_team_description()
+        )
+        self.assert_info()
+
+    def test_update_team__incorrect_name(self):
+        self.github_team.name = "The wrong name"
+        self.assertTrue(self.sync.update_team(self.project1))
+        self.github_team.edit.assert_called_with(
+            name=self.project1.name, description=self.project1.generate_team_description()
+        )
+        self.assert_info()
+
+    def test_create_repo(self):
+        self.talker.create_repo.return_value = "ThisShouldBeAPyGithubRepo"
+        returned_repo = self.sync.create_repo(self.repo1)
+        self.talker.create_repo.assert_called_once_with(self.repo1)
+        self.assertEquals(returned_repo, "ThisShouldBeAPyGithubRepo")
+        self.github_team.add_to_repos.assert_called_once_with(returned_repo)
+        self.github_team.set_repo_permission.assert_called_once_with(returned_repo, "admin")
+
+    def test_sync_project__not_archived(self):
+        self.sync.create_or_update_team = MagicMock()
+        self.sync.create_or_update_repos = MagicMock()
+        self.sync.archive_project = MagicMock()
+        self.sync.sync_project(self.project1)
+        self.sync.create_or_update_team.assert_called_once_with(self.project1)
+        self.sync.create_or_update_repos.assert_called_once_with(self.project1)
+        self.sync.archive_project.assert_not_called()
+
+    def test_sync_project_archived(self):
+        self.sync.create_or_update_team = MagicMock()
+        self.sync.create_or_update_repos = MagicMock()
+        self.sync.archive_project = MagicMock()
+        self.semester.is_archived = True
+        self.semester.save()
+        self.sync.sync_project(self.project1)
+        self.sync.create_or_update_team.assert_not_called()
+        self.sync.create_or_update_repos.assert_not_called()
+        self.sync.archive_project.assert_called_once_with(self.project1)
+
+    def test_perform_sync(self):
+        self.sync.sync_project = MagicMock()
+        self.sync.perform_sync()
+        self.sync.sync_project.assert_called_once_with(self.project1)
