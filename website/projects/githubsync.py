@@ -76,7 +76,7 @@ class GitHubAPITalker:
         """
         github_repo = self.github_organization.create_repo(
             name=repo.name,
-            private=settings.DJANGO_GITHUB_SYNC_REPO_PRIVATE,
+            private=repo.private
             # TODO: ask client if more settings are desired, or we maybe want to use a repo template
             # For some reason, adding the team directly by setting team_id does not work
         )
@@ -103,6 +103,9 @@ class GitHubAPITalker:
 
         if github_repo.name != repo.name:
             github_repo.edit(name=repo.name)
+
+        if github_repo.private != repo.private:
+            github_repo.edit(private=repo.private)
 
         # TODO: maybe (?) all other teams with access must be removed
 

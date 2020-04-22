@@ -153,6 +153,7 @@ class Command(BaseCommand):
             Repository.objects.create(
                 name=f"{slugify(project.name)}-{semester.get_season_display()}-{semester.year}{suffix}",
                 project=project,
+                private=True if i == 0 else random.choice([True, False]),
             )
 
     def generate_fake_github_username(self):

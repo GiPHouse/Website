@@ -96,6 +96,8 @@ class Repository(models.Model):
         null=True, blank=True, unique=True, help_text="This is the id of the GitHub repository.",
     )
 
+    private = models.BooleanField(default=True)
+
     def __str__(self):
         """Return repository name."""
         return self.name

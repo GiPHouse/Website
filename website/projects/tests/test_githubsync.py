@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 from unittest import mock
 from unittest.mock import MagicMock
 
-from django.conf import settings
 from django.test import TestCase
 
 from github import GithubException
@@ -139,9 +138,7 @@ class GitHubAPITalkerTest(TestCase):
         self.talker._organization.get_team = MagicMock(return_value=mock_team)
         returned_repo = self.talker.create_repo(self.repo1)
 
-        self.talker._organization.create_repo.assert_called_once_with(
-            name=self.repo1.name, private=settings.DJANGO_GITHUB_SYNC_REPO_PRIVATE
-        )
+        self.talker._organization.create_repo.assert_called_once_with(name=self.repo1.name, private=self.repo1.private)
         self.assertEquals(returned_repo, "ThisShouldBeAPyGithubRepo")
         mock_team.add_to_repos.assert_called_once_with(returned_repo)
         mock_team.set_repo_permission.assert_called_once_with(returned_repo, "admin")
@@ -149,6 +146,7 @@ class GitHubAPITalkerTest(TestCase):
     def test_update_repo__incorrect_name(self):
         github_repo = MagicMock()
         github_repo.name = "test-repo2"
+        github_repo.private = True
         self.talker._github.get_repo = MagicMock(return_value=github_repo)
 
         github_team = MagicMock()
@@ -160,9 +158,25 @@ class GitHubAPITalkerTest(TestCase):
         github_team.add_to_repos.assert_not_called()
         github_repo.edit.assert_called_once_with(name=self.repo1.name)
 
+    def test_update_repo__incorrect_privacy(self):
+        github_repo = MagicMock()
+        github_repo.name = "test-repo1"
+        github_repo.private = False
+        self.talker._github.get_repo = MagicMock(return_value=github_repo)
+
+        github_team = MagicMock()
+        github_team.has_in_repos = MagicMock(return_value=True)
+        self.talker._organization.get_team = MagicMock(return_value=github_team)
+
+        self.talker.update_repo(self.repo1)
+
+        github_team.add_to_repos.assert_not_called()
+        github_repo.edit.assert_called_once_with(private=self.repo1.private)
+
     def test_update_repo__incorrect_permissions(self):
         github_repo = MagicMock()
         github_repo.name = "test-repo1"
+        github_repo.private = True
         self.talker._github.get_repo = MagicMock(return_value=github_repo)
 
         github_team = MagicMock()
@@ -181,6 +195,7 @@ class GitHubAPITalkerTest(TestCase):
     def test_update_repo__semi_correct_permissions(self):
         github_repo = MagicMock()
         github_repo.name = "test-repo1"
+        github_repo.private = True
         self.talker._github.get_repo = MagicMock(return_value=github_repo)
 
         github_team = MagicMock()
@@ -199,6 +214,7 @@ class GitHubAPITalkerTest(TestCase):
     def test_update_repo__correct_permissions(self):
         github_repo = MagicMock()
         github_repo.name = "test-repo1"
+        github_repo.private = True
         self.talker._github.get_repo = MagicMock(return_value=github_repo)
 
         github_team = MagicMock()
@@ -217,6 +233,7 @@ class GitHubAPITalkerTest(TestCase):
     def test_update_repo__all_correct(self):
         github_repo = MagicMock()
         github_repo.name = "test-repo1"
+        github_repo.private = True
         self.talker._github.get_repo = MagicMock(return_value=github_repo)
 
         github_team = MagicMock()
