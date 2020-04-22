@@ -38,13 +38,16 @@ class RepositoryInline(admin.StackedInline):
     """Inline form for Repository."""
 
     model = Repository
-    extra = 1
 
     readonly_fields = ("github_repo_id",)
 
     def __init__(self, *args, **kwargs):
         """Initialize the form."""
         super().__init__(*args, **kwargs)
+
+    def get_extra(self, request, obj=None, **kwargs):
+        """Only show an extra empty repository inline if no other repos exist."""
+        return 0 if obj else 1
 
 
 @admin.register(Project)
