@@ -280,6 +280,7 @@ This repository is public and the GitHub Actions CI runner logs are also public,
 - `DJANGO_GITHUB_SYNC_ORGANIZATION_NAME`: The name of the organization the registered GitHub App is installed in.
 - `DJANGO_GITHUB_CLIENT_ID`: The GiPHouse organization GitHub (OAuth) App client ID.
 - `DJANGO_GITHUB_CLIENT_SECRET`: The GiPHouse organization GitHub (OAuth) App client secret key.
+- `DJANGO_GITHUB_SYNC_SUPERUSER_ID`: The Github ID of the initial superuser.
 - `DJANGO_GSUITE_ADMIN_USER`: The user which the GSuite api will impersonate when logging in with the credentials.
 - `DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64`: The GSuite service account key file in json format, then `base64` encoded.
 - `POSTGRES_NAME`: The name of the Postgres database.
