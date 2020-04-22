@@ -65,11 +65,11 @@ class ProjectAdmin(admin.ModelAdmin):
     def create_mailing_lists(self, request, queryset):
         """Create mailing lists for the selected projects."""
         for project in queryset:
-
             address = project.generate_email()
+
             try:
                 mailing_list = MailingList.objects.create(
-                    address=project.generate_email(),
+                    address=address,
                     description=f"Mailinglist '{address}@{settings.GSUITE_DOMAIN}' for  GiPHouse project"
                     f" '{project.name}' in the '{project.semester}' semester",
                 )
@@ -77,7 +77,11 @@ class ProjectAdmin(admin.ModelAdmin):
                 mailing_list.projects.add(project)
 
                 messages.success(
-                    request, "Successfully created mailing list " + mailing_list.address + " for " + project.name
+                    request,
+                    "Successfully created mailing list "
+                    + mailing_list.address
+                    + f"@{settings.GSUITE_DOMAIN} for "
+                    + project.name,
                 )
             except ValidationError:
                 messages.error(

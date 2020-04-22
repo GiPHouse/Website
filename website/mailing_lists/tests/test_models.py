@@ -83,3 +83,17 @@ class ModelTest(TestCase):
         extra = ExtraEmailAddress.objects.create(address="e@test.nl", name="test", mailing_list=self.existing_list)
 
         self.assertCountEqual(self.existing_list.all_addresses, [extra.address])
+
+    def test_email_validator_does_block_reserved_address(self):
+        try:
+            mailinglist1 = MailingList(address="admin")
+            mailinglist1.full_clean()
+        except ValidationError as e:
+            self.assertEqual(e.messages[0], "This is a reserved address")
+
+    def test_email_validator_does_not_block_unreserved_address(self):
+        try:
+            mailinglist = MailingList(address="admini")
+            mailinglist.full_clean()
+        except ValidationError:
+            self.fail("Mailinglist object raised ValidationError unexpectedly!")

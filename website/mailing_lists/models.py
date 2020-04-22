@@ -12,11 +12,18 @@ email_local_part_validator = RegexValidator(
     regex=r"^[a-zA-Z0-9-]+$", message="Enter a simpler name"
 )  # TODO test this validator
 
+reserved_addresses_validator = RegexValidator(
+    regex=r"^(?!(abuse|admin|administrator|hostmaster|majordomo|postmaster|root|ssl-admin|webmaster)$)",
+    message="This is a reserved address",
+)
+
 
 class MailingList(models.Model):
     """Mailing list with recipients."""
 
-    address = models.CharField(max_length=60, validators=[email_local_part_validator], unique=True)
+    address = models.CharField(
+        max_length=60, validators=[email_local_part_validator, reserved_addresses_validator], unique=True
+    )
     description = models.CharField(blank=True, max_length=100)
     projects = models.ManyToManyField(Project, blank=True)
     users = models.ManyToManyField(Employee, blank=True)
@@ -85,7 +92,9 @@ class MailingListAlias(models.Model):
 
         verbose_name_plural = "mailing list aliases"
 
-    address = models.CharField(max_length=60, validators=[email_local_part_validator], unique=True)
+    address = models.CharField(
+        max_length=60, validators=[email_local_part_validator, reserved_addresses_validator], unique=True
+    )
     mailing_list = models.ForeignKey(MailingList, on_delete=models.CASCADE)
 
     def validate_unique(self, exclude=None):
