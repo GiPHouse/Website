@@ -98,6 +98,19 @@ class GitHubAPITalker:
         except GithubException:
             return False
 
+    def remove_all_teams_from_organization(self):
+        """Remove all teams and users from a organization (for development purposes)."""
+        for team in self.github_organization.get_teams():
+            for github_user in team.get_members():
+                if self.get_role_of_user(github_user) != "admin":  # Prevent removing organization owners
+                    self.remove_user(github_user)
+            team.delete()
+
+    def delete_all_repositories_from_organization(self):
+        """Delete (not archive) all repositories in a organization (for development purposes)."""
+        for repo in self.github_organization.get_repos():
+            repo.delete()
+
 
 class GitHubSync:
     """Sync with GitHub."""

@@ -127,6 +127,34 @@ class GitHubAPITalkerTest(TestCase):
         self.assertFalse(result)
         self.talker._github.get_user.assert_called_once_with("Fake username")
 
+    def test_remove_all_teams_from_organization_owner(self):
+        test_user = MagicMock()
+        test_team = MagicMock()
+        test_team.get_members = MagicMock(return_value=[test_user])
+        self.talker.get_role_of_user = MagicMock(return_value="admin")
+        self.talker.github_organization.get_teams = MagicMock(return_value=[test_team])
+        self.talker.remove_user = MagicMock()
+        self.talker.remove_all_teams_from_organization()
+        self.talker.remove_user.assert_not_called()
+        test_team.delete.assert_called_once()
+
+    def test_remove_all_teams_from_organization_no_owner(self):
+        test_user = MagicMock()
+        test_team = MagicMock()
+        test_team.get_members = MagicMock(return_value=[test_user])
+        self.talker.get_role_of_user = MagicMock(return_value="user")
+        self.talker.github_organization.get_teams = MagicMock(return_value=[test_team])
+        self.talker.remove_user = MagicMock()
+        self.talker.remove_all_teams_from_organization()
+        self.talker.remove_user.assert_called_once_with(test_user)
+        test_team.delete.assert_called_once()
+
+    def test_delete_all_repositories_from_organization(self):
+        test_repo = MagicMock()
+        self.talker.github_organization.get_repos = MagicMock(return_value=[test_repo])
+        self.talker.delete_all_repositories_from_organization()
+        test_repo.delete.assert_called_once()
+
 
 class GitHubSyncTest(TestCase):
     @classmethod
