@@ -13,6 +13,9 @@ from faker.providers import address, company, date_time, internet, lorem, person
 
 from courses.models import Course, Lecture, Semester
 
+
+from mailing_lists.models import ExtraEmailAddress, MailingList, MailingListAlias, MailingListCourseSemesterLink
+
 from projects import githubsync
 from projects.models import Client, Project, Repository
 
@@ -49,6 +52,7 @@ DEFAULTS = {
     "submission": 23,
     "room": 2,
     "reservation": 10,
+    "mailing_list": 3,
 }
 THINGS = list(DEFAULTS.keys())
 
@@ -101,6 +105,23 @@ class Command(BaseCommand):
                 "registration_end": timezone.now() + timezone.timedelta(days=90),
             },
         )
+
+    def create_mailing_list(self):
+        """Create one fake mailing list."""
+        mailing_list = MailingList.objects.create(address=fake.slug(), description=fake.sentence())
+        mailing_list.projects.set(random.sample(list(Project.objects.all()), random.randint(0, 2)))
+        mailing_list.users.set(random.sample(list(User.objects.exclude(email="")), random.randint(0, 10)))
+
+        course = Course.objects.first()
+        semester = Semester.objects.first()
+        MailingListCourseSemesterLink.objects.create(mailing_list=mailing_list, course=course, semester=semester)
+
+        for i in range(random.randint(1, 2)):
+            MailingListAlias.objects.create(address="alias-" + fake.slug(), mailing_list=mailing_list)
+        for i in range(random.randint(0, 4)):
+            ExtraEmailAddress.objects.create(
+                address="extra-" + fake.safe_email(), name=fake.first_name(), mailing_list=mailing_list
+            )
 
     def create_lecture(self):
         """Create one fake lecture."""
