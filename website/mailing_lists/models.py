@@ -3,10 +3,11 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
 
+from courses.models import Course, Semester
+
 from projects.models import Project
 
-from registrations.models import Employee
-
+from registrations.models import Employee, Registration
 
 email_local_part_validator = RegexValidator(
     regex=r"^[a-zA-Z0-9-]+$", message="Enter a simpler name"
@@ -51,6 +52,10 @@ class MailingList(models.Model):
     @property
     def all_addresses(self):
         """Return all email addresses that are in the mailing list."""
+        course_emails = []
+        for course_semester_link in self.mailinglistcoursesemesterlink_set.all():
+            course_emails += course_semester_link.email_addresses
+
         project_emails = []
         for project in self.projects.all():
             for employee in project.get_employees():
@@ -64,7 +69,7 @@ class MailingList(models.Model):
         for extra in self.extraemailaddress_set.all():
             extra_emails.append(extra.address)
 
-        return set(project_emails + user_emails + extra_emails)
+        return set(course_emails + project_emails + user_emails + extra_emails)
 
 
 class ExtraEmailAddress(models.Model):
@@ -118,3 +123,33 @@ class MailingListAlias(models.Model):
     def __str__(self):
         """Return mailing alias address."""
         return f"{self.address}"
+
+
+class MailingListCourseSemesterLink(models.Model):
+    """Link a mailinglists to all people in that Course Semester combination."""
+
+    mailing_list = models.ForeignKey(MailingList, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
+
+    class Meta:
+        """Meta class for uniqueness constraint."""
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["mailing_list", "course", "semester"], name="one_course_semester_per_mailing_list"
+            )
+        ]
+
+    @property
+    def email_addresses(self):
+        """Get all email adresses of people in the Course in the Semester."""
+        return (
+            Registration.objects.filter(course=self.course, semester=self.semester)
+            .select_related("user")
+            .values_list("user__email", flat=True)
+        )
+
+    def __str__(self):
+        """Show mailing list link to course and semester."""
+        return f"connect {self.mailing_list} to {self.course} in {self.semester}"

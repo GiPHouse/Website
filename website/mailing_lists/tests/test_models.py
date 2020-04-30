@@ -4,7 +4,7 @@ from django.test import TestCase
 
 from courses.models import Course, Semester
 
-from mailing_lists.models import ExtraEmailAddress, MailingList, MailingListAlias
+from mailing_lists.models import ExtraEmailAddress, MailingList, MailingListAlias, MailingListCourseSemesterLink
 
 from projects.models import Project
 
@@ -52,6 +52,25 @@ class ModelTest(TestCase):
 
     def test_alias_email_address(self):
         self.assertEqual(self.existing_alias.email_address, self.existing_alias_address + "@" + settings.GSUITE_DOMAIN)
+
+    def test_all_addresses_course_semester(self):
+        semester = Semester.objects.create(year=2000, season=Semester.FALL)
+        course = Course.objects.create(name="Test course")
+        project = Project.objects.create(name="test project", semester=semester)
+
+        employee = Employee.objects.create(github_id=0, github_username="user1", email="e@test.nl")
+        Registration.objects.create(
+            user=employee,
+            project=project,
+            experience=Registration.EXPERIENCE_BEGINNER,
+            course=course,
+            preference1=project,
+            semester=semester,
+        )
+
+        MailingListCourseSemesterLink.objects.create(mailing_list=self.existing_list, course=course, semester=semester)
+
+        self.assertCountEqual(self.existing_list.all_addresses, ["e@test.nl"])
 
     def test_all_addresses_projects(self):
         semester = Semester.objects.create(year=2000, season=Semester.FALL)

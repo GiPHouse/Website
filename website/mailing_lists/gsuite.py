@@ -31,7 +31,6 @@ from googleapiclient.discovery_cache.base import Cache
 from googleapiclient.errors import HttpError
 
 from mailing_lists.models import MailingList
-from mailing_lists.services import get_automatic_lists
 
 logger = logging.getLogger("gsuitesync")
 
@@ -354,25 +353,13 @@ class GSuiteSyncService:
             addresses=(list(mailing_list.all_addresses) if mailing_list.pk is not None else []),
         )
 
-    @staticmethod
-    def _automatic_to_group(automatic_list):
-        """Convert an automatic mailing list to a GSuite Group data obj."""
-        return GSuiteSyncService.GroupData(
-            name=automatic_list["address"],
-            description=automatic_list["description"],
-            aliases=automatic_list.get("aliases", []),
-            addresses=automatic_list["addresses"],
-        )
-
     def _get_all_lists(self):
         """
         Get all lists from the model and the automatic lists.
 
         :return: List of all mailing lists as GroupData
         """
-        return [self.mailing_list_to_group(l) for l in MailingList.objects.all()] + [
-            self._automatic_to_group(l) for l in get_automatic_lists()
-        ]
+        return [self.mailing_list_to_group(l) for l in MailingList.objects.all()]
 
     def sync_mailing_lists(self, lists=None):
         """

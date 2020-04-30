@@ -8,6 +8,7 @@ from mailing_lists.models import (
     ExtraEmailAddress,
     MailingList,
     MailingListAlias,
+    MailingListCourseSemesterLink,
 )
 
 
@@ -26,6 +27,21 @@ class AliasInline(admin.TabularInline):
     form = AddressSuffixedForm
 
 
+class CourseSemesterLinkInline(admin.TabularInline):
+    """Inline for the link to Course and Semester."""
+
+    model = MailingListCourseSemesterLink
+    extra = 1
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        """Change widgets for course and semester to remove add and change buttons."""
+        formfield = super(CourseSemesterLinkInline, self).formfield_for_dbfield(db_field, request, **kwargs)
+        if db_field.name in ["course", "semester"]:
+            formfield.widget.can_add_related = False
+            formfield.widget.can_change_related = False
+        return formfield
+
+
 @admin.register(MailingList)
 class MailingListAdmin(admin.ModelAdmin):
     """Admin class for Mailing List."""
@@ -33,7 +49,7 @@ class MailingListAdmin(admin.ModelAdmin):
     form = AddressSuffixedForm
     list_display = ("address", "description")
     list_filter = ("address",)
-    inlines = [ExtraEmailInline, AliasInline]
+    inlines = [CourseSemesterLinkInline, ExtraEmailInline, AliasInline]
     actions = ["synchronize_selected_mailing_lists"]
 
     def synchronize_selected_mailing_lists(self, request, queryset):

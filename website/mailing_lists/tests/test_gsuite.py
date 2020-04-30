@@ -121,24 +121,8 @@ class GSuiteSyncTestCase(TestCase):
             )
         )
 
-    def test_default_lists(self):
-        self.assertEqual(len(self.sync_service._get_all_lists()), 5)
-
-    def test_automatic_to_group(self):
-        group = GSuiteSyncService._automatic_to_group(
-            {
-                "address": "new_group",
-                "description": "some description",
-                "aliases": ["alias1"],
-                "addresses": [f"test1@{settings.GSUITE_DOMAIN}"],
-            }
-        )
-        self.assertEqual(
-            group,
-            GSuiteSyncService.GroupData(
-                "new_group", "some description", ["alias1"], [f"test1@{settings.GSUITE_DOMAIN}"],
-            ),
-        )
+    def test_get_all_lists(self):
+        self.assertEqual(len(self.sync_service._get_all_lists()), 1)
 
     def test_mailing_list_to_group(self):
         group = GSuiteSyncService.mailing_list_to_group(self.mailing_list)
