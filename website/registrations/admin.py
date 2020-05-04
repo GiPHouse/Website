@@ -3,9 +3,17 @@ from io import StringIO
 
 from admin_auto_filters.filters import AutocompleteFilter
 
-from django.contrib import admin
+from django import forms
+from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
+from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import redirect, render
+from django.urls import path
+
+from courses.models import Semester
+
+from projects.models import Project
 
 from registrations.models import Employee, Registration
 
@@ -187,5 +195,95 @@ class UserAdmin(admin.ModelAdmin):
         response["Content-Disposition"] = "attachment; filename=registrations.csv"
         return response
 
+    def get_urls(self):
+        """Get admin urls."""
+        urls = super().get_urls()
+        custom_urls = [
+            path("import/", self.admin_site.admin_view(self.import_csv), name="import",),
+        ]
+        return custom_urls + urls
+
+    def handle_csv(self, csv_file, semester):
+        """Process a CSV file with project assignment."""
+        csv_data = csv_file.read().decode("utf-8")
+        dialect = csv.Sniffer().sniff(csv_data)
+        reader = csv.reader(StringIO(csv_data), dialect=dialect)
+
+        num_assigned = 0
+        num_ignored = 0
+
+        expected_header = ["First name", "Last name", "Student number", "Course", "Project name"]
+        for row in reader:
+            if reader.line_num == 1 and row != expected_header:
+                raise ValueError("Invalid columns")
+            elif reader.line_num == 1:
+                continue
+
+            csv_first_name = row[0]
+            csv_last_name = row[1]
+            csv_student_number = row[2]
+            csv_course = row[3]
+            csv_project = row[4]
+
+            try:
+                project = Project.objects.get(name=csv_project, semester=semester)
+            except ObjectDoesNotExist:
+                raise ValueError(f"No project was found for {csv_project} in semester {semester}.")
+
+            try:
+                registration = Registration.objects.get(
+                    user__first_name=csv_first_name,
+                    user__last_name=csv_last_name,
+                    semester=semester,
+                    course__name=csv_course,
+                    user__student_number=csv_student_number,
+                )
+            except ObjectDoesNotExist:
+                raise ValueError(
+                    f"No registration was found for {csv_first_name} {csv_last_name} with student number "
+                    f"{csv_student_number} in semester {semester} for course {csv_course}. "
+                )
+
+            if registration.project:
+                print("Person already assigned to project, skipping.")
+                num_ignored += 1
+            else:
+                registration.project = project
+                registration.save()
+                num_assigned += 1
+
+        return num_assigned, num_ignored
+
+    def import_csv(self, request):
+        """Import a CSV file with project assignment."""
+        if request.method == "POST":
+            csv_file = request.FILES["csv_file"]
+            semester = Semester.objects.get(pk=request.POST.get("semester"))
+            if not csv_file.name.endswith(".csv"):
+                messages.error(request, "File is not CSV type")
+            elif csv_file.multiple_chunks():
+                messages.error(request, "Uploaded file is too big (%.2f MB)." % (csv_file.size / (1000 * 1000),))
+            else:
+                try:
+                    num_assigned, num_ignored = self.handle_csv(csv_file, semester)
+                    messages.success(
+                        request,
+                        f"CSV file has been imported. {num_assigned} registrations are updated. "
+                        f"{num_ignored} registrations were already assigned and not been overwritten.",
+                    )
+                except ValueError as e:
+                    messages.error(request, e)
+                return redirect("..")
+        form = CsvImportForm()
+        payload = {"form": form}
+        return render(request, "admin/registrations/import-csv.html", payload)
+
     class Media:
         """Necessary to use AutocompleteFilter."""
+
+
+class CsvImportForm(forms.Form):
+    """Form used when importing a csv group assignment."""
+
+    csv_file = forms.FileField(required=True)
+    semester = forms.ModelChoiceField(queryset=Semester.objects.all(), required=True)

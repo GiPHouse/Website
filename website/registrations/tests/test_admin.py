@@ -1,5 +1,9 @@
+from unittest.mock import MagicMock, patch
+
+from django.contrib import messages
 from django.contrib.admin import ACTION_CHECKBOX_NAME
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.shortcuts import reverse
 from django.test import Client, TestCase
 from django.utils import timezone
@@ -28,6 +32,7 @@ class RegistrationAdminTest(TestCase):
         cls.semester.save()
 
         cls.project = Project.objects.create(name="GiPHouse1234", description="Test", semester=cls.semester)
+        cls.project2 = Project.objects.create(name="4321aProject", description="Test", semester=cls.semester)
 
         cls.manager = User.objects.create(
             github_id=1, github_username="manager", first_name="Man", last_name="Ager", student_number="s1234567"
@@ -157,4 +162,197 @@ class RegistrationAdminTest(TestCase):
                 f'"{self.registration.comments}"'
             ),
         )
+
+    def test_import_csv__get(self):
+        response = self.client.get(reverse("admin:import"), follow=True)
+        self.assertEqual(response.status_code, 200)
+
+    @patch("registrations.admin.UserAdmin.handle_csv")
+    def test_import_csv__post(self, mock_handle_csv):
+        test_csv_file = SimpleUploadedFile("csv_file.csv", b"123456,test,abcdef", content_type="text/csv")
+        response = self.client.post(
+            reverse("admin:import"), {"csv_file": test_csv_file, "semester": self.semester.pk}, follow=True
+        )
+        self.assertEqual(response.status_code, 200)
+        mock_handle_csv.assert_called_once()
+
+    @patch("registrations.admin.UserAdmin.handle_csv")
+    def test_import_csv__post_no_csv_file(self, mock_handle_csv):
+        messages.error = MagicMock()
+        test_csv_file = SimpleUploadedFile("csv_file.png", b"123456,test,abcdef", content_type="text/csv")
+        response = self.client.post(
+            reverse("admin:import"), {"csv_file": test_csv_file, "semester": self.semester.pk}, follow=True
+        )
+        self.assertEqual(response.status_code, 200)
+        messages.error.assert_called_once()
+        mock_handle_csv.assert_not_called()
+
+    @patch("registrations.admin.UserAdmin.handle_csv")
+    def test_import_csv__post_file_too_big(self, mock_handle_csv):
+        messages.error = MagicMock()
+        file_content = 20000000 * b"test"
+        test_csv_file = SimpleUploadedFile("csv_file.csv", file_content, content_type="text/csv")
+        response = self.client.post(
+            reverse("admin:import"), {"csv_file": test_csv_file, "semester": self.semester.pk}, follow=True
+        )
+        self.assertEqual(response.status_code, 200)
+        messages.error.assert_called_once()
+        mock_handle_csv.assert_not_called()
+
+    @patch("registrations.admin.UserAdmin.handle_csv", **{"return_value.raiseError.side_effect": ValueError()})
+    def test_import_csv__post_file_error_handling(self, mock_handle_csv):
+        messages.error = MagicMock()
+        test_csv_file = SimpleUploadedFile("csv_file.csv", b"123456,test,abcdef", content_type="text/csv")
+        response = self.client.post(
+            reverse("admin:import"), {"csv_file": test_csv_file, "semester": self.semester.pk}, follow=True
+        )
+        self.assertEqual(response.status_code, 200)
+        mock_handle_csv.assert_called_once()
+        messages.error.assert_called_once()
+
+    def test_handle_csv(self):
+        file_content = (
+            b"First name, Last name, Student number, Course, Project name\nPiet, Janssen, s1234567, "
+            b"System Development Management, GiPHouse1234"
+        )
+        user = User.objects.create(
+            github_id=1234567,
+            github_username="abcdefghij",
+            first_name="Piet",
+            last_name="Janssen",
+            student_number="s1234567",
+        )
+        registration = Registration.objects.create(
+            user=user,
+            project=None,
+            semester=self.semester,
+            experience=Registration.EXPERIENCE_BEGINNER,
+            preference1=self.project,
+            course=self.course,
+            education_background="-",
+        )
+
+        test_csv_file = SimpleUploadedFile("csv_file.csv", file_content, content_type="text/csv")
+        response = self.client.post(
+            reverse("admin:import"), {"csv_file": test_csv_file, "semester": self.semester.pk}, follow=True
+        )
+        registration.refresh_from_db()
+        self.assertEqual(registration.project, self.project)
+        self.assertEqual(response.status_code, 200)
+
+    def test_handle_csv__already_assigned(self):
+        file_content = (
+            b"First name, Last name, Student number, Course, Project name\nPiet, Janssen, s1234567, "
+            b"System Development Management, GiPHouse1234"
+        )
+        user = User.objects.create(
+            github_id=1234567,
+            github_username="abcdefghij",
+            first_name="Piet",
+            last_name="Janssen",
+            student_number="s1234567",
+        )
+        registration = Registration.objects.create(
+            user=user,
+            project=self.project2,
+            semester=self.semester,
+            experience=Registration.EXPERIENCE_BEGINNER,
+            preference1=self.project,
+            course=self.course,
+            education_background="-",
+        )
+
+        test_csv_file = SimpleUploadedFile("csv_file.csv", file_content, content_type="text/csv")
+        response = self.client.post(
+            reverse("admin:import"), {"csv_file": test_csv_file, "semester": self.semester.pk}, follow=True
+        )
+        registration.refresh_from_db()
+        self.assertEqual(registration.project, self.project2)
+        self.assertEqual(response.status_code, 200)
+
+    def test_handle_csv__invalid_header(self):
+        file_content = b"Piet, Janssen, s1234567, System Development Management, GiPHouse1234"
+        user = User.objects.create(
+            github_id=1234567,
+            github_username="abcdefghij",
+            first_name="Piet",
+            last_name="Janssen",
+            student_number="s1234567",
+        )
+        registration = Registration.objects.create(
+            user=user,
+            project=None,
+            semester=self.semester,
+            experience=Registration.EXPERIENCE_BEGINNER,
+            preference1=self.project,
+            course=self.course,
+            education_background="-",
+        )
+
+        test_csv_file = SimpleUploadedFile("csv_file.csv", file_content, content_type="text/csv")
+        response = self.client.post(
+            reverse("admin:import"), {"csv_file": test_csv_file, "semester": self.semester.pk}, follow=True
+        )
+        registration.refresh_from_db()
+        self.assertIsNone(registration.project)
+        self.assertEqual(response.status_code, 200)
+
+    def test_handle_csv__nonexistent_project(self):
+        file_content = (
+            b"First name, Last name, Student number, Course, Project name\nPiet, Janssen, s1234567, "
+            b"System Development Management, NonExistingProject"
+        )
+        user = User.objects.create(
+            github_id=1234567,
+            github_username="abcdefghij",
+            first_name="Piet",
+            last_name="Janssen",
+            student_number="s1234567",
+        )
+        registration = Registration.objects.create(
+            user=user,
+            project=None,
+            semester=self.semester,
+            experience=Registration.EXPERIENCE_BEGINNER,
+            preference1=self.project,
+            course=self.course,
+            education_background="-",
+        )
+
+        test_csv_file = SimpleUploadedFile("csv_file.csv", file_content, content_type="text/csv")
+        response = self.client.post(
+            reverse("admin:import"), {"csv_file": test_csv_file, "semester": self.semester.pk}, follow=True
+        )
+        registration.refresh_from_db()
+        self.assertIsNone(registration.project)
+        self.assertEqual(response.status_code, 200)
+
+    def test_handle_csv__nonexistent_user(self):
+        file_content = (
+            b"First name, Last name, Student number, Course, Project name\nPiet, Janssen, s1234567, "
+            b"System Development Management, GiPHouse1234"
+        )
+        user = User.objects.create(
+            github_id=1234567,
+            github_username="abcdefghij",
+            first_name="Piet",
+            last_name="Janssen",
+            student_number="s0000000",
+        )
+        registration = Registration.objects.create(
+            user=user,
+            project=None,
+            semester=self.semester,
+            experience=Registration.EXPERIENCE_BEGINNER,
+            preference1=self.project,
+            course=self.course,
+            education_background="-",
+        )
+
+        test_csv_file = SimpleUploadedFile("csv_file.csv", file_content, content_type="text/csv")
+        response = self.client.post(
+            reverse("admin:import"), {"csv_file": test_csv_file, "semester": self.semester.pk}, follow=True
+        )
+        registration.refresh_from_db()
+        self.assertIsNone(registration.project)
         self.assertEqual(response.status_code, 200)
