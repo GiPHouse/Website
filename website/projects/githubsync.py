@@ -3,9 +3,9 @@ from datetime import datetime, timedelta
 
 from django.conf import settings
 
-from github import Github, GithubException, GithubIntegration
+from github import Github, GithubException, GithubIntegration, UnknownObjectException
 
-from projects.models import Repository
+from projects.models import ProjectToBeDeleted, Repository, RepositoryToBeDeleted
 
 
 class GitHubAPITalker:
@@ -365,8 +365,43 @@ class GitHubSync:
         else:
             self.archive_project(project)
 
+    def delete_teams_and_repos_to_be_deleted(self):
+        """Remove all repositories and teams deleted in Django of which the id's are stored for deletion."""
+        for repo in RepositoryToBeDeleted.objects.all():
+            try:
+                self.archive_repo(repo)
+            except UnknownObjectException:
+                self.error(
+                    f"Something went wrong removing orphan GitHub repository with id {repo.github_repo_id}'. "
+                    f"Maybe it was already deleted manually?"
+                )
+            except (GithubException, AssertionError):
+                self.error(
+                    f"Something went wrong archiving orphan GitHub repository with id {repo.github_repo_id}'. "
+                    f"Will try again at next sync."
+                )
+                continue
+            repo.delete()
+
+        for team in ProjectToBeDeleted.objects.all():
+            try:
+                self.remove_team(team)
+            except UnknownObjectException:
+                self.error(
+                    f"Something went wrong removing orphan GitHub team with id {team.github_team_id}'."
+                    f"Maybe it was already deleted manually?"
+                )
+            except (GithubException, AssertionError):
+                self.error(
+                    f"Something went wrong removing orphan GitHub team with id {team.github_team_id}'. "
+                    f"Will try again at next sync."
+                )
+                continue
+            team.delete()
+
     def perform_sync(self):
         """Sync all selected projects to GitHub."""
+        self.delete_teams_and_repos_to_be_deleted()
         for project in self.projects:
             self.sync_project(project)
 

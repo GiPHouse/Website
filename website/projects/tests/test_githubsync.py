@@ -4,12 +4,12 @@ from unittest.mock import MagicMock
 
 from django.test import TestCase
 
-from github import GithubException, MainClass
+from github import GithubException, MainClass, UnknownObjectException
 
 from courses.models import Course, Semester
 
 from projects import githubsync
-from projects.models import Project, Repository
+from projects.models import Project, ProjectToBeDeleted, Repository, RepositoryToBeDeleted
 
 from registrations.models import Employee, Registration
 
@@ -172,6 +172,10 @@ class GitHubSyncTest(TestCase):
             semester=cls.semester,
         )
         cls.exception = GithubException(status=MagicMock(status=404), data="abc")
+        cls.repoToBeDeleted1 = RepositoryToBeDeleted.objects.create(github_repo_id=1122334455)
+        cls.repoToBeDeleted2 = RepositoryToBeDeleted.objects.create(github_repo_id=5544332211)
+        cls.projectToBeDeleted1 = ProjectToBeDeleted.objects.create(github_team_id=5566778899)
+        cls.projectToBeDeleted2 = ProjectToBeDeleted.objects.create(github_team_id=9988776655)
 
     def setUp(self):
         self.project1.github_team_id = "87654321"
@@ -591,7 +595,50 @@ class GitHubSyncTest(TestCase):
         self.sync.create_or_update_repos.assert_not_called()
         self.sync.archive_project.assert_called_once_with(self.project1)
 
+    def test_delete_teams_and_repos_to_be_deleted(self):
+        self.sync.archive_repo = MagicMock()
+        self.sync.remove_team = MagicMock()
+        RepositoryToBeDeleted.delete = MagicMock()
+        ProjectToBeDeleted.delete = MagicMock()
+        self.sync.delete_teams_and_repos_to_be_deleted()
+        for repo in RepositoryToBeDeleted.objects.all():
+            self.sync.archive_repo.assert_any_call(repo)
+        for team in ProjectToBeDeleted.objects.all():
+            self.sync.remove_team.assert_any_call(team)
+        self.repoToBeDeleted1.delete.assert_called()
+        self.repoToBeDeleted2.delete.assert_called()
+        self.projectToBeDeleted1.delete.assert_called()
+        self.projectToBeDeleted2.delete.assert_called()
+
+    def test_delete_teams_and_repos_to_be_deleted__exception_repo(self):
+        self.sync.archive_repo = MagicMock(side_effect=GithubException(status=mock.Mock(status=500), data="abc"))
+        self.sync.remove_team = MagicMock()
+        self.sync.delete_teams_and_repos_to_be_deleted()
+        self.logger.error.assert_called()
+
+    def test_delete_teams_and_repos_to_be_deleted__exception_team(self):
+        self.sync.archive_repo = MagicMock()
+        self.sync.remove_team = MagicMock(side_effect=GithubException(status=mock.Mock(status=500), data="abc"))
+        self.sync.delete_teams_and_repos_to_be_deleted()
+        self.logger.error.assert_called()
+
+    def test_delete_teams_and_repos_to_be_deleted__unknown_object_exception_team(self):
+        self.sync.archive_repo = MagicMock()
+        self.sync.remove_team = MagicMock(side_effect=UnknownObjectException(status=mock.Mock(status=404), data="abc"))
+        self.sync.delete_teams_and_repos_to_be_deleted()
+        self.logger.error.assert_called()
+
+    def test_delete_teams_and_repos_to_be_deleted__unknown_object_exception_repo(self):
+        self.sync.archive_repo = MagicMock(
+            side_effect=UnknownObjectException(status=mock.Mock(status=404), data="abc")
+        )
+        self.sync.remove_team = MagicMock()
+        self.sync.delete_teams_and_repos_to_be_deleted()
+        self.logger.error.assert_called()
+
     def test_perform_sync(self):
         self.sync.sync_project = MagicMock()
+        self.sync.delete_teams_and_repos_to_be_deleted = MagicMock()
         self.sync.perform_sync()
+        self.sync.delete_teams_and_repos_to_be_deleted.assert_called_once()
         self.sync.sync_project.assert_called_once_with(self.project1)

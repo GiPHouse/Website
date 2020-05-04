@@ -1,0 +1,8 @@
+{% extends "admin/delete_selected_confirmation.html" %}
+
+{% block content %}
+    {{ block.super }}
+    <p>
+        Note that this action will also delete the {{ object_name }} from GitHub after the next sync!
+    </p>
+{% endblock %}

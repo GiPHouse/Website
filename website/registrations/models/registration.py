@@ -31,13 +31,13 @@ class Registration(models.Model):
 
     user = models.ForeignKey(Employee, on_delete=models.CASCADE)
 
-    project = models.ForeignKey(Project, null=True, blank=True, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, null=True, blank=True, on_delete=models.SET_NULL)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
 
-    preference1 = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="+")
-    preference2 = models.ForeignKey(Project, null=True, blank=True, on_delete=models.CASCADE, related_name="+")
-    preference3 = models.ForeignKey(Project, null=True, blank=True, on_delete=models.CASCADE, related_name="+")
+    preference1 = models.ForeignKey(Project, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
+    preference2 = models.ForeignKey(Project, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
+    preference3 = models.ForeignKey(Project, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
 
     experience = models.PositiveSmallIntegerField(choices=EXPERIENCE_CHOICES)
     education_background = models.TextField(max_length=200)
