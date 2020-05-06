@@ -263,20 +263,10 @@ class GitHubSync:
 
     def archive_project(self, project_team):
         """
-        Archive a project by deleting the team, removing the employees and archiving the repositories.
+        Archive a project by deleting the team and removing the employees.
 
         :param project_team: The project to archive
         """
-        for project_repo in Repository.objects.filter(project=project_team):
-            try:
-                if project_repo.github_repo_id is not None:
-                    self.archive_repo(project_repo)
-                else:
-                    self.warning(
-                        f"Repository {project_repo} was not archived, because it does not exist on GitHub either."
-                    )
-            except (GithubException, AssertionError):
-                self.error(f"Something went wrong archiving the repository '{project_repo}'.")
         if project_team.github_team_id is not None:
             try:
                 self.remove_team(project_team)
@@ -364,12 +354,28 @@ class GitHubSync:
         self.info(f"Added team f{github_team.name} to repository {repo.name}")
         return github_repo
 
+    def archive_repos_marked_as_archived(self, project_team):
+        """Archive all repos of this project that are marked as archived."""
+        for project_repo in Repository.objects.filter(project=project_team):
+            if project_repo.is_archived:
+                try:
+                    if project_repo.github_repo_id is not None:
+                        self.archive_repo(project_repo)
+                    else:
+                        self.warning(
+                            f"Repository {project_repo} was not archived, because it does not exist on GitHub either."
+                        )
+                except (GithubException, AssertionError):
+                    self.error(f"Something went wrong archiving the repository '{project_repo}'.")
+
     def sync_project(self, project):
         """Sync one project to GitHub."""
         if not project.is_archived:
             self.create_or_update_team(project)
             self.create_or_update_repos(project)
+            self.archive_repos_marked_as_archived(project)
         else:
+            self.archive_repos_marked_as_archived(project)
             self.archive_project(project)
 
     def delete_teams_and_repos_to_be_deleted(self):

@@ -80,7 +80,7 @@ class Project(models.Model):
     @property
     def is_archived(self):
         """Check if a project is archived."""
-        return self.semester.is_archived
+        return not self.repository_set.filter(is_archived=False).exists()
 
 
 class ProjectToBeDeleted(models.Model):
@@ -112,6 +112,15 @@ class Repository(models.Model):
 
     github_repo_id = models.IntegerField(
         null=True, blank=True, unique=True, help_text="This is the id of the GitHub repository.",
+    )
+
+    is_archived = models.BooleanField(
+        blank=False,
+        null=False,
+        default=False,
+        help_text="This is the 'archived' value of the GitHub repository. Archived repositories will be set to"
+        "archived on GitHub, meaning they are read only. Reverting the archived value of a repository will have to be "
+        "done manually in GitHub, if the un-archiving a repository is desired.",
     )
 
     private = models.BooleanField(default=True)

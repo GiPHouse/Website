@@ -1,5 +1,6 @@
 from admin_auto_filters.filters import AutocompleteFilter
 
+from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
@@ -32,9 +33,23 @@ class ProjectAdminSemesterFilter(AutocompleteFilter):
     field_name = "semester"
 
 
+class RepositoryInlineFormset(forms.models.BaseInlineFormSet):
+    """Custom formset for projects and their repositories."""
+
+    def clean(self):
+        """Make sure a project has at least one repository."""
+        repositories_left = 0
+        for form in self.forms:
+            if form.cleaned_data and not form.cleaned_data.get("DELETE", False):
+                repositories_left += 1
+        if repositories_left < 1:
+            raise forms.ValidationError("Projects must have at least one repository.")
+
+
 class RepositoryInline(admin.StackedInline):
     """Inline form for Repository."""
 
+    formset = RepositoryInlineFormset
     model = Repository
 
     readonly_fields = ("github_repo_id",)
@@ -54,11 +69,19 @@ class ProjectAdmin(admin.ModelAdmin):
 
     form = ProjectAdminForm
     list_filter = [ProjectAdminClientFilter, ProjectAdminSemesterFilter]
-    actions = ["create_mailing_lists", "synchronise_to_GitHub"]
+    actions = ["create_mailing_lists", "synchronise_to_GitHub", "archive_all_repositories"]
     inlines = [RepositoryInline]
 
     search_fields = ("name",)
     readonly_fields = ("github_team_id",)
+
+    def archive_all_repositories(self, request, queryset):
+        """Archive all the repositories for the selected projects."""
+        for project in queryset:
+            num_archived = Repository.objects.filter(is_archived=False, project=project).update(is_archived=True)
+        messages.success(
+            request, f"Succesfully archived {num_archived} repositories.",
+        )
 
     def create_mailing_lists(self, request, queryset):
         """Create mailing lists for the selected projects."""

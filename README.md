@@ -124,9 +124,10 @@ Repositories and project(team)s are synchronized with GitHub in the following ma
     - Depending on the environment variables, either a private or public repository is created.
     - The associated team is given "admin" access to the repository.
     - Other additional permissions of a repository stay untouched.
-- Semesters can be archived, which cascades to all project(team)s and repositories. 
-    - If a repository is archived, it will be archived on GitHub as well. This action is final and can only be undone manually via [github.com]()
-    - If a project is archived, the team will be removed and consequently, all employees will be removed from the organization (again, organization owners are ignored).
+- Repositories can be archived; this action is final and can only be undone manually via [github.com]()
+    - Archived repositories will be archived on GitHub as well.
+    - A project is considered archived if all of its repositories are archived.
+    - If a project is archived, the associated GitHub Team will be removed and consequently, all employees will be removed from the organization (again, organization owners are ignored).    
 
 Synchronization can only be initialized via actions on specific sets of objects in their changelists, or via the big 'synchronize to GitHub' button (to perform synchronization on all objects) in the admin. Synchronization is implemented in a [idempotent](https://en.wikipedia.org/wiki/Idempotence) manner. 
 

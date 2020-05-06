@@ -161,7 +161,10 @@ class GitHubSyncTest(TestCase):
     def setUpTestData(cls):
         cls.semester = Semester.objects.create(year=2020, season=Semester.FALL)
         cls.project1 = Project.objects.create(name="test1", github_team_id="87654321", semester=cls.semester)
-        cls.repo1 = Repository(name="test-repo1", github_repo_id="987654321", project=cls.project1, private=True)
+        cls.repo1 = Repository.objects.create(
+            name="test-repo1", github_repo_id="987654321", project=cls.project1, private=True
+        )
+        cls.repo2 = Repository(name="test-repo2", github_repo_id="999999999", project=cls.project1, private=False)
         cls.employee1 = Employee.objects.create(github_username="testgithubuser", github_id=123456)
         Registration.objects.create(
             user=cls.employee1,
@@ -428,36 +431,17 @@ class GitHubSyncTest(TestCase):
     def test_archive_project__on_github(self):
         self.mockSyncMembers()
         self.sync.archive_project(self.project1)
-        self.sync.archive_repo.assert_called_once_with(self.repo1)
-        self.sync.remove_team.assert_called_once_with(self.project1)
-        self.assertIsNone(self.project1.github_team_id)
-        self.assert_no_log()
-
-    def test_archive_project__repo_not_on_github(self):
-        self.mockSyncMembers()
-        self.repo1.github_repo_id = None
-        self.repo1.save()
-        self.sync.archive_project(self.project1)
         self.sync.archive_repo.assert_not_called()
         self.sync.remove_team.assert_called_once_with(self.project1)
         self.assertIsNone(self.project1.github_team_id)
-        self.assert_warning()
-
-    def test_archive_project__repo_exception(self):
-        self.mockSyncMembers()
-        self.sync.archive_repo.side_effect = self.exception
-        self.sync.archive_project(self.project1)
-        self.sync.archive_repo.assert_called_once_with(self.repo1)
-        self.sync.remove_team.assert_called_once_with(self.project1)
-        self.assertIsNone(self.project1.github_team_id)
-        self.assert_error()
+        self.assert_no_log()
 
     def test_archive_project__team_not_on_github(self):
         self.mockSyncMembers()
         self.project1.github_team_id = None
         self.project1.save()
         self.sync.archive_project(self.project1)
-        self.sync.archive_repo.assert_called_once_with(self.repo1)
+        self.sync.archive_repo.assert_not_called()
         self.sync.remove_team.assert_not_called()
         self.assertIsNone(self.project1.github_team_id)
         self.assert_warning()
@@ -466,7 +450,7 @@ class GitHubSyncTest(TestCase):
         self.mockSyncMembers()
         self.sync.remove_team.side_effect = self.exception
         self.sync.archive_project(self.project1)
-        self.sync.archive_repo.assert_called_once_with(self.repo1)
+        self.sync.archive_repo.assert_not_called()
         self.sync.remove_team.assert_called_once_with(self.project1)
         self.assert_error()
 
@@ -576,6 +560,11 @@ class GitHubSyncTest(TestCase):
         self.github_team.set_repo_permission.assert_called_once_with(returned_repo, "admin")
 
     def test_sync_project__not_archived(self):
+        self.mockSyncMembers()
+        self.repo2.is_archived = False
+        self.repo2.save()
+        self.repo1.is_archived = False
+        self.repo1.save()
         self.sync.create_or_update_team = MagicMock()
         self.sync.create_or_update_repos = MagicMock()
         self.sync.archive_project = MagicMock()
@@ -583,17 +572,63 @@ class GitHubSyncTest(TestCase):
         self.sync.create_or_update_team.assert_called_once_with(self.project1)
         self.sync.create_or_update_repos.assert_called_once_with(self.project1)
         self.sync.archive_project.assert_not_called()
+        self.sync.archive_repo.assert_not_called()
 
-    def test_sync_project_archived(self):
+    def test_sync_project__one_archived(self):
+        self.mockSyncMembers()
+        self.repo2.is_archived = False
+        self.repo2.save()
+        self.repo1.is_archived = True
+        self.repo1.save()
         self.sync.create_or_update_team = MagicMock()
         self.sync.create_or_update_repos = MagicMock()
         self.sync.archive_project = MagicMock()
-        self.semester.is_archived = True
-        self.semester.save()
+        self.sync.sync_project(self.project1)
+        self.sync.create_or_update_team.assert_called_once_with(self.project1)
+        self.sync.create_or_update_repos.assert_called_once_with(self.project1)
+        self.sync.archive_project.assert_not_called()
+        self.sync.archive_repo.assert_called_once_with(self.repo1)
+
+    def test_sync_project__all_archived(self):
+        self.mockSyncMembers()
+        self.repo2.is_archived = True
+        self.repo2.save()
+        self.repo1.is_archived = True
+        self.repo1.save()
+        self.sync.create_or_update_team = MagicMock()
+        self.sync.create_or_update_repos = MagicMock()
+        self.sync.archive_project = MagicMock()
         self.sync.sync_project(self.project1)
         self.sync.create_or_update_team.assert_not_called()
         self.sync.create_or_update_repos.assert_not_called()
         self.sync.archive_project.assert_called_once_with(self.project1)
+        self.assertEqual(self.sync.archive_repo.call_count, 2)
+
+    def test_archive_repos(self):
+        self.mockSyncMembers()
+        self.repo1.is_archived = True
+        self.repo1.save()
+        self.sync.archive_repos_marked_as_archived(self.project1)
+        self.sync.archive_repo.assert_called_once_with(self.repo1)
+        self.assert_no_log()
+
+    def test_archive_repos__no_id(self):
+        self.mockSyncMembers()
+        self.repo1.is_archived = True
+        self.repo1.github_repo_id = None
+        self.repo1.save()
+        self.sync.archive_repos_marked_as_archived(self.project1)
+        self.sync.archive_repo.assert_not_called()
+        self.assert_warning()
+
+    def test_archive_repos__exception(self):
+        self.mockSyncMembers()
+        self.repo1.is_archived = True
+        self.repo1.save()
+        self.sync.archive_repo.side_effect = self.exception
+        self.sync.archive_repos_marked_as_archived(self.project1)
+        self.sync.archive_repo.assert_called_once_with(self.repo1)
+        self.assert_error()
 
     def test_delete_teams_and_repos_to_be_deleted(self):
         self.sync.archive_repo = MagicMock()

@@ -85,7 +85,6 @@ class Command(BaseCommand):
                 "registration_start": timezone.now() - timezone.timedelta(days=90),
                 "registration_end": timezone.now() - timezone.timedelta(days=60),
             },
-            is_archived=True,
         )
 
         Semester.objects.get_or_create(
@@ -171,10 +170,12 @@ class Command(BaseCommand):
         )
         for i in range(repo_count):
             suffix = "" if i == 0 else f"-{i}"
+            archived = True if i == 0 else False
             Repository.objects.create(
                 name=f"{slugify(project.name)}-{semester.get_season_display()}-{semester.year}{suffix}",
                 project=project,
                 private=True if i == 0 else random.choice([True, False]),
+                is_archived=archived,
             )
 
     def generate_fake_github_username(self):

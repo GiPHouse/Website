@@ -113,14 +113,6 @@ class Semester(models.Model):
         blank=True, null=True, help_text="This must be filled in to open the registration."
     )
 
-    is_archived = models.BooleanField(
-        blank=False,
-        null=False,
-        default=False,
-        help_text="Setting a semester to archived will remove all GitHub teams and archive all their repositories for "
-        "this semester.",
-    )
-
     objects = SemesterManager()
 
     @staticmethod

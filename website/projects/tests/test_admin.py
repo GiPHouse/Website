@@ -29,14 +29,16 @@ class GetProjectsTest(TestCase):
         cls.admin = User.objects.create_superuser(github_id=0, github_username="admin")
 
         cls.semester = Semester.objects.create(year=2020, season=Semester.SPRING)
-        cls.semester_archived = Semester.objects.create(year=2020, season=Semester.FALL, is_archived=True)
 
         cls.project = Project.objects.create(name="test", semester=cls.semester)
-        cls.project_archived = Project.objects.create(name="test-archived", semester=cls.semester_archived)
+        cls.project_archived = Project.objects.create(name="test-archived", semester=cls.semester)
 
         cls.manager = User.objects.create(github_id=1, github_username="manager")
-        cls.repo = Repository.objects.create(name="testrepo", project=cls.project)
-        cls.repo_archived = Repository.objects.create(name="testrepo-archived", project=cls.project_archived)
+        cls.repo1 = Repository.objects.create(name="testrepo1", project=cls.project)
+        cls.repo2 = Repository.objects.create(name="testrepo2", project=cls.project)
+        cls.repo_archived = Repository.objects.create(
+            name="testrepo-archived", project=cls.project_archived, is_archived=True,
+        )
 
         cls.mailing_list = MailingList.objects.create(address="test", description=cls.project.description)
 
@@ -216,3 +218,32 @@ class GetProjectsTest(TestCase):
         self.project_admin.synchronise_all_projects_to_GitHub(self.request)
         self.project_admin.synchronise_to_GitHub.assert_called_once()
         self.project_admin.synchronise_to_GitHub = original_sync_action
+
+    def test_archive_all_repositories(self):
+        self.project_admin.archive_all_repositories(self.request, Project.objects.all())
+        self.repo1.refresh_from_db()
+        self.repo2.refresh_from_db()
+        self.repo_archived.refresh_from_db()
+        self.assertTrue(self.repo1.is_archived)
+        self.assertTrue(self.repo2.is_archived)
+        self.assertTrue(self.repo_archived.is_archived)
+
+    def test_repository_deleted(self):
+        response = self.client.post(
+            reverse("admin:projects_project_add"),
+            {
+                "name": "Test project",
+                "semester": self.semester.id,
+                "email": "a@a.com",
+                "description": "Test project description",
+                "managers": self.manager.id,
+                "repository_set-TOTAL_FORMS": 1,
+                "repository_set-INITIAL_FORMS": 0,
+                "repository_set-MIN_NUM_FORMS": 0,
+                "repository_set-MAX_NUM_FORMS": 1,
+                "repository_set-0-DELETE": True,
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
