@@ -17,6 +17,8 @@ from projects.models import Project, Repository
 
 from registrations.models import Employee, Registration
 
+from tasks.models import Task
+
 User: Employee = get_user_model()
 
 
@@ -37,6 +39,14 @@ class GetProjectsTest(TestCase):
         cls.repo_archived = Repository.objects.create(name="testrepo-archived", project=cls.project_archived)
 
         cls.mailing_list = MailingList.objects.create(address="test", description=cls.project.description)
+
+        cls.task = Task.objects.create(
+            total=1,
+            completed=0,
+            fail=False,
+            success_message="success",
+            redirect_url=reverse("admin:projects_project_changelist"),
+        )
 
         Registration.objects.create(
             user=cls.manager,
@@ -191,29 +201,18 @@ class GetProjectsTest(TestCase):
 
         messages.error.assert_called()
 
-    def synchronise_projects_to_GitHub(self):
+    def test_synchronise_projects_to_GitHub(self):
         all_projects = Project.objects.all()
+        self.sync_mock.perform_asynchronous_sync.return_value = self.task.id
         with patch("projects.admin.GitHubSync", self.github_mock):
             self.project_admin.synchronise_to_GitHub(self.request, all_projects)
-        self.github_mock.assert_called_once_with(all_projects)
-        self.sync_mock.perform_sync.assert_called_once()
-
-    def test_synchronise_projects_to_GitHub__fail(self):
-        self.sync_mock.fail = True
-        self.synchronise_projects_to_GitHub()
-        messages.error.assert_called_once()
-
-    def test_synchronise_projects_to_GitHub__success(self):
-        self.sync_mock.fail = False
-        self.synchronise_projects_to_GitHub()
-        messages.success.assert_called_once()
+        self.github_mock.assert_called_once()
+        self.assertEqual(list(self.github_mock.call_args.args[0]), list(Project.objects.all()))
+        self.sync_mock.perform_asynchronous_sync.assert_called_once()
 
     def test_synchronise_all_projects_to_GitHub(self):
+        original_sync_action = self.project_admin.synchronise_to_GitHub
         self.project_admin.synchronise_to_GitHub = MagicMock()
-        self.project_admin.create_or_update_team = MagicMock(return_value=(True, 1, 1))
         self.project_admin.synchronise_all_projects_to_GitHub(self.request)
         self.project_admin.synchronise_to_GitHub.assert_called_once()
-        args = self.project_admin.synchronise_to_GitHub.call_args.args
-        self.assertEqual(args[0], self.request)
-        self.assertEqual(args[1].count(), 2)
-        self.assertIn(self.project, args[1])
+        self.project_admin.synchronise_to_GitHub = original_sync_action

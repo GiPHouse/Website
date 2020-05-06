@@ -93,30 +93,18 @@ class ProjectAdmin(admin.ModelAdmin):
     def synchronise_to_GitHub(self, request, queryset):
         """Synchronise projects to GitHub."""
         sync = GitHubSync(queryset)
-        sync.perform_sync()
-        if sync.fail:
-            messages.error(
-                request, "Something went wrong while synchronizing to GitHub. Look at the log files for more details."
-            )
-        else:
-            messages.success(
-                request,
-                f"A total of {sync.teams_created} teams and {sync.repos_created} repositories have been created, a "
-                f"total of {sync.users_invited} employees have been invited to their teams and a total of "
-                f"{sync.users_removed} users have been removed from GitHub teams. {sync.repos_archived} repositories "
-                f"have been archived.",
-            )
+        task = sync.perform_asynchronous_sync()
+        return redirect("admin:progress_bar", task=task)
 
     synchronise_to_GitHub.short_description = "Synchronise selected projects to GitHub"
 
     def synchronise_all_projects_to_GitHub(self, request):
         """Synchronise all project(teams) to GitHub."""
-        self.synchronise_to_GitHub(request, Project.objects.all())
+        return self.synchronise_to_GitHub(request, Project.objects.all())
         # TODO: it might become a problem if we keep doing this for all projects, since this set will get increasingly
         #  large. However only doing it for unarchived projects does not work either, since we would then not delete
         #  and archive anything ever. There are multiple solutions to this...
         # TODO: check for teams that shouldn't be there and remove them
-        return redirect("/admin/projects/project")
 
     def get_urls(self):
         """Get admin urls."""

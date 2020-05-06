@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from unittest import mock
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
 
@@ -642,3 +642,11 @@ class GitHubSyncTest(TestCase):
         self.sync.perform_sync()
         self.sync.delete_teams_and_repos_to_be_deleted.assert_called_once()
         self.sync.sync_project.assert_called_once_with(self.project1)
+
+    def test_perform_asynchronous_sync(self):
+        thread_instance = MagicMock()
+        thread_mock = MagicMock(return_value=thread_instance)
+        with patch("threading.Thread", thread_mock):
+            self.sync.perform_asynchronous_sync()
+        thread_mock.assert_called_once_with(target=self.sync.perform_sync)
+        thread_instance.start.assert_called_once()

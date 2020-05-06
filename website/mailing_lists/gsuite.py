@@ -17,11 +17,13 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-import asyncio
 import logging
+import threading
 from random import random
+from time import sleep
 
 from django.conf import settings
+from django.urls import reverse
 from django.utils.datastructures import ImmutableList
 
 from google.oauth2 import service_account
@@ -31,6 +33,8 @@ from googleapiclient.discovery_cache.base import Cache
 from googleapiclient.errors import HttpError
 
 from mailing_lists.models import MailingList
+
+from tasks.models import Task
 
 logger = logging.getLogger("gsuitesync")
 
@@ -69,6 +73,7 @@ class GSuiteSyncService:
             :param aliases: Aliases of group
             :param addresses: Addresses in group
             """
+            super().__init__()
             self.name = name
             self.description = description
             self.aliases = aliases
@@ -92,6 +97,8 @@ class GSuiteSyncService:
         :param groups_settings_api: Group settings api object, created if not specified
         :param directory_api: Directory api object, created if not specified
         """
+        super().__init__()
+
         if groups_settings_api is None or directory_api is None:
             credentials = service_account.Credentials.from_service_account_info(
                 settings.GSUITE_ADMIN_CREDENTIALS, scopes=settings.GSUITE_SCOPES
@@ -105,6 +112,7 @@ class GSuiteSyncService:
 
         self.groups_settings_api = groups_settings_api
         self.directory_api = directory_api
+        self.task = None
 
     @staticmethod
     def _group_settings():
@@ -172,7 +180,7 @@ class GSuiteSyncService:
             "whoCanDiscoverGroup": "ALL_IN_DOMAIN_CAN_DISCOVER",
         }
 
-    async def create_group(self, group):
+    def create_group(self, group):
         """
         Create a new group based on the provided data.
 
@@ -186,11 +194,11 @@ class GSuiteSyncService:
                     "description": group.description,
                 },
             ).execute()
-            # Wait for mailing list creation to complete. Docs say we need to
+            # Wait for mailing list creation to complete Docs say we need to
             # wait a minute.
             n = 0
             while True:
-                await asyncio.sleep(min(2 ** n + random(), 64))
+                sleep(min(2 ** n + random(), 64))
                 try:
                     self.groups_settings_api.groups().update(
                         groupUniqueId=f"{group.name}@{settings.GSUITE_DOMAIN}", body=self._group_settings(),
@@ -208,7 +216,7 @@ class GSuiteSyncService:
         self._update_group_members(group)
         self._update_group_aliases(group)
 
-    async def update_group(self, old_name, group):
+    def update_group(self, old_name, group):
         """
         Update a group based on the provided name and data.
 
@@ -275,7 +283,7 @@ class GSuiteSyncService:
                 logger.exception(f"Could not insert alias {insert_alias} for list {group.name}")
         logger.info(f"List {group.name} aliases updated")
 
-    async def delete_group(self, name):
+    def delete_group(self, name):
         """
         Set the specified list to unused, this is not a real delete.
 
@@ -395,22 +403,37 @@ class GSuiteSyncService:
         remove_list = [x for x in existing_groups if x not in new_groups]
         insert_list = [x for x in new_groups if x not in existing_groups]
 
-        group_tasks = []
+        if self.task:
+            self.task.total = len(remove_list) + len(
+                [l.name in insert_list and l.name not in archived_groups or len(l.addresses) > 0 for l in lists]
+            )
+            self.task.completed = 0
+            self.task.save()
+
         for l in lists:
             if l.name in insert_list and l.name not in archived_groups:
-                group_tasks.append(self.create_group(l))
+                self.create_group(l)
+                if self.task:
+                    self.task.completed += 1
+                    self.task.save()
             elif len(l.addresses) > 0:
-                group_tasks.append(self.update_group(l.name, l))
+                self.update_group(l.name, l)
+                if self.task:
+                    self.task.completed += 1
+                    self.task.save()
 
         if remove_lists:
             for l in remove_list:
-                group_tasks.append(self.delete_group(l))
+                self.delete_group(l)
+                if self.task:
+                    self.task.completed += 1
+                    self.task.save()
 
-        try:
-            loop = asyncio.get_event_loop()
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-
-        loop.run_until_complete(asyncio.gather(*group_tasks))
         logger.info("Synchronization ended.")
+
+    def sync_mailing_lists_as_task(self, lists=None):
+        """Sync all selected mailing lists to GSuite as a Task."""
+        self.task = Task.objects.create(redirect_url=reverse("admin:mailing_lists_mailinglist_changelist"))
+        thread = threading.Thread(target=self.sync_mailing_lists, args=(lists,))
+        thread.start()
+        return self.task.id

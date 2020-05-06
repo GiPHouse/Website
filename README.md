@@ -138,6 +138,10 @@ Admin users can create mailing lists using the Django admin interface. A mailing
 This sync starts by creating groups in GSuite for all mailing lists currently not in there, after they are created a request is done per member of that group to add them to the group. For the already existing groups a list is made of existing members in the group and the needed inserts or deletes are done to update the group. Deletion of groups is done by removing all members and setting the list to archived, thus preserving the messages but removing all other uses of the group.
 
 
+### Tasks
+A task is a process that takes more time than can fit in a request. The process is run in a separate thread and the status is synced to the task. The task is then used to show the user the progress and redirect them when it is finished.
+
+
 ### Styling
 [Bootstrap](https://getbootstrap.com/) and [Font Awesome](https://fontawesome.com/) are used to style the website. Their respective SCSS versions are used.
 

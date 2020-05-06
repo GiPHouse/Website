@@ -67,8 +67,8 @@ class MailingListAdmin(admin.ModelAdmin):
     def synchronize_all_mailing_lists(self, request):
         """Synchronize all mailing lists with Gsuite, including automatic lists."""
         sync = GSuiteSyncService()
-        sync.sync_mailing_lists()
-        return redirect("/admin/mailing_lists/mailinglist")
+        task_id = sync.sync_mailing_lists_as_task()
+        return redirect("admin:progress_bar", task=task_id)
 
     def get_urls(self):
         """Get admin urls."""

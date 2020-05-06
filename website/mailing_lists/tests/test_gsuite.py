@@ -17,18 +17,21 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 from django.conf import settings
 from django.test import TestCase
+from django.urls import reverse
 
 from googleapiclient.errors import HttpError
 
 from httplib2 import Response
 
+from mailing_lists import gsuite
 from mailing_lists.gsuite import GSuiteSyncService, MemoryCache
 from mailing_lists.models import ExtraEmailAddress, MailingList, MailingListAlias
+
+from tasks.models import Task
 
 
 def assert_not_called_with(self, *args, **kwargs):
@@ -55,6 +58,8 @@ class GSuiteSyncTestCase(TestCase):
     def setUpTestData(cls):
         cls.settings_api = MagicMock()
         cls.directory_api = MagicMock()
+        cls.logger_mock = MagicMock()
+        gsuite.logger = cls.logger_mock
 
         cls.sync_service = GSuiteSyncService(groups_settings_api=cls.settings_api, directory_api=cls.directory_api)
         cls.mailing_list = MailingList.objects.create(address="new_group", description="some description")
@@ -196,14 +201,12 @@ class GSuiteSyncTestCase(TestCase):
             },
         )
 
-    @patch("asyncio.sleep")
-    def test_create_group(self, asyncio_sleep):
+    @patch("mailing_lists.gsuite.sleep")
+    def test_create_group(self, sleep):
         with self.subTest("Successful"):
-            asyncio.run(
-                self.sync_service.create_group(
-                    GSuiteSyncService.GroupData(
-                        "new_group", "some description", ["alias2"], [f"test2@{settings.GSUITE_DOMAIN}"],
-                    )
+            self.sync_service.create_group(
+                GSuiteSyncService.GroupData(
+                    "new_group", "some description", ["alias2"], [f"test2@{settings.GSUITE_DOMAIN}"],
                 )
             )
 
@@ -221,7 +224,6 @@ class GSuiteSyncTestCase(TestCase):
 
             self.directory_api.members().list.assert_called()
             self.directory_api.groups().aliases().list.assert_called()
-            asyncio_sleep.assert_awaited()
 
         self.settings_api.reset_mock()
         self.directory_api.reset_mock()
@@ -229,11 +231,9 @@ class GSuiteSyncTestCase(TestCase):
         with self.subTest("Failure"):
             self.directory_api.groups().insert().execute.side_effect = HttpError(Response({"status": 500}), bytes())
 
-            asyncio.run(
-                self.sync_service.create_group(
-                    GSuiteSyncService.GroupData(
-                        "new_group", "some description", ["alias2"], [f"test2@{settings.GSUITE_DOMAIN}"],
-                    )
+            self.sync_service.create_group(
+                GSuiteSyncService.GroupData(
+                    "new_group", "some description", ["alias2"], [f"test2@{settings.GSUITE_DOMAIN}"],
                 )
             )
 
@@ -247,11 +247,9 @@ class GSuiteSyncTestCase(TestCase):
         with self.subTest("> 64 second wait for insert"):
             self.settings_api.groups().update().execute.side_effect = HttpError(Response({"status": 500}), bytes())
 
-            asyncio.run(
-                self.sync_service.create_group(
-                    GSuiteSyncService.GroupData(
-                        "new_group", "some description", ["alias2"], [f"test2@{settings.GSUITE_DOMAIN}"],
-                    )
+            self.sync_service.create_group(
+                GSuiteSyncService.GroupData(
+                    "new_group", "some description", ["alias2"], [f"test2@{settings.GSUITE_DOMAIN}"],
                 )
             )
 
@@ -265,13 +263,11 @@ class GSuiteSyncTestCase(TestCase):
 
     def test_update_group(self):
         with self.subTest("Successful"):
-            asyncio.run(
-                self.sync_service.update_group(
-                    "new_group",
-                    GSuiteSyncService.GroupData(
-                        "new_group", "some description", ["alias2"], [f"test2@{settings.GSUITE_DOMAIN}"],
-                    ),
-                )
+            self.sync_service.update_group(
+                "new_group",
+                GSuiteSyncService.GroupData(
+                    "new_group", "some description", ["alias2"], [f"test2@{settings.GSUITE_DOMAIN}"],
+                ),
             )
 
             self.directory_api.groups().update.assert_called_once_with(
@@ -296,13 +292,11 @@ class GSuiteSyncTestCase(TestCase):
         with self.subTest("Failure"):
             self.directory_api.groups().update().execute.side_effect = HttpError(Response({"status": 500}), bytes())
 
-            asyncio.run(
-                self.sync_service.update_group(
-                    "new_group",
-                    GSuiteSyncService.GroupData(
-                        "new_group", "some description", ["alias2"], [f"test2@{settings.GSUITE_DOMAIN}"],
-                    ),
-                )
+            self.sync_service.update_group(
+                "new_group",
+                GSuiteSyncService.GroupData(
+                    "new_group", "some description", ["alias2"], [f"test2@{settings.GSUITE_DOMAIN}"],
+                ),
             )
 
             self.directory_api.members().list.assert_not_called()
@@ -310,7 +304,7 @@ class GSuiteSyncTestCase(TestCase):
 
     def test_delete_group(self):
         with self.subTest("Successful"):
-            asyncio.run(self.sync_service.delete_group("new_group"))
+            self.sync_service.delete_group("new_group")
 
             self.settings_api.groups().patch.assert_called_once_with(
                 body={"archiveOnly": "true", "whoCanPostMessage": "NONE_CAN_POST"},
@@ -326,7 +320,7 @@ class GSuiteSyncTestCase(TestCase):
         with self.subTest("Failure"):
             self.settings_api.groups().patch().execute.side_effect = HttpError(Response({"status": 500}), bytes())
 
-            asyncio.run(self.sync_service.delete_group("new_group"))
+            self.sync_service.delete_group("new_group")
 
             self.directory_api.members().list.assert_not_called()
             self.directory_api.groups().aliases().list.assert_not_called()
@@ -430,9 +424,9 @@ class GSuiteSyncTestCase(TestCase):
         original_delete = self.sync_service.delete_group
         original_get_all_lists = self.sync_service._get_all_lists
 
-        self.sync_service.create_group = AsyncMock()
-        self.sync_service.update_group = AsyncMock()
-        self.sync_service.delete_group = AsyncMock()
+        self.sync_service.create_group = MagicMock()
+        self.sync_service.update_group = MagicMock()
+        self.sync_service.delete_group = MagicMock()
         self.sync_service._get_all_lists = MagicMock()
 
         with self.subTest("Error getting existing list"):
@@ -441,7 +435,8 @@ class GSuiteSyncTestCase(TestCase):
 
         self.directory_api.reset_mock()
 
-        with self.subTest("Successful non-existing loop defaults"):
+        with self.subTest("Successful defaults without task"):
+            self.sync_service.task = None
             existing_groups = [
                 {"name": "deleteme", "directMembersCount": "3"},
                 {"name": "already_synced", "directMembersCount": "2"},
@@ -461,21 +456,63 @@ class GSuiteSyncTestCase(TestCase):
 
             self.sync_service.sync_mailing_lists()
 
-            self.sync_service.create_group.assert_awaited_with(
+            self.sync_service.create_group.assert_called_with(
                 GSuiteSyncService.GroupData(name="syncme", addresses=["someone"])
             )
 
-            self.sync_service.update_group.assert_awaited_with(
+            self.sync_service.update_group.assert_called_with(
                 "already_synced", GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
             )
 
-            self.sync_service.delete_group.assert_awaited_with("deleteme")
+            self.sync_service.delete_group.assert_called_with("deleteme")
 
         self.sync_service.create_group.reset_mock()
         self.sync_service.update_group.reset_mock()
         self.sync_service.delete_group.reset_mock()
+        self.sync_service._get_all_lists.reset_mock()
 
-        with self.subTest("Successful non-existing loop partial"):
+        with self.subTest("Successful defaults with task"):
+            self.sync_service.task = self.task = Task.objects.create(
+                total=0, completed=0, redirect_url=reverse("admin:mailing_lists_mailinglist_changelist")
+            )
+
+            existing_groups = [
+                {"name": "deleteme", "directMembersCount": "3"},
+                {"name": "already_synced", "directMembersCount": "2"},
+                {"name": "ignore", "directMembersCount": "0"},
+            ]
+
+            self.sync_service._get_all_lists.return_value = [
+                GSuiteSyncService.GroupData(name="syncme", addresses=["someone"]),
+                GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
+                GSuiteSyncService.GroupData(name="ignore2", addresses=[]),
+            ]
+
+            self.directory_api.groups().list().execute.side_effect = [
+                {"groups": existing_groups[:1], "nextPageToken": "some_token"},
+                {"groups": existing_groups[1:]},
+            ]
+
+            self.sync_service.sync_mailing_lists()
+
+            self.sync_service.create_group.assert_called_with(
+                GSuiteSyncService.GroupData(name="syncme", addresses=["someone"])
+            )
+
+            self.sync_service.update_group.assert_called_with(
+                "already_synced", GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
+            )
+
+            self.sync_service.delete_group.assert_called_with("deleteme")
+
+        self.sync_service.create_group.reset_mock()
+        self.sync_service.update_group.reset_mock()
+        self.sync_service.delete_group.reset_mock()
+        self.sync_service._get_all_lists.reset_mock()
+
+        with self.subTest("Successful partial"):
+            self.sync_service.task = None
+
             existing_groups = [
                 {"name": "deleteme", "directMembersCount": "3"},
                 {"name": "already_synced", "directMembersCount": "2"},
@@ -495,53 +532,25 @@ class GSuiteSyncTestCase(TestCase):
                 ]
             )
 
-            self.sync_service.create_group.assert_awaited_with(
+            self.sync_service.create_group.assert_called_with(
                 GSuiteSyncService.GroupData(name="syncme", addresses=["someone"])
             )
 
-            self.sync_service.update_group.assert_awaited_with(
+            self.sync_service.update_group.assert_called_with(
                 "already_synced", GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
             )
 
-            self.sync_service.delete_group.assert_not_awaited()
-
-        self.sync_service.create_group.reset_mock()
-        self.sync_service.update_group.reset_mock()
-        self.sync_service.delete_group.reset_mock()
-
-        with self.subTest("Successful existing loop all lists"):
-            existing_groups = [
-                {"name": "deleteme", "directMembersCount": "3"},
-                {"name": "already_synced", "directMembersCount": "2"},
-                {"name": "ignore", "directMembersCount": "0"},
-            ]
-
-            self.sync_service._get_all_lists.return_value = [
-                GSuiteSyncService.GroupData(name="syncme", addresses=["someone"]),
-                GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
-                GSuiteSyncService.GroupData(name="ignore2", addresses=[]),
-            ]
-
-            self.directory_api.groups().list().execute.side_effect = [
-                {"groups": existing_groups[:1], "nextPageToken": "some_token"},
-                {"groups": existing_groups[1:]},
-            ]
-
-            asyncio.set_event_loop(asyncio.new_event_loop())
-
-            self.sync_service.sync_mailing_lists()
-
-            self.sync_service.create_group.assert_awaited_with(
-                GSuiteSyncService.GroupData(name="syncme", addresses=["someone"])
-            )
-
-            self.sync_service.update_group.assert_awaited_with(
-                "already_synced", GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
-            )
-
-            self.sync_service.delete_group.assert_awaited_with("deleteme")
+            self.sync_service.delete_group.assert_not_called()
 
         self.sync_service.create_group = original_create
         self.sync_service.update_group = original_update
         self.sync_service.delete_group = original_delete
         self.sync_service._get_all_lists = original_get_all_lists
+
+    def test_sync_mailing_lists_as_task(self):
+        original_sync_mailing_lists = self.sync_service.sync_mailing_lists
+        self.sync_service.sync_mailing_lists = MagicMock()
+        task_id = self.sync_service.sync_mailing_lists_as_task(lists=["test"])
+        self.assertTrue(Task.objects.filter(id=task_id).exists())
+        self.sync_service.sync_mailing_lists.assert_called_with(["test"])
+        self.sync_service.sync_mailing_lists = original_sync_mailing_lists

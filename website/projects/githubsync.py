@@ -1,11 +1,15 @@
 import logging
+import threading
 from datetime import datetime, timedelta
 
 from django.conf import settings
+from django.urls import reverse
 
 from github import Github, GithubException, GithubIntegration, UnknownObjectException
 
 from projects.models import ProjectToBeDeleted, Repository, RepositoryToBeDeleted
+
+from tasks.models import Task
 
 
 class GitHubAPITalker:
@@ -130,6 +134,9 @@ class GitHubSync:
         self.users_invited = 0
         self.users_removed = 0
         self.github = talker
+        self.task = Task.objects.create(
+            total=len(self.projects), completed=0, redirect_url=reverse("admin:projects_project_changelist")
+        )
 
     def error(self, msg):
         """Log an error message and set the fail state to True."""
@@ -404,6 +411,23 @@ class GitHubSync:
         self.delete_teams_and_repos_to_be_deleted()
         for project in self.projects:
             self.sync_project(project)
+            self.task.completed += 1
+            self.task.save()
+        self.task.fail = self.fail
+
+        self.task.success_message = (
+            f"A total of {self.teams_created} teams and {self.repos_created} repositories have been created, "
+            f"a total of {self.users_invited} employees have been invited to their teams and "
+            f"a total of {self.users_removed} users have been removed from GitHub teams. "
+            f"{self.repos_archived} repositories have been archived."
+        )
+        self.task.save()
+
+    def perform_asynchronous_sync(self):
+        """Sync all selected projects to GitHub asynchronously."""
+        thread = threading.Thread(target=self.perform_sync)
+        thread.start()
+        return self.task.id
 
 
 talker = GitHubAPITalker()

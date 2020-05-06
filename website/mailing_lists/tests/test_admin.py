@@ -53,11 +53,12 @@ class MailingListAdminTest(TestCase):
 
     @patch("mailing_lists.admin.GSuiteSyncService")
     def test_synchronize_all_mailing_lists_calls_ok(self, gsuite_sync_service):
-        mock_instance = MagicMock()
-        gsuite_sync_service.return_value = mock_instance
+        sync = MagicMock()
+        sync.sync_mailing_lists_as_task = MagicMock(return_value=0)
+        gsuite_sync_service.return_value = sync
         mailing_list_admin = MailingListAdmin(MailingList, AdminSite)
         mailing_list_admin.synchronize_all_mailing_lists(self.request)
-        mock_instance.sync_mailing_lists.assert_called_once()
+        sync.sync_mailing_lists_as_task.assert_called_once()
 
     @patch("mailing_lists.admin.GSuiteSyncService")
     def test_synchronize_selected_mailing_lists_calls_ok(self, gsuite_sync_service):
