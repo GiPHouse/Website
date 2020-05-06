@@ -63,6 +63,8 @@ class GSuiteSyncTestCase(TestCase):
 
         cls.sync_service = GSuiteSyncService(groups_settings_api=cls.settings_api, directory_api=cls.directory_api)
         cls.mailing_list = MailingList.objects.create(address="new_group", description="some description")
+        MailingList.objects.create(address="archive", archive_instead_of_delete=True).delete()
+        MailingList.objects.create(address="delete", archive_instead_of_delete=False).delete()
         MailingListAlias.objects.create(mailing_list=cls.mailing_list, address="alias2")
         ExtraEmailAddress.objects.create(mailing_list=cls.mailing_list, address=f"test2@{settings.GSUITE_DOMAIN}")
 
@@ -128,6 +130,12 @@ class GSuiteSyncTestCase(TestCase):
 
     def test_get_all_lists(self):
         self.assertEqual(len(self.sync_service._get_all_lists()), 1)
+
+    def test_get_lists_to_delete(self):
+        self.assertEqual(self.sync_service._get_list_names_to_delete(), ["delete"])
+
+    def test_get_lists_to_archive(self):
+        self.assertEqual(self.sync_service._get_list_names_to_archive(), ["archive"])
 
     def test_mailing_list_to_group(self):
         group = GSuiteSyncService.mailing_list_to_group(self.mailing_list)
@@ -302,9 +310,10 @@ class GSuiteSyncTestCase(TestCase):
             self.directory_api.members().list.assert_not_called()
             self.directory_api.groups().aliases().list.assert_not_called()
 
-    def test_delete_group(self):
+    def test_archive_group(self):
         with self.subTest("Successful"):
-            self.sync_service.delete_group("new_group")
+            success = self.sync_service.archive_group("new_group")
+            self.assertTrue(success)
 
             self.settings_api.groups().patch.assert_called_once_with(
                 body={"archiveOnly": "true", "whoCanPostMessage": "NONE_CAN_POST"},
@@ -320,10 +329,25 @@ class GSuiteSyncTestCase(TestCase):
         with self.subTest("Failure"):
             self.settings_api.groups().patch().execute.side_effect = HttpError(Response({"status": 500}), bytes())
 
-            self.sync_service.delete_group("new_group")
+            success = self.sync_service.archive_group("new_group")
+            self.assertFalse(success)
 
             self.directory_api.members().list.assert_not_called()
             self.directory_api.groups().aliases().list.assert_not_called()
+
+    def test_delete_group(self):
+        with self.subTest("Successful"):
+            success = self.sync_service.delete_group("new_group")
+            self.assertTrue(success)
+            self.directory_api.groups().delete.assert_called()
+
+        self.directory_api.reset_mock()
+
+        with self.subTest("Failure"):
+            self.directory_api.groups().delete().execute.side_effect = HttpError(Response({"status": 500}), bytes())
+
+            success = self.sync_service.delete_group("new_group")
+            self.assertFalse(success)
 
     def test_update_group_aliases(self):
         with self.subTest("Error getting existing list"):
@@ -421,13 +445,17 @@ class GSuiteSyncTestCase(TestCase):
     def test_sync_mailing_lists(self):
         original_create = self.sync_service.create_group
         original_update = self.sync_service.update_group
+        original_archive = self.sync_service.archive_group
         original_delete = self.sync_service.delete_group
         original_get_all_lists = self.sync_service._get_all_lists
 
         self.sync_service.create_group = MagicMock()
         self.sync_service.update_group = MagicMock()
+        self.sync_service.archive_group = MagicMock()
         self.sync_service.delete_group = MagicMock()
         self.sync_service._get_all_lists = MagicMock()
+        self.sync_service._get_list_names_to_archive = MagicMock()
+        self.sync_service._get_list_names_to_delete = MagicMock()
 
         with self.subTest("Error getting existing list"):
             self.directory_api.groups().list().execute.side_effect = HttpError(Response({"status": 500}), bytes())
@@ -438,16 +466,20 @@ class GSuiteSyncTestCase(TestCase):
         with self.subTest("Successful defaults without task"):
             self.sync_service.task = None
             existing_groups = [
-                {"name": "deleteme", "directMembersCount": "3"},
+                {"name": "delete_me", "directMembersCount": "3"},
                 {"name": "already_synced", "directMembersCount": "2"},
                 {"name": "ignore", "directMembersCount": "0"},
             ]
 
             self.sync_service._get_all_lists.return_value = [
-                GSuiteSyncService.GroupData(name="syncme", addresses=["someone"]),
+                GSuiteSyncService.GroupData(name="sync_me", addresses=["someone"]),
                 GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
                 GSuiteSyncService.GroupData(name="ignore2", addresses=[]),
             ]
+
+            self.sync_service._get_list_names_to_archive.return_value = ["archive_me", "already_archived"]
+
+            self.sync_service._get_list_names_to_delete.return_value = ["delete_me", "already_deleted"]
 
             self.directory_api.groups().list().execute.side_effect = [
                 {"groups": existing_groups[:1], "nextPageToken": "some_token"},
@@ -457,14 +489,14 @@ class GSuiteSyncTestCase(TestCase):
             self.sync_service.sync_mailing_lists()
 
             self.sync_service.create_group.assert_called_with(
-                GSuiteSyncService.GroupData(name="syncme", addresses=["someone"])
+                GSuiteSyncService.GroupData(name="sync_me", addresses=["someone"])
             )
 
             self.sync_service.update_group.assert_called_with(
                 "already_synced", GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
             )
 
-            self.sync_service.delete_group.assert_called_with("deleteme")
+            self.sync_service.delete_group.assert_called_with("delete_me")
 
         self.sync_service.create_group.reset_mock()
         self.sync_service.update_group.reset_mock()
@@ -477,16 +509,21 @@ class GSuiteSyncTestCase(TestCase):
             )
 
             existing_groups = [
-                {"name": "deleteme", "directMembersCount": "3"},
+                {"name": "delete_me", "directMembersCount": "3"},
+                {"name": "archive_me", "directMembersCount": "3"},
                 {"name": "already_synced", "directMembersCount": "2"},
-                {"name": "ignore", "directMembersCount": "0"},
+                {"name": "already_archived", "directMembersCount": "0"},
             ]
 
             self.sync_service._get_all_lists.return_value = [
-                GSuiteSyncService.GroupData(name="syncme", addresses=["someone"]),
+                GSuiteSyncService.GroupData(name="sync_me", addresses=["someone"]),
                 GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
                 GSuiteSyncService.GroupData(name="ignore2", addresses=[]),
             ]
+
+            self.sync_service._get_list_names_to_archive.return_value = ["archive_me", "already_archived"]
+
+            self.sync_service._get_list_names_to_delete.return_value = ["delete_me", "already_deleted"]
 
             self.directory_api.groups().list().execute.side_effect = [
                 {"groups": existing_groups[:1], "nextPageToken": "some_token"},
@@ -496,17 +533,20 @@ class GSuiteSyncTestCase(TestCase):
             self.sync_service.sync_mailing_lists()
 
             self.sync_service.create_group.assert_called_with(
-                GSuiteSyncService.GroupData(name="syncme", addresses=["someone"])
+                GSuiteSyncService.GroupData(name="sync_me", addresses=["someone"])
             )
 
             self.sync_service.update_group.assert_called_with(
                 "already_synced", GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
             )
 
-            self.sync_service.delete_group.assert_called_with("deleteme")
+            self.sync_service.archive_group.assert_called_once_with("archive_me")
+
+            self.sync_service.delete_group.assert_called_once_with("delete_me")
 
         self.sync_service.create_group.reset_mock()
         self.sync_service.update_group.reset_mock()
+        self.sync_service.archive_group.reset_mock()
         self.sync_service.delete_group.reset_mock()
         self.sync_service._get_all_lists.reset_mock()
 
@@ -514,10 +554,14 @@ class GSuiteSyncTestCase(TestCase):
             self.sync_service.task = None
 
             existing_groups = [
-                {"name": "deleteme", "directMembersCount": "3"},
+                {"name": "delete_me", "directMembersCount": "3"},
                 {"name": "already_synced", "directMembersCount": "2"},
                 {"name": "ignore", "directMembersCount": "0"},
             ]
+
+            self.sync_service._get_list_names_to_archive.return_value = ["archive_me", "already_archived"]
+
+            self.sync_service._get_list_names_to_delete.return_value = ["delete_me", "already_deleted"]
 
             self.directory_api.groups().list().execute.side_effect = [
                 {"groups": existing_groups[:1], "nextPageToken": "some_token"},
@@ -526,24 +570,71 @@ class GSuiteSyncTestCase(TestCase):
 
             self.sync_service.sync_mailing_lists(
                 [
-                    GSuiteSyncService.GroupData(name="syncme", addresses=["someone"]),
+                    GSuiteSyncService.GroupData(name="sync_me", addresses=["someone"]),
                     GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
                     GSuiteSyncService.GroupData(name="ignore2", addresses=[]),
                 ]
             )
 
             self.sync_service.create_group.assert_called_with(
-                GSuiteSyncService.GroupData(name="syncme", addresses=["someone"])
+                GSuiteSyncService.GroupData(name="sync_me", addresses=["someone"])
             )
 
             self.sync_service.update_group.assert_called_with(
                 "already_synced", GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
             )
 
+            self.sync_service.archive_group.assert_not_called()
             self.sync_service.delete_group.assert_not_called()
+
+        self.sync_service.create_group.reset_mock()
+        self.sync_service.update_group.reset_mock()
+        self.sync_service.archive_group.reset_mock()
+        self.sync_service.delete_group.reset_mock()
+        self.sync_service._get_all_lists.reset_mock()
+
+        with self.subTest("Non-success archiving and deleting"):
+            self.sync_service.task = self.task = Task.objects.create(
+                total=0, completed=0, redirect_url=reverse("admin:mailing_lists_mailinglist_changelist")
+            )
+
+            existing_groups = [
+                {"name": "delete_me", "directMembersCount": "3"},
+                {"name": "archive_me", "directMembersCount": "3"},
+                {"name": "already_synced", "directMembersCount": "2"},
+                {"name": "already_archived", "directMembersCount": "0"},
+            ]
+
+            self.sync_service._get_all_lists.return_value = [
+                GSuiteSyncService.GroupData(name="sync_me", addresses=["someone"]),
+                GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
+                GSuiteSyncService.GroupData(name="ignore2", addresses=[]),
+            ]
+
+            self.sync_service._get_list_names_to_archive.return_value = ["archive_me", "already_archived"]
+
+            self.sync_service._get_list_names_to_delete.return_value = ["delete_me", "already_deleted"]
+
+            self.directory_api.groups().list().execute.side_effect = [
+                {"groups": existing_groups[:1], "nextPageToken": "some_token"},
+                {"groups": existing_groups[1:]},
+            ]
+
+            self.sync_service.archive_group.return_value = False
+            self.sync_service.delete_group.return_value = False
+
+            self.sync_service.sync_mailing_lists()
+
+            self.sync_service.archive_group.assert_called_once_with("archive_me")
+
+            self.sync_service.delete_group.assert_called_once_with("delete_me")
+            # TODO: Add actual checks for this test case
+            self.settings_api.reset_mock()
+            self.directory_api.reset_mock()
 
         self.sync_service.create_group = original_create
         self.sync_service.update_group = original_update
+        self.sync_service.archive_group = original_archive
         self.sync_service.delete_group = original_delete
         self.sync_service._get_all_lists = original_get_all_lists
 

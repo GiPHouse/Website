@@ -32,7 +32,7 @@ from googleapiclient.discovery import build
 from googleapiclient.discovery_cache.base import Cache
 from googleapiclient.errors import HttpError
 
-from mailing_lists.models import MailingList
+from mailing_lists.models import MailingList, MailingListToBeDeleted
 
 from tasks.models import Task
 
@@ -283,11 +283,13 @@ class GSuiteSyncService:
                 logger.exception(f"Could not insert alias {insert_alias} for list {group.name}")
         logger.info(f"List {group.name} aliases updated")
 
-    def delete_group(self, name):
+    def archive_group(self, name):
         """
-        Set the specified list to unused, this is not a real delete.
+        Archive the given mailing list.
 
         :param name: Group name
+
+        :return: True if the operation succeeded, False otherwise.
         """
         try:
             self.groups_settings_api.groups().patch(
@@ -296,9 +298,27 @@ class GSuiteSyncService:
             ).execute()
             self._update_group_members(GSuiteSyncService.GroupData(name, addresses=[]))
             self._update_group_aliases(GSuiteSyncService.GroupData(name, aliases=[]))
+            logger.info(f"List {name} archived")
+            return True
+        except HttpError:
+            logger.exception(f"Could not archive list {name}")
+            return False
+
+    def delete_group(self, name):
+        """
+        Delete the given mailing list.
+
+        :param name: Group name
+
+        :return: True if the operation succeeded, False otherwise.
+        """
+        try:
+            self.directory_api.groups().delete(groupKey=f"{name}@{settings.GSUITE_DOMAIN}",).execute()
             logger.info(f"List {name} deleted")
+            return True
         except HttpError:
             logger.exception(f"Could not delete list {name}")
+            return False
 
     def _update_group_members(self, group):
         """
@@ -369,6 +389,22 @@ class GSuiteSyncService:
         """
         return [self.mailing_list_to_group(l) for l in MailingList.objects.all()]
 
+    def _get_list_names_to_delete(self):
+        """
+        Get all lists to be deleted that were deleted in Django since the last synchronization.
+
+        :return: List of the names of all mailing lists that should be deleted.
+        """
+        return [l.address for l in MailingListToBeDeleted.objects.filter(archive_instead_of_delete=False)]
+
+    def _get_list_names_to_archive(self):
+        """
+        Get all lists to be archived that were deleted in Django since the last synchronization.
+
+        :return: List of the names of all mailing lists that should be archived.
+        """
+        return [l.address for l in MailingListToBeDeleted.objects.filter(archive_instead_of_delete=True)]
+
     def sync_mailing_lists(self, lists=None):
         """
         Sync mailing lists with GSuite.
@@ -400,12 +436,15 @@ class GSuiteSyncService:
 
         new_groups = [g.name for g in lists if len(g.addresses) > 0]
 
-        remove_list = [x for x in existing_groups if x not in new_groups]
+        list_names_to_remove = self._get_list_names_to_delete()
+        list_names_to_archive = self._get_list_names_to_archive()
         insert_list = [x for x in new_groups if x not in existing_groups]
 
         if self.task:
-            self.task.total = len(remove_list) + len(
-                [l.name in insert_list and l.name not in archived_groups or len(l.addresses) > 0 for l in lists]
+            self.task.total = (
+                len(list_names_to_archive)
+                + len(list_names_to_remove)
+                + len([l.name in insert_list and l.name not in archived_groups or len(l.addresses) > 0 for l in lists])
             )
             self.task.completed = 0
             self.task.save()
@@ -423,8 +462,22 @@ class GSuiteSyncService:
                     self.task.save()
 
         if remove_lists:
-            for l in remove_list:
-                self.delete_group(l)
+            for list_name in list_names_to_remove:
+                success = True
+                if list_name in existing_groups or list_name in archived_groups:
+                    success = self.delete_group(list_name)
+                if success:
+                    MailingListToBeDeleted.objects.filter(address=list_name).delete()
+                if self.task:
+                    self.task.completed += 1
+                    self.task.save()
+
+            for list_name in list_names_to_archive:
+                success = True
+                if list_name in existing_groups:
+                    success = self.archive_group(list_name)
+                if success:
+                    MailingListToBeDeleted.objects.filter(address=list_name).delete()
                 if self.task:
                     self.task.completed += 1
                     self.task.save()

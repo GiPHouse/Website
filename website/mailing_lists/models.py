@@ -2,6 +2,8 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 
 from courses.models import Course, Semester
 
@@ -28,6 +30,9 @@ class MailingList(models.Model):
     description = models.CharField(blank=True, max_length=100)
     projects = models.ManyToManyField(Project, blank=True)
     users = models.ManyToManyField(Employee, blank=True)
+    archive_instead_of_delete = models.BooleanField(
+        verbose_name="Archive instead of deleting from Gsuite", default=True
+    )
 
     def validate_unique(self, exclude=None):
         """Validate uniqueness of the mailing list email address."""
@@ -70,6 +75,29 @@ class MailingList(models.Model):
             extra_emails.append(extra.address)
 
         return set(course_emails + project_emails + user_emails + extra_emails)
+
+
+class MailingListToBeDeleted(models.Model):
+    """A mailing list that has been deleted in Django and must be deleted or archived in Gsuite in the future."""
+
+    def __str__(self):
+        """Return mailing list address."""
+        return self.address
+
+    address = models.CharField(max_length=60, primary_key=True)
+    archive_instead_of_delete = models.BooleanField(default=True)
+
+
+@receiver(pre_delete, sender=MailingList)
+def handle_mailing_list_delete(instance, **kwargs):
+    """Handle the MailingList pre_delete signal.
+
+    When a mailing list is deleted, this method creates a shadow model which is used by the Gsuite synchronization to
+    either archive or fully delete the corresponding mailing list in Gsuite.
+    """
+    MailingListToBeDeleted.objects.update_or_create(
+        address=instance.address, archive_instead_of_delete=instance.archive_instead_of_delete
+    )
 
 
 class ExtraEmailAddress(models.Model):
