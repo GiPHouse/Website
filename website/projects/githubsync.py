@@ -288,11 +288,11 @@ class GitHubSync:
 
         if not github_team.has_in_repos(github_repo):
             github_team.add_to_repos(github_repo)
-            self.info(f"Added team f{github_team.name} to repository {github_repo.name}")
+            self.info(f"Added team {github_team.name} to repository {github_repo.name}")
 
         if not github_team.get_repo_permission(github_repo).admin:
             github_team.set_repo_permission(github_repo, "admin")
-            self.info(f"Gave admin permissions to team f{github_team.name} for repository {github_repo.name}")
+            self.info(f"Gave admin permissions to team {github_team.name} for repository {github_repo.name}")
 
         if github_repo.name != repo.name:
             old_name = github_repo.name
@@ -351,7 +351,7 @@ class GitHubSync:
         github_team = self.github.get_team(repo.project.github_team_id)
         github_team.add_to_repos(github_repo)
         github_team.set_repo_permission(github_repo, "admin")
-        self.info(f"Added team f{github_team.name} to repository {repo.name}")
+        self.info(f"Added team {github_team.name} to repository {repo.name}")
         return github_repo
 
     def archive_repos_marked_as_archived(self, project_team):
