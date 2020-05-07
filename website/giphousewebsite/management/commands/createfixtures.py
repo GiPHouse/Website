@@ -188,7 +188,7 @@ class Command(BaseCommand):
     def create_student(self):
         """Create one fake student."""
         user = User.objects.create(
-            email=fake.ascii_free_email(),
+            email=fake.safe_email(),
             first_name=fake.first_name(),
             last_name=fake.last_name(),
             github_id=random.randint(1, 999_999),
