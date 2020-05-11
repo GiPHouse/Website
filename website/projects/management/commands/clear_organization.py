@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 
 from projects import githubsync
-from projects.models import Project, Repository
+from projects.models import Project, ProjectToBeDeleted, Repository, RepositoryToBeDeleted
 
 
 class Command(BaseCommand):
@@ -24,3 +24,5 @@ class Command(BaseCommand):
                 githubsync.talker.delete_all_repositories_from_organization()
                 Repository.objects.update(github_repo_id=None)
                 Project.objects.update(github_team_id=None)
+                RepositoryToBeDeleted.objects.all().delete()
+                ProjectToBeDeleted.objects.all().delete()
