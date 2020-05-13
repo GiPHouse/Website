@@ -82,6 +82,11 @@ class Project(models.Model):
         """Check if a project is archived."""
         return not self.repository_set.filter(is_archived=False).exists()
 
+    @property
+    def number_of_repos(self):
+        """Return the number of repositories for a project."""
+        return self.repository_set.count()
+
 
 class ProjectToBeDeleted(models.Model):
     """Projects that are deleted in Django, but still need to be deleted on GitHub at the next sync."""

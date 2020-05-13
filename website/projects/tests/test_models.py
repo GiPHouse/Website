@@ -116,3 +116,10 @@ class EmployeeQueryTest(TestCase):
 
         self.repo2.delete()
         self.assertTrue(RepositoryToBeDeleted.objects.get(github_repo_id=87654321))
+
+    def test_number_of_repos(self):
+        project = Project.objects.create(name="testproject", semester=self.semester)
+        self.assertEqual(project.number_of_repos, 0)
+        Repository.objects.create(name="testrepository1", project=project)
+        Repository.objects.create(name="testrepository2", project=project)
+        self.assertEqual(project.number_of_repos, 2)

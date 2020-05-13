@@ -33,6 +33,24 @@ class ProjectAdminSemesterFilter(AutocompleteFilter):
     field_name = "semester"
 
 
+class ProjectAdminArchivedFilter(admin.SimpleListFilter):
+    """Filter class to filter Projects on archived status."""
+
+    title = "Has archived repositories"
+    parameter_name = "repo_archived"
+
+    def lookups(self, request, model_admin):
+        """Get the values to filter on."""
+        return (
+            (1, True),
+            (0, False),
+        )
+
+    def queryset(self, request, queryset):
+        """Return the queryset required for the selected value."""
+        return queryset.filter(repository__is_archived=self.value()).distinct()
+
+
 class RepositoryInlineFormset(forms.models.BaseInlineFormSet):
     """Custom formset for projects and their repositories."""
 
@@ -68,12 +86,22 @@ class ProjectAdmin(admin.ModelAdmin):
     """Custom admin for projects."""
 
     form = ProjectAdminForm
-    list_filter = [ProjectAdminClientFilter, ProjectAdminSemesterFilter]
+    list_filter = [ProjectAdminClientFilter, ProjectAdminSemesterFilter, ProjectAdminArchivedFilter]
+    list_display = ["name", "client", "is_archived", "number_of_repos"]
+
     actions = ["create_mailing_lists", "synchronise_to_GitHub", "archive_all_repositories"]
     inlines = [RepositoryInline]
 
     search_fields = ("name",)
     readonly_fields = ("github_team_id",)
+
+    def is_archived(self, instance):
+        """Return the archived status of a Project instance (required to display property as check mark)."""
+        return instance.is_archived
+
+    # Instruct Django admin to display is_archived as check mark
+    is_archived.boolean = True
+    is_archived.short_description = "Project archived"
 
     def archive_all_repositories(self, request, queryset):
         """Archive all the repositories for the selected projects."""

@@ -247,3 +247,7 @@ class GetProjectsTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
+
+    def test_is_archived(self):
+        self.assertTrue(self.project_admin.is_archived(self.project_archived))
+        self.assertFalse(self.project_admin.is_archived(self.project))
