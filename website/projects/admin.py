@@ -174,6 +174,7 @@ class ProjectAdmin(admin.ModelAdmin):
 
         js = (
             "js/jquery-3.4.1.slim.min.js",
+            "js/slugify.js",
             "js/repo_naming.js",
         )
 
