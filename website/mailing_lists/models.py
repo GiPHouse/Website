@@ -27,7 +27,7 @@ class MailingList(models.Model):
     address = models.CharField(
         max_length=60, validators=[email_local_part_validator, reserved_addresses_validator], unique=True
     )
-    description = models.CharField(blank=True, max_length=100)
+    description = models.CharField(blank=True, max_length=150)
     projects = models.ManyToManyField(Project, blank=True)
     users = models.ManyToManyField(Employee, blank=True)
     archive_instead_of_delete = models.BooleanField(

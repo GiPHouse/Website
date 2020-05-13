@@ -119,8 +119,7 @@ class ProjectAdmin(admin.ModelAdmin):
             try:
                 mailing_list = MailingList.objects.create(
                     address=address,
-                    description=f"Mailinglist '{address}@{settings.GSUITE_DOMAIN}' for  GiPHouse project"
-                    f" '{project.name}' in the '{project.semester}' semester",
+                    description=f"Mailing list for project '{project.name}' in the '{project.semester}' semester.",
                 )
 
                 mailing_list.projects.add(project)
