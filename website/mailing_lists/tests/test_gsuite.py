@@ -34,16 +34,6 @@ from mailing_lists.models import ExtraEmailAddress, MailingList, MailingListAlia
 from tasks.models import Task
 
 
-def assert_not_called_with(self, *args, **kwargs):
-    try:
-        self.assert_any_call(*args, **kwargs)
-    except AssertionError:
-        return
-
-
-MagicMock.assert_not_called_with = assert_not_called_with
-
-
 class MemoryCacheTestCase(TestCase):
     def test_memory_cache(self):
         mc = MemoryCache()
@@ -371,26 +361,12 @@ class GSuiteSyncTestCase(TestCase):
 
             self.directory_api.groups().aliases().list().execute.side_effect = [{"aliases": existing_aliases}]
 
-            self.directory_api.groups().aliases().insert().execute.side_effect = [
-                "success",
-                HttpError(Response({"status": 500}), bytes()),
-            ]
-
-            self.directory_api.groups().aliases().delete().execute.side_effect = [
-                "success",
-                HttpError(Response({"status": 500}), bytes()),
-            ]
+            self.directory_api.new_batch_http_request = MagicMock()
+            self.directory_api.new_batch_http_request().execute.side_effect = HttpError(
+                Response({"status": 500}), bytes()
+            )
 
             self.sync_service._update_group_aliases(group_data)
-
-            self.directory_api.groups().aliases().insert.assert_any_call(
-                groupKey=f"update_group@{settings.GSUITE_DOMAIN}",
-                body={"alias": f"not_synced@{settings.GSUITE_DOMAIN}"},
-            )
-
-            self.directory_api.groups().aliases().delete.assert_any_call(
-                groupKey=f"update_group@{settings.GSUITE_DOMAIN}", alias=f"deleteme@{settings.GSUITE_DOMAIN}",
-            )
 
     def test_update_group_members(self):
         with self.subTest("Error getting existing list"):
@@ -417,30 +393,12 @@ class GSuiteSyncTestCase(TestCase):
                 {"members": existing_aliases[1:]},
             ]
 
-            self.directory_api.members().insert().execute.side_effect = [
-                "success",
-                HttpError(Response({"status": 500}), bytes()),
-            ]
-
-            self.directory_api.members().delete().execute.side_effect = [
-                "success",
-                HttpError(Response({"status": 500}), bytes()),
-            ]
+            self.directory_api.new_batch_http_request = MagicMock()
+            self.directory_api.new_batch_http_request().execute.side_effect = HttpError(
+                Response({"status": 500}), bytes()
+            )
 
             self.sync_service._update_group_members(group_data)
-
-            self.directory_api.members().insert.assert_any_call(
-                groupKey=f"update_group@{settings.GSUITE_DOMAIN}",
-                body={"email": "not_synced@example.com", "role": "MEMBER"},
-            )
-
-            self.directory_api.members().delete.assert_any_call(
-                groupKey=f"update_group@{settings.GSUITE_DOMAIN}", memberKey="deleteme@example.com",
-            )
-
-            self.directory_api.members().delete.assert_not_called_with(
-                groupKey=f"update_group@{settings.GSUITE_DOMAIN}", memberKey="donotdelete@example.com",
-            )
 
     def test_sync_mailing_lists(self):
         original_create = self.sync_service.create_group

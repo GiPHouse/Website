@@ -42,4 +42,5 @@ uwsgi --chdir=/giphouse/src/website \
     --logto2=/giphouse/log/uwsgi.log \
     --ignore-sigpipe \
     --ignore-write-errors \
-    --disable-write-exception
+    --disable-write-exception \
+    --enable-threads

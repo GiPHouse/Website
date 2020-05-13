@@ -185,6 +185,7 @@ django = ">=2.0"
 reference = "cca9fd171f8bd9b3c37602d7fe2ef56a83bed419"
 type = "git"
 url = "https://github.com/farhan0581/django-admin-autocomplete-filter.git"
+
 [[package]]
 category = "main"
 description = "A helper class for handling configuration defaults of packaged apps gracefully."
