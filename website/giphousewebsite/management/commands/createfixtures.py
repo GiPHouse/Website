@@ -1,3 +1,4 @@
+import logging
 import random
 import string
 
@@ -55,6 +56,15 @@ DEFAULTS = {
     "mailing_list": 3,
 }
 THINGS = list(DEFAULTS.keys())
+
+
+def filter_log_record_200_404(record):
+    """Prevent 200 and 404 responses from being logged by Github.py."""
+    # record.args is the list of arguments used to create the log entry; args[6] is the response status code
+    if record.args[6] in [200, 404]:
+        return 0
+    else:
+        return 1
 
 
 class Command(BaseCommand):
@@ -180,10 +190,17 @@ class Command(BaseCommand):
 
     def generate_fake_github_username(self):
         """Generate a random username that isn't an existing Github username."""
+        # Filter 200 and 404 responses from log to remove expected events from console output
+        logger = logging.getLogger("github.Requester")
+        logger.addFilter(filter_log_record_200_404)
+
         github_username = "".join(random.choices(string.ascii_letters + string.digits, k=20))
-        while githubsync.talker.username_exists(github_username):
-            github_username = "".join(random.choices(string.ascii_letters + string.digits, k=20))
-        return github_username
+        try:
+            while githubsync.talker.username_exists(github_username):
+                github_username = "".join(random.choices(string.ascii_letters + string.digits, k=20))
+            return github_username
+        finally:
+            logger.removeFilter(filter_log_record_200_404)
 
     def create_student(self):
         """Create one fake student."""
