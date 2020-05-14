@@ -56,11 +56,32 @@ class Step2Form(forms.Form):
         initial=Registration.EXPERIENCE_BEGINNER,
     )
 
-    project1 = forms.ModelChoiceField(label="First project preference", queryset=None)
+    project1 = forms.ModelChoiceField(label="First project preference", queryset=None, required=False)
 
-    project2 = forms.ModelChoiceField(label="Second project preference", queryset=None)
+    project2 = forms.ModelChoiceField(label="Second project preference", queryset=None, required=False)
 
-    project3 = forms.ModelChoiceField(label="Third project preference", queryset=None)
+    project3 = forms.ModelChoiceField(label="Third project preference", queryset=None, required=False)
+
+    partner1 = forms.CharField(
+        label="First project partner preference",
+        widget=forms.TextInput(attrs={"placeholder": "e.g. Piet Janssen"}),
+        max_length=100,
+        required=False,
+    )
+
+    partner2 = forms.CharField(
+        label="Second project partner preference",
+        widget=forms.TextInput(attrs={"placeholder": ""}),
+        max_length=100,
+        required=False,
+    )
+
+    partner3 = forms.CharField(
+        label="Third project partner preference",
+        widget=forms.TextInput(attrs={"placeholder": ""}),
+        max_length=100,
+        required=False,
+    )
 
     background = forms.CharField(
         label="What is your educational background?",

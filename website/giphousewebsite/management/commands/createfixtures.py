@@ -188,7 +188,8 @@ class Command(BaseCommand):
                 is_archived=archived,
             )
 
-    def generate_fake_github_username(self):
+    @staticmethod
+    def generate_fake_github_username():
         """Generate a random username that isn't an existing Github username."""
         # Filter 200 and 404 responses from log to remove expected events from console output
         logger = logging.getLogger("github.Requester")
@@ -201,6 +202,25 @@ class Command(BaseCommand):
             return github_username
         finally:
             logger.removeFilter(filter_log_record_200_404)
+
+    @staticmethod
+    def generate_partner_preference(semester):
+        """Generate a partner preference string of a full name, full name with typo, random string or None value."""
+        choices = ["".join(random.choices(string.ascii_letters + string.digits, k=10)), None]
+        user = User.objects.filter(registration__semester=semester).order_by("?").first()
+        if user:
+            existing_user_name = user.get_full_name()
+            choices.append(existing_user_name)
+
+            # Swap two letters in an existing name
+            i = random.randint(1, len(existing_user_name) - 1)
+            c = list(existing_user_name.lower())
+            c[i], c[i - 1] = c[i - 1], c[i]
+            name_with_typo = "".join(c)
+
+            choices.append(name_with_typo)
+
+        return random.choice(choices)
 
     def create_student(self):
         """Create one fake student."""
@@ -222,6 +242,9 @@ class Command(BaseCommand):
             preference1=Project.objects.order_by("?").first(),
             preference2=Project.objects.order_by("?").first(),
             preference3=Project.objects.order_by("?").first(),
+            partner_preference1=self.generate_partner_preference(project.semester),
+            partner_preference2=self.generate_partner_preference(project.semester),
+            partner_preference3=self.generate_partner_preference(project.semester),
             comments=random.choice([fake.sentence(), ""]),
             experience=Registration.EXPERIENCE_INTERMEDIATE,
         )

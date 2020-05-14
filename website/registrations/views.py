@@ -101,6 +101,9 @@ class Step2View(FormView):
                 preference1=form.cleaned_data["project1"],
                 preference2=form.cleaned_data["project2"],
                 preference3=form.cleaned_data["project3"],
+                partner_preference1=form.cleaned_data["partner1"],
+                partner_preference2=form.cleaned_data["partner2"],
+                partner_preference3=form.cleaned_data["partner3"],
                 comments=form.cleaned_data["comments"],
                 education_background=form.cleaned_data["background"],
             )

@@ -115,6 +115,10 @@ class Step2Test(TestCase):
             semester=cls.semester, name="project3", description="Test Project 3"
         )
 
+        cls.project_partner_preference1 = "Piet Janssen"
+        cls.project_partner_preference2 = "FirstTest LastTest"
+        cls.project_partner_preference3 = ""
+
         cls.se = Course.objects.se()
 
     def setUp(self):
@@ -165,6 +169,9 @@ class Step2Test(TestCase):
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,
+                "partner1": self.project_partner_preference1,
+                "partner2": self.project_partner_preference2,
+                "partner3": self.project_partner_preference3,
             },
             follow=True,
         )
@@ -188,6 +195,9 @@ class Step2Test(TestCase):
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,
+                "partner1": self.project_partner_preference1,
+                "partner2": self.project_partner_preference2,
+                "partner3": self.project_partner_preference3,
             },
             follow=True,
         )
@@ -240,6 +250,9 @@ class Step2Test(TestCase):
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,
+                "partner1": self.project_partner_preference1,
+                "partner2": self.project_partner_preference2,
+                "partner3": self.project_partner_preference3,
             },
         )
         self.assertContains(response, "User already registered for this semester.")
@@ -274,6 +287,9 @@ class Step2Test(TestCase):
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,
+                "partner1": self.project_partner_preference1,
+                "partner2": self.project_partner_preference2,
+                "partner3": self.project_partner_preference3,
             },
             follow=True,
         )
@@ -312,6 +328,9 @@ class Step2Test(TestCase):
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,
+                "partner1": self.project_partner_preference1,
+                "partner2": self.project_partner_preference2,
+                "partner3": self.project_partner_preference3,
             },
             follow=True,
         )
@@ -336,6 +355,9 @@ class Step2Test(TestCase):
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,
+                "partner1": self.project_partner_preference1,
+                "partner2": self.project_partner_preference2,
+                "partner3": self.project_partner_preference3,
             },
             follow=True,
         )
