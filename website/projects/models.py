@@ -112,7 +112,7 @@ class Repository(models.Model):
 
         verbose_name_plural = "Repositories"
 
-    name = models.CharField("name", unique=True, max_length=50, validators=[validators.validate_slug])
+    name = models.CharField("name", unique=True, max_length=55, validators=[validators.validate_slug])
     project = models.ForeignKey(Project, blank=True, null=True, on_delete=models.CASCADE)
 
     github_repo_id = models.IntegerField(
