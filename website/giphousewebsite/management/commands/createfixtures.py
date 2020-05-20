@@ -154,7 +154,7 @@ class Command(BaseCommand):
             .exclude(project_count__gte=2, pk=first_semester.pk)
             .first()
         )
-        repo_count = semester.project_set.count() % 3
+        repo_count = semester.project_set.count() % 3 + 1
         project = Project.objects.create(
             name=(
                 fake.word().capitalize()
@@ -180,7 +180,7 @@ class Command(BaseCommand):
         )
         for i in range(repo_count):
             suffix = "" if i == 0 else f"-{i}"
-            archived = True if i == 0 else False
+            archived = i % 3
             Repository.objects.create(
                 name=f"{slugify(project.name)}-{semester.get_season_display()}-{semester.year}{suffix}",
                 project=project,

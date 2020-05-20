@@ -80,7 +80,11 @@ class Project(models.Model):
     @property
     def is_archived(self):
         """Check if a project is archived."""
-        return not self.repository_set.filter(is_archived=False).exists()
+        archived = self.repository_set.values_list("is_archived").order_by("is_archived")
+        if archived:
+            return archived.first()[0]
+        else:
+            return Repository.Archived.CONFIRMED
 
     @property
     def number_of_repos(self):
@@ -119,15 +123,16 @@ class Repository(models.Model):
         null=True, blank=True, unique=True, help_text="This is the id of the GitHub repository.",
     )
 
-    is_archived = models.BooleanField(
-        blank=False,
-        null=False,
-        default=False,
-        help_text="This is the 'archived' value of the GitHub repository. Archived repositories will be set to"
-        "archived on GitHub, meaning they are read only. Reverting the archived value of a repository will have to be "
-        "done manually in GitHub, if the un-archiving a repository is desired.",
-    )
+    class Archived(models.IntegerChoices):
+        """Archived state for repositories."""
 
+        NOT_ARCHIVED = 0, "Not archived"
+        PENDING = 1, "To be archived"
+        CONFIRMED = 2, "Archived"
+
+    is_archived = models.IntegerField(
+        blank=False, null=False, choices=Archived.choices, default=Archived.NOT_ARCHIVED,
+    )
     private = models.BooleanField(default=True)
 
     def __str__(self):

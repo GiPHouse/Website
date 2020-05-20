@@ -11,7 +11,7 @@ from courses.models import Course, Semester
 
 from mailing_lists.models import MailingList
 
-from projects.admin import ProjectAdmin
+from projects.admin import ProjectAdmin, ProjectAdminArchivedFilter
 from projects.forms import ProjectAdminForm
 from projects.models import Project, Repository
 
@@ -37,7 +37,7 @@ class GetProjectsTest(TestCase):
         cls.repo1 = Repository.objects.create(name="testrepo1", project=cls.project)
         cls.repo2 = Repository.objects.create(name="testrepo2", project=cls.project)
         cls.repo_archived = Repository.objects.create(
-            name="testrepo-archived", project=cls.project_archived, is_archived=True,
+            name="testrepo-archived", project=cls.project_archived, is_archived=Repository.Archived.CONFIRMED,
         )
 
         cls.mailing_list = MailingList.objects.create(address="test", description=cls.project.description)
@@ -217,6 +217,11 @@ class GetProjectsTest(TestCase):
         self.project_admin.synchronise_to_GitHub = MagicMock()
         self.project_admin.synchronise_all_projects_to_GitHub(self.request)
         self.project_admin.synchronise_to_GitHub.assert_called_once()
+        args = self.project_admin.synchronise_to_GitHub.call_args.args
+        self.assertEqual(args[0], self.request)
+        self.assertEqual(len(args[1]), 1)
+        self.assertIn(self.project, args[1])
+        self.assertNotIn(self.project_archived, args[1])
         self.project_admin.synchronise_to_GitHub = original_sync_action
 
     def test_archive_all_repositories(self):
@@ -248,6 +253,31 @@ class GetProjectsTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+    def test_repository_archived_confirmed(self):
+        self.repo1.is_archived = Repository.Archived.CONFIRMED
+        self.repo1.save()
+        response = self.client.get(reverse("admin:projects_project_change", args=[self.project.id]))
+        self.assertEqual(response.status_code, 200)
+
     def test_is_archived(self):
         self.assertTrue(self.project_admin.is_archived(self.project_archived))
         self.assertFalse(self.project_admin.is_archived(self.project))
+
+    def test_archived_filter__archived(self):
+        archived_filter = ProjectAdminArchivedFilter(self.request, {"repo_archived": "1"}, Project, ProjectAdmin)
+        result = archived_filter.queryset(self.request, Project.objects.all())
+        self.assertEqual(result.count(), 1)
+        self.assertIn(self.project_archived, result)
+
+    def test_archived_filter__not_archived(self):
+        archived_filter = ProjectAdminArchivedFilter(self.request, {"repo_archived": "0"}, Project, ProjectAdmin)
+        result = archived_filter.queryset(self.request, Project.objects.all())
+        self.assertEqual(result.count(), 1)
+        self.assertIn(self.project, result)
+
+    def test_archived_filter__all(self):
+        archived_filter = ProjectAdminArchivedFilter(self.request, {}, Project, ProjectAdmin)
+        result = archived_filter.queryset(self.request, Project.objects.all())
+        self.assertEqual(result.count(), 2)
+        self.assertIn(self.project, result)
+        self.assertIn(self.project_archived, result)

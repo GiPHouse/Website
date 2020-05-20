@@ -1,16 +1,16 @@
 from admin_auto_filters.filters import AutocompleteFilter
 
-from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.db.models import Count, Q
 from django.shortcuts import redirect
 from django.urls import path
 
 from mailing_lists.models import MailingList
 
-from projects.forms import ProjectAdminForm
+from projects.forms import ProjectAdminForm, RepositoryInlineForm, RepositoryInlineFormset
 from projects.githubsync import GitHubSync
 from projects.models import Client, Project, Repository
 
@@ -48,25 +48,23 @@ class ProjectAdminArchivedFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         """Return the queryset required for the selected value."""
-        return queryset.filter(repository__is_archived=self.value()).distinct()
-
-
-class RepositoryInlineFormset(forms.models.BaseInlineFormSet):
-    """Custom formset for projects and their repositories."""
-
-    def clean(self):
-        """Make sure a project has at least one repository."""
-        repositories_left = 0
-        for form in self.forms:
-            if form.cleaned_data and not form.cleaned_data.get("DELETE", False):
-                repositories_left += 1
-        if repositories_left < 1:
-            raise forms.ValidationError("Projects must have at least one repository.")
+        annotated = queryset.annotate(
+            num_unarchived_repos=Count(
+                "repository", filter=Q(repository__is_archived=Repository.Archived.NOT_ARCHIVED)
+            )
+        )
+        if self.value() == "1":
+            return annotated.filter(num_unarchived_repos=0)
+        elif self.value() == "0":
+            return annotated.filter(num_unarchived_repos__gt=0)
+        else:
+            return queryset
 
 
 class RepositoryInline(admin.StackedInline):
     """Inline form for Repository."""
 
+    form = RepositoryInlineForm
     formset = RepositoryInlineFormset
     model = Repository
 
@@ -97,7 +95,7 @@ class ProjectAdmin(admin.ModelAdmin):
 
     def is_archived(self, instance):
         """Return the archived status of a Project instance (required to display property as check mark)."""
-        return instance.is_archived
+        return instance.is_archived != Repository.Archived.NOT_ARCHIVED
 
     # Instruct Django admin to display is_archived as check mark
     is_archived.boolean = True
@@ -105,8 +103,11 @@ class ProjectAdmin(admin.ModelAdmin):
 
     def archive_all_repositories(self, request, queryset):
         """Archive all the repositories for the selected projects."""
+        num_archived = 0
         for project in queryset:
-            num_archived = Repository.objects.filter(is_archived=False, project=project).update(is_archived=True)
+            num_archived += Repository.objects.filter(
+                is_archived=Repository.Archived.NOT_ARCHIVED, project=project
+            ).update(is_archived=Repository.Archived.PENDING)
         messages.success(
             request, f"Succesfully archived {num_archived} repositories.",
         )
@@ -150,11 +151,9 @@ class ProjectAdmin(admin.ModelAdmin):
 
     def synchronise_all_projects_to_GitHub(self, request):
         """Synchronise all project(teams) to GitHub."""
-        return self.synchronise_to_GitHub(request, Project.objects.all())
-        # TODO: it might become a problem if we keep doing this for all projects, since this set will get increasingly
-        #  large. However only doing it for unarchived projects does not work either, since we would then not delete
-        #  and archive anything ever. There are multiple solutions to this...
-        # TODO: check for teams that shouldn't be there and remove them
+        return self.synchronise_to_GitHub(
+            request, [p for p in Project.objects.all() if p.is_archived != Repository.Archived.CONFIRMED]
+        )
 
     def get_urls(self):
         """Get admin urls."""

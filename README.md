@@ -124,8 +124,8 @@ Repositories and project(team)s are synchronized with GitHub in the following ma
     - Depending on the environment variables, either a private or public repository is created.
     - The associated team is given "admin" access to the repository.
     - Other additional permissions of a repository stay untouched.
-- Repositories can be archived; this action is final and can only be undone manually via [github.com]()
-    - Archived repositories will be archived on GitHub as well.
+- Repositories can be archived.
+    - Repositories that are marked as 'To be archived' will be archived on GitHub during the next sync. After they have been archived on GitHub, they are marked as 'Archived' and can only be unarchived manually via [github.com](). 
     - A project is considered archived if all of its repositories are archived.
     - If a project is archived, the associated GitHub Team will be removed and consequently, all employees will be removed from the organization (again, organization owners are ignored).    
 

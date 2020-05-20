@@ -13,7 +13,7 @@ from registrations.models import Employee, Registration
 class EmployeeQueryTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        """Sets up one semester, two projects and three employees"""
+        """Sets up one semester, four projects and three employees"""
         cls.semester = Semester.objects.create(year=2020, season=Semester.SPRING)
         cls.project1 = Project.objects.create(name="test1", semester=cls.semester)
         cls.project2 = Project.objects.create(name="test2", semester=cls.semester)
@@ -21,6 +21,7 @@ class EmployeeQueryTest(TestCase):
         cls.project4 = Project.objects.create(name="test4", semester=cls.semester, github_team_id=12345678)
         cls.repo1 = Repository.objects.create(name="testrepo1", project=cls.project3)
         cls.repo2 = Repository.objects.create(name="testrepo2", project=cls.project3, github_repo_id=87654321)
+        cls.repo3 = Repository.objects.create(name="testrepo3", project=cls.project2)
         cls.employee1 = Employee.objects.create(github_id=0, github_username="user1")
         cls.employee2 = Employee.objects.create(github_id=1, github_username="user2")
         cls.employee3 = Employee.objects.create(github_id=2, github_username="user3")
@@ -116,6 +117,12 @@ class EmployeeQueryTest(TestCase):
 
         self.repo2.delete()
         self.assertTrue(RepositoryToBeDeleted.objects.get(github_repo_id=87654321))
+
+    def test_is_archived(self):
+        self.assertEqual(self.project2.is_archived, Repository.Archived.NOT_ARCHIVED)
+
+    def test_is_archived__no_repos(self):
+        self.assertEqual(self.project1.is_archived, Repository.Archived.CONFIRMED)
 
     def test_number_of_repos(self):
         project = Project.objects.create(name="testproject", semester=self.semester)

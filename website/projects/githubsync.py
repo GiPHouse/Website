@@ -357,7 +357,7 @@ class GitHubSync:
     def archive_repos_marked_as_archived(self, project_team):
         """Archive all repos of this project that are marked as archived."""
         for project_repo in Repository.objects.filter(project=project_team):
-            if project_repo.is_archived:
+            if project_repo.is_archived == Repository.Archived.PENDING:
                 try:
                     if project_repo.github_repo_id is not None:
                         self.archive_repo(project_repo)
@@ -365,16 +365,18 @@ class GitHubSync:
                         self.warning(
                             f"Repository {project_repo} was not archived, because it does not exist on GitHub either."
                         )
+                    project_repo.is_archived = Repository.Archived.CONFIRMED
+                    project_repo.save()
                 except (GithubException, AssertionError):
                     self.error(f"Something went wrong archiving the repository '{project_repo}'.")
 
     def sync_project(self, project):
         """Sync one project to GitHub."""
-        if not project.is_archived:
+        if project.is_archived == Repository.Archived.NOT_ARCHIVED:
             self.create_or_update_team(project)
             self.create_or_update_repos(project)
             self.archive_repos_marked_as_archived(project)
-        else:
+        elif project.is_archived == Repository.Archived.PENDING:
             self.archive_repos_marked_as_archived(project)
             self.archive_project(project)
 
