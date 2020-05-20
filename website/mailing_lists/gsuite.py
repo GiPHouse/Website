@@ -415,7 +415,7 @@ class GSuiteSyncService:
 
         :return: List of all mailing lists as GroupData
         """
-        return [self.mailing_list_to_group(l) for l in MailingList.objects.all()]
+        return [self.mailing_list_to_group(mailinglist) for mailinglist in MailingList.objects.all()]
 
     def _get_list_names_to_delete(self):
         """
@@ -423,7 +423,10 @@ class GSuiteSyncService:
 
         :return: List of the names of all mailing lists that should be deleted.
         """
-        return [l.address for l in MailingListToBeDeleted.objects.filter(archive_instead_of_delete=False)]
+        return [
+            mailinglist.address
+            for mailinglist in MailingListToBeDeleted.objects.filter(archive_instead_of_delete=False)
+        ]
 
     def _get_list_names_to_archive(self):
         """
@@ -431,7 +434,10 @@ class GSuiteSyncService:
 
         :return: List of the names of all mailing lists that should be archived.
         """
-        return [l.address for l in MailingListToBeDeleted.objects.filter(archive_instead_of_delete=True)]
+        return [
+            mailinglist.address
+            for mailinglist in MailingListToBeDeleted.objects.filter(archive_instead_of_delete=True)
+        ]
 
     def sync_mailing_lists(self, lists=None):
         """
@@ -472,23 +478,32 @@ class GSuiteSyncService:
             self.task.total = (
                 len(list_names_to_archive)
                 + len(list_names_to_remove)
-                + len([l.name in insert_list and l.name not in archived_groups or len(l.addresses) > 0 for l in lists])
+                + len(
+                    [
+                        mailinglist.name in insert_list
+                        and mailinglist.name not in archived_groups
+                        or len(mailinglist.addresses) > 0
+                        for mailinglist in lists
+                    ]
+                )
             )
             self.task.completed = 0
             self.task.save()
 
-        for l in lists:
-            if l.name in insert_list and l.name not in archived_groups:
-                logger.debug(f"Starting create group of {l}")
-                if self.create_group(l):
-                    MailingList.objects.filter(address=l.name).update(gsuite_group_name=l.name)
+        for mailinglist in lists:
+            if mailinglist.name in insert_list and mailinglist.name not in archived_groups:
+                logger.debug(f"Starting create group of {mailinglist}")
+                if self.create_group(mailinglist):
+                    MailingList.objects.filter(address=mailinglist.name).update(gsuite_group_name=mailinglist.name)
                 if self.task:
                     self.task.completed += 1
                     self.task.save()
-            elif len(l.addresses) > 0:
-                logger.debug(f"Starting update group of {l}")
-                if self.update_group(l.gsuite_group_name if l.gsuite_group_name else l.name, l):
-                    MailingList.objects.filter(address=l.name).update(gsuite_group_name=l.name)
+            elif len(mailinglist.addresses) > 0:
+                logger.debug(f"Starting update group of {mailinglist}")
+                if self.update_group(
+                    mailinglist.gsuite_group_name if mailinglist.gsuite_group_name else mailinglist.name, mailinglist
+                ):
+                    MailingList.objects.filter(address=mailinglist.name).update(gsuite_group_name=mailinglist.name)
                 if self.task:
                     self.task.completed += 1
                     self.task.save()
