@@ -45,8 +45,8 @@ class RegistrationAdminTest(TestCase):
             experience=Registration.EXPERIENCE_BEGINNER,
             preference1=cls.project,
             course=cls.course,
-            education_background="background",
             comments="comment",
+            is_international=False,
         )
 
         cls.user = User.objects.create(
@@ -229,7 +229,7 @@ class RegistrationAdminTest(TestCase):
             experience=Registration.EXPERIENCE_BEGINNER,
             preference1=self.project,
             course=self.course,
-            education_background="-",
+            is_international=False,
         )
 
         test_csv_file = SimpleUploadedFile("csv_file.csv", file_content, content_type="text/csv")
@@ -259,7 +259,7 @@ class RegistrationAdminTest(TestCase):
             experience=Registration.EXPERIENCE_BEGINNER,
             preference1=self.project,
             course=self.course,
-            education_background="-",
+            is_international=False,
         )
 
         test_csv_file = SimpleUploadedFile("csv_file.csv", file_content, content_type="text/csv")
@@ -286,7 +286,7 @@ class RegistrationAdminTest(TestCase):
             experience=Registration.EXPERIENCE_BEGINNER,
             preference1=self.project,
             course=self.course,
-            education_background="-",
+            is_international=False,
         )
 
         test_csv_file = SimpleUploadedFile("csv_file.csv", file_content, content_type="text/csv")
@@ -316,7 +316,7 @@ class RegistrationAdminTest(TestCase):
             experience=Registration.EXPERIENCE_BEGINNER,
             preference1=self.project,
             course=self.course,
-            education_background="-",
+            is_international=False,
         )
 
         test_csv_file = SimpleUploadedFile("csv_file.csv", file_content, content_type="text/csv")
@@ -346,7 +346,7 @@ class RegistrationAdminTest(TestCase):
             experience=Registration.EXPERIENCE_BEGINNER,
             preference1=self.project,
             course=self.course,
-            education_background="-",
+            is_international=False,
         )
 
         test_csv_file = SimpleUploadedFile("csv_file.csv", file_content, content_type="text/csv")

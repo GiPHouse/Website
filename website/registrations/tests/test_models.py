@@ -38,7 +38,7 @@ class ModelsTest(TestCase):
             partner_preference1="Test partner1",
             partner_preference2="Test partner2",
             partner_preference3="Test partner3",
-            education_background="Test",
+            is_international=False,
         )
 
     def test_semester_str(self):
@@ -53,7 +53,7 @@ class ModelsTest(TestCase):
             semester=self.test_semester,
             preference1=self.test_project,
             experience=Registration.EXPERIENCE_ADVANCED,
-            education_background="Test",
+            is_international=False,
         )
 
         self.assertTrue(reg.is_director)
@@ -66,7 +66,7 @@ class ModelsTest(TestCase):
             semester=self.test_semester,
             preference1=self.test_project,
             experience=Registration.EXPERIENCE_ADVANCED,
-            education_background="Test",
+            is_international=False,
         )
 
         self.assertFalse(reg.is_director)
@@ -78,7 +78,7 @@ class ModelsTest(TestCase):
             semester=self.test_semester,
             preference1=self.test_project,
             experience=Registration.EXPERIENCE_ADVANCED,
-            education_background="Test",
+            is_international=False,
         )
 
         self.assertFalse(reg.is_director)
@@ -91,7 +91,7 @@ class ModelsTest(TestCase):
             semester=self.test_semester,
             preference1=self.test_project,
             experience=Registration.EXPERIENCE_ADVANCED,
-            education_background="Test",
+            is_international=False,
         )
 
         self.assertFalse(reg.is_director)
@@ -108,7 +108,7 @@ class ModelsTest(TestCase):
             course=Course.objects.se(),
             semester=self.test_semester,
             experience=Registration.EXPERIENCE_ADVANCED,
-            education_background="Test",
+            is_international=False,
         )
 
         self.assertEqual(Registration._match_partner_name_to_user("Test partner 1", semester=self.test_semester), u1)
@@ -122,7 +122,7 @@ class ModelsTest(TestCase):
             course=Course.objects.se(),
             semester=self.test_semester,
             experience=Registration.EXPERIENCE_ADVANCED,
-            education_background="Test",
+            is_international=False,
         )
 
         self.assertEqual(Registration._match_partner_name_to_user("Testpatrner 1", semester=self.test_semester), u1)
@@ -136,7 +136,7 @@ class ModelsTest(TestCase):
             course=Course.objects.se(),
             semester=self.test_semester,
             experience=Registration.EXPERIENCE_ADVANCED,
-            education_background="Test",
+            is_international=False,
         )
 
         self.assertIsNone(Registration._match_partner_name_to_user("Abcdefg", semester=self.test_semester))
@@ -187,7 +187,7 @@ class ModelsTest(TestCase):
             preference1=self.test_project,
             experience=Registration.EXPERIENCE_ADVANCED,
             partner_preference1="Test partner 1",
-            education_background="Test",
+            is_international=False,
         )
         u = User.objects.create_user(
             github_id=11, github_username="testpartner1", first_name="Test", last_name="partner 1"
@@ -204,7 +204,7 @@ class ModelsTest(TestCase):
             preference1=self.test_project,
             experience=Registration.EXPERIENCE_ADVANCED,
             partner_preference1="Test partner 1",
-            education_background="Test",
+            is_international=False,
         )
         with patch("registrations.models.Registration.partner_preference1_user", new_callable=PropertyMock) as m1:
             m1.return_value = None
@@ -218,7 +218,7 @@ class ModelsTest(TestCase):
             preference1=self.test_project,
             experience=Registration.EXPERIENCE_ADVANCED,
             partner_preference1=None,
-            education_background="Test",
+            is_international=False,
         )
         self.assertIsNone(reg.get_partner1_display())
 
@@ -230,7 +230,7 @@ class ModelsTest(TestCase):
             preference1=self.test_project,
             experience=Registration.EXPERIENCE_ADVANCED,
             partner_preference2="Test partner 1",
-            education_background="Test",
+            is_international=False,
         )
         u = User.objects.create_user(
             github_id=11, github_username="testpartner1", first_name="Test", last_name="partner 1"
@@ -247,7 +247,7 @@ class ModelsTest(TestCase):
             preference1=self.test_project,
             experience=Registration.EXPERIENCE_ADVANCED,
             partner_preference2="Test partner 1",
-            education_background="Test",
+            is_international=False,
         )
         with patch("registrations.models.Registration.partner_preference2_user", new_callable=PropertyMock) as m1:
             m1.return_value = None
@@ -261,7 +261,7 @@ class ModelsTest(TestCase):
             preference1=self.test_project,
             experience=Registration.EXPERIENCE_ADVANCED,
             partner_preference2=None,
-            education_background="Test",
+            is_international=False,
         )
         self.assertIsNone(reg.get_partner2_display())
 
@@ -273,7 +273,7 @@ class ModelsTest(TestCase):
             preference1=self.test_project,
             experience=Registration.EXPERIENCE_ADVANCED,
             partner_preference3="Test partner 1",
-            education_background="Test",
+            is_international=False,
         )
         u = User.objects.create_user(
             github_id=11, github_username="testpartner1", first_name="Test", last_name="partner 1"
@@ -290,7 +290,7 @@ class ModelsTest(TestCase):
             preference1=self.test_project,
             experience=Registration.EXPERIENCE_ADVANCED,
             partner_preference3="Test partner 1",
-            education_background="Test",
+            is_international=False,
         )
         with patch("registrations.models.Registration.partner_preference3_user", new_callable=PropertyMock) as m1:
             m1.return_value = None
@@ -304,6 +304,6 @@ class ModelsTest(TestCase):
             preference1=self.test_project,
             experience=Registration.EXPERIENCE_ADVANCED,
             partner_preference3=None,
-            education_background="Test",
+            is_international=False,
         )
         self.assertIsNone(reg.get_partner3_display())

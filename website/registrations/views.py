@@ -105,7 +105,7 @@ class Step2View(FormView):
                 partner_preference2=form.cleaned_data["partner2"],
                 partner_preference3=form.cleaned_data["partner3"],
                 comments=form.cleaned_data["comments"],
-                education_background=form.cleaned_data["background"],
+                is_international=form.cleaned_data["international"],
             )
 
         del self.request.session["github_id"]

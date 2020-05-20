@@ -119,6 +119,8 @@ class Step2Test(TestCase):
         cls.project_partner_preference2 = "FirstTest LastTest"
         cls.project_partner_preference3 = ""
 
+        cls.is_international = False
+
         cls.se = Course.objects.se()
 
     def setUp(self):
@@ -165,7 +167,7 @@ class Step2Test(TestCase):
                 "course": self.se.id,
                 "email": self.email,
                 "experience": self.experience,
-                "background": "background",
+                "is_international": self.is_international,
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,
@@ -191,7 +193,7 @@ class Step2Test(TestCase):
                 "course": self.se.id,
                 "email": self.email,
                 "experience": self.experience,
-                "background": "background",
+                "is_international": self.is_international,
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,
@@ -215,7 +217,7 @@ class Step2Test(TestCase):
                 "course": self.se.id,
                 "email": self.email,
                 "experience": self.experience,
-                "background": "background",
+                "is_international": self.is_international,
                 "project1": self.project_preference1.id,
                 "project2": str(self.project_preference1.id),
             },
@@ -246,7 +248,7 @@ class Step2Test(TestCase):
                 "course": self.se.id,
                 "email": self.email,
                 "experience": self.experience,
-                "background": "background",
+                "is_international": self.is_international,
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,
@@ -283,7 +285,7 @@ class Step2Test(TestCase):
                 "course": self.se.id,
                 "email": self.email,
                 "experience": self.experience,
-                "background": "background",
+                "is_international": self.is_international,
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,
@@ -322,7 +324,7 @@ class Step2Test(TestCase):
                 "github_id": self.github_id + 1,
                 "github_username": self.github_username,
                 "experience": self.experience,
-                "background": "background",
+                "is_international": self.is_international,
                 "course": self.se.id,
                 "email": self.email,
                 "project1": self.project_preference1.id,
@@ -351,7 +353,7 @@ class Step2Test(TestCase):
                 "course": self.se.id,
                 "email": self.email,
                 "experience": self.experience,
-                "background": "background",
+                "is_international": self.is_international,
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,

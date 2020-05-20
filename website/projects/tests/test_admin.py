@@ -155,7 +155,7 @@ class GetProjectsTest(TestCase):
             course=course,
             preference1=test_project,
             experience=1,
-            education_background="nothing",
+            is_international=False,
         )
         Registration.objects.create(
             user=test_user2,
@@ -164,7 +164,7 @@ class GetProjectsTest(TestCase):
             course=course,
             preference1=test_project,
             experience=1,
-            education_background="nothing",
+            is_international=False,
         )
         Registration.objects.create(
             user=test_user3,
@@ -173,7 +173,7 @@ class GetProjectsTest(TestCase):
             course=course,
             preference1=test_project,
             experience=1,
-            education_background="nothing",
+            is_international=False,
         )
 
         pa.create_mailing_lists(self.request, [test_project, test_project2])

@@ -245,6 +245,7 @@ class Command(BaseCommand):
             partner_preference1=self.generate_partner_preference(project.semester),
             partner_preference2=self.generate_partner_preference(project.semester),
             partner_preference3=self.generate_partner_preference(project.semester),
+            is_international=random.choice([True, False]),
             comments=random.choice([fake.sentence(), ""]),
             experience=Registration.EXPERIENCE_INTERMEDIATE,
         )

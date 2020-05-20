@@ -46,7 +46,7 @@ class Registration(models.Model):
     partner_preference3 = models.CharField(null=True, blank=True, max_length=50)
 
     experience = models.PositiveSmallIntegerField(choices=EXPERIENCE_CHOICES)
-    education_background = models.TextField(max_length=200)
+    is_international = models.BooleanField(blank=True, null=True, default=False)
     comments = models.TextField(null=True, blank=True)
 
     @property
