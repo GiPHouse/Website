@@ -25,7 +25,7 @@ class CoursesView(TemplateView):
         for course_name in Course.objects.values_list("name", flat=True):
             courses[course_name] = Lecture.objects.filter(
                 course__name=course_name, semester__year=year, semester__season=Semester.slug_to_season(season_slug)
-            ).order_by(f"date")
+            ).order_by("date")
 
         context["courses"] = courses.items()
         return context
