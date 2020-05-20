@@ -27,6 +27,9 @@ class MailingList(models.Model):
     address = models.CharField(
         max_length=60, validators=[email_local_part_validator, reserved_addresses_validator], unique=True
     )
+    gsuite_group_name = models.CharField(
+        max_length=60, validators=[email_local_part_validator, reserved_addresses_validator], blank=True, null=True
+    )
     description = models.CharField(blank=True, max_length=150)
     projects = models.ManyToManyField(Project, blank=True)
     users = models.ManyToManyField(Employee, blank=True)
@@ -95,9 +98,14 @@ def handle_mailing_list_delete(instance, **kwargs):
     When a mailing list is deleted, this method creates a shadow model which is used by the Gsuite synchronization to
     either archive or fully delete the corresponding mailing list in Gsuite.
     """
-    MailingListToBeDeleted.objects.update_or_create(
-        address=instance.address, archive_instead_of_delete=instance.archive_instead_of_delete
-    )
+    if instance.gsuite_group_name:
+        MailingListToBeDeleted.objects.update_or_create(
+            address=instance.gsuite_group_name, archive_instead_of_delete=instance.archive_instead_of_delete
+        )
+    else:
+        MailingListToBeDeleted.objects.update_or_create(
+            address=instance.address, archive_instead_of_delete=instance.archive_instead_of_delete
+        )
 
 
 class ExtraEmailAddress(models.Model):

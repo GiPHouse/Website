@@ -4,7 +4,13 @@ from django.test import TestCase
 
 from courses.models import Course, Semester
 
-from mailing_lists.models import ExtraEmailAddress, MailingList, MailingListAlias, MailingListCourseSemesterLink
+from mailing_lists.models import (
+    ExtraEmailAddress,
+    MailingList,
+    MailingListAlias,
+    MailingListCourseSemesterLink,
+    MailingListToBeDeleted,
+)
 
 from projects.models import Project
 
@@ -116,3 +122,13 @@ class ModelTest(TestCase):
             mailinglist.full_clean()
         except ValidationError:
             self.fail("Mailinglist object raised ValidationError unexpectedly!")
+
+    def test_handle_mailing_list_delete_with_gsuite_group_name(self):
+        mailinglist = MailingList.objects.create(address="signal_list", gsuite_group_name="gsuite_key")
+        mailinglist.delete()
+        self.assertTrue(MailingListToBeDeleted.objects.filter(address="gsuite_key").exists())
+
+    def test_handle_mailing_list_delete_without_gsuite_group_name(self):
+        mailinglist = MailingList.objects.create(address="signal_list")
+        mailinglist.delete()
+        self.assertTrue(MailingListToBeDeleted.objects.filter(address="signal_list").exists())

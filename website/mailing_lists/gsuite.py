@@ -63,7 +63,7 @@ class GSuiteSyncService:
         """Store data for GSuite groups to sync them."""
 
         def __init__(
-            self, name, description="", aliases=ImmutableList([]), addresses=ImmutableList([]),
+            self, name, description="", aliases=ImmutableList([]), addresses=ImmutableList([]), gsuite_group_name=None,
         ):
             """
             Create group data to sync with Gsuite.
@@ -72,9 +72,11 @@ class GSuiteSyncService:
             :param description: Description of group
             :param aliases: Aliases of group
             :param addresses: Addresses in group
+            :param gsuite_group_name: The name of the group stored in GSuite
             """
             super().__init__()
             self.name = name
+            self.gsuite_group_name = gsuite_group_name
             self.description = description
             self.aliases = aliases
             self.addresses = sorted(set(addresses))
@@ -211,21 +213,23 @@ class GSuiteSyncService:
                         n += 1
         except HttpError:
             logger.exception(f"Could not successfully finish creating the list {group.name}:")
-            return
+            return False
 
         self._update_group_members(group)
         self._update_group_aliases(group)
 
-    def update_group(self, old_name, group):
+        return True
+
+    def update_group(self, gsuite_group_name, group):
         """
         Update a group based on the provided name and data.
 
-        :param old_name: old group name
+        :param gsuite_group_name: old group name
         :param group: new group data
         """
         try:
             self.directory_api.groups().update(
-                groupKey=f"{old_name}@{settings.GSUITE_DOMAIN}",
+                groupKey=f"{gsuite_group_name}@{settings.GSUITE_DOMAIN}",
                 body={
                     "email": f"{group.name}@{settings.GSUITE_DOMAIN}",
                     "name": group.name,
@@ -238,10 +242,12 @@ class GSuiteSyncService:
             logger.info(f"List {group.name} updated")
         except HttpError:
             logger.exception(f"Could not update list {group.name}")
-            return
+            return False
 
         self._update_group_members(group)
         self._update_group_aliases(group)
+
+        return True
 
     def _update_group_aliases(self, group):
         """
@@ -395,6 +401,7 @@ class GSuiteSyncService:
         """Convert a mailing list model to everything we need for GSuite."""
         return GSuiteSyncService.GroupData(
             name=mailing_list.address,
+            gsuite_group_name=mailing_list.gsuite_group_name,
             description=mailing_list.description,
             aliases=(
                 [x.address for x in mailing_list.mailinglistalias_set.all()] if mailing_list.pk is not None else []
@@ -455,7 +462,7 @@ class GSuiteSyncService:
             logger.exception("Could not get the existing groups")
             return  # there are no groups or something went wrong
 
-        new_groups = [g.name for g in lists if len(g.addresses) > 0]
+        new_groups = [g.gsuite_group_name if g.gsuite_group_name else g.name for g in lists if len(g.addresses) > 0]
 
         list_names_to_remove = self._get_list_names_to_delete()
         list_names_to_archive = self._get_list_names_to_archive()
@@ -473,13 +480,15 @@ class GSuiteSyncService:
         for l in lists:
             if l.name in insert_list and l.name not in archived_groups:
                 logger.debug(f"Starting create group of {l}")
-                self.create_group(l)
+                if self.create_group(l):
+                    MailingList.objects.filter(address=l.name).update(gsuite_group_name=l.name)
                 if self.task:
                     self.task.completed += 1
                     self.task.save()
             elif len(l.addresses) > 0:
                 logger.debug(f"Starting update group of {l}")
-                self.update_group(l.name, l)
+                if self.update_group(l.gsuite_group_name if l.gsuite_group_name else l.name, l):
+                    MailingList.objects.filter(address=l.name).update(gsuite_group_name=l.name)
                 if self.task:
                     self.task.completed += 1
                     self.task.save()

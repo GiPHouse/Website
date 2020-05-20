@@ -49,6 +49,7 @@ class MailingListAdmin(admin.ModelAdmin):
     form = AddressSuffixedForm
     list_display = ("address", "description")
     list_filter = ("address",)
+    readonly_fields = ("gsuite_group_name",)
     inlines = [CourseSemesterLinkInline, ExtraEmailInline, AliasInline]
     actions = ["synchronize_selected_mailing_lists"]
 

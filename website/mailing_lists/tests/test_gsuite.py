@@ -444,6 +444,9 @@ class GSuiteSyncTestCase(TestCase):
                 {"groups": existing_groups[1:]},
             ]
 
+            self.sync_service.create_group.return_value = True
+            self.sync_service.update_group.return_value = True
+
             self.sync_service.sync_mailing_lists()
 
             self.sync_service.create_group.assert_called_with(
@@ -487,6 +490,9 @@ class GSuiteSyncTestCase(TestCase):
                 {"groups": existing_groups[:1], "nextPageToken": "some_token"},
                 {"groups": existing_groups[1:]},
             ]
+
+            self.sync_service.create_group.return_value = False
+            self.sync_service.update_group.return_value = False
 
             self.sync_service.sync_mailing_lists()
 
