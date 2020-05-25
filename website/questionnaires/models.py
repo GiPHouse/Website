@@ -115,6 +115,7 @@ class Question(models.Model):
     question = models.CharField(max_length=200)
     question_type = models.PositiveSmallIntegerField(choices=CHOICES)
     about_team_member = models.BooleanField(default=False)
+    optional = models.BooleanField(default=False)
 
     @property
     def is_closed(self):
@@ -198,11 +199,11 @@ class OpenAnswerData(models.Model):
     """Model storing value of an open question."""
 
     answer = models.OneToOneField(Answer, on_delete=models.CASCADE)
-    value = models.TextField()
+    value = models.TextField(blank=True, null=True)
 
     def __str__(self):
         """Return value."""
-        return self.value
+        return self.value if self.value else ""
 
 
 class AbstractLikertData(models.Model):
@@ -238,7 +239,7 @@ class AgreementAnswerData(AbstractLikertData):
         (STRONGLY_AGREE, "Strongly Agree"),
     )
 
-    value = models.PositiveSmallIntegerField(choices=CHOICES)
+    value = models.PositiveSmallIntegerField(choices=CHOICES, blank=True, null=True)
 
 
 class QualityAnswerData(AbstractLikertData):
@@ -258,4 +259,4 @@ class QualityAnswerData(AbstractLikertData):
         (VERY_GOOD, "Very Good"),
     )
 
-    value = models.PositiveSmallIntegerField(choices=CHOICES)
+    value = models.PositiveSmallIntegerField(choices=CHOICES, blank=True, null=True)
