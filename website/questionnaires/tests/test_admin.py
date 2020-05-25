@@ -1,3 +1,4 @@
+from django.contrib.admin import ACTION_CHECKBOX_NAME
 from django.contrib.auth import get_user_model
 from django.shortcuts import reverse
 from django.test import Client, TestCase
@@ -67,7 +68,8 @@ class QuestionnaireTest(TestCase):
         cls.closed_answer = Answer.objects.create(question=closed_question, submission=cls.submission, peer=peer)
         cls.closed_answer.answer = 1
 
-        Answer.objects.create(question=closed_question, submission=cls.submission)
+        cls.closed_answer2 = Answer.objects.create(question=closed_question, submission=cls.submission)
+        cls.closed_answer2.answer = 5
 
     def setUp(self):
         self.client = Client()
@@ -161,5 +163,30 @@ class QuestionnaireTest(TestCase):
                 f"{AnswerAdminSemesterFilter.field_pk}__exact": self.semester.id
             },
             follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_submission_csv_export(self):
+        response = self.client.post(
+            reverse("admin:questionnaires_questionnairesubmission_changelist"),
+            {ACTION_CHECKBOX_NAME: [self.submission.pk], "action": "export_submissions", "index": 0},
+        )
+
+        self.assertContains(
+            response, '"Questionnaire","Participant","Late","Question","Peer","Answer (as text)","Answer (as number)"'
+        )
+
+        self.assertContains(
+            response,
+            f'"{self.open_answer.submission.questionnaire}","{self.open_answer.submission.participant}",'
+            f'"{self.open_answer.submission.late}","{self.open_answer.question.question}",'
+            f'"{self.open_answer.peer}","{self.open_answer.answer}",""',
+        )
+        self.assertContains(
+            response,
+            f'"{self.closed_answer.submission.questionnaire}","{self.closed_answer.submission.participant}",'
+            f'"{self.closed_answer.submission.late}","{self.closed_answer.question.question}",'
+            f'"{self.closed_answer.peer}","{self.closed_answer.answer.get_value_display()}",'
+            f'"{self.closed_answer.answer.value}"',
         )
         self.assertEqual(response.status_code, 200)
