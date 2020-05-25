@@ -1,5 +1,9 @@
+import csv
+from io import StringIO
+
 from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.http import HttpResponse
 
 from questionnaires.filters import (
     AnswerAdminParticipantFilter,
@@ -46,7 +50,7 @@ class AnswerInline(admin.TabularInline):
 
 
 @admin.register(Question)
-class Question(admin.ModelAdmin):
+class QuestionAdmin(admin.ModelAdmin):
     """Question model admin."""
 
     search_fields = ("question",)
@@ -64,6 +68,8 @@ class QuestionnaireAdmin(admin.ModelAdmin):
 @admin.register(QuestionnaireSubmission)
 class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
     """QuestionnaireSubmission model admin."""
+
+    actions = ("export_submissions",)
 
     inlines = (AnswerInline,)
 
@@ -91,6 +97,33 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
     on_time.boolean = True
     on_time.short_description = "On Time"
     on_time.admin_order_field = "late"
+
+    def export_submissions(self, request, queryset):
+        """Export selected submissions to a CSV file."""
+        content = StringIO()
+        writer = csv.writer(content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
+        writer.writerow(
+            ["Questionnaire", "Participant", "Late", "Question", "Peer", "Answer (as text)", "Answer (as number)"]
+        )
+
+        for submission in queryset:
+            for answer in submission.answer_set.all():
+
+                writer.writerow(
+                    [
+                        answer.submission.questionnaire,
+                        answer.submission.participant,
+                        answer.submission.late,
+                        answer.question.question,
+                        answer.peer,
+                        answer.answer.get_value_display() if answer.question.is_closed else answer.answer.value,
+                        answer.answer.value if answer.question.is_closed else "",
+                    ]
+                )
+
+        response = HttpResponse(content.getvalue(), content_type="application/x-zip-compressed")
+        response["Content-Disposition"] = "attachment; filename=submissions.csv"
+        return response
 
     class Media:
         """Necessary to use AutocompleteFilter."""

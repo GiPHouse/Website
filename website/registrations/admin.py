@@ -141,7 +141,7 @@ class UserAdmin(admin.ModelAdmin):
             writer.writerow([user.first_name, user.last_name, user.student_number])
 
         response = HttpResponse(content.getvalue(), content_type="application/x-zip-compressed")
-        response["Content-Disposition"] = "attachment; filename=" + "student-numbers.csv"
+        response["Content-Disposition"] = "attachment; filename=student-numbers.csv"
         return response
 
     class Media:
