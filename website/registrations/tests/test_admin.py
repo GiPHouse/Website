@@ -41,7 +41,9 @@ class RegistrationAdminTest(TestCase):
             education_background="background",
         )
 
-        cls.user = User.objects.create(github_id=2, github_username="lol")
+        cls.user = User.objects.create(
+            github_id=2, github_username="lol", first_name="First", last_name="Last", student_number="s1234567"
+        )
 
         cls.message = {
             "date_joined_0": "2000-12-01",
@@ -110,4 +112,14 @@ class RegistrationAdminTest(TestCase):
             data={f"{UserAdminProjectFilter.field_name}__{UserAdminProjectFilter.field_pk}__exact": self.project.id},
             follow=True,
         )
+        self.assertEqual(response.status_code, 200)
+
+    def test_student_number_csv_export(self):
+        response = self.client.post(
+            reverse("admin:registrations_employee_changelist"),
+            {ACTION_CHECKBOX_NAME: [self.user.pk], "action": "export_student_numbers", "index": 0},
+        )
+
+        self.assertContains(response, '"First name","Last name","Student number"')
+        self.assertContains(response, f'"{self.user.first_name}","{self.user.last_name}","{self.user.student_number}"')
         self.assertEqual(response.status_code, 200)
