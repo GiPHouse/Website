@@ -51,13 +51,16 @@ class QuestionnaireForm(forms.Form):
             )
         else:
             self.fields[field_name] = forms.CharField(
-                label=question.question, widget=forms.Textarea(attrs={"rows": 4, "placeholder": ""})
+                label=question.question, widget=forms.Textarea(attrs={"rows": 4, "placeholder": ""},)
             )
 
+        if question.optional:
+            self.fields[field_name].required = False
+            self.fields[field_name].widget.is_required = False
+            self.fields[field_name].help_text = "Optional"
+
         if peer is not None:
-            self.fields[field_name].help_text = f"{peer.get_full_name()}"
-        else:
-            self.fields[field_name].help_text = ""
+            self.fields[field_name].peer = f"{peer.get_full_name()}"
 
     @staticmethod
     def get_field_name(question, peer=None):

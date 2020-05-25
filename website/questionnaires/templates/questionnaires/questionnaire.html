@@ -21,11 +21,11 @@
 				</div>
 			{% endifchanged %}
 			<div class="col-2">
-				<p class="font-weight-bold"> {{ field.help_text }} </p>
+				<p class="font-weight-bold"> {{ field.field.peer }}</p>
 			</div>
 			<div class="col-10 col-lg-10">
-				{% bootstrap_field field show_help=False show_label=False %}
-			</div>
+				{% bootstrap_field field show_label=False %}
+            </div>
         {% endfor %}
 		<div class="col-12">
         	<button type="submit" class="btn btn-primary">Submit</button>

@@ -109,6 +109,7 @@ class QuestionnaireTest(TestCase):
             question="Closed Question global",
             question_type=Question.AGREEMENT,
             about_team_member=False,
+            optional=True,
         )
 
     def setUp(self):
