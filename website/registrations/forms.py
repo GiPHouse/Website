@@ -12,6 +12,8 @@ from projects.models import Project
 from registrations.models import Employee, Registration
 
 student_number_regex = re.compile(r"^[sS]?(\d{7})$")
+wrong_email_regex = re.compile(r"^[sS]?(\d{7})@(?:student\.)?ru\.nl$")
+
 User: Employee = get_user_model()
 
 
@@ -78,13 +80,21 @@ class Step2Form(forms.Form):
 
         If the user has already registered, this check should pass.
         If they try to register twice, the clean method should fail.
+
+        Some students will register with the non-existent address snumber@[student.]ru.nl.
+        To save everyone a little bit of work, we block these addresses here.
         """
         if (
             User.objects.exclude(github_id=self.cleaned_data["github_id"])
             .filter(email=self.cleaned_data["email"])
             .exists()
         ):
-            raise ValidationError("Email already in use.", code="exists")
+            raise ValidationError("Email address already in use.", code="exists")
+
+        match = wrong_email_regex.match(self.cleaned_data["email"])
+        if match is not None:
+            raise ValidationError("Non-existent email address.", code="invalid")
+
         return self.cleaned_data["email"]
 
     def clean_student_number(self):
