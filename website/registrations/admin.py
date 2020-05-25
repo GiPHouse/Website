@@ -1,7 +1,11 @@
+import csv
+from io import StringIO
+
 from admin_auto_filters.filters import AutocompleteFilter
 
 from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.http import HttpResponse
 
 from registrations.models import Employee, Registration
 
@@ -48,7 +52,7 @@ class RegistrationInline(admin.StackedInline):
 class UserAdmin(admin.ModelAdmin):
     """Custom admin for Student."""
 
-    actions = ["place_in_first_project_preference"]
+    actions = ["place_in_first_project_preference", "export_student_numbers"]
 
     fieldsets = (
         ("Personal", {"fields": ("first_name", "last_name", "email", "student_number")}),
@@ -127,6 +131,18 @@ class UserAdmin(admin.ModelAdmin):
             registration = user.registration_set.first()
             registration.project = registration.preference1
             registration.save()
+
+    def export_student_numbers(self, request, queryset):
+        """Export the first name, last name and student number of the selected users to a CSV file."""
+        content = StringIO()
+        writer = csv.writer(content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
+        writer.writerow(["First name", "Last name", "Student number"])
+        for user in queryset:
+            writer.writerow([user.first_name, user.last_name, user.student_number])
+
+        response = HttpResponse(content.getvalue(), content_type="application/x-zip-compressed")
+        response["Content-Disposition"] = "attachment; filename=" + "student-numbers.csv"
+        return response
 
     class Media:
         """Necessary to use AutocompleteFilter."""
