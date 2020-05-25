@@ -6,6 +6,7 @@ __pycache__/
 *.map
 db.sqlite3
 .envrc
+.env
 *.DS_Store
 .coverage
 website/media/
