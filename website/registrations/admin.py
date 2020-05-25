@@ -144,5 +144,7 @@ class UserAdmin(admin.ModelAdmin):
         response["Content-Disposition"] = "attachment; filename=student-numbers.csv"
         return response
 
+    export_student_numbers.short_description = "Export names and student numbers"
+
     class Media:
         """Necessary to use AutocompleteFilter."""
