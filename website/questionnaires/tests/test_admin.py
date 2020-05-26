@@ -190,3 +190,32 @@ class QuestionnaireTest(TestCase):
             f'"{self.closed_answer.answer.value}"',
         )
         self.assertEqual(response.status_code, 200)
+
+    def test_answer_csv_export(self):
+        response = self.client.post(
+            reverse("admin:questionnaires_answer_changelist"),
+            {
+                ACTION_CHECKBOX_NAME: [self.open_answer.pk, self.closed_answer.pk],
+                "action": "export_answers",
+                "index": 0,
+            },
+        )
+
+        self.assertContains(
+            response, '"Questionnaire","Participant","Late","Question","Peer","Answer (as text)","Answer (as number)"'
+        )
+
+        self.assertContains(
+            response,
+            f'"{self.open_answer.submission.questionnaire}","{self.open_answer.submission.participant}",'
+            f'"{self.open_answer.submission.late}","{self.open_answer.question.question}",'
+            f'"{self.open_answer.peer}","{self.open_answer.answer}",""',
+        )
+        self.assertContains(
+            response,
+            f'"{self.closed_answer.submission.questionnaire}","{self.closed_answer.submission.participant}",'
+            f'"{self.closed_answer.submission.late}","{self.closed_answer.question.question}",'
+            f'"{self.closed_answer.peer}","{self.closed_answer.answer.get_value_display()}",'
+            f'"{self.closed_answer.answer.value}"',
+        )
+        self.assertEqual(response.status_code, 200)
