@@ -52,7 +52,7 @@ class RegistrationInline(admin.StackedInline):
 class UserAdmin(admin.ModelAdmin):
     """Custom admin for Student."""
 
-    actions = ["place_in_first_project_preference", "export_student_numbers"]
+    actions = ("place_in_first_project_preference", "export_student_numbers", "export_registrations")
 
     fieldsets = (
         ("Personal", {"fields": ("first_name", "last_name", "email", "student_number")}),
@@ -145,6 +145,47 @@ class UserAdmin(admin.ModelAdmin):
         return response
 
     export_student_numbers.short_description = "Export names and student numbers"
+
+    def export_registrations(self, request, queryset):
+        """Export the registration information of the most recent registration of the selected users to a CSV file."""
+        content = StringIO()
+        writer = csv.writer(content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
+        writer.writerow(
+            [
+                "First name",
+                "Last name",
+                "Student number",
+                "GitHub username",
+                "Course",
+                "1st preference",
+                "2nd preference",
+                "3rd preference",
+                "Experience",
+                "Educational background",
+                "Registration Comments",
+            ]
+        )
+        for user in queryset:
+            registration = user.registration_set.first()
+            writer.writerow(
+                [
+                    user.first_name,
+                    user.last_name,
+                    user.student_number,
+                    user.github_username,
+                    registration.course,
+                    registration.preference1,
+                    registration.preference2,
+                    registration.preference3,
+                    registration.experience,
+                    registration.education_background,
+                    registration.comments,
+                ]
+            )
+
+        response = HttpResponse(content.getvalue(), content_type="application/x-zip-compressed")
+        response["Content-Disposition"] = "attachment; filename=registrations.csv"
+        return response
 
     class Media:
         """Necessary to use AutocompleteFilter."""
