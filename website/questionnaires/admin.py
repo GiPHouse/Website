@@ -147,6 +147,8 @@ class AnswerAdmin(admin.ModelAdmin):
 
     list_display = ("questionnaire", "question", "participant_name", "peer_name", "on_time", "answer_short")
 
+    actions = ("export_answers",)
+
     def participant_name(self, obj):
         """Return the full name of the participant."""
         return obj.submission.participant.get_full_name()
@@ -184,6 +186,32 @@ class AnswerAdmin(admin.ModelAdmin):
         return f"{str(obj.answer)[:27]}..."
 
     answer_short.short_description = "Answer"
+
+    def export_answers(self, request, queryset):
+        """Export selected answers to a CSV file."""
+        content = StringIO()
+        writer = csv.writer(content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
+        writer.writerow(
+            ["Questionnaire", "Participant", "Late", "Question", "Peer", "Answer (as text)", "Answer (as number)"]
+        )
+
+        for answer in queryset:
+
+            writer.writerow(
+                [
+                    answer.submission.questionnaire,
+                    answer.submission.participant,
+                    answer.submission.late,
+                    answer.question.question,
+                    answer.peer,
+                    answer.answer.get_value_display() if answer.question.is_closed else answer.answer.value,
+                    answer.answer.value if answer.question.is_closed else "",
+                ]
+            )
+
+        response = HttpResponse(content.getvalue(), content_type="application/x-zip-compressed")
+        response["Content-Disposition"] = "attachment; filename=submissions.csv"
+        return response
 
     class Media:
         """Necessary to use AutocompleteFilter."""
