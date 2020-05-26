@@ -29,7 +29,9 @@ class RegistrationAdminTest(TestCase):
 
         cls.project = Project.objects.create(name="GiPHouse1234", description="Test", semester=cls.semester)
 
-        cls.manager = User.objects.create(github_id=1, github_username="manager")
+        cls.manager = User.objects.create(
+            github_id=1, github_username="manager", first_name="Man", last_name="Ager", student_number="s1234567"
+        )
 
         cls.registration = Registration.objects.create(
             user=cls.manager,
@@ -39,10 +41,11 @@ class RegistrationAdminTest(TestCase):
             preference1=cls.project,
             course=cls.course,
             education_background="background",
+            comments="comment",
         )
 
         cls.user = User.objects.create(
-            github_id=2, github_username="lol", first_name="First", last_name="Last", student_number="s1234567"
+            github_id=2, github_username="lol", first_name="First", last_name="Last", student_number="s1234568"
         )
 
         cls.message = {
@@ -122,4 +125,36 @@ class RegistrationAdminTest(TestCase):
 
         self.assertContains(response, '"First name","Last name","Student number"')
         self.assertContains(response, f'"{self.user.first_name}","{self.user.last_name}","{self.user.student_number}"')
+        self.assertEqual(response.status_code, 200)
+
+    def test_registration_csv_export(self):
+        response = self.client.post(
+            reverse("admin:registrations_employee_changelist"),
+            {ACTION_CHECKBOX_NAME: [self.manager.pk], "action": "export_registrations", "index": 0},
+        )
+
+        self.assertContains(
+            response,
+            (
+                '"First name","Last name","Student number","GitHub username",'
+                '"Course","1st preference","2nd preference","3rd preference",'
+                '"Experience","Educational background","Registration Comments"'
+            ),
+        )
+        self.assertContains(
+            response,
+            (
+                f'"{self.manager.first_name}",'
+                f'"{self.manager.last_name}",'
+                f'"{self.manager.student_number}",'
+                f'"{self.manager.github_username}",'
+                f'"{self.registration.course}",'
+                f'"{self.registration.preference1}",'
+                f'"",'
+                f'"",'
+                f'"{self.registration.experience}",'
+                f'"{self.registration.education_background}",'
+                f'"{self.registration.comments}"'
+            ),
+        )
         self.assertEqual(response.status_code, 200)
