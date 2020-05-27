@@ -508,11 +508,104 @@ class GSuiteSyncTestCase(TestCase):
 
             self.sync_service.delete_group.assert_called_once_with("delete_me")
 
+        self.sync_service.create_group = MagicMock(side_effect=Exception())
+        self.sync_service.update_group = MagicMock(side_effect=Exception())
+        self.sync_service.archive_group = MagicMock(side_effect=Exception())
+        self.sync_service.delete_group = MagicMock(side_effect=Exception())
+        self.sync_service._get_all_lists.reset_mock()
+
+        with self.subTest("Exceptions with task"):
+            self.sync_service.task = self.task = Task.objects.create(
+                total=0, completed=0, redirect_url=reverse("admin:mailing_lists_mailinglist_changelist")
+            )
+
+            existing_groups = [
+                {"name": "delete_me", "directMembersCount": "3"},
+                {"name": "archive_me", "directMembersCount": "3"},
+                {"name": "already_synced", "directMembersCount": "2"},
+                {"name": "already_archived", "directMembersCount": "0"},
+            ]
+
+            self.sync_service._get_all_lists.return_value = [
+                GSuiteSyncService.GroupData(name="sync_me", addresses=["someone"]),
+                GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
+                GSuiteSyncService.GroupData(name="ignore2", addresses=[]),
+            ]
+
+            self.sync_service._get_list_names_to_archive.return_value = ["archive_me", "already_archived"]
+
+            self.sync_service._get_list_names_to_delete.return_value = ["delete_me", "already_deleted"]
+
+            self.directory_api.groups().list().execute.side_effect = [
+                {"groups": existing_groups[:1], "nextPageToken": "some_token"},
+                {"groups": existing_groups[1:]},
+            ]
+
+            self.sync_service.sync_mailing_lists()
+
+            self.sync_service.create_group.assert_called_with(
+                GSuiteSyncService.GroupData(name="sync_me", addresses=["someone"])
+            )
+
+            self.sync_service.update_group.assert_called_with(
+                "already_synced", GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
+            )
+
+            self.sync_service.archive_group.assert_called_once_with("archive_me")
+
+            self.sync_service.delete_group.assert_called_once_with("delete_me")
+            self.assertEqual(self.task.completed, self.task.total)
+            self.assertTrue(self.task.fail)
+
         self.sync_service.create_group.reset_mock()
         self.sync_service.update_group.reset_mock()
         self.sync_service.archive_group.reset_mock()
         self.sync_service.delete_group.reset_mock()
         self.sync_service._get_all_lists.reset_mock()
+
+        with self.subTest("Exceptions without task"):
+            self.sync_service.task = None
+            existing_groups = [
+                {"name": "delete_me", "directMembersCount": "3"},
+                {"name": "archive_me", "directMembersCount": "3"},
+                {"name": "already_synced", "directMembersCount": "2"},
+                {"name": "already_archived", "directMembersCount": "0"},
+            ]
+
+            self.sync_service._get_all_lists.return_value = [
+                GSuiteSyncService.GroupData(name="sync_me", addresses=["someone"]),
+                GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
+                GSuiteSyncService.GroupData(name="ignore2", addresses=[]),
+            ]
+
+            self.sync_service._get_list_names_to_archive.return_value = ["archive_me", "already_archived"]
+
+            self.sync_service._get_list_names_to_delete.return_value = ["delete_me", "already_deleted"]
+
+            self.directory_api.groups().list().execute.side_effect = [
+                {"groups": existing_groups[:1], "nextPageToken": "some_token"},
+                {"groups": existing_groups[1:]},
+            ]
+
+            self.sync_service.sync_mailing_lists()
+
+            self.sync_service.create_group.assert_called_with(
+                GSuiteSyncService.GroupData(name="sync_me", addresses=["someone"])
+            )
+
+            self.sync_service.update_group.assert_called_with(
+                "already_synced", GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
+            )
+
+            self.sync_service.archive_group.assert_called_once_with("archive_me")
+
+            self.sync_service.delete_group.assert_called_once_with("delete_me")
+
+        self.sync_service.create_group = MagicMock()
+        self.sync_service.update_group = MagicMock()
+        self.sync_service.archive_group = MagicMock()
+        self.sync_service.delete_group = MagicMock()
+        self.sync_service._get_all_lists = MagicMock()
 
         with self.subTest("Successful partial"):
             self.sync_service.task = None

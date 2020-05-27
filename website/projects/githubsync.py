@@ -416,9 +416,17 @@ class GitHubSync:
 
     def perform_sync(self):
         """Sync all selected projects to GitHub."""
-        self.delete_teams_and_repos_to_be_deleted()
+        try:
+            self.delete_teams_and_repos_to_be_deleted()
+        except Exception as e:
+            self.logger.exception(e)
+            self.fail = True
         for project in self.projects:
-            self.sync_project(project)
+            try:
+                self.sync_project(project)
+            except Exception as e:
+                self.logger.exception(e)
+                self.fail = True
             self.task.completed += 1
             self.task.save()
         self.task.fail = self.fail

@@ -439,6 +439,19 @@ class GSuiteSyncService:
             for mailinglist in MailingListToBeDeleted.objects.filter(archive_instead_of_delete=True)
         ]
 
+    def next_task(self):
+        """Increment completed counter of task if task exists."""
+        if self.task:
+            self.task.completed += 1
+            self.task.save()
+
+    def task_failed(self, e):
+        """Log exception and set task status to fail if task exists."""
+        logger.exception(e)
+        if self.task:
+            self.task.fail = True
+            self.task.save()
+
     def sync_mailing_lists(self, lists=None):
         """
         Sync mailing lists with GSuite.
@@ -491,45 +504,50 @@ class GSuiteSyncService:
             self.task.save()
 
         for mailinglist in lists:
-            if mailinglist.name in insert_list and mailinglist.name not in archived_groups:
-                logger.debug(f"Starting create group of {mailinglist}")
-                if self.create_group(mailinglist):
-                    MailingList.objects.filter(address=mailinglist.name).update(gsuite_group_name=mailinglist.name)
-                if self.task:
-                    self.task.completed += 1
-                    self.task.save()
-            elif len(mailinglist.addresses) > 0:
-                logger.debug(f"Starting update group of {mailinglist}")
-                if self.update_group(
-                    mailinglist.gsuite_group_name if mailinglist.gsuite_group_name else mailinglist.name, mailinglist
-                ):
-                    MailingList.objects.filter(address=mailinglist.name).update(gsuite_group_name=mailinglist.name)
-                if self.task:
-                    self.task.completed += 1
-                    self.task.save()
+            try:
+                if mailinglist.name in insert_list and mailinglist.name not in archived_groups:
+                    logger.debug(f"Starting create group of {mailinglist}")
+                    if self.create_group(mailinglist):
+                        MailingList.objects.filter(address=mailinglist.name).update(gsuite_group_name=mailinglist.name)
+                elif len(mailinglist.addresses) > 0:
+                    logger.debug(f"Starting update group of {mailinglist}")
+                    if self.update_group(
+                        mailinglist.gsuite_group_name if mailinglist.gsuite_group_name else mailinglist.name,
+                        mailinglist,
+                    ):
+                        MailingList.objects.filter(address=mailinglist.name).update(gsuite_group_name=mailinglist.name)
+            except Exception as e:
+                self.task_failed(e)
+            self.next_task()
 
         if remove_lists:
             for list_name in list_names_to_remove:
                 success = True
-                if list_name in existing_groups or list_name in archived_groups:
-                    logger.debug(f"Starting delete group of {list_name}")
-                    success = self.delete_group(list_name)
-                if success:
-                    MailingListToBeDeleted.objects.filter(address=list_name).delete()
-                if self.task:
-                    self.task.completed += 1
-                    self.task.save()
+                try:
+                    if list_name in existing_groups or list_name in archived_groups:
+                        logger.debug(f"Starting delete group of {list_name}")
+                        success = self.delete_group(list_name)
+                    if success:
+                        MailingListToBeDeleted.objects.filter(address=list_name).delete()
+                    else:
+                        self.task.fail = True
+                except Exception as e:
+                    self.task_failed(e)
+                self.next_task()
 
             for list_name in list_names_to_archive:
                 success = True
-                if list_name in existing_groups:
-                    logger.debug(f"Starting archive group of {list_name}")
-                    success = self.archive_group(list_name)
-                if success:
-                    MailingListToBeDeleted.objects.filter(address=list_name).delete()
-                if self.task:
-                    self.task.completed += 1
-                    self.task.save()
+                try:
+                    if list_name in existing_groups:
+                        logger.debug(f"Starting archive group of {list_name}")
+                        success = self.archive_group(list_name)
+                    if success:
+                        MailingListToBeDeleted.objects.filter(address=list_name).delete()
+                    else:
+                        self.task.fail = True
+                except Exception as e:
+                    self.task_failed(e)
+                self.next_task()
 
         logger.info("Synchronization ended.")
 

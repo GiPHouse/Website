@@ -708,6 +708,15 @@ class GitHubSyncTest(TestCase):
         self.sync.delete_teams_and_repos_to_be_deleted.assert_called_once()
         self.sync.sync_project.assert_called_once_with(self.project1)
 
+    def test_perform_sync__errors(self):
+        self.sync.sync_project = MagicMock(side_effect=self.exception)
+        self.sync.delete_teams_and_repos_to_be_deleted = MagicMock(side_effect=self.exception)
+        self.sync.perform_sync()
+        self.sync.delete_teams_and_repos_to_be_deleted.assert_called_once()
+        self.sync.sync_project.assert_called_once_with(self.project1)
+        self.assertEqual(self.sync.task.completed, self.sync.task.total)
+        self.assertTrue(self.sync.task.fail)
+
     def test_perform_asynchronous_sync(self):
         thread_instance = MagicMock()
         thread_mock = MagicMock(return_value=thread_instance)
