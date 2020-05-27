@@ -79,6 +79,18 @@ class MailingList(models.Model):
 
         return set(course_emails + project_emails + user_emails + extra_emails)
 
+    @property
+    def number_of_users(self):
+        """Return number of users currently in a mailing list."""
+        return self.users.count()
+
+    @property
+    def mailinglist_aliases(self):
+        """Return the alias of a mailinglist."""
+        return ", ".join(
+            [str(i) for i in MailingListAlias.objects.filter(mailing_list=self).values_list("address", flat=True)]
+        )
+
 
 class MailingListToBeDeleted(models.Model):
     """A mailing list that has been deleted in Django and must be deleted or archived in Gsuite in the future."""
