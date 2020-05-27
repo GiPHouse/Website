@@ -2,11 +2,16 @@ from unittest.mock import MagicMock, patch
 
 from django.contrib.admin import AdminSite
 from django.contrib.auth import get_user_model
-from django.test import RequestFactory, TestCase
+from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 
+from courses.models import Semester
+
 from mailing_lists.admin import CourseSemesterLinkInline, MailingListAdmin
+from mailing_lists.forms import MailingListAdminForm
 from mailing_lists.models import MailingList
+
+from projects.models import Project
 
 from registrations.models import Employee
 
@@ -46,10 +51,19 @@ class MailingListAdminTest(TestCase):
         cls.admin_password = "hunter2"
         cls.admin = User.objects.create_superuser(github_id=0, github_username="admin")
 
+        cls.mailinglist = MailingList.objects.create(address="testmail", description="foo")
+        cls.user = User.objects.create(github_id=2, github_username="BobJones")
+
+        cls.semester = Semester.objects.create(year=2020, season=Semester.SPRING)
+
+        cls.project = Project.objects.create(name="test", semester=cls.semester)
+
     def setUp(self):
         request_factory = RequestFactory()
         self.request = request_factory.get(reverse("admin:mailing_lists_mailinglist_changelist"))
         self.request.user = self.admin
+        self.client = Client()
+        self.client.force_login(self.admin)
 
     @patch("mailing_lists.admin.GSuiteSyncService")
     def test_synchronize_all_mailing_lists_calls_ok(self, gsuite_sync_service):
@@ -69,3 +83,42 @@ class MailingListAdminTest(TestCase):
             self.request, [MailingList.objects.create(address="test")]
         )
         mock_instance.sync_mailing_lists.assert_called_once()
+
+    def test_get_form(self):
+        response = self.client.get(reverse("admin:mailing_lists_mailinglist_change", args=(self.mailinglist.id,)))
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_add(self):
+        response = self.client.get(reverse("admin:mailing_lists_mailinglist_add"))
+        self.assertEqual(response.status_code, 200)
+
+    def test_form_new(self):
+        response = self.client.post(
+            reverse("admin:mailing_lists_mailinglist_add"),
+            {
+                "address": "abc",
+                "description": "Test project description",
+                "projects": self.project,
+                "users": [self.user],
+                "archive_instead_of_delete": False,
+                "mailinglistcoursesemesterlink_set-TOTAL_FORMS": 1,
+                "mailinglistcoursesemesterlink_set-INITIAL_FORMS": 0,
+                "mailinglistcoursesemesterlink_set-MIN_NUM_FORMS": 0,
+                "mailinglistcoursesemesterlink_set-MAX_NUM_FORMS": 1000,
+                "extraemailaddress_set-TOTAL_FORMS": 1,
+                "extraemailaddress_set-INITIAL_FORMS": 0,
+                "extraemailaddress_set-MIN_NUM_FORMS": 0,
+                "extraemailaddress_set-MAX_NUM_FORMS": 1000,
+                "mailinglistalias_set-TOTAL_FORMS": 1,
+                "mailinglistalias_set-INITIAL_FORMS": 0,
+                "mailinglistalias_set-MIN_NUM_FORMS": 0,
+                "mailinglistalias_set-MAX_NUM_FORMS": 1000,
+            },
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_save(self):
+        admin = MailingListAdminForm(instance=self.mailinglist, data={"address": "abc"})
+        admin.save()
+        self.assertIsNotNone(MailingList.objects.get(address="abc"))

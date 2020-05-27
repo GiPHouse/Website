@@ -1,9 +1,19 @@
 from django import forms
+from django.contrib.admin import widgets
+from django.contrib.auth import get_user_model
+from django.db.models import Q
 from django.utils.html import escape
+
+
+from courses.models import Course, Semester
 
 from giphousewebsite.settings.base import GSUITE_DOMAIN
 
 from mailing_lists.models import MailingList
+
+from registrations.models import Employee
+
+User: Employee = get_user_model()
 
 
 class SuffixTextInputWidget(forms.TextInput):
@@ -26,12 +36,42 @@ class SuffixTextInputWidget(forms.TextInput):
         return html
 
 
-class AddressSuffixedForm(forms.ModelForm):
-    """ModelForm for forms where the address field should be suffixed."""
+class MailingListAdminForm(forms.ModelForm):
+    """ModelForm to search users in userlist of a mailinglist."""
 
     class Meta:
-        """Meta class for AddressSuffixedForm."""
+        """Meta class for MailingListAdminForm."""
 
         model = MailingList
+        exclude = []
         fields = "__all__"
         widgets = {"address": SuffixTextInputWidget(suffix=f"@{GSUITE_DOMAIN}")}
+
+    def __init__(self, *args, **kwargs):
+        """Initialize the form."""
+        super().__init__(*args, **kwargs)
+
+        self.fields["users"].queryset = User.objects.filter(
+            registration__semester=Semester.objects.get_or_create_current_semester(),
+        )
+
+        if self.instance.pk:
+            self.fields["users"].initial = User.objects.filter(registration__course=Course.objects.sdm(),)
+
+            self.fields["users"].initial = User.objects.filter(
+                Q(registration__course=Course.objects.se()) | Q(registration__course=Course.objects.sde()),
+            )
+
+    users = forms.ModelMultipleChoiceField(
+        queryset=None, required=False, widget=widgets.FilteredSelectMultiple("Users", False)
+    )
+
+    def save_m2m(self):
+        """Add the users to the Mailinglist and remove other users from the Mailinglist."""
+        self.clean()
+
+    def save(self, *args, **kwargs):
+        """Save the form data, including many-to-many data."""
+        instance = super().save()
+        self.save_m2m()
+        return instance

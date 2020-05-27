@@ -20,9 +20,9 @@ from registrations.models import Employee, Registration
 class ModelTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.existing_list_address = f"list"
-        cls.existing_alias_address = f"alias"
-        cls.unused_address = f"unused"
+        cls.existing_list_address = "list"
+        cls.existing_alias_address = "alias"
+        cls.unused_address = "unused"
 
         cls.existing_list = MailingList.objects.create(address=cls.existing_list_address)
         cls.existing_alias = MailingListAlias.objects.create(

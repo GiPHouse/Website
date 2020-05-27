@@ -86,7 +86,7 @@ class GitHubAPITalkerTest(TestCase):
         self.talker.create_team(self.project1)
         self.talker._organization.create_team.assert_called_once_with(
             "test1",
-            description=f"Team for the GiPHouse project 'test1' for the 'Fall 2020' semester.",
+            description="Team for the GiPHouse project 'test1' for the 'Fall 2020' semester.",
             privacy="closed",
         )
 
