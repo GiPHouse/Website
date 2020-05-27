@@ -273,6 +273,7 @@ After the `build-docker` job is finished, the `deploy` job runs.
 3. Create the necessary directories and files on the production server.
 4. Pulls the new Docker image.
 5. Restarts the production website with the new Docker image.
+6. Purge all old unused Docker images.
 
 #### Secrets
 This repository is public and the GitHub Actions CI runner logs are also public, but some deployment information is secret. The secret information is setup using [GitHub repository secrets](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets). These are passed as environment variables to the GitHub Actions CI runners. The following secrets are setup.
