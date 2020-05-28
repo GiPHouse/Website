@@ -94,14 +94,6 @@ class GitHubAPITalker:
         """Remove a user from the GiPHouse GitHub organization."""
         self.github_organization.remove_from_members(user)
 
-    def username_exists(self, username):
-        """Check if username is an existing Github username."""
-        try:
-            self._github.get_user(username)
-            return True
-        except GithubException:
-            return False
-
     def remove_all_teams_from_organization(self):
         """Remove all teams and users from a organization (for development purposes)."""
         for team in self.github_organization.get_teams():

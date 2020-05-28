@@ -1,4 +1,3 @@
-import logging
 import random
 import string
 
@@ -17,7 +16,6 @@ from courses.models import Course, Lecture, Semester
 
 from mailing_lists.models import ExtraEmailAddress, MailingList, MailingListAlias, MailingListCourseSemesterLink
 
-from projects import githubsync
 from projects.models import Client, Project, Repository
 
 from questionnaires.models import (
@@ -56,15 +54,6 @@ DEFAULTS = {
     "mailing_list": 3,
 }
 THINGS = list(DEFAULTS.keys())
-
-
-def filter_log_record_200_404(record):
-    """Prevent 200 and 404 responses from being logged by Github.py."""
-    # record.args is the list of arguments used to create the log entry; args[6] is the response status code
-    if record.args[6] in [200, 404]:
-        return 0
-    else:
-        return 1
 
 
 class Command(BaseCommand):
@@ -191,17 +180,8 @@ class Command(BaseCommand):
     @staticmethod
     def generate_fake_github_username():
         """Generate a random username that isn't an existing Github username."""
-        # Filter 200 and 404 responses from log to remove expected events from console output
-        logger = logging.getLogger("github.Requester")
-        logger.addFilter(filter_log_record_200_404)
-
-        github_username = "".join(random.choices(string.ascii_letters + string.digits, k=20))
-        try:
-            while githubsync.talker.username_exists(github_username):
-                github_username = "".join(random.choices(string.ascii_letters + string.digits, k=20))
-            return github_username
-        finally:
-            logger.removeFilter(filter_log_record_200_404)
+        # Entropy should ensure we do not use real Github usernames (26 + 26 + 10)^39 = ~2^232
+        return "".join(random.choices(string.ascii_letters + string.digits, k=39))
 
     @staticmethod
     def generate_partner_preference(semester):
