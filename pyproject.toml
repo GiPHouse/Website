@@ -2,7 +2,10 @@
 name = "giphousewebsite"
 description = "GiPHouse website based on Django Framework"
 version = "1.0.0"
-authors = ["joren485", "pingiun", "keukentrap", "adiehl96", "Pegasystem", "BierBrigadier"]
+authors = [
+  "joren485", "pingiun", "keukentrap", "adiehl96", "Pegasystem", "BierBrigadier", 
+  "avanderjagt", "mennobartels", "AJKruijsse", " JelmerHinssen", "JobDoesburg", " yhogewind", "lukovdm"
+]
 license = "AGPL-3.0-only"
 
 [tool.poetry.dependencies]
