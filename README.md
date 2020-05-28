@@ -18,6 +18,7 @@ This is the code for the website of [GiPHouse](http://giphouse.nl/) powered by [
     - [Projects and Repositories](#projects-and-repositories) 
       - [GitHub Synchronization](#github-synchronization)
     - [Mailing Lists](#mailing-lists)
+    - [Tasks](#tasks)
   - [Development and Contributing](#development-and-contributing)
     - [Getting Started](#getting-started)
       - [Logging into the Backend](#logging-into-the-backend)
