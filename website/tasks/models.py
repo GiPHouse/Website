@@ -8,6 +8,7 @@ class Task(models.Model):
     completed = models.IntegerField(null=True, blank=True)
     fail = models.BooleanField(default=False)
     success_message = models.TextField(null=True, blank=True)
+    data = models.TextField(null=True, blank=True)
     redirect_url = models.CharField(max_length=60)
 
     def __str__(self):

@@ -28,6 +28,7 @@ pygithub = "^1.46"
 cryptography = "^2.8"
 Faker = "^4.0.2"
 fuzzyset = "^0.0.19"
+ortools = "^7.6.7691"
 
 [tool.poetry.extras]
 production = ["uwsgi", "psycopg2-binary"]

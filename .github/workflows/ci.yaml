@@ -41,7 +41,7 @@ jobs:
       run: >-
         poetry run
         flake8
-        --max-line-length=119
+        --max-line-length=119 --extend-ignore=E203,W503
         --exclude="migrations,website/giphousewebsite/settings/,website/registrations/models/__init__.py"
         --application-import-names="$(ls -1 website/*/__init__.py | awk -F'/' 'BEGIN { ORS = "," } {print $(NF-1) }')"
         website

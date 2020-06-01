@@ -2,13 +2,10 @@
 
 {% block content %}
     <div>
-        <p>The csv file should have as first columns the following header: </p>
-        <pre>{% for col in header %}{{ col }}{% if not forloop.last %},{% endif %} {% endfor %}</pre>
-        <br>
         <form action="." method="POST" enctype="multipart/form-data">
             {{ form.as_p }}
             {% csrf_token %}
-            <button type="submit">Upload CSV</button>
+            <button type="submit">Download CSV</button>
         </form>
     </div>
     <br />

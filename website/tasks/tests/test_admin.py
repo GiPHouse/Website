@@ -13,6 +13,9 @@ class MyTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.task = Task.objects.create(total=5, completed=0, success_message="test message", redirect_url="test_url")
+        cls.task_data = Task.objects.create(
+            total=1, completed=0, success_message="test message", redirect_url="test_url", data="data"
+        )
 
     def setUp(self):
         site = AdminSite
@@ -26,6 +29,15 @@ class MyTestCase(TestCase):
 
         response = self.task_admin.task_progress(self.request, self.task.id)
         self.assertEqual(response.status_code, 200)
+
+    def test_task_download_no_data(self):
+        with self.assertRaises(Http404):
+            self.task_admin.task_download(self.request, self.task.id)
+
+    def test_task_download(self):
+        response = self.task_admin.task_download(self.request, self.task_data.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b"data")
 
     @patch("tasks.admin.render")
     def test_task_progress_bar(self, render):

@@ -62,6 +62,16 @@ LOGGING = {
             'level': os.environ.get('DJANGO_LOG_LEVEL', 'DEBUG'),
             'propagate': False,
         },
+        'github': {
+            'handlers': ['console', 'file'],
+            'level': os.environ.get('DJANGO_LOG_LEVEL', 'DEBUG'),
+            'propagate': False,
+        },
+        'automaticteams': {
+            'handlers': ['console', 'file'],
+            'level': os.environ.get('DJANGO_LOG_LEVEL', 'DEBUG'),
+            'propagate': False,
+        },
     },
 }
 

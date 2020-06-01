@@ -53,6 +53,15 @@ class RegistrationAdminTest(TestCase):
             github_id=2, github_username="lol", first_name="First", last_name="Last", student_number="s1234568"
         )
 
+        cls.registration2 = Registration.objects.create(
+            user=cls.user,
+            semester=cls.semester,
+            experience=Registration.EXPERIENCE_BEGINNER,
+            preference1=cls.project,
+            course=cls.course,
+            is_international=False,
+        )
+
         cls.message = {
             "date_joined_0": "2000-12-01",
             "date_joined_1": "12:00:00",
@@ -163,11 +172,23 @@ class RegistrationAdminTest(TestCase):
             ),
         )
 
+    def test_unassign_project(self):
+        response = self.client.post(
+            reverse("admin:registrations_employee_changelist"),
+            {ACTION_CHECKBOX_NAME: [self.manager.pk, self.user.pk], "action": "unassign_from_project", "index": 0},
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.registration.refresh_from_db()
+        self.registration2.refresh_from_db()
+        self.assertIsNone(self.registration.project)
+        self.assertIsNone(self.registration2.project)
+
     def test_import_csv__get(self):
         response = self.client.get(reverse("admin:import"), follow=True)
         self.assertEqual(response.status_code, 200)
 
-    @patch("registrations.admin.UserAdmin.handle_csv")
+    @patch("registrations.admin.ImportAssignmentAdminView.handle_csv")
     def test_import_csv__post(self, mock_handle_csv):
         test_csv_file = SimpleUploadedFile("csv_file.csv", b"123456,test,abcdef", content_type="text/csv")
         response = self.client.post(
@@ -176,7 +197,7 @@ class RegistrationAdminTest(TestCase):
         self.assertEqual(response.status_code, 200)
         mock_handle_csv.assert_called_once()
 
-    @patch("registrations.admin.UserAdmin.handle_csv")
+    @patch("registrations.admin.ImportAssignmentAdminView.handle_csv")
     def test_import_csv__post_no_csv_file(self, mock_handle_csv):
         messages.error = MagicMock()
         test_csv_file = SimpleUploadedFile("csv_file.png", b"123456,test,abcdef", content_type="text/csv")
@@ -187,7 +208,7 @@ class RegistrationAdminTest(TestCase):
         messages.error.assert_called_once()
         mock_handle_csv.assert_not_called()
 
-    @patch("registrations.admin.UserAdmin.handle_csv")
+    @patch("registrations.admin.ImportAssignmentAdminView.handle_csv")
     def test_import_csv__post_file_too_big(self, mock_handle_csv):
         messages.error = MagicMock()
         file_content = 20000000 * b"test"
@@ -199,7 +220,10 @@ class RegistrationAdminTest(TestCase):
         messages.error.assert_called_once()
         mock_handle_csv.assert_not_called()
 
-    @patch("registrations.admin.UserAdmin.handle_csv", **{"return_value.raiseError.side_effect": ValueError()})
+    @patch(
+        "registrations.admin.ImportAssignmentAdminView.handle_csv",
+        **{"return_value.raiseError.side_effect": ValueError()},
+    )
     def test_import_csv__post_file_error_handling(self, mock_handle_csv):
         messages.error = MagicMock()
         test_csv_file = SimpleUploadedFile("csv_file.csv", b"123456,test,abcdef", content_type="text/csv")
@@ -327,6 +351,36 @@ class RegistrationAdminTest(TestCase):
         self.assertIsNone(registration.project)
         self.assertEqual(response.status_code, 200)
 
+    def test_handle_csv__no_project(self):
+        file_content = (
+            b"First name, Last name, Student number, Course, Project name\nPiet, Janssen, s1234567, "
+            b"System Development Management,"
+        )
+        user = User.objects.create(
+            github_id=1234567,
+            github_username="abcdefghij",
+            first_name="Piet",
+            last_name="Janssen",
+            student_number="s1234567",
+        )
+        registration = Registration.objects.create(
+            user=user,
+            project=None,
+            semester=self.semester,
+            experience=Registration.EXPERIENCE_BEGINNER,
+            preference1=self.project,
+            course=self.course,
+            is_international=False,
+        )
+
+        test_csv_file = SimpleUploadedFile("csv_file.csv", file_content, content_type="text/csv")
+        response = self.client.post(
+            reverse("admin:import"), {"csv_file": test_csv_file, "semester": self.semester.pk}, follow=True
+        )
+        registration.refresh_from_db()
+        self.assertIsNone(registration.project)
+        self.assertEqual(response.status_code, 200)
+
     def test_handle_csv__nonexistent_user(self):
         file_content = (
             b"First name, Last name, Student number, Course, Project name\nPiet, Janssen, s1234567, "
@@ -356,3 +410,15 @@ class RegistrationAdminTest(TestCase):
         registration.refresh_from_db()
         self.assertIsNone(registration.project)
         self.assertEqual(response.status_code, 200)
+
+    def test_download_csv__get(self):
+        response = self.client.get(reverse("admin:download-assignment"), follow=True)
+        self.assertEqual(response.status_code, 200)
+
+    @patch("threading.Thread")
+    def test_download_csv__post(self, mock_thread):
+        response = self.client.post(reverse("admin:download-assignment"), {"semester": self.semester.pk}, follow=True)
+        self.assertEqual(response.status_code, 200)
+        mock_thread.assert_called_once()
+
+        # TODO check content

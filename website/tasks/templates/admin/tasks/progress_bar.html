@@ -7,7 +7,7 @@
     <script src="{% static 'js/jquery-3.4.1.slim.min.js' %}"></script>
     <script>
         function format(completed, total) {
-            $("#status").html("Synced " + completed + " of " +  total + " objects");
+            $("#status").html("Processed " + completed + " of " +  total + " objects");
             if(completed !== "?") {
                 $("#bar").attr({
                     "value": completed,
@@ -15,18 +15,25 @@
                 });
             }
         }
+        function redirect() {
+            window.location.replace("{% url "admin:result" task %}");
+        }
+
         function update() {
             let http = new XMLHttpRequest();
             http.onreadystatechange = function() {
                 if (this.readyState === 4 && this.status === 200) {
-                    const {completed, total} = JSON.parse(this.responseText);
+                    const {completed, total, hasData} = JSON.parse(this.responseText);
                     if (!(completed == null || total == null)) {
                         format(completed, total);
                     }
                     if (completed !== total || completed === null || total === null) {
                         setTimeout(update, 1000);
+                    } else if (hasData) {
+                        window.location.replace("{% url "admin:download" task %}");
+                        setTimeout(redirect, 1000);
                     } else {
-                        window.location.replace("{% url "admin:result" task %}");
+                        redirect()
                     }
                 }
             };

@@ -3,6 +3,9 @@
 
 {% block object-tools-items %}
     <li>
+        <a class="import" href="{% url 'admin:download-assignment' %}">Download proposed group assignment</a>
+    </li>
+    <li>
         <a class="import" href="{% url 'admin:import' %}">Import group assignment</a>
     </li>
     {{ block.super }}

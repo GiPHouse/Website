@@ -441,6 +441,18 @@ signals = ["blinker"]
 signedtoken = ["cryptography", "pyjwt (>=1.0.0)"]
 
 [[package]]
+category = "main"
+description = "Google OR-Tools python libraries and modules"
+name = "ortools"
+optional = false
+python-versions = "*"
+version = "7.6.7691"
+
+[package.dependencies]
+protobuf = ">=3.11.2"
+six = ">=1.10"
+
+[[package]]
 category = "dev"
 description = "Utility library for gitignore style pattern matching of file paths."
 name = "pathspec"
@@ -763,7 +775,7 @@ version = "1.12.1"
 production = ["uwsgi", "psycopg2-binary"]
 
 [metadata]
-content-hash = "eccdc99ec9735e6e5e19dbd10b1139206aa291f14a06e4dfb3d6fe9ebfd391c0"
+content-hash = "196a244a578659bbd885e2e82f73a8c714e5a6612e235c0b193ef943a9ab9364"
 python-versions = "^3.8"
 
 [metadata.files]
@@ -990,6 +1002,18 @@ mccabe = [
 oauthlib = [
     {file = "oauthlib-3.1.0-py2.py3-none-any.whl", hash = "sha256:df884cd6cbe20e32633f1db1072e9356f53638e4361bef4e8b03c9127c9328ea"},
     {file = "oauthlib-3.1.0.tar.gz", hash = "sha256:bee41cc35fcca6e988463cacc3bcb8a96224f470ca547e697b604cc697b2f889"},
+]
+ortools = [
+    {file = "ortools-7.6.7691-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:05273768c38b603e4605ef5ee2beb80f877f0b7a2cc59639a2d4c5d877c659db"},
+    {file = "ortools-7.6.7691-cp36-cp36m-macosx_10_6_intel.whl", hash = "sha256:4ad95879c30863f9a753c8bf6388a316d92e0ba4b6c73dbad1d81f37c011b2ac"},
+    {file = "ortools-7.6.7691-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:2dc97b706f618c019997c4441ad47a3fca99f8cb76af25e169bfdda5dd767695"},
+    {file = "ortools-7.6.7691-cp36-cp36m-win_amd64.whl", hash = "sha256:8984b89437effb070ac030335f3ffa300da5a403c92c09454759739a0252aa86"},
+    {file = "ortools-7.6.7691-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:d26d0bb5ab1427b7b95278a82ca951798bcb12abd44128e2f9de3640b5e26c0f"},
+    {file = "ortools-7.6.7691-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:200eea97fd5ca524cbcb2a54cacde3da0df47061a0e048ab4f34ccdb9633aef5"},
+    {file = "ortools-7.6.7691-cp37-cp37m-win_amd64.whl", hash = "sha256:2a1f0095989b8e4dfe40e0c806b4a7f51e5a42806fdac1b2750aecb2d424626e"},
+    {file = "ortools-7.6.7691-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:271ab0cad19c598f83877ea8b37484a3f87aacc741ac0cf56ad9900965c9f041"},
+    {file = "ortools-7.6.7691-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:be2969390a8d13a13fc3e6aedfc90e19df344f916e4db050200df3c489fdb05b"},
+    {file = "ortools-7.6.7691-cp38-cp38-win_amd64.whl", hash = "sha256:c6c99da57d1921eb248bc4f188be724e6783ee05a2cc37b04d4658d5643f7ae6"},
 ]
 pathspec = [
     {file = "pathspec-0.8.0-py2.py3-none-any.whl", hash = "sha256:7d91249d21749788d07a2d0f94147accd8f845507400749ea19c1ec9054a12b0"},

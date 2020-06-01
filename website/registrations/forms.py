@@ -63,32 +63,35 @@ class Step2Form(forms.Form):
     project3 = forms.ModelChoiceField(label="Third project preference", queryset=None, required=False)
 
     partner1 = forms.CharField(
-        label="First project partner preference",
+        label="Project partner preference",
         widget=forms.TextInput(attrs={"placeholder": "e.g. Piet Janssen"}),
         max_length=100,
         required=False,
+        help_text="Optional",
     )
 
     partner2 = forms.CharField(
-        label="Second project partner preference",
+        label="Project partner preference",
         widget=forms.TextInput(attrs={"placeholder": ""}),
         max_length=100,
         required=False,
+        help_text="Optional",
     )
 
     partner3 = forms.CharField(
-        label="Third project partner preference",
+        label="Project partner preference",
         widget=forms.TextInput(attrs={"placeholder": ""}),
         max_length=100,
         required=False,
+        help_text="Optional",
     )
 
-    international = forms.BooleanField(label="I don't speak Dutch", required=False,)
+    international = forms.BooleanField(label="I don't speak Dutch", required=False)
 
     comments = forms.CharField(
-        widget=forms.Textarea(attrs={"placeholder": "Who do you want to work with? \n" "Any other comments?"}),
-        help_text="Optional",
+        widget=forms.Textarea(attrs={"placeholder": "Do you have any comments?"}),
         required=False,
+        help_text="Optional",
     )
 
     def clean_email(self):

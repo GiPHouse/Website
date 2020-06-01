@@ -10,12 +10,14 @@ from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect, render
 from django.urls import path
+from django.views import View
 
 from courses.models import Semester
 
 from projects.models import Project
 
 from registrations.models import Employee, Registration
+from registrations.team_assignment import CSV_STRUCTURE, TeamAssignmentGenerator
 
 User: Employee = get_user_model()
 
@@ -60,7 +62,12 @@ class RegistrationInline(admin.StackedInline):
 class UserAdmin(admin.ModelAdmin):
     """Custom admin for Student."""
 
-    actions = ("place_in_first_project_preference", "export_student_numbers", "export_registrations")
+    actions = (
+        "place_in_first_project_preference",
+        "unassign_from_project",
+        "export_student_numbers",
+        "export_registrations",
+    )
 
     fieldsets = (
         ("Personal", {"fields": ("first_name", "last_name", "email", "student_number")}),
@@ -219,15 +226,50 @@ class UserAdmin(admin.ModelAdmin):
         response["Content-Disposition"] = "attachment; filename=registrations.csv"
         return response
 
+    def unassign_from_project(self, request, queryset):
+        """Clear the set project for a registration."""
+        num_unassigned = 0
+        for user in queryset:
+            reg = user.registration_set.first()
+            if reg.project is not None:
+                reg.project = None
+                reg.save()
+                num_unassigned += 1
+        messages.success(
+            request, f"Succesfully unassigned {num_unassigned} registrations.",
+        )
+
     def get_urls(self):
         """Get admin urls."""
         urls = super().get_urls()
         custom_urls = [
-            path("import/", self.admin_site.admin_view(self.import_csv), name="import",),
+            path("download-assignment/", DownloadAssignmentAdminView.as_view(), name="download-assignment",),
+            path("import/", ImportAssignmentAdminView.as_view(), name="import",),
         ]
         return custom_urls + urls
 
-    def handle_csv(self, csv_file, semester):
+    class Media:
+        """Necessary to use AutocompleteFilter."""
+
+
+class CsvImportForm(forms.Form):
+    """Form used when importing a csv group assignment."""
+
+    csv_file = forms.FileField(required=True)
+    semester = forms.ModelChoiceField(queryset=Semester.objects.all(), required=True)
+
+
+class ImportAssignmentAdminView(View):
+    """Import a CSV file with project assignment."""
+
+    def get(self, request):
+        """Get a form to select the semester to import for."""
+        form = CsvImportForm()
+        payload = {"form": form, "header": CSV_STRUCTURE[:5]}
+        return render(request, "admin/registrations/import-csv.html", payload)
+
+    @staticmethod
+    def handle_csv(csv_file, semester):
         """Process a CSV file with project assignment."""
         csv_data = csv_file.read().decode("utf-8")
         dialect = csv.Sniffer().sniff(csv_data)
@@ -236,11 +278,12 @@ class UserAdmin(admin.ModelAdmin):
         num_assigned = 0
         num_ignored = 0
 
-        expected_header = ["First name", "Last name", "Student number", "Course", "Project name"]
+        expected_header = CSV_STRUCTURE[:5]
+
         for row in reader:
-            if reader.line_num == 1 and row != expected_header:
+            if reader.line_num == 1 and row[:5] != expected_header:
                 raise ValueError("Invalid columns")
-            elif reader.line_num == 1:
+            elif reader.line_num == 1 or not row[4]:
                 continue
 
             csv_first_name = row[0]
@@ -278,36 +321,44 @@ class UserAdmin(admin.ModelAdmin):
 
         return num_assigned, num_ignored
 
-    def import_csv(self, request):
-        """Import a CSV file with project assignment."""
-        if request.method == "POST":
-            csv_file = request.FILES["csv_file"]
-            semester = Semester.objects.get(pk=request.POST.get("semester"))
-            if not csv_file.name.endswith(".csv"):
-                messages.error(request, "File is not CSV type")
-            elif csv_file.multiple_chunks():
-                messages.error(request, "Uploaded file is too big (%.2f MB)." % (csv_file.size / (1000 * 1000),))
-            else:
-                try:
-                    num_assigned, num_ignored = self.handle_csv(csv_file, semester)
-                    messages.success(
-                        request,
-                        f"CSV file has been imported. {num_assigned} registrations are updated. "
-                        f"{num_ignored} registrations were already assigned and not been overwritten.",
-                    )
-                except ValueError as e:
-                    messages.error(request, e)
-                return redirect("..")
-        form = CsvImportForm()
-        payload = {"form": form}
-        return render(request, "admin/registrations/import-csv.html", payload)
-
-    class Media:
-        """Necessary to use AutocompleteFilter."""
+    def post(self, request):
+        """Import and process a .csv file with assigned projects."""
+        csv_file = request.FILES["csv_file"]
+        semester = Semester.objects.get(pk=request.POST.get("semester"))
+        if not csv_file.name.endswith(".csv"):
+            messages.error(request, "File is not CSV type")
+        elif csv_file.multiple_chunks():
+            messages.error(request, "Uploaded file is too big (%.2f MB)." % (csv_file.size / (1000 * 1000),))
+        else:
+            try:
+                num_assigned, num_ignored = self.handle_csv(csv_file, semester)
+                messages.success(
+                    request,
+                    f"CSV file has been imported. {num_assigned} registrations are updated. "
+                    f"{num_ignored} registrations were already assigned and not been overwritten.",
+                )
+            except ValueError as e:
+                messages.error(request, e)
+        return redirect("..")
 
 
-class CsvImportForm(forms.Form):
-    """Form used when importing a csv group assignment."""
+class DownloadAssignmentForm(forms.Form):
+    """Form used when generating and downloading a team assignment."""
 
-    csv_file = forms.FileField(required=True)
     semester = forms.ModelChoiceField(queryset=Semester.objects.all(), required=True)
+
+
+class DownloadAssignmentAdminView(View):
+    """Admin view to download a .csv file with a proposed team assignment for a chosen semester."""
+
+    def get(self, request):
+        """Get a form to select the semester to export for."""
+        form = DownloadAssignmentForm()
+        payload = {"form": form}
+        return render(request, "admin/registrations/download-assignment.html", payload)
+
+    def post(self, request):
+        """Start a task to generate and download a team assignment."""
+        semester = request.POST.get("semester")
+        task = TeamAssignmentGenerator(semester).start_solve_task()
+        return redirect("admin:progress_bar", task=task.id)

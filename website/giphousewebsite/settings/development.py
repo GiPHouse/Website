@@ -43,6 +43,17 @@ LOGGING = {
             'level': os.environ.get('DJANGO_LOG_LEVEL', 'DEBUG'),
             'propagate': False,
         },
+        'github': {
+            'handlers': ['console'],
+            'level': os.environ.get('DJANGO_LOG_LEVEL', 'DEBUG'),
+            'propagate': False,
+        },
+        'automaticteams': {
+            'handlers': ['console'],
+            'level': os.environ.get('DJANGO_LOG_LEVEL', 'DEBUG'),
+            'propagate': False,
+        },
+
     },
 }
 # Static files (CSS, JavaScript, Images)
