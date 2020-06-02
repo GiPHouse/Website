@@ -134,9 +134,17 @@ class ModelTest(TestCase):
         self.assertTrue(MailingListToBeDeleted.objects.filter(address="signal_list").exists())
 
     def test_number_of_users(self):
-        mailinglist = MailingList.objects.create(address="signal_list")
-        self.assertEqual(0, mailinglist.number_of_users)
+        mailing_list = MailingList.objects.create(address="signal_list")
+        mailing_list.save()
+        self.assertEqual(0, mailing_list.number_of_users)
+
+    def test_mailinglist_aliases_empty(self):
+        mailing_list = MailingList.objects.create(address="signal_list")
+        self.assertEqual("-", mailing_list.mailinglist_aliases)
 
     def test_mailinglist_aliases(self):
-        mailinglist = MailingList.objects.create(address="signal_list")
-        self.assertEqual("", mailinglist.mailinglist_aliases)
+        mailing_list = MailingList.objects.create(address="signal_list")
+        mailing_list.save()
+        new_alias = MailingListAlias(address="test_alias", mailing_list=mailing_list)
+        new_alias.save()
+        self.assertEqual("test_alias", mailing_list.mailinglist_aliases)

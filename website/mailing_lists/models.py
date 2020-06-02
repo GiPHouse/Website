@@ -30,7 +30,7 @@ class MailingList(models.Model):
     gsuite_group_name = models.CharField(
         max_length=60, validators=[email_local_part_validator, reserved_addresses_validator], blank=True, null=True
     )
-    description = models.CharField(blank=True, max_length=150)
+    description = models.CharField(blank=True, max_length=150, null=True)
     projects = models.ManyToManyField(Project, blank=True)
     users = models.ManyToManyField(Employee, blank=True)
     archive_instead_of_delete = models.BooleanField(
@@ -87,9 +87,13 @@ class MailingList(models.Model):
     @property
     def mailinglist_aliases(self):
         """Return the alias of a mailinglist."""
-        return ", ".join(
-            [str(i) for i in MailingListAlias.objects.filter(mailing_list=self).values_list("address", flat=True)]
-        )
+        aliaslist = [
+            str(i) for i in MailingListAlias.objects.filter(mailing_list=self).values_list("address", flat=True)
+        ]
+        if aliaslist:
+            return ", ".join(aliaslist)
+        else:
+            return "-"
 
 
 class MailingListToBeDeleted(models.Model):
