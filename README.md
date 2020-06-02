@@ -321,6 +321,7 @@ These steps are the necessary setup for a production server.
 3. Install `docker` and `docker-compose`.
 4. Add the `ubuntu` user to the `docker` group.
 5. Add the public key of the `SSH_PRIVATE_KEY` GitHub secret to the `authorized_keys` file of the `SSH_USER` GitHub secret user.
+6. Change the url of the website by changing the `DEPLOYMENT_HOST` env variable in the deploy.yaml file. This will set the host in all necessary places.
 
 ### Keeping Everything Up to Date
 All moving parts should be regularly updated to make sure all code is up to date and secure. There is no process in place to automate updates, because that may break something.

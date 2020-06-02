@@ -1,13 +1,11 @@
 from django import forms
+from django.conf import settings
 from django.contrib.admin import widgets
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.utils.html import escape
 
-
 from courses.models import Course, Semester
-
-from giphousewebsite.settings.base import GSUITE_DOMAIN
 
 from mailing_lists.models import MailingList
 
@@ -45,7 +43,7 @@ class MailingListAdminForm(forms.ModelForm):
         model = MailingList
         exclude = []
         fields = "__all__"
-        widgets = {"address": SuffixTextInputWidget(suffix=f"@{GSUITE_DOMAIN}")}
+        widgets = {"address": SuffixTextInputWidget(suffix=f"@{settings.GSUITE_DOMAIN}")}
 
     def __init__(self, *args, **kwargs):
         """Initialize the form."""
