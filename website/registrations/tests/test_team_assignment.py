@@ -105,14 +105,14 @@ class TeamAssignmentTest(TestCase):
             user=cls.user8,
             semester=cls.semester,
             experience=Registration.EXPERIENCE_BEGINNER,
-            course=cls.sdm,
+            course=cls.se,
             is_international=False,
         )
         cls.reg9 = Registration.objects.create(
             user=cls.user9,
             semester=cls.semester,
             experience=Registration.EXPERIENCE_BEGINNER,
-            course=cls.se,
+            course=cls.sdm,
             is_international=False,
         )
 
@@ -233,15 +233,39 @@ class TeamAssignmentTest(TestCase):
 
         self.assertDictEqual(expected_assignment, actual_assignment)
 
+    def test_solve_csp__mixed_programming_experience(self):
+        self.reg1.experience = Registration.EXPERIENCE_BEGINNER
+        self.reg1.save()
+        self.reg2.experience = Registration.EXPERIENCE_BEGINNER
+        self.reg2.save()
+        self.reg4.experience = Registration.EXPERIENCE_INTERMEDIATE
+        self.reg4.save()
+        self.reg5.experience = Registration.EXPERIENCE_INTERMEDIATE
+        self.reg5.save()
+        self.reg7.experience = Registration.EXPERIENCE_ADVANCED
+        self.reg7.save()
+        self.reg8.experience = Registration.EXPERIENCE_ADVANCED
+        self.reg8.save()
+
+        actual_assignment = TeamAssignmentGenerator(self.semester).generate_team_assignment()
+
+        self.assertNotEqual(actual_assignment[self.reg1.pk], actual_assignment[self.reg2.pk])
+        self.assertNotEqual(actual_assignment[self.reg4.pk], actual_assignment[self.reg5.pk])
+        self.assertNotEqual(actual_assignment[self.reg7.pk], actual_assignment[self.reg8.pk])
+
     def test_solve_csp__too_many_internationals(self):
         Registration.objects.update(is_international=True)
 
         with patch("registrations.team_assignment.TeamAssignmentGenerator._add_constraints") as _:
-            with patch("ortools.sat.python.cp_model.CpModel.Add") as mock_add:
-                assignment_generator = TeamAssignmentGenerator(self.semester)
-                assignment_generator._1_not_international_per_project_constraint()
-                self.assertIsNotNone(assignment_generator.generate_team_assignment())
-                mock_add.assert_not_called()
+            with patch(
+                "registrations.team_assignment.TeamAssignmentGenerator._mixed_programming_experience_objective",
+                return_value=0,
+            ) as _:
+                with patch("ortools.sat.python.cp_model.CpModel.Add") as mock_add:
+                    assignment_generator = TeamAssignmentGenerator(self.semester)
+                    assignment_generator._1_not_international_per_project_constraint()
+                    self.assertIsNotNone(assignment_generator.generate_team_assignment())
+                    mock_add.assert_not_called()
 
     def test_solve_csp__not_too_many_internationals(self):
         Registration.objects.update(is_international=False)
@@ -287,8 +311,8 @@ User4,Test4,,Software Engineering,,,,x,1,,,,0,,,
 User5,Test5,,Software Engineering,,,,x,1,,,,0,,,
 User6,Test6,,System Development Management,,,,x,1,,,,0,,,
 User7,Test7,,Software Engineering,,,,x,1,,,,0,,,
-User8,Test8,,System Development Management,,,,x,1,,,,0,,,
-User9,Test9,,Software Engineering,,,,x,1,,,,0,,,
+User8,Test8,,Software Engineering,,,,x,1,,,,0,,,
+User9,Test9,,System Development Management,,,,x,1,,,,0,,,
 """
         )
         self.assertEqual(assignment_generator.task.data.replace("\r", ""), result)
