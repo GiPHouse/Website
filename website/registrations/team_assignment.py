@@ -218,7 +218,7 @@ class TeamAssignmentGenerator:
         if not self.num_managers - num_internationals < self.num_projects:
             for p in range(self.num_projects):
                 self.model.Add(
-                    sum(self.assigned_managers[(r, p)] and not is_international[r] for r in range(self.num_managers))
+                    sum((self.assigned_managers[(r, p)] * (not is_international[r])) for r in range(self.num_managers))
                     >= 1
                 )
 
