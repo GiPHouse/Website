@@ -231,7 +231,7 @@ class UserAdmin(admin.ModelAdmin):
         num_unassigned = 0
         for user in queryset:
             reg = user.registration_set.first()
-            if reg.project is not None:
+            if reg is not None and reg.project is not None:
                 reg.project = None
                 reg.save()
                 num_unassigned += 1
