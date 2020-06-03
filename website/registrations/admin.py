@@ -87,6 +87,7 @@ class UserAdmin(admin.ModelAdmin):
         "__str__",
         "github_username",
         "get_current_project",
+        "get_international",
         "get_experience",
         "get_preference1",
         "get_preference2",
@@ -107,6 +108,14 @@ class UserAdmin(admin.ModelAdmin):
 
     # Necessary for the autocomplete filter
     search_fields = ("first_name", "last_name", "student_number", "github_username")
+
+    def get_international(self, obj):
+        """Return 1st project preference."""
+        registration = obj.registration_set.first()
+        return registration.is_international if registration else None
+
+    get_international.short_description = "International"
+    get_international.boolean = True
 
     def get_preference1(self, obj):
         """Return 1st project preference."""
