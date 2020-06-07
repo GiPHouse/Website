@@ -1,14 +1,9 @@
-{% extends "admin/change_list.html" %}
-{% load admin_urls static sass_tags %}
-
-{% block extrastyle %}
-    {{ block.super }}
-    <link rel="stylesheet" href="{% sass_src 'scss/gsuite-g-icon.scss' %}" type="text/css">
-{% endblock %}
+{% extends "admin/fa-admin.html" %}
+{% load admin_urls %}
 
 {% block object-tools-items %}
     <li>
-        <a class="gsuiteLink" href="{% url 'admin:synchronize_to_gsuite' %}">Synchronize to Gsuite</a>
+        <a href="{% url 'admin:synchronize_to_gsuite' %}">Synchronize to GSuite <i class="fab fa-google"></i></a>
     </li>
     {{ block.super }}
 {% endblock %}

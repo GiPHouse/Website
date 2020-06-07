@@ -1,14 +1,9 @@
-{% extends "admin/change_list.html" %}
-{% load admin_urls static sass_tags %}
-
-{% block extrastyle %}
-    {{ block.super }}
-    <link rel="stylesheet" href="{% sass_src 'scss/github-icon.scss' %}" type="text/css">
-{% endblock %}
+{% extends "admin/fa-admin.html" %}
+{% load admin_urls %}
 
 {% block object-tools-items %}
     <li>
-        <a class="githubLink" href="{% url 'admin:synchronise_to_github' %}">Synchronise to GitHub</a>
+        <a href="{% url 'admin:synchronize_to_gsuite' %}">Synchronize to GitHub <i class="fab fa-github"></i></a>
     </li>
     {{ block.super }}
 {% endblock %}
