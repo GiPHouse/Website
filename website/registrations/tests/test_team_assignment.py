@@ -116,6 +116,10 @@ class TeamAssignmentTest(TestCase):
             is_international=False,
         )
 
+    def setUp(self):
+        for i in range(1, 10):
+            self.__getattribute__(f"reg{i}").refresh_from_db()
+
     def tearDown(self) -> None:
         Project.objects.filter(semester=self.semester).delete()
         Registration.objects.filter(semester=self.semester).delete()

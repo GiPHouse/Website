@@ -310,7 +310,7 @@ class TeamAssignmentGenerator:
             Registration.EXPERIENCE_ADVANCED,
         ]:
             engineers = [r for r in range(self.num_engineers) if programming_experience_for_engineer[r] == exp]
-            target = len(engineers) // self.num_projects
+            target = len(engineers)
             abs_diff = {}
             for p in range(self.num_projects):
                 count = self.model.NewIntVar(
@@ -333,11 +333,11 @@ class TeamAssignmentGenerator:
                         ]
                     )
                 )
-                self.model.Add(diff == count - target)
+                self.model.Add(diff == count * self.num_projects - target)
                 self.model.AddAbsEquality(abs_diff[p], diff)
             objectives.append(sum([-abs_diff[p] for p in range(self.num_projects)]))
 
-        return sum(objectives)
+        return 10 * sum(objectives)
 
     def _partner_preference_objective(self):
         """
