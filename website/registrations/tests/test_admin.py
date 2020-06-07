@@ -420,5 +420,3 @@ class RegistrationAdminTest(TestCase):
         response = self.client.post(reverse("admin:download-assignment"), {"semester": self.semester.pk}, follow=True)
         self.assertEqual(response.status_code, 200)
         mock_thread.assert_called_once()
-
-        # TODO check content

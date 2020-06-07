@@ -11,9 +11,7 @@ from projects.models import Project
 
 from registrations.models import Employee, Registration
 
-email_local_part_validator = RegexValidator(
-    regex=r"^[a-zA-Z0-9-]+$", message="Enter a simpler name"
-)  # TODO test this validator
+email_local_part_validator = RegexValidator(regex=r"^[a-zA-Z0-9-]+$", message="Enter a simpler name")
 
 reserved_addresses_validator = RegexValidator(
     regex=r"^(?!(abuse|admin|administrator|hostmaster|majordomo|postmaster|root|ssl-admin|webmaster)$)",

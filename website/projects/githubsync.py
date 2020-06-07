@@ -170,11 +170,10 @@ class GitHubSync:
             try:
                 self.update_team(project_team)  # if this fails, we might have a problem with the github_team_id
             except (GithubException, AssertionError):
-                self.error(f"Something went wrong syncing the project team for '{project_team}'.")
-                # TODO: If the exception is that the github team is not found, someone removed the team manually
-                #  from GitHub and we maybe want to create the team again and save a new team_id, or someone
-                #  changed the team_id in Django to a non-existing one. Or just notify the user and let them do
-                #  this themselves
+                self.error(
+                    f"Something went wrong syncing the project team for '{project_team}'. Does the "
+                    f"github_team_id still belong to a valid team on GitHub?"
+                )
 
         for employee in project_team.get_employees():
             try:
