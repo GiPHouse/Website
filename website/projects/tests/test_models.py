@@ -75,26 +75,6 @@ class EmployeeQueryTest(TestCase):
         self.assertIn(self.employee3, self.project2.get_employees())
         self.assertEqual(self.project2.get_employees().count(), 1)
 
-    def test_get_engineers(self):
-        """Tests if get_engineers returns only engineers"""
-        self.addEngineerToProject(self.employee1, self.project1)
-        self.addEngineerToProject(self.employee2, self.project1)
-        self.addManagerToProject(self.employee3, self.project1)
-
-        self.assertIn(self.employee1, self.project1.get_engineers())
-        self.assertIn(self.employee2, self.project1.get_engineers())
-        self.assertNotIn(self.employee3, self.project1.get_engineers())
-
-    def test_get_managers(self):
-        """Tests if get_managers returns only managers"""
-        self.addEngineerToProject(self.employee1, self.project1)
-        self.addEngineerToProject(self.employee2, self.project1)
-        self.addManagerToProject(self.employee3, self.project1)
-
-        self.assertNotIn(self.employee1, self.project1.get_managers())
-        self.assertNotIn(self.employee2, self.project1.get_managers())
-        self.assertIn(self.employee3, self.project1.get_managers())
-
     def test_delete_project(self):
         """Test if deleted projects are also added to delete-list and its repositories are deleted too."""
         githubsync.talker.remove_team = MagicMock()

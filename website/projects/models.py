@@ -4,7 +4,7 @@ from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django.utils.text import slugify
 
-from courses.models import Course, Semester
+from courses.models import Semester
 
 from registrations.models import Employee
 
@@ -64,18 +64,6 @@ class Project(models.Model):
     def get_employees(self):
         """Query all employees assigned to this project."""
         return Employee.objects.filter(id__in=self.registration_set.values("user"))
-
-    def get_engineers(self):
-        """Query all engineers assigned to this project."""
-        return Employee.objects.filter(
-            id__in=self.registration_set.values("user"), registration__course=Course.objects.sde()
-        )
-
-    def get_managers(self):
-        """Query all managers assigned to this project."""
-        return Employee.objects.filter(
-            id__in=self.registration_set.values("user"), registration__course=Course.objects.sdm()
-        )
 
     @property
     def is_archived(self):
