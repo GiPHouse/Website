@@ -214,6 +214,15 @@ class GitHubSyncTest(TestCase):
         self.assert_info()
         self.assertTrue(return_value)
 
+    def test_sync_team_member__not_in_project(self):
+        reg = Registration.objects.get(user=self.employee1)
+        reg.project = None
+        reg.save()
+        return_value = self.sync.sync_team_member(self.employee1, self.project1)
+        self.talker.get_user.assert_not_called()
+        self.github_team.add_membership.assert_not_called()
+        self.assertFalse(return_value)
+
     def test_sync_team_member__already_in_team(self):
         self.github_team.has_in_members.return_value = True
         return_value = self.sync.sync_team_member(self.employee1, self.project1)

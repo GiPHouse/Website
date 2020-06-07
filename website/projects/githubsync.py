@@ -138,16 +138,16 @@ class GitHubSync:
         :param project: The project to add the employee to
         :return: True if a the employee is newly invited
         """
-        assert employee in project.get_employees()
+        if employee in project.get_employees():
 
-        github_team = self.github.get_team(project.github_team_id)
+            github_team = self.github.get_team(project.github_team_id)
 
-        github_employee = self.github.get_user(employee.github_username)
-        if not github_team.has_in_members(github_employee):
-            github_team.add_membership(github_employee, role="member")
-            self.users_invited += 1
-            self.info(f"Invited {github_employee.name} to team {github_team.name}")
-            return True
+            github_employee = self.github.get_user(employee.github_username)
+            if not github_team.has_in_members(github_employee):
+                github_team.add_membership(github_employee, role="member")
+                self.users_invited += 1
+                self.info(f"Invited {github_employee.name} to team {github_team.name}")
+                return True
         return False
 
     def create_or_update_team(self, project_team):
