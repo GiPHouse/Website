@@ -321,7 +321,6 @@ class ImportAssignmentAdminView(View):
                 )
 
             if registration.project:
-                print("Person already assigned to project, skipping.")
                 num_ignored += 1
             else:
                 registration.project = project
