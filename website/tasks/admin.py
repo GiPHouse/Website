@@ -22,7 +22,11 @@ class TaskAdmin(admin.ModelAdmin):
         """Show progress of a Task."""
         task = get_object_or_404(Task, pk=task)
         return JsonResponse(
-            {"completed": task.completed, "total": task.total, "hasData": (not task.fail and task.data != "")}
+            {
+                "completed": task.completed,
+                "total": task.total,
+                "hasData": (not task.fail and task.data is not None and task.data != ""),
+            }
         )
 
     def task_download(self, request, task):
