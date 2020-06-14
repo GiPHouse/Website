@@ -236,7 +236,7 @@ class RegistrationAdminTest(TestCase):
 
     def test_handle_csv(self):
         file_content = (
-            b"First name, Last name, Student number, Course, Project name\nPiet, Janssen, s1234567, "
+            b"First name, Last name, Student number, Course, Project name\nPiet, Janssen, s1234569, "
             b"System Development Management, GiPHouse1234"
         )
         user = User.objects.create(
@@ -244,7 +244,7 @@ class RegistrationAdminTest(TestCase):
             github_username="abcdefghij",
             first_name="Piet",
             last_name="Janssen",
-            student_number="s1234567",
+            student_number="s1234569",
         )
         registration = Registration.objects.create(
             user=user,
@@ -266,7 +266,7 @@ class RegistrationAdminTest(TestCase):
 
     def test_handle_csv__already_assigned(self):
         file_content = (
-            b"First name, Last name, Student number, Course, Project name\nPiet, Janssen, s1234567, "
+            b"First name, Last name, Student number, Course, Project name\nPiet, Janssen, s1234569, "
             b"System Development Management, GiPHouse1234"
         )
         user = User.objects.create(
@@ -274,7 +274,7 @@ class RegistrationAdminTest(TestCase):
             github_username="abcdefghij",
             first_name="Piet",
             last_name="Janssen",
-            student_number="s1234567",
+            student_number="s1234569",
         )
         registration = Registration.objects.create(
             user=user,
@@ -295,13 +295,13 @@ class RegistrationAdminTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_handle_csv__invalid_header(self):
-        file_content = b"Piet, Janssen, s1234567, System Development Management, GiPHouse1234"
+        file_content = b"Piet, Janssen, s1234569, System Development Management, GiPHouse1234"
         user = User.objects.create(
             github_id=1234567,
             github_username="abcdefghij",
             first_name="Piet",
             last_name="Janssen",
-            student_number="s1234567",
+            student_number="s1234569",
         )
         registration = Registration.objects.create(
             user=user,
@@ -323,7 +323,7 @@ class RegistrationAdminTest(TestCase):
 
     def test_handle_csv__nonexistent_project(self):
         file_content = (
-            b"First name, Last name, Student number, Course, Project name\nPiet, Janssen, s1234567, "
+            b"First name, Last name, Student number, Course, Project name\nPiet, Janssen, s1234569, "
             b"System Development Management, NonExistingProject"
         )
         user = User.objects.create(
@@ -331,7 +331,7 @@ class RegistrationAdminTest(TestCase):
             github_username="abcdefghij",
             first_name="Piet",
             last_name="Janssen",
-            student_number="s1234567",
+            student_number="s1234569",
         )
         registration = Registration.objects.create(
             user=user,
@@ -353,7 +353,7 @@ class RegistrationAdminTest(TestCase):
 
     def test_handle_csv__no_project(self):
         file_content = (
-            b"First name, Last name, Student number, Course, Project name\nPiet, Janssen, s1234567, "
+            b"First name, Last name, Student number, Course, Project name\nPiet, Janssen, s1234569, "
             b"System Development Management,"
         )
         user = User.objects.create(
@@ -361,7 +361,7 @@ class RegistrationAdminTest(TestCase):
             github_username="abcdefghij",
             first_name="Piet",
             last_name="Janssen",
-            student_number="s1234567",
+            student_number="s1234569",
         )
         registration = Registration.objects.create(
             user=user,
@@ -383,7 +383,7 @@ class RegistrationAdminTest(TestCase):
 
     def test_handle_csv__nonexistent_user(self):
         file_content = (
-            b"First name, Last name, Student number, Course, Project name\nPiet, Janssen, s1234567, "
+            b"First name, Last name, Student number, Course, Project name\nPiet, Janssen, s1234569, "
             b"System Development Management, GiPHouse1234"
         )
         user = User.objects.create(
