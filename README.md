@@ -214,7 +214,7 @@ To enable the synchronisation feature of mailing lists to GSuite, a project and 
   - `https://www.googleapis.com/auth/admin.directory.group` (for accessing groups and adding or deleting members)
   - `https://www.googleapis.com/auth/apps.groups.settings` (for changing settings of groups and adding aliases)
 
-The credentials and admin user can then be setup in Github secrets. The username of the user used to manage to the the GSuite domain has to be stored in the Github secret `DJANGO_GSUITE_ADMIN_USER`. The credentials json file has to be `base64` encoded and stored in the Github secret `DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64` (you can use the linux command `base64` for encoding the json file).
+The credentials and admin user can then be setup in Github secrets. The username of the user used to manage to the GSuite domain has to be stored in the Github secret `DJANGO_GSUITE_ADMIN_USER`. The credentials json file has to be `base64` encoded and stored in the Github secret `DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64` (you can use the linux command `base64` for encoding the json file).
 
 ### Dependency Management
 The Python dependencies are managed using a tool called [Poetry](https://python-poetry.org/), which automatically creates virtual environments that ease development and makes it easy to manage the dependencies. See the [Poetry documentation](https://python-poetry.org/docs/) for more information.
