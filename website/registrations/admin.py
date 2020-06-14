@@ -7,7 +7,6 @@ from django import forms
 from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
-from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect, render
 from django.urls import path
 from django.views import View
@@ -303,7 +302,7 @@ class ImportAssignmentAdminView(View):
 
             try:
                 project = Project.objects.get(name=csv_project, semester=semester)
-            except ObjectDoesNotExist:
+            except Project.DoesNotExist:
                 raise ValueError(f"No project was found for {csv_project} in semester {semester}.")
 
             try:
@@ -314,7 +313,7 @@ class ImportAssignmentAdminView(View):
                     course__name=csv_course,
                     user__student_number=csv_student_number,
                 )
-            except ObjectDoesNotExist:
+            except Registration.DoesNotExist:
                 raise ValueError(
                     f"No registration was found for {csv_first_name} {csv_last_name} with student number "
                     f"{csv_student_number} in semester {semester} for course {csv_course}. "
