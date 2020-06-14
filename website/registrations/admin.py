@@ -209,7 +209,7 @@ class UserAdmin(admin.ModelAdmin):
                 "2nd preference",
                 "3rd preference",
                 "Experience",
-                "Educational background",
+                "Non-dutch",
                 "Registration Comments",
             ]
         )
@@ -226,7 +226,7 @@ class UserAdmin(admin.ModelAdmin):
                     registration.preference2,
                     registration.preference3,
                     registration.experience,
-                    registration.education_background,
+                    registration.is_international,
                     registration.comments,
                 ]
             )

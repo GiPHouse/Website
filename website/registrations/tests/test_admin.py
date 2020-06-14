@@ -152,7 +152,7 @@ class RegistrationAdminTest(TestCase):
             (
                 '"First name","Last name","Student number","GitHub username",'
                 '"Course","1st preference","2nd preference","3rd preference",'
-                '"Experience","Educational background","Registration Comments"'
+                '"Experience","Non-dutch","Registration Comments"'
             ),
         )
         self.assertContains(
@@ -167,7 +167,7 @@ class RegistrationAdminTest(TestCase):
                 f'"",'
                 f'"",'
                 f'"{self.registration.experience}",'
-                f'"{self.registration.education_background}",'
+                f'"{self.registration.is_international}",'
                 f'"{self.registration.comments}"'
             ),
         )
