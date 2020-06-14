@@ -185,7 +185,6 @@ django = ">=2.0"
 reference = "cca9fd171f8bd9b3c37602d7fe2ef56a83bed419"
 type = "git"
 url = "https://github.com/farhan0581/django-admin-autocomplete-filter.git"
-
 [[package]]
 category = "main"
 description = "A helper class for handling configuration defaults of packaged apps gracefully."
@@ -761,7 +760,7 @@ description = "The uWSGI server"
 name = "uwsgi"
 optional = true
 python-versions = "*"
-version = "2.0.18"
+version = "2.0.19"
 
 [[package]]
 category = "main"
@@ -1275,7 +1274,7 @@ urllib3 = [
     {file = "urllib3-1.25.9.tar.gz", hash = "sha256:3018294ebefce6572a474f0604c2021e33b3fd8006ecd11d62107a5d2a963527"},
 ]
 uwsgi = [
-    {file = "uwsgi-2.0.18.tar.gz", hash = "sha256:4972ac538800fb2d421027f49b4a1869b66048839507ccf0aa2fda792d99f583"},
+    {file = "uWSGI-2.0.19.tar.gz", hash = "sha256:a2d9e3ad86cb4fdc69ad58ba39c2b6f90a950f8a015d9075bc8d18804f4af8da"},
 ]
 wrapt = [
     {file = "wrapt-1.12.1.tar.gz", hash = "sha256:b62ffa81fb85f4332a4f609cab4ac40709470da05643a082ec1eb88e6d9b97d7"},
