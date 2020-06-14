@@ -35,7 +35,7 @@ class TaskAdmin(admin.ModelAdmin):
         if t.fail or t.data == "" or t.data is None:
             raise Http404
         response = HttpResponse(content_type="text/csv")
-        response["Content-Disposition"] = f'attachment; filename="proposed-groups.csv"'
+        response["Content-Disposition"] = 'attachment; filename="proposed-groups.csv"'
         response.write(t.data)
         return response
 
