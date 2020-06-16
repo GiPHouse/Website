@@ -297,7 +297,23 @@ class TeamAssignmentGenerator:
         return objective
 
     def _mixed_programming_experience_objective(self):
-        """Create partial objective function for mixed programming experience in project assignment."""
+        """
+        Create partial objective function for mixed programming experience in project assignment.
+
+        This is done in the following way:
+        - Integer variables are created for each project, that contain how many people of a certain programming
+        experience are assigned to that project.
+        - Other integer variables are created that contain the (absolute) difference with the ideal 'target' of people
+        with a certain programming experience level (the ideal even split for each programming level)
+        - The numbers are all multiplied by the number of projects in the problem, to prevent rounding differences,
+        because we can only work with integers
+        - As objective, the negative sum of all the absolute differences is used. This should be considered as
+        penalty points: every 'misplaced' person according to the programming-experience-ideal-distribution results
+        in a penalty point for the total objective.
+        - To maintain a good balance with other objective functions, we multiply with a weight of 10. This way, the
+        results are normalized to the same range as other objective functions. Of course, the general weight of all
+        objectives can be customized in `_get_objectives()`
+        """
         programming_experience_for_engineer = {}
 
         for r in range(self.num_engineers):
