@@ -306,25 +306,16 @@ class TeamAssignmentGenerator:
             )
 
         objectives = []
-        for exp in [
-            Registration.EXPERIENCE_BEGINNER,
-            Registration.EXPERIENCE_INTERMEDIATE,
-            Registration.EXPERIENCE_ADVANCED,
-        ]:
-            engineers = [r for r in range(self.num_engineers) if programming_experience_for_engineer[r] == exp]
-            target = len(engineers)
+        for exp, _ in Registration.EXPERIENCE_CHOICES:
+            engineers_with_exp = [
+                r for r in range(self.num_engineers) if programming_experience_for_engineer[r] == exp
+            ]
+            target = len(engineers_with_exp)
+
             abs_diff = {}
             for p in range(self.num_projects):
                 count = self.model.NewIntVar(
                     0, self.engineers_per_project[p], f"experience_{exp}_count_in_project_{p}"
-                )
-                diff = self.model.NewIntVar(
-                    -self.engineers_per_project[p],
-                    self.engineers_per_project[p],
-                    f"experience_{exp}_diff_in_project_{p}",
-                )
-                abs_diff[p] = self.model.NewIntVar(
-                    0, self.engineers_per_project[p], f"experience_{exp}_abs_diff_in_project_{p}"
                 )
                 self.model.Add(
                     count
@@ -335,8 +326,18 @@ class TeamAssignmentGenerator:
                         ]
                     )
                 )
+
+                diff = self.model.NewIntVar(
+                    -self.num_projects * self.engineers_per_project[p],
+                    self.num_projects * self.engineers_per_project[p],
+                    f"experience_{exp}_diff_in_project_{p}",
+                )
+                abs_diff[p] = self.model.NewIntVar(
+                    0, self.num_projects * self.engineers_per_project[p], f"experience_{exp}_abs_diff_in_project_{p}"
+                )
                 self.model.Add(diff == count * self.num_projects - target)
                 self.model.AddAbsEquality(abs_diff[p], diff)
+
             objectives.append(sum([-abs_diff[p] for p in range(self.num_projects)]))
 
         return 10 * sum(objectives)
