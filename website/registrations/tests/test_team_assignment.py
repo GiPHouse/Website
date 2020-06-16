@@ -304,19 +304,19 @@ class TeamAssignmentTest(TestCase):
         assignment_generator.execute_solve_task()
         generate_mock.assert_called_once()
         result = (
-            """First name,Last name,Student number,Course,Project name,Non Dutch,Remarks,"""
+            """First name,Last name,Student number,Course,Project name,Non Dutch,Remarks,Programming experience,"""
             """At least one preference fulfilled,Has preferred project,Project preference 1,Project preference 2,"""
             """Project preference 3,In project with preferred students,Student preference 1,Student preference 2,"""
             """Student preference 3
-User1,Test1,,Software Engineering,Project 1,,,,,,,,0,,,
-User2,Test2,,Software Engineering,,,,x,1,,,,0,,,
-User3,Test3,,System Development Management,,,,x,1,,,,0,,,
-User4,Test4,,Software Engineering,,,,x,1,,,,0,,,
-User5,Test5,,Software Engineering,,,,x,1,,,,0,,,
-User6,Test6,,System Development Management,,,,x,1,,,,0,,,
-User7,Test7,,Software Engineering,,,,x,1,,,,0,,,
-User8,Test8,,Software Engineering,,,,x,1,,,,0,,,
-User9,Test9,,System Development Management,,,,x,1,,,,0,,,
+User1,Test1,,Software Engineering,Project 1,,,1,,,,,,0,,,
+User2,Test2,,Software Engineering,,,,1,x,1,,,,0,,,
+User3,Test3,,System Development Management,,,,1,x,1,,,,0,,,
+User4,Test4,,Software Engineering,,,,1,x,1,,,,0,,,
+User5,Test5,,Software Engineering,,,,1,x,1,,,,0,,,
+User6,Test6,,System Development Management,,,,1,x,1,,,,0,,,
+User7,Test7,,Software Engineering,,,,1,x,1,,,,0,,,
+User8,Test8,,Software Engineering,,,,1,x,1,,,,0,,,
+User9,Test9,,System Development Management,,,,1,x,1,,,,0,,,
 """
         )
         self.assertEqual(assignment_generator.task.data.replace("\r", ""), result)
