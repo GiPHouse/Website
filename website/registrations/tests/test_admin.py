@@ -410,12 +410,63 @@ class RegistrationAdminTest(TestCase):
         self.assertIsNone(registration.project)
         self.assertEqual(response.status_code, 200)
 
-    def test_download_csv__get(self):
-        response = self.client.get(reverse("admin:download-assignment"), follow=True)
-        self.assertEqual(response.status_code, 200)
-
     @patch("threading.Thread")
     def test_download_csv__post(self, mock_thread):
-        response = self.client.post(reverse("admin:download-assignment"), {"semester": self.semester.pk}, follow=True)
+        response = self.client.post(
+            reverse("admin:registrations_employee_changelist"),
+            {
+                ACTION_CHECKBOX_NAME: [self.manager.id, self.user.id],
+                "action": "generate_project_assignment_proposal",
+                "index": 0,
+            },
+            follow=True,
+        )
         self.assertEqual(response.status_code, 200)
         mock_thread.assert_called_once()
+
+    def test_download_csv__post_no_registration(self):
+        user_without_registration = User.objects.create(
+            github_id=1001, github_username="noreg", first_name="No", last_name="Reg", student_number="s1231001"
+        )
+
+        response = self.client.post(
+            reverse("admin:registrations_employee_changelist"),
+            {
+                ACTION_CHECKBOX_NAME: [user_without_registration.id],
+                "action": "generate_project_assignment_proposal",
+                "index": 0,
+            },
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "All users should have a registration.")
+
+    def test_download_csv__post_different_semesters(self):
+        user_different_semester = User.objects.create(
+            github_id=1001, github_username="noreg", first_name="No", last_name="Reg", student_number="s1231001"
+        )
+
+        old_semester = Semester.objects.create(year=2000, season=Semester.SPRING)
+
+        Registration.objects.create(
+            user=user_different_semester,
+            project=self.project,
+            semester=old_semester,
+            experience=Registration.EXPERIENCE_BEGINNER,
+            preference1=self.project,
+            course=self.course,
+            comments="comment",
+            is_international=False,
+        )
+
+        response = self.client.post(
+            reverse("admin:registrations_employee_changelist"),
+            {
+                ACTION_CHECKBOX_NAME: [self.manager.id, user_different_semester.id],
+                "action": "generate_project_assignment_proposal",
+                "index": 0,
+            },
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "All users should have a registration in the same semester.")

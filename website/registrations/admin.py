@@ -66,6 +66,7 @@ class UserAdmin(admin.ModelAdmin):
         "unassign_from_project",
         "export_student_numbers",
         "export_registrations",
+        "generate_project_assignment_proposal",
     )
 
     fieldsets = (
@@ -247,11 +248,25 @@ class UserAdmin(admin.ModelAdmin):
             request, f"Succesfully unassigned {num_unassigned} registrations.",
         )
 
+    def generate_project_assignment_proposal(self, request, queryset):
+        """Create task to compute project assignment."""
+        registrations = [user.registration_set.first() for user in queryset]
+
+        if None in registrations:
+            messages.warning(request, "All users should have a registration.")
+            return
+
+        if len(set(registration.semester for registration in registrations)) > 1:
+            messages.warning(request, "All users should have a registration in the same semester.")
+            return
+
+        task = TeamAssignmentGenerator(registrations).start_solve_task()
+        return redirect("admin:progress_bar", task=task.id)
+
     def get_urls(self):
         """Get admin urls."""
         urls = super().get_urls()
         custom_urls = [
-            path("download-assignment/", DownloadAssignmentAdminView.as_view(), name="download-assignment",),
             path("import/", ImportAssignmentAdminView.as_view(), name="import",),
         ]
         return custom_urls + urls
@@ -353,19 +368,3 @@ class DownloadAssignmentForm(forms.Form):
     """Form used when generating and downloading a team assignment."""
 
     semester = forms.ModelChoiceField(queryset=Semester.objects.all(), required=True)
-
-
-class DownloadAssignmentAdminView(View):
-    """Admin view to download a .csv file with a proposed team assignment for a chosen semester."""
-
-    def get(self, request):
-        """Get a form to select the semester to export for."""
-        form = DownloadAssignmentForm()
-        payload = {"form": form}
-        return render(request, "admin/registrations/download-assignment.html", payload)
-
-    def post(self, request):
-        """Start a task to generate and download a team assignment."""
-        semester = request.POST.get("semester")
-        task = TeamAssignmentGenerator(semester).start_solve_task()
-        return redirect("admin:progress_bar", task=task.id)

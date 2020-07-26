@@ -125,7 +125,7 @@ class TeamAssignmentTest(TestCase):
         Registration.objects.filter(semester=self.semester).delete()
 
     def test_solve_csp__normal_no_partner_preferences_no_project_preference(self):
-        self.assertIsNotNone(TeamAssignmentGenerator(self.semester).generate_team_assignment())
+        self.assertIsNotNone(TeamAssignmentGenerator(Registration.objects.all()).generate_team_assignment())
 
     def test_solve_csp__normal_no_partner_preferences_with_project_preference(self):
         self.reg9.preference1 = self.project1
@@ -176,7 +176,7 @@ class TeamAssignmentTest(TestCase):
             self.reg9.pk: self.project1,
         }
 
-        actual_assignment = TeamAssignmentGenerator(self.semester).generate_team_assignment()
+        actual_assignment = TeamAssignmentGenerator(Registration.objects.all()).generate_team_assignment()
 
         self.assertDictEqual(expected_assignment, actual_assignment)
 
@@ -218,7 +218,7 @@ class TeamAssignmentTest(TestCase):
         self.reg1.partner_preference3 = None
         self.reg1.save()
 
-        actual_assignment = TeamAssignmentGenerator(self.semester).generate_team_assignment()
+        actual_assignment = TeamAssignmentGenerator(Registration.objects.all()).generate_team_assignment()
 
         group1 = actual_assignment[self.reg1.pk]
         group2 = actual_assignment[self.reg4.pk]
@@ -251,7 +251,7 @@ class TeamAssignmentTest(TestCase):
         self.reg8.experience = Registration.EXPERIENCE_ADVANCED
         self.reg8.save()
 
-        actual_assignment = TeamAssignmentGenerator(self.semester).generate_team_assignment()
+        actual_assignment = TeamAssignmentGenerator(Registration.objects.all()).generate_team_assignment()
 
         self.assertNotEqual(actual_assignment[self.reg1.pk], actual_assignment[self.reg2.pk])
         self.assertNotEqual(actual_assignment[self.reg4.pk], actual_assignment[self.reg5.pk])
@@ -266,7 +266,7 @@ class TeamAssignmentTest(TestCase):
                 return_value=0,
             ) as _:
                 with patch("ortools.sat.python.cp_model.CpModel.Add") as mock_add:
-                    assignment_generator = TeamAssignmentGenerator(self.semester)
+                    assignment_generator = TeamAssignmentGenerator(Registration.objects.all())
                     assignment_generator._1_not_international_per_project_constraint()
                     self.assertIsNotNone(assignment_generator.generate_team_assignment())
                     mock_add.assert_not_called()
@@ -276,14 +276,14 @@ class TeamAssignmentTest(TestCase):
 
         with patch("registrations.team_assignment.TeamAssignmentGenerator._add_constraints") as _:
             with patch("ortools.sat.python.cp_model.CpModel.Add") as mock_add:
-                assignment_generator = TeamAssignmentGenerator(self.semester)
+                assignment_generator = TeamAssignmentGenerator(Registration.objects.all())
                 assignment_generator._1_not_international_per_project_constraint()
                 self.assertIsNotNone(assignment_generator.generate_team_assignment())
                 mock_add.assert_called()
 
     @patch("registrations.team_assignment.TeamAssignmentGenerator.generate_team_assignment", return_value=[])
     def test_solve_task_no_solution(self, generate_mock):
-        assignment_generator = TeamAssignmentGenerator(self.semester)
+        assignment_generator = TeamAssignmentGenerator(Registration.objects.all())
         assignment_generator.execute_solve_task()
         generate_mock.assert_called_once()
         self.assertEqual(assignment_generator.task.completed, 1)
@@ -291,7 +291,7 @@ class TeamAssignmentTest(TestCase):
 
     @patch("registrations.team_assignment.TeamAssignmentGenerator.generate_team_assignment", side_effect=Exception)
     def test_solve_task_exception(self, generate_mock):
-        assignment_generator = TeamAssignmentGenerator(self.semester)
+        assignment_generator = TeamAssignmentGenerator(Registration.objects.all())
         assignment_generator.execute_solve_task()
         generate_mock.assert_called_once()
         self.assertEqual(assignment_generator.task.completed, 1)
@@ -300,24 +300,23 @@ class TeamAssignmentTest(TestCase):
     @patch("registrations.team_assignment.TeamAssignmentGenerator.generate_team_assignment")
     def test_solve_task_solution(self, generate_mock):
         generate_mock.return_value = {self.reg1.pk: self.project1}
-        assignment_generator = TeamAssignmentGenerator(self.semester)
+        assignment_generator = TeamAssignmentGenerator(Registration.objects.all())
         assignment_generator.execute_solve_task()
         generate_mock.assert_called_once()
         result = (
-            """First name,Last name,Student number,Course,Project name,Non Dutch,Remarks,Programming experience,"""
-            """At least one preference fulfilled,Has preferred project,Project preference 1,Project preference 2,"""
-            """Project preference 3,In project with preferred students,Student preference 1,Student preference 2,"""
-            """Student preference 3
-User1,Test1,,Software Engineering,Project 1,,,1,,,,,,0,,,
-User2,Test2,,Software Engineering,,,,1,x,1,,,,0,,,
-User3,Test3,,System Development Management,,,,1,x,1,,,,0,,,
-User4,Test4,,Software Engineering,,,,1,x,1,,,,0,,,
-User5,Test5,,Software Engineering,,,,1,x,1,,,,0,,,
-User6,Test6,,System Development Management,,,,1,x,1,,,,0,,,
-User7,Test7,,Software Engineering,,,,1,x,1,,,,0,,,
-User8,Test8,,Software Engineering,,,,1,x,1,,,,0,,,
-User9,Test9,,System Development Management,,,,1,x,1,,,,0,,,
-"""
+            "First name,Last name,Student number,Course,Project name,Non Dutch,Remarks,Programming experience,"
+            "At least one preference fulfilled,Has preferred project,Project preference 1,Project preference 2,"
+            "Project preference 3,In project with preferred students,Student preference 1,Student preference 2,"
+            "Student preference 3\n"
+            "User1,Test1,,Software Engineering,Project 1,,,1,,,,,,0,,,\n"
+            "User2,Test2,,Software Engineering,,,,1,x,1,,,,0,,,\n"
+            "User3,Test3,,System Development Management,,,,1,x,1,,,,0,,,\n"
+            "User4,Test4,,Software Engineering,,,,1,x,1,,,,0,,,\n"
+            "User5,Test5,,Software Engineering,,,,1,x,1,,,,0,,,\n"
+            "User6,Test6,,System Development Management,,,,1,x,1,,,,0,,,\n"
+            "User7,Test7,,Software Engineering,,,,1,x,1,,,,0,,,\n"
+            "User8,Test8,,Software Engineering,,,,1,x,1,,,,0,,,\n"
+            "User9,Test9,,System Development Management,,,,1,x,1,,,,0,,,\n"
         )
         self.assertEqual(assignment_generator.task.data.replace("\r", ""), result)
         self.assertEqual(assignment_generator.task.completed, 1)
