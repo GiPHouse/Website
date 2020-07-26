@@ -92,9 +92,6 @@ class UserAdmin(admin.ModelAdmin):
         "get_preference1",
         "get_preference2",
         "get_preference3",
-        "get_preferred_partner1",
-        "get_preferred_partner2",
-        "get_preferred_partner3",
         "is_staff",
     )
 
@@ -151,27 +148,6 @@ class UserAdmin(admin.ModelAdmin):
         return registration.project if registration else None
 
     get_current_project.short_description = "Project"
-
-    def get_preferred_partner1(self, obj):
-        """Return 1st partner preference."""
-        registration = obj.registration_set.first()
-        return registration.get_partner1_display() if registration else None
-
-    get_preferred_partner1.short_description = "Partner preference"
-
-    def get_preferred_partner2(self, obj):
-        """Return 2nd partner preference."""
-        registration = obj.registration_set.first()
-        return registration.get_partner2_display() if registration else None
-
-    get_preferred_partner2.short_description = "Preference 2"
-
-    def get_preferred_partner3(self, obj):
-        """Return 3rd partner preference."""
-        registration = obj.registration_set.first()
-        return registration.get_partner3_display() if registration else None
-
-    get_preferred_partner3.short_description = "Preference 3"
 
     def place_in_first_project_preference(self, request, queryset):
         """Place the selected users in their first project preference."""
