@@ -125,9 +125,6 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
         response["Content-Disposition"] = "attachment; filename=submissions.csv"
         return response
 
-    class Media:
-        """Necessary to use AutocompleteFilter."""
-
 
 @admin.register(Answer)
 class AnswerAdmin(admin.ModelAdmin):
@@ -212,6 +209,3 @@ class AnswerAdmin(admin.ModelAdmin):
         response = HttpResponse(content.getvalue(), content_type="application/x-zip-compressed")
         response["Content-Disposition"] = "attachment; filename=submissions.csv"
         return response
-
-    class Media:
-        """Necessary to use AutocompleteFilter."""
