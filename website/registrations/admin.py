@@ -247,9 +247,6 @@ class UserAdmin(admin.ModelAdmin):
         ]
         return custom_urls + urls
 
-    class Media:
-        """Necessary to use AutocompleteFilter."""
-
 
 class CsvImportForm(forms.Form):
     """Form used when importing a csv group assignment."""
