@@ -85,13 +85,7 @@ class UserAdmin(admin.ModelAdmin):
     inlines = [RegistrationInline]
     list_display = (
         "__str__",
-        "github_username",
         "get_current_project",
-        "get_international",
-        "get_experience",
-        "get_preference1",
-        "get_preference2",
-        "get_preference3",
         "is_staff",
     )
 
@@ -101,46 +95,11 @@ class UserAdmin(admin.ModelAdmin):
         "registration__course",
         "registration__experience",
         "is_staff",
+        "registration__is_international",
     )
 
     # Necessary for the autocomplete filter
     search_fields = ("first_name", "last_name", "student_number", "github_username")
-
-    def get_international(self, obj):
-        """Return 1st project preference."""
-        registration = obj.registration_set.first()
-        return registration.is_international if registration else None
-
-    get_international.short_description = "International"
-    get_international.boolean = True
-
-    def get_preference1(self, obj):
-        """Return 1st project preference."""
-        registration = obj.registration_set.first()
-        return registration.preference1 if registration else None
-
-    get_preference1.short_description = "Project preference"
-
-    def get_preference2(self, obj):
-        """Return 2nd project preference."""
-        registration = obj.registration_set.first()
-        return registration.preference2 if registration else None
-
-    get_preference2.short_description = "Preference 2"
-
-    def get_preference3(self, obj):
-        """Return 3rd project preference."""
-        registration = obj.registration_set.first()
-        return registration.preference3 if registration else None
-
-    get_preference3.short_description = "Preference 3"
-
-    def get_experience(self, obj):
-        """Return experience."""
-        registration = obj.registration_set.first()
-        return registration.get_experience_display() if registration else None
-
-    get_experience.short_description = "Experience"
 
     def get_current_project(self, obj):
         """Return current project."""
