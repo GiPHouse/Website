@@ -17,8 +17,8 @@ The authenticated key indicates something should only
 be visible for logged-in users. *Do not* rely on that for authentication!
 """
 MAIN_MENU = [
-    {"title": "Home", "url": reverse("home")},
     {"title": "About", "url": reverse("about")},
+    {"title": "For Companies", "url": reverse("for-companies")},
     {
         "title": "Course Content",
         "submenu": lambda: [

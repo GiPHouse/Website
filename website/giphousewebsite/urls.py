@@ -12,6 +12,7 @@ urlpatterns = [
     path("oauth/", include("github_oauth.urls")),
     path("lectures/", include("courses.urls")),
     path("about/", TemplateView.as_view(template_name="about.html"), name="about"),
+    path("for-companies/", TemplateView.as_view(template_name="for-companies.html"), name="for-companies"),
     path("contact/", TemplateView.as_view(template_name="contact.html"), name="contact"),
     path("questionnaires/", include("questionnaires.urls")),
     path("register/", include("registrations.urls")),

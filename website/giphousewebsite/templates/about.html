@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}About - {{ block.super }}{% endblock %}
 {% block content %}
-    <h4>What is GiPHouse?</h4>
+    <h3>What is GiPHouse?</h3>
     <p>GiPHouse is a virtual software company of the Radboud University Nijmegen, which has already been active for more than 25 years.
         GiPHouse is entirely run by students and is divided into two parts, which run independently from each other in the spring and fall semesters.</p>
 
@@ -58,8 +59,28 @@
     <p>The students are usually free to choose their favourite programming language and platform, barring client wishes. Most students have experience with C++, Python and Java but other languages could also be an option.</p>
     <p>At the end of the spring semester, the customer has to judge the quality of the product and the team-customer collaboration. The final grade for the course is an average of the customer judgement and a judgement of the teachers.</p>
 
-    <h4>What is important for you as a customer?</h4>
-    <p>Running a project within GiPHouse (spring semester) is possible for only &euro;350,-. This is a fixed price and the money will mainly be used for project-related costs like printing, travelling and administrative costs. We also need to occasionally upgrade or buy new hardware. Note that this money is not used to pay students for their work: they get a reward for their work in the form of credits.</p>
-    <p>GiPHouse is working with students and not with paid professionals. This means that we cannot guarantee that every project will be completely up to par with the customers' wishes. By emphasising good communication between students and the customers, we try to give the projects a successful conclusion. We know from experience that most projects are finished or mostly finished and customers are predominantly satisfied with us.</p>
-    <p>Please note that handing in a project proposal does not mean that your project will be accepted for development. This is because we do not know in advance how many students will participate in the relevant courses.</p>
+    <h4>GiPHouse Structure</h4>
+	<p>Within GiPHouse we simulate an actual corporate experience, we will try to explain the structure of the organization below. At the bottom of the page is a graphical representation of this structure.</p>
+
+    <h5>Teachers</h5>
+	<p>Although the teachers do not have a concrete function within the organization, they are crucial for the courses surrounding GiPHouse. The teachers are responsible for the course material and the grading of the students.</p>
+
+	<h5>Executive Board (Student Assistants) </h5>
+	<p>GiPHouse is ran by the student assistants involved with the courses Software Engineering (SE) and Software Development Management (SDM). These students are responsible for the acquisition of projects and trying to ensure the success of every project. The board deals with most issues that the directors can not deal with and takes care of the contact with the teachers to ensure a smooth experience for students of the combination of the course and the company. </p>
+
+	<h5>Directors (Students SDM) </h5>
+	<p>The directors aid the student assistants and the teachers in keeping track of the progress of the teams. This means the directors will keep track of the progress of the various teams through reports and interaction with the managers of the teams. This progress is then reported to the executive board of GiPHouse through reports and discussion of all the teams. One pair of directors is responsible for several teams on which they will report, the other teams are covered by different director pairs. </p>
+
+	<h5>Managers (SDM Students) </h5>
+	<p>Every team has two or three managers whose responsibility it is to manage the project. The managers are responsible for the documentation for the directors, ensuring the expectations of the clients are managed correctly and steering the agile development process. </p>
+
+	<h5>Engineers (Students SE) </h5>
+	<p>Engineers are responsible for the code that is delivered at the end of the project. Aside from creating the features the client desires, they are also responsible for eventuel documentation and the testing of the code.</p>
+
+    <h4>Issues</h4>
+    <p>For employees the general approach to take when a problem arises is to contact the person that is one layer within the organization above you (e.g. engineers contact managers and managers contact directors). If this does not solve the problem or there is an issue with the person one layer above you, then you contact one layer higher. </p>
+    <p>For clients we recommend contacting the managers when a problem emerges. If the problem lies with the managers or contact with the managers is not fruitful, please contact the directors.</p>
+    <img src="{% static "img/org_chart.png" %}" alt="Organizational chart" class="img-fluid">
+
+
 {% endblock %}
