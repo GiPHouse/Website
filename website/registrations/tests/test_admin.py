@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 from django.contrib import messages
-from django.contrib.admin import ACTION_CHECKBOX_NAME
+from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.shortcuts import reverse
