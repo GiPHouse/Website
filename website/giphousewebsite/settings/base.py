@@ -149,3 +149,6 @@ GSUITE_SCOPES = [
     "https://www.googleapis.com/auth/admin.directory.group",
     "https://www.googleapis.com/auth/apps.groups.settings",
 ]
+
+# Temporarily add setting until all third-party upstreams are fixed.
+FILE_CHARSET = 'utf-8'
