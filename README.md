@@ -24,7 +24,7 @@ This is the code for the website of [GiPHouse](http://giphouse.nl/) powered by [
     - [Getting Started](#getting-started)
       - [Logging into the Backend](#logging-into-the-backend)
       - [Registering a GitHub App for repository synchronisation](#registering-a-github-app-for-repository-synchronisation)
-      - [Registering a GSuite service account for mailing list synchronisation](#registering-a-gsuite-service-account-for-mailing-list-synchronisation)
+      - [Registering a G Suite service account for mailing list synchronisation](#registering-a-g-suite-service-account-for-mailing-list-synchronisation)
     - [Dependency Management](#dependency-management)
     - [Fixtures](#fixtures)
     - [Tests](#tests)
@@ -152,9 +152,9 @@ Synchronization can only be initialized via actions on specific sets of objects 
 Synchronization currently does not regard the role of directors of GipHouse. This needs to be configured manually. Note that it is however not possible to add directors manually to a team on GitHub, since they will be removed after each sync.
 
 ### Mailing Lists
-Admin users can create mailing lists using the Django admin interface. A mailing list can be connected to projects, users and 'extra' email addresses that are not tied to a user. Relating a mailing list to a project implicitly makes the members of that project a member of the mailing list. Removing a mailing list in the Django admin will result in the corresponding mailing list to be archived or deleted in Gsuite during the next synchronization, respecting the 'archive instead of delete' property of the deleted mailing list. To sync a mailing list with GSuite, one can run the management command: `./manage.py sync_mailing_list` or use the button in the model admin. This will sync all mailing lists and the automatic lists into GSuite at the specified domain.
+Admin users can create mailing lists using the Django admin interface. A mailing list can be connected to projects, users and 'extra' email addresses that are not tied to a user. Relating a mailing list to a project implicitly makes the members of that project a member of the mailing list. Removing a mailing list in the Django admin will result in the corresponding mailing list to be archived or deleted in G suite during the next synchronization, respecting the 'archive instead of delete' property of the deleted mailing list. To sync a mailing list with G Suite, one can run the management command: `./manage.py sync_mailing_list` or use the button in the model admin. This will sync all mailing lists and the automatic lists into G Suite at the specified domain.
 
-This sync starts by creating groups in GSuite for all mailing lists currently not in there, after they are created a request is done per member of that group to add them to the group. For the already existing groups a list is made of existing members in the group and the needed inserts or deletes are done to update the group.
+This sync starts by creating groups in G Suite for all mailing lists currently not in there, after they are created a request is done per member of that group to add them to the group. For the already existing groups a list is made of existing members in the group and the needed inserts or deletes are done to update the group.
 
 ### Tasks
 A task is a process that takes more time than can fit in a request. The process is run in a separate thread and the status is synced to the task. The task is then used to show the user the progress and redirect them when it is finished.
@@ -205,8 +205,8 @@ After this, you can find a `DJANGO_GITHUB_SYNC_APP_ID`, and download the RSA `DJ
 On installation, you can find the `DJANGO_GITHUB_SYNC_APP_INSTALLATION_ID` which we also need to set in this project. This installation id is hidden in the overview of installed GitHub Apps in your organization.
 Additionally, you need to set the `DJANGO_GITHUB_SYNC_ORGANIZATION_NAME` to the name of the organization the app is installed in.
 
-#### Registering a GSuite service account for mailing list synchronisation
-To enable the synchronisation feature of mailing lists to GSuite, a project and service account need to be setup.
+#### Registering a G Suite service account for mailing list synchronisation
+To enable the synchronisation feature of mailing lists to G Suite, a project and service account need to be setup.
 
 - Create a project in the [google cloud console](https://console.cloud.google.com).
 - Create a [service account and credentials](https://developers.google.com/admin-sdk/directory/v1/guides/delegation#create_the_service_account_and_credentials)
@@ -214,7 +214,7 @@ To enable the synchronisation feature of mailing lists to GSuite, a project and 
   - `https://www.googleapis.com/auth/admin.directory.group` (for accessing groups and adding or deleting members)
   - `https://www.googleapis.com/auth/apps.groups.settings` (for changing settings of groups and adding aliases)
 
-The credentials and admin user can then be setup in Github secrets. The username of the user used to manage to the GSuite domain has to be stored in the Github secret `DJANGO_GSUITE_ADMIN_USER`. The credentials json file has to be `base64` encoded and stored in the Github secret `DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64` (you can use the linux command `base64` for encoding the json file).
+The credentials and admin user can then be setup in Github secrets. The username of the user used to manage to the G Suite domain has to be stored in the Github secret `DJANGO_GSUITE_ADMIN_USER`. The credentials json file has to be `base64` encoded and stored in the Github secret `DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64` (you can use the linux command `base64` for encoding the json file).
 
 ### Dependency Management
 The Python dependencies are managed using a tool called [Poetry](https://python-poetry.org/), which automatically creates virtual environments that ease development and makes it easy to manage the dependencies. See the [Poetry documentation](https://python-poetry.org/docs/) for more information.
@@ -304,8 +304,8 @@ This repository is public and the GitHub Actions CI runner logs are also public,
 - `DJANGO_GITHUB_CLIENT_ID`: The GiPHouse organization GitHub (OAuth) App client ID.
 - `DJANGO_GITHUB_CLIENT_SECRET`: The GiPHouse organization GitHub (OAuth) App client secret key.
 - `DJANGO_GITHUB_SYNC_SUPERUSER_ID`: The Github ID of the initial superuser.
-- `DJANGO_GSUITE_ADMIN_USER`: The user which the GSuite api will impersonate when logging in with the credentials.
-- `DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64`: The GSuite service account key file in json format, then `base64` encoded.
+- `DJANGO_GSUITE_ADMIN_USER`: The user which the G Suite api will impersonate when logging in with the credentials.
+- `DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64`: The G Suite service account key file in json format, then `base64` encoded.
 - `POSTGRES_NAME`: The name of the Postgres database.
 - `POSTGRES_USER`: The username that is used to interact with the Postgres database.
 - `POSTGRES_PASSWORD`: The password that is used to interact with the Postgres database.
