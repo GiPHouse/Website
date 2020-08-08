@@ -304,20 +304,22 @@ class TeamAssignmentTest(TestCase):
         assignment_generator.execute_solve_task()
         generate_mock.assert_called_once()
         result = (
-            "First name,Last name,Student number,Course,Project name,Non Dutch,Remarks,Programming experience,"
-            "At least one preference fulfilled,Has preferred project,Project preference 1,Project preference 2,"
-            "Project preference 3,In project with preferred students,Student preference 1,Student preference 2,"
-            "Student preference 3\n"
-            "User1,Test1,,Software Engineering,Project 1,,,1,,,,,,0,,,\n"
-            "User2,Test2,,Software Engineering,,,,1,x,1,,,,0,,,\n"
-            "User3,Test3,,System Development Management,,,,1,x,1,,,,0,,,\n"
-            "User4,Test4,,Software Engineering,,,,1,x,1,,,,0,,,\n"
-            "User5,Test5,,Software Engineering,,,,1,x,1,,,,0,,,\n"
-            "User6,Test6,,System Development Management,,,,1,x,1,,,,0,,,\n"
-            "User7,Test7,,Software Engineering,,,,1,x,1,,,,0,,,\n"
-            "User8,Test8,,Software Engineering,,,,1,x,1,,,,0,,,\n"
-            "User9,Test9,,System Development Management,,,,1,x,1,,,,0,,,\n"
+            '"First name","Last name","Student number","Course","Project name","Non Dutch",'
+            '"Remarks","Programming experience","At least one preference fulfilled","Has preferred project",'
+            '"Project preference 1","Project preference 2","Project preference 3",'
+            '"In project with preferred students","Student preference 1","Student preference 2",'
+            '"Student preference 3"\r\n'
+            '"User1","Test1","","Software Engineering","Project 1","","","1","","","","","","0","","",""\r\n'
+            '"User2","Test2","","Software Engineering","","","","1","x","1","","","","0","","",""\r\n'
+            '"User3","Test3","","System Development Management","","","","1","x","1","","","","0","","",""\r\n'
+            '"User4","Test4","","Software Engineering","","","","1","x","1","","","","0","","",""\r\n'
+            '"User5","Test5","","Software Engineering","","","","1","x","1","","","","0","","",""\r\n'
+            '"User6","Test6","","System Development Management","","","","1","x","1","","","","0","","",""\r\n'
+            '"User7","Test7","","Software Engineering","","","","1","x","1","","","","0","","",""\r\n'
+            '"User8","Test8","","Software Engineering","","","","1","x","1","","","","0","","",""\r\n'
+            '"User9","Test9","","System Development Management","","","","1","x","1","","","","0","","",""\r\n'
         )
-        self.assertEqual(assignment_generator.task.data.replace("\r", ""), result)
+
+        self.assertEqual(assignment_generator.task.data, result)
         self.assertEqual(assignment_generator.task.completed, 1)
         self.assertFalse(assignment_generator.task.fail)

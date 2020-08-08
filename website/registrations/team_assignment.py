@@ -110,7 +110,7 @@ class TeamAssignmentGenerator:
 
     def write_csv(self, output, project_for_registrations):
         """Write the result of the team creation to a csv file."""
-        writer = csv.writer(output)
+        writer = csv.writer(output, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
         writer.writerow(CSV_STRUCTURE)
         for registration in Registration.objects.filter(
             semester=self.semester, course__in=[Course.objects.se(), Course.objects.sdm()]
