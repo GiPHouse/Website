@@ -44,6 +44,7 @@ class RegistrationAdminTest(TestCase):
             semester=cls.semester,
             experience=Registration.EXPERIENCE_BEGINNER,
             preference1=cls.project,
+            partner_preference1="Partner name",
             course=cls.course,
             comments="comment",
             is_international=False,
@@ -150,7 +151,8 @@ class RegistrationAdminTest(TestCase):
             response,
             (
                 '"First name","Last name","Student number","GitHub username",'
-                '"Course","1st preference","2nd preference","3rd preference",'
+                '"Course","1st project preference","2nd project preference","3rd project preference",'
+                '"1st partner preference","2nd partner preference","3rd partner preference",'
                 '"Experience","Non-dutch","Registration Comments"'
             ),
         )
@@ -163,6 +165,9 @@ class RegistrationAdminTest(TestCase):
                 f'"{self.manager.github_username}",'
                 f'"{self.registration.course}",'
                 f'"{self.registration.preference1}",'
+                f'"",'
+                f'"",'
+                f'"{self.registration.partner_preference1}",'
                 f'"",'
                 f'"",'
                 f'"{self.registration.experience}",'
