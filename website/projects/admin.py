@@ -167,15 +167,6 @@ class ProjectAdmin(admin.ModelAdmin):
         ]
         return custom_urls + urls
 
-    class Media:
-        """Necessary to use AutocompleteFilter."""
-
-        js = (
-            "js/jquery-3.4.1.slim.min.js",
-            "js/slugify.js",
-            "js/repo_naming.js",
-        )
-
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
