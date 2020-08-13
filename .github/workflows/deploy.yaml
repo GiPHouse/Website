@@ -4,10 +4,10 @@ name: "Deploy to production"
 on:
   push:
     branches:
-      - "master"
+      - "github-docker"
 
 env:
-  DOCKER_IMAGE: "giphouse/giphousewebsite:latest"
+  DOCKER_IMAGE: "docker.pkg.github.com/giphouse/website/production:latest"
 
 jobs:
   build-docker:
@@ -18,7 +18,7 @@ jobs:
         uses: "actions/checkout@v1"
 
       - name: "Login to Docker Hub"
-        run: "echo \"${{ secrets.DOCKER_PASSWORD }}\" | docker login --username \"${{ secrets.DOCKER_USERNAME }}\" --password-stdin"
+        run: "echo \"${{ secrets.GITHUB_TOKEN }}\" | docker login https://docker.pkg.github.com --username giphouse --password-stdin"
 
       - name: "Build Docker image"
         run: "docker build --build-arg commit_hash=\"${{ github.sha }}\" --tag \"${DOCKER_IMAGE}\" ."
@@ -88,7 +88,9 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no "${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}" /bin/bash << EOF
             docker-compose --file "${DEPLOY_DIRECTORY}/docker-compose.yaml" config --quiet
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login https://docker.pkg.github.com --username giphouse --password-stdin
             docker-compose --file "${DEPLOY_DIRECTORY}/docker-compose.yaml" pull
+            docker logout docker.pkg.github.com
             docker-compose --file "${DEPLOY_DIRECTORY}/docker-compose.yaml" down
             docker-compose --file "${DEPLOY_DIRECTORY}/docker-compose.yaml" up -d --remove-orphans
           EOF
