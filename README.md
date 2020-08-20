@@ -33,8 +33,8 @@ This is the code for the website of [GiPHouse](http://giphouse.nl/) powered by [
     - [Docker](#docker)
       - [Dockerfile](#dockerfile)
       - [Entrypoint](#entrypoint)
-      - [Docker Hub](#docker-hub)
-      - [Docker-compose](#docker-compose)
+      - [GitHub Packages](#github-packages)
+      - [Docker Compose](#docker-compose)
         - [`nginx`](#nginx)
         - [`letsencrypt`](#letsencrypt)
         - [`postgres`](#postgres)
@@ -255,10 +255,10 @@ The [Dockerfile](https://docs.docker.com/engine/reference/builder/) which steps 
 #### Entrypoint
 The entrypoint (`/usr/local/bin/entrypoint.sh` inside the Docker image) is executed whenever a container is created from the Docker image, it waits for the Postgres database to come up, makes the necessary changes to the static files and the database, creates a superuser (if it does not exist yet) and starts `uWSGI`.
 
-#### Docker Hub
-A Docker image of the website ([giphouse/giphousewebsite](https://hub.docker.com/r/giphouse/giphousewebsite)) is (publicly) available on Docker Hub. This image is refreshed every time a change is merged into the `master` branch.
+#### GitHub Packages
+A Docker image of the website ([docker.pkg.github.com/giphouse/website/production](https://github.com/GipHouse/Website/packages/356257)) is available on GitHub Packages. This image is refreshed every time a change is merged into the `master` branch.
 
-#### Docker-compose
+#### Docker Compose
 `docker-compose` is a tool that allows us to run multiple Docker containers that are connected to make them work together. Please see the [`docker-compose.yaml`](resources/docker-compose.yaml.template) file for the exact settings. This file contains all the configuration to pass the correct environment variables to the containers and save the correct files to the host.  
 
 The following services are created by `docker-compose`.
@@ -281,7 +281,7 @@ Whenever a change is merged into the `master` branch, the `deploy.yaml` GitHub A
 
 ##### `build-docker` job
 1. Build a Docker image using the `master` branch.
-2. Push this Docker image (`giphouse/giphousewebsite:latest`) to Docker Hub.
+2. Push the Docker image to GitHub Packages.
 
 ##### `deploy` job
 After the `build-docker` job is finished, the `deploy` job runs.
@@ -295,8 +295,6 @@ After the `build-docker` job is finished, the `deploy` job runs.
 #### Secrets
 This repository is public and the GitHub Actions CI runner logs are also public, but some deployment information is secret. The secret information is setup using [GitHub repository secrets](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets). These are passed as environment variables to the GitHub Actions CI runners. The following secrets are setup.
 - `DJANGO_SECRET_KEY`: The [`SECRET_KEY`](https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-SECRET_KEY) for Django.
-- `DOCKER_USERNAME`: The username used to login to Docker Hub.
-- `DOCKER_PASSWORD`: The password used to login to Docker Hub.
 - `DJANGO_GITHUB_SYNC_APP_ID`: The App ID of the registered GitHub App installed in the GiPHouse organization.
 - `DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64`: The private RSA key ([PEM formatted](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail)) of the registered GitHub App installed in the GiPHouse organization, `base64` encoded.
 - `DJANGO_GITHUB_SYNC_APP_INSTALLATION_ID`: The Installation ID of the registered GitHub App installed in the GiPHouse organization.
