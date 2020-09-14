@@ -209,12 +209,13 @@ Additionally, you need to set the `DJANGO_GITHUB_SYNC_ORGANIZATION_NAME` to the 
 To enable the synchronisation feature of mailing lists to G Suite, a project and service account need to be setup.
 
 - Create a project in the [google cloud console](https://console.cloud.google.com).
-- Create a [service account and credentials](https://developers.google.com/admin-sdk/directory/v1/guides/delegation#create_the_service_account_and_credentials)
+- Create a [service account and credentials](https://developers.google.com/admin-sdk/directory/v1/guides/delegation#create_the_service_account_and_credentials).
 - Enable [domain wide delegation of authority](https://developers.google.com/admin-sdk/directory/v1/guides/delegation#delegate_domain-wide_authority_to_your_service_account), with the scopes:
   - `https://www.googleapis.com/auth/admin.directory.group` (for accessing groups and adding or deleting members)
   - `https://www.googleapis.com/auth/apps.groups.settings` (for changing settings of groups and adding aliases)
+- If this is the first time using the Groups Settings API, [enable it for the project](https://developers.google.com/apps-script/guides/services/advanced#enabling_advanced_services).
 
-The credentials and admin user can then be setup in Github secrets. The username of the user used to manage to the G Suite domain has to be stored in the Github secret `DJANGO_GSUITE_ADMIN_USER`. The credentials json file has to be `base64` encoded and stored in the Github secret `DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64` (you can use the linux command `base64` for encoding the json file).
+The credentials and admin user can then be setup in Github secrets. The email of the G Suite user used to manage to the G Suite domain has to be stored in the Github secret `DJANGO_GSUITE_ADMIN_USER`. The credentials json file has to be `base64` encoded and stored in the Github secret `DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64` (you can use the linux command `base64` for encoding the json file).
 
 ### Dependency Management
 The Python dependencies are managed using a tool called [Poetry](https://python-poetry.org/), which automatically creates virtual environments that ease development and makes it easy to manage the dependencies. See the [Poetry documentation](https://python-poetry.org/docs/) for more information.
