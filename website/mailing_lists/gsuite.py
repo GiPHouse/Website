@@ -506,11 +506,11 @@ class GSuiteSyncService:
         for mailinglist in lists:
             try:
                 if mailinglist.name in insert_list and mailinglist.name not in archived_groups:
-                    logger.debug(f"Starting create group of {mailinglist}")
+                    logger.debug(f"Starting create group of {mailinglist.name}")
                     if self.create_group(mailinglist):
                         MailingList.objects.filter(address=mailinglist.name).update(gsuite_group_name=mailinglist.name)
                 elif len(mailinglist.addresses) > 0:
-                    logger.debug(f"Starting update group of {mailinglist}")
+                    logger.debug(f"Starting update group of {mailinglist.name}")
                     if self.update_group(
                         mailinglist.gsuite_group_name if mailinglist.gsuite_group_name else mailinglist.name,
                         mailinglist,
