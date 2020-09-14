@@ -7,6 +7,8 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import reverse
 from django.test import Client, RequestFactory, TestCase
 
+from freezegun import freeze_time
+
 from courses.models import Course, Semester
 
 from mailing_lists.models import MailingList
@@ -34,6 +36,15 @@ class GetProjectsTest(TestCase):
         cls.project_archived = Project.objects.create(name="test-archived", semester=cls.semester)
 
         cls.manager = User.objects.create(github_id=1, github_username="manager")
+        Registration.objects.create(
+            user=cls.manager,
+            semester=cls.semester,
+            project=cls.project,
+            course=Course.objects.sdm(),
+            preference1=cls.project,
+            experience=Registration.EXPERIENCE_ADVANCED,
+        )
+
         cls.repo1 = Repository.objects.create(name="testrepo1", project=cls.project)
         cls.repo2 = Repository.objects.create(name="testrepo2", project=cls.project)
         cls.repo_archived = Repository.objects.create(
@@ -48,15 +59,6 @@ class GetProjectsTest(TestCase):
             fail=False,
             success_message="success",
             redirect_url=reverse("admin:projects_project_changelist"),
-        )
-
-        Registration.objects.create(
-            user=cls.manager,
-            semester=cls.semester,
-            project=cls.project,
-            course=Course.objects.sdm(),
-            preference1=cls.project,
-            experience=Registration.EXPERIENCE_ADVANCED,
         )
 
     def setUp(self):
@@ -95,6 +97,7 @@ class GetProjectsTest(TestCase):
         response = self.client.get(reverse("admin:projects_project_add"))
         self.assertEqual(response.status_code, 200)
 
+    @freeze_time("2020-06-01")
     def test_form_save_new(self):
         response = self.client.post(
             reverse("admin:projects_project_add"),
