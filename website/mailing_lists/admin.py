@@ -24,7 +24,6 @@ class AliasInline(admin.TabularInline):
 
     model = MailingListAlias
     extra = 0
-    form = MailingListAdminForm
 
 
 class CourseSemesterLinkInline(admin.TabularInline):
