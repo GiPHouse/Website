@@ -146,7 +146,7 @@ class GitHubSync:
             if not github_team.has_in_members(github_employee):
                 github_team.add_membership(github_employee, role="member")
                 self.users_invited += 1
-                self.info(f"Invited {github_employee.name} to team {github_team.name}")
+                self.info(f"Invited {employee.get_full_name()} to team {github_team.name}")
                 return True
         return False
 
