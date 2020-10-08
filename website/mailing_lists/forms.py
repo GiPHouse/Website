@@ -2,10 +2,9 @@ from django import forms
 from django.conf import settings
 from django.contrib.admin import widgets
 from django.contrib.auth import get_user_model
-from django.db.models import Q
 from django.utils.html import escape
 
-from courses.models import Course, Semester
+from courses.models import Semester
 
 from mailing_lists.models import MailingList
 
@@ -52,13 +51,6 @@ class MailingListAdminForm(forms.ModelForm):
         self.fields["users"].queryset = User.objects.filter(
             registration__semester=Semester.objects.get_or_create_current_semester(),
         )
-
-        if self.instance.pk:
-            self.fields["users"].initial = User.objects.filter(registration__course=Course.objects.sdm(),)
-
-            self.fields["users"].initial = User.objects.filter(
-                Q(registration__course=Course.objects.se()) | Q(registration__course=Course.objects.sde()),
-            )
 
     users = forms.ModelMultipleChoiceField(
         queryset=None, required=False, widget=widgets.FilteredSelectMultiple("Users", False)
