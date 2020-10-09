@@ -33,6 +33,7 @@ services:
             - '${DEPLOY_DIRECTORY}/nginx/certs/:/etc/nginx/certs/'
         environment:
             NGINX_PROXY_CONTAINER: 'nginx'
+            DEFAULT_EMAIL: 'directors@giphouse.nl'
 
     postgres:
         image: 'postgres:11.5'
