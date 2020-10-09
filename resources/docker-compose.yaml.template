@@ -18,6 +18,8 @@ services:
             - '${DEPLOY_DIRECTORY}/nginx/dhparam/:/etc/nginx/dhparam/'
             - '${DEPLOY_DIRECTORY}/media/:/giphouse/media/'
             - '${DEPLOY_DIRECTORY}/static/:/giphouse/static/'
+        environment:
+            ENABLE_IPV6: 'true'
 
     letsencrypt:
         image: 'jrcs/letsencrypt-nginx-proxy-companion'
