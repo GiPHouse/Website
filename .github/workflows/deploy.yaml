@@ -96,7 +96,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no "${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}" /bin/bash << EOF
             docker-compose --file "${DEPLOY_DIRECTORY}/docker-compose.yaml" config --quiet
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login https://docker.pkg.github.com --username giphouse --password-stdin
-            docker-compose --file "${DEPLOY_DIRECTORY}/docker-compose.yaml" pull
+            docker-compose --file "${DEPLOY_DIRECTORY}/docker-compose.yaml" pull --quiet
             docker logout docker.pkg.github.com
             docker-compose --file "${DEPLOY_DIRECTORY}/docker-compose.yaml" down
             docker-compose --file "${DEPLOY_DIRECTORY}/docker-compose.yaml" up -d --remove-orphans
