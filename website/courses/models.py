@@ -52,22 +52,19 @@ class SemesterManager(models.Manager):
         """
         Return the current semester based on the current time.
 
-        Dates before the start of the spring semester are seen as the fall semester of the calendar year before.
-        For example, 10 january 2020 is seen as the fall semester of 2019.
-
-        The spring semester starts in the week that has the first week day of february.
-        For example, if 2 february is a thursday, the spring semester will start on monday january 30th.
-        For example, if 1 february is a saturday, the spring semester will start on monday february 3rd.
-
         August is considered spring semester for simplicity.
+
+        The university changes the start of the spring semester each year
+        (e.g. some years it is the first week of february, other years it is the last week of january).
+
+        Given that there is no deterministic way to determine the start of the spring semester,
+        the user should select the start date of the spring semester. This should be changed.
+        In the mean time, we set this to a week before the current official start of the spring semester,
+        to make sure it works this year.
         """
-        february_first = timezone.now().replace(
-            year=timezone.now().year, month=2, day=1, hour=0, minute=0, second=0, microsecond=0
+        spring_semester_start = timezone.now().replace(
+            year=timezone.now().year, month=1, day=18, hour=0, minute=0, second=0, microsecond=0
         )
-        if february_first.weekday() < 5:
-            spring_semester_start = february_first - timezone.timedelta(days=february_first.weekday())
-        else:
-            spring_semester_start = february_first + timezone.timedelta(days=7 - february_first.weekday())
 
         fall_semester_start = timezone.now().replace(
             year=timezone.now().year, month=9, day=1, hour=0, minute=0, second=0, microsecond=0
