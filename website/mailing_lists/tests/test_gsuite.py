@@ -95,26 +95,41 @@ class GSuiteMethodsTestCase(TestCase):
     def test_gsuite_eq(self):
         self.assertNotEqual(
             GSuiteSyncService.GroupData(
-                "new_group", "some description", ["alias1"], [f"test1@{settings.GSUITE_DOMAIN}"],
+                "new_group",
+                "some description",
+                ["alias1"],
+                [f"test1@{settings.GSUITE_DOMAIN}"],
             ),
             0,
         )
 
         self.assertEqual(
             GSuiteSyncService.GroupData(
-                "new_group", "some description", ["alias1"], [f"test1@{settings.GSUITE_DOMAIN}"],
+                "new_group",
+                "some description",
+                ["alias1"],
+                [f"test1@{settings.GSUITE_DOMAIN}"],
             ),
             GSuiteSyncService.GroupData(
-                "new_group", "some description", ["alias1"], [f"test1@{settings.GSUITE_DOMAIN}"],
+                "new_group",
+                "some description",
+                ["alias1"],
+                [f"test1@{settings.GSUITE_DOMAIN}"],
             ),
         )
 
         self.assertNotEqual(
             GSuiteSyncService.GroupData(
-                "new_group", "some description", ["alias1"], [f"test1@{settings.GSUITE_DOMAIN}"],
+                "new_group",
+                "some description",
+                ["alias1"],
+                [f"test1@{settings.GSUITE_DOMAIN}"],
             ),
             GSuiteSyncService.GroupData(
-                "other_group", "some description", ["alias1"], [f"test1@{settings.GSUITE_DOMAIN}"],
+                "other_group",
+                "some description",
+                ["alias1"],
+                [f"test1@{settings.GSUITE_DOMAIN}"],
             ),
         )
 
@@ -132,7 +147,10 @@ class GSuiteMethodsTestCase(TestCase):
         self.assertEqual(
             group,
             GSuiteSyncService.GroupData(
-                "new_group", "some description", ["alias2"], [f"test2@{settings.GSUITE_DOMAIN}"],
+                "new_group",
+                "some description",
+                ["alias2"],
+                [f"test2@{settings.GSUITE_DOMAIN}"],
             ),
         )
 
@@ -204,7 +222,10 @@ class GSuiteMethodsTestCase(TestCase):
         with self.subTest("Successful"):
             self.sync_service.create_group(
                 GSuiteSyncService.GroupData(
-                    "new_group", "some description", ["alias2"], [f"test2@{settings.GSUITE_DOMAIN}"],
+                    "new_group",
+                    "some description",
+                    ["alias2"],
+                    [f"test2@{settings.GSUITE_DOMAIN}"],
                 )
             )
 
@@ -217,7 +238,8 @@ class GSuiteMethodsTestCase(TestCase):
             )
 
             self.settings_api.groups().update.assert_called_once_with(
-                groupUniqueId=f"new_group@{settings.GSUITE_DOMAIN}", body=self.sync_service._group_settings(),
+                groupUniqueId=f"new_group@{settings.GSUITE_DOMAIN}",
+                body=self.sync_service._group_settings(),
             )
 
             self.directory_api.members().list.assert_called()
@@ -231,7 +253,10 @@ class GSuiteMethodsTestCase(TestCase):
 
             self.sync_service.create_group(
                 GSuiteSyncService.GroupData(
-                    "new_group", "some description", ["alias2"], [f"test2@{settings.GSUITE_DOMAIN}"],
+                    "new_group",
+                    "some description",
+                    ["alias2"],
+                    [f"test2@{settings.GSUITE_DOMAIN}"],
                 )
             )
 
@@ -247,7 +272,10 @@ class GSuiteMethodsTestCase(TestCase):
 
             self.sync_service.create_group(
                 GSuiteSyncService.GroupData(
-                    "new_group", "some description", ["alias2"], [f"test2@{settings.GSUITE_DOMAIN}"],
+                    "new_group",
+                    "some description",
+                    ["alias2"],
+                    [f"test2@{settings.GSUITE_DOMAIN}"],
                 )
             )
 
@@ -264,7 +292,10 @@ class GSuiteMethodsTestCase(TestCase):
             self.sync_service.update_group(
                 "new_group",
                 GSuiteSyncService.GroupData(
-                    "new_group", "some description", ["alias2"], [f"test2@{settings.GSUITE_DOMAIN}"],
+                    "new_group",
+                    "some description",
+                    ["alias2"],
+                    [f"test2@{settings.GSUITE_DOMAIN}"],
                 ),
             )
 
@@ -293,7 +324,10 @@ class GSuiteMethodsTestCase(TestCase):
             self.sync_service.update_group(
                 "new_group",
                 GSuiteSyncService.GroupData(
-                    "new_group", "some description", ["alias2"], [f"test2@{settings.GSUITE_DOMAIN}"],
+                    "new_group",
+                    "some description",
+                    ["alias2"],
+                    [f"test2@{settings.GSUITE_DOMAIN}"],
                 ),
             )
 
@@ -350,7 +384,8 @@ class GSuiteMethodsTestCase(TestCase):
 
         with self.subTest("Successful with some errors"):
             group_data = GSuiteSyncService.GroupData(
-                name="update_group", aliases=["not_synced", "not_synced_error", "already_synced"],
+                name="update_group",
+                aliases=["not_synced", "not_synced_error", "already_synced"],
             )
 
             existing_aliases = [
@@ -458,7 +493,8 @@ class GsuiteSyncTestCase(TestCase):
         )
 
         self.sync_service.update_group.assert_called_with(
-            "already_synced", GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
+            "already_synced",
+            GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
         )
 
         self.sync_service.delete_group.assert_called_with("delete_me")
@@ -482,7 +518,8 @@ class GsuiteSyncTestCase(TestCase):
         )
 
         self.sync_service.update_group.assert_called_with(
-            "already_synced", GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
+            "already_synced",
+            GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
         )
 
         self.sync_service.archive_group.assert_called_once_with("archive_me")
@@ -519,7 +556,8 @@ class GsuiteSyncTestCase(TestCase):
         )
 
         self.sync_service.update_group.assert_called_with(
-            "already_synced", GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
+            "already_synced",
+            GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
         )
 
         self.sync_service.archive_group.assert_not_called()

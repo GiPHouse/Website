@@ -186,7 +186,8 @@ class UserAdmin(admin.ModelAdmin):
                 reg.save()
                 num_unassigned += 1
         messages.success(
-            request, f"Succesfully unassigned {num_unassigned} registrations.",
+            request,
+            f"Succesfully unassigned {num_unassigned} registrations.",
         )
 
     def generate_project_assignment_proposal(self, request, queryset):
@@ -208,7 +209,11 @@ class UserAdmin(admin.ModelAdmin):
         """Get admin urls."""
         urls = super().get_urls()
         custom_urls = [
-            path("import/", ImportAssignmentAdminView.as_view(), name="import",),
+            path(
+                "import/",
+                ImportAssignmentAdminView.as_view(),
+                name="import",
+            ),
         ]
         return custom_urls + urls
 

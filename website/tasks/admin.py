@@ -44,7 +44,8 @@ class TaskAdmin(admin.ModelAdmin):
         task = get_object_or_404(Task, pk=task)
         if task.fail:
             messages.error(
-                request, "Something went wrong while processing the task. Look at the log files for more details.",
+                request,
+                "Something went wrong while processing the task. Look at the log files for more details.",
             )
         else:
             messages.success(request, task.success_message)
@@ -59,9 +60,25 @@ class TaskAdmin(admin.ModelAdmin):
         """Get admin urls."""
         urls = super().get_urls()
         custom_urls = [
-            path("task/<int:task>/", self.admin_site.admin_view(self.task_progress_bar), name="progress_bar",),
-            path("task/<int:task>/progress", self.admin_site.admin_view(self.task_progress), name="progress",),
-            path("task/<int:task>/result", self.admin_site.admin_view(self.task_result), name="result",),
-            path("task/<int:task>/download", self.admin_site.admin_view(self.task_download), name="download",),
+            path(
+                "task/<int:task>/",
+                self.admin_site.admin_view(self.task_progress_bar),
+                name="progress_bar",
+            ),
+            path(
+                "task/<int:task>/progress",
+                self.admin_site.admin_view(self.task_progress),
+                name="progress",
+            ),
+            path(
+                "task/<int:task>/result",
+                self.admin_site.admin_view(self.task_result),
+                name="result",
+            ),
+            path(
+                "task/<int:task>/download",
+                self.admin_site.admin_view(self.task_download),
+                name="download",
+            ),
         ]
         return custom_urls + urls

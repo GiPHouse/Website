@@ -46,7 +46,10 @@ class Project(models.Model):
     )
 
     github_team_id = models.IntegerField(
-        null=True, blank=True, unique=True, help_text="This is the id of the team in the GitHub organization. ",
+        null=True,
+        blank=True,
+        unique=True,
+        help_text="This is the id of the team in the GitHub organization. ",
     )
 
     def __str__(self):
@@ -83,7 +86,11 @@ class Project(models.Model):
 class ProjectToBeDeleted(models.Model):
     """Projects that are deleted in Django, but still need to be deleted on GitHub at the next sync."""
 
-    github_team_id = models.IntegerField(null=False, blank=False, unique=True,)
+    github_team_id = models.IntegerField(
+        null=False,
+        blank=False,
+        unique=True,
+    )
 
     def __str__(self):
         """Return id of team to be deleted."""
@@ -108,7 +115,10 @@ class Repository(models.Model):
     project = models.ForeignKey(Project, blank=True, null=True, on_delete=models.CASCADE)
 
     github_repo_id = models.IntegerField(
-        null=True, blank=True, unique=True, help_text="This is the id of the GitHub repository.",
+        null=True,
+        blank=True,
+        unique=True,
+        help_text="This is the id of the GitHub repository.",
     )
 
     class Archived(models.IntegerChoices):
@@ -119,7 +129,10 @@ class Repository(models.Model):
         CONFIRMED = 2, "Archived"
 
     is_archived = models.IntegerField(
-        blank=False, null=False, choices=Archived.choices, default=Archived.NOT_ARCHIVED,
+        blank=False,
+        null=False,
+        choices=Archived.choices,
+        default=Archived.NOT_ARCHIVED,
     )
     private = models.BooleanField(default=True)
 
@@ -131,7 +144,11 @@ class Repository(models.Model):
 class RepositoryToBeDeleted(models.Model):
     """Repositories that are deleted in Django, but still need to be deleted on GitHub at the next sync."""
 
-    github_repo_id = models.IntegerField(null=False, blank=False, unique=True,)
+    github_repo_id = models.IntegerField(
+        null=False,
+        blank=False,
+        unique=True,
+    )
 
     def __str__(self):
         """Return id of repository to be deleted."""

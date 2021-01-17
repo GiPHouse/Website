@@ -63,7 +63,12 @@ class GSuiteSyncService:
         """Store data for GSuite groups to sync them."""
 
         def __init__(
-            self, name, description="", aliases=ImmutableList([]), addresses=ImmutableList([]), gsuite_group_name=None,
+            self,
+            name,
+            description="",
+            aliases=ImmutableList([]),
+            addresses=ImmutableList([]),
+            gsuite_group_name=None,
         ):
             """
             Create group data to sync with Gsuite.
@@ -107,10 +112,20 @@ class GSuiteSyncService:
             ).with_subject(settings.GSUITE_ADMIN_USER)
 
             if groups_settings_api is None:
-                groups_settings_api = build("groupssettings", "v1", credentials=credentials, cache=memory_cache,)
+                groups_settings_api = build(
+                    "groupssettings",
+                    "v1",
+                    credentials=credentials,
+                    cache=memory_cache,
+                )
 
             if directory_api is None:
-                directory_api = build("admin", "directory_v1", credentials=credentials, cache=memory_cache,)
+                directory_api = build(
+                    "admin",
+                    "directory_v1",
+                    credentials=credentials,
+                    cache=memory_cache,
+                )
 
         self.groups_settings_api = groups_settings_api
         self.directory_api = directory_api
@@ -203,7 +218,8 @@ class GSuiteSyncService:
                 sleep(min(2 ** n + random(), 64))
                 try:
                     self.groups_settings_api.groups().update(
-                        groupUniqueId=f"{group.name}@{settings.GSUITE_DOMAIN}", body=self._group_settings(),
+                        groupUniqueId=f"{group.name}@{settings.GSUITE_DOMAIN}",
+                        body=self._group_settings(),
                     ).execute()
                     break
                 except HttpError as e:
@@ -237,7 +253,8 @@ class GSuiteSyncService:
                 },
             ).execute()
             self.groups_settings_api.groups().update(
-                groupUniqueId=f"{group.name}@{settings.GSUITE_DOMAIN}", body=self._group_settings(),
+                groupUniqueId=f"{group.name}@{settings.GSUITE_DOMAIN}",
+                body=self._group_settings(),
             ).execute()
             logger.info(f"List {group.name} updated")
         except HttpError:
@@ -259,7 +276,9 @@ class GSuiteSyncService:
             aliases_response = (
                 self.directory_api.groups()
                 .aliases()
-                .list(groupKey=f"{group.name}@{settings.GSUITE_DOMAIN}",)
+                .list(
+                    groupKey=f"{group.name}@{settings.GSUITE_DOMAIN}",
+                )
                 .execute()
             )
         except HttpError:
@@ -330,7 +349,9 @@ class GSuiteSyncService:
         :return: True if the operation succeeded, False otherwise.
         """
         try:
-            self.directory_api.groups().delete(groupKey=f"{name}@{settings.GSUITE_DOMAIN}",).execute()
+            self.directory_api.groups().delete(
+                groupKey=f"{name}@{settings.GSUITE_DOMAIN}",
+            ).execute()
             logger.info(f"List {name} deleted")
             return True
         except HttpError:
@@ -345,14 +366,19 @@ class GSuiteSyncService:
         """
         try:
             members_response = (
-                self.directory_api.members().list(groupKey=f"{group.name}@{settings.GSUITE_DOMAIN}",).execute()
+                self.directory_api.members()
+                .list(
+                    groupKey=f"{group.name}@{settings.GSUITE_DOMAIN}",
+                )
+                .execute()
             )
             members_list = members_response.get("members", [])
             while "nextPageToken" in members_response:
                 members_response = (
                     self.directory_api.members()
                     .list(
-                        groupKey=f"{group.name}@{settings.GSUITE_DOMAIN}", pageToken=members_response["nextPageToken"],
+                        groupKey=f"{group.name}@{settings.GSUITE_DOMAIN}",
+                        pageToken=members_response["nextPageToken"],
                     )
                     .execute()
                 )
@@ -471,7 +497,10 @@ class GSuiteSyncService:
             while "nextPageToken" in groups_response:
                 groups_response = (
                     self.directory_api.groups()
-                    .list(domain=settings.GSUITE_DOMAIN, pageToken=groups_response["nextPageToken"],)
+                    .list(
+                        domain=settings.GSUITE_DOMAIN,
+                        pageToken=groups_response["nextPageToken"],
+                    )
                     .execute()
                 )
                 groups_list += groups_response.get("groups", [])

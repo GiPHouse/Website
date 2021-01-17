@@ -1,7 +1,7 @@
+from difflib import SequenceMatcher
+
 from django.contrib.auth import get_user_model
 from django.db import models
-
-from difflib import SequenceMatcher
 
 from courses.models import Course, Semester
 

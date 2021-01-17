@@ -9,26 +9,23 @@ authors = [
 license = "AGPL-3.0-only"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 Django = "^3.0"
 requests = "^2.22"
-libsass = "^0.19"
+libsass = "^0.20"
 django-compressor = "^2.3"
 django-sass-processor = "^0.8"
-django-bootstrap4 = "^1.0"
+django-bootstrap4 = "^2.3"
 uwsgi = {version = "^2.0",optional = true}
 psycopg2-binary = {version = "^2.8",optional = true}
-Pillow = "^7.0"
+Pillow = "^8.0"
 django-admin-autocomplete-filter = {git = "https://github.com/farhan0581/django-admin-autocomplete-filter.git"}
-coverage = {extras = ["toml"], version = "^5.0.3"}
-google-api-python-client = "^1.7.11"
+google-api-python-client = "^1.12"
 google-auth-httplib2 = "^0.0.3"
 google-auth-oauthlib = "^0.4.1"
 pygithub = "^1.46"
-cryptography = "^2.8"
-Faker = "^4.0.2"
-fuzzyset = "^0.0.19"
-ortools = "^7.6.7691"
+cryptography = "^3.3"
+ortools = "^8.1"
 
 [tool.poetry.extras]
 production = ["uwsgi", "psycopg2-binary"]
@@ -36,11 +33,11 @@ production = ["uwsgi", "psycopg2-binary"]
 [tool.poetry.dev-dependencies]
 flake8 = "^3.7"
 flake8-import-order = "^0.18.1"
-coverage = "^5.0"
+coverage = {extras = ["toml"], version = "^5.3"}
 pydocstyle = "^5.0"
-freezegun = "^0.3.11"
-Faker = "^4"
-black = {version = "^19.10b0"}
+freezegun = "^1.0"
+Faker = "^5"
+black = {version = "^20.8b1"}
 
 [tool.black]
 line-length = 119
