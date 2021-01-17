@@ -103,7 +103,7 @@ class ModelsTest(TestCase):
         u1 = User.objects.create_user(
             github_id=11, github_username="testpartner1", first_name="Test", last_name="partner 1"
         )
-        Registration.objects.create(
+        registration = Registration.objects.create(
             user=u1,
             course=Course.objects.se(),
             semester=self.test_semester,
@@ -111,13 +111,13 @@ class ModelsTest(TestCase):
             is_international=False,
         )
 
-        self.assertEqual(Registration._match_partner_name_to_user("Test partner 1", semester=self.test_semester), u1)
+        self.assertEqual(registration._match_partner_name_to_user("Test partner 1"), u1)
 
     def test__match_partner_name_to_user__typo(self):
         u1 = User.objects.create_user(
             github_id=11, github_username="testpartner1", first_name="Test", last_name="partner 1"
         )
-        Registration.objects.create(
+        registration = Registration.objects.create(
             user=u1,
             course=Course.objects.se(),
             semester=self.test_semester,
@@ -125,13 +125,13 @@ class ModelsTest(TestCase):
             is_international=False,
         )
 
-        self.assertEqual(Registration._match_partner_name_to_user("Testpatrner 1", semester=self.test_semester), u1)
+        self.assertEqual(registration._match_partner_name_to_user("Testpatrner 1"), u1)
 
     def test__match_partner_name_to_user__no_match(self):
         u1 = User.objects.create_user(
             github_id=11, github_username="testpartner1", first_name="Test", last_name="partner 1"
         )
-        Registration.objects.create(
+        registration = Registration.objects.create(
             user=u1,
             course=Course.objects.se(),
             semester=self.test_semester,
@@ -139,7 +139,7 @@ class ModelsTest(TestCase):
             is_international=False,
         )
 
-        self.assertIsNone(Registration._match_partner_name_to_user("Abcdefg", semester=self.test_semester))
+        self.assertIsNone(registration._match_partner_name_to_user("Abcdefg"))
 
     def test_partner_preference1_user(self):
         self.test_registration._match_partner_name_to_user = MagicMock(return_value=self.test_user)
