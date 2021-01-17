@@ -63,7 +63,7 @@ class EmployeeQueryTest(TestCase):
 
     def test_non_empty(self):
         """Tests if get_employees returns a queryset with all employees of a project
-            and only the employees of that project"""
+        and only the employees of that project"""
         self.addEngineerToProject(self.employee1, self.project1)
         self.addEngineerToProject(self.employee2, self.project1)
         self.addEngineerToProject(self.employee3, self.project2)

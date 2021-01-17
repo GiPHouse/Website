@@ -109,7 +109,8 @@ class ProjectAdmin(admin.ModelAdmin):
                 is_archived=Repository.Archived.NOT_ARCHIVED, project=project
             ).update(is_archived=Repository.Archived.PENDING)
         messages.success(
-            request, f"Succesfully archived {num_archived} repositories.",
+            request,
+            f"Succesfully archived {num_archived} repositories.",
         )
 
     def create_mailing_lists(self, request, queryset):

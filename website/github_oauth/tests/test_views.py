@@ -115,7 +115,8 @@ class RegisterTest(TestCase):
         cls.test_user = User.objects.create_user(github_id=0)
 
         project = Project.objects.create(
-            name="test project", semester=Semester.objects.get_or_create_current_semester(),
+            name="test project",
+            semester=Semester.objects.get_or_create_current_semester(),
         )
 
         Registration.objects.create(

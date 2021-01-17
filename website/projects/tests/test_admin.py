@@ -48,7 +48,9 @@ class GetProjectsTest(TestCase):
         cls.repo1 = Repository.objects.create(name="testrepo1", project=cls.project)
         cls.repo2 = Repository.objects.create(name="testrepo2", project=cls.project)
         cls.repo_archived = Repository.objects.create(
-            name="testrepo-archived", project=cls.project_archived, is_archived=Repository.Archived.CONFIRMED,
+            name="testrepo-archived",
+            project=cls.project_archived,
+            is_archived=Repository.Archived.CONFIRMED,
         )
 
         cls.mailing_list = MailingList.objects.create(address="test", description=cls.project.description)

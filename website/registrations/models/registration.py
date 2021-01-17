@@ -1,7 +1,7 @@
+from difflib import SequenceMatcher
+
 from django.contrib.auth import get_user_model
 from django.db import models
-
-from fuzzyset import FuzzySet
 
 from courses.models import Course, Semester
 
@@ -54,35 +54,39 @@ class Registration(models.Model):
         """Check if a registration is a director."""
         return self.project is None and self.course == Course.objects.sdm()
 
-    @staticmethod
-    def _match_partner_name_to_user(name, semester):
-        """Match a string to a user."""
-        if name:
-            user_names = FuzzySet()
-            users = {}
-            for user in User.objects.filter(registration__semester=semester).all():
-                user_names.add(user.get_full_name())
-                users[user.get_full_name()] = user
-            matches = user_names.get(name)
-            if matches:
-                best_match = sorted(user_names.get(name))[0]
-                return users[best_match[1]] if best_match[0] > 0.50 else None
+    def _match_partner_name_to_user(self, name):
+        """
+        Match a string to a user.
+
+        Find the most similar user name to the given name.
+        """
+        if name is None:
+            return None
+
+        ratios = {}
+        for user in User.objects.filter(registration__semester=self.semester).all():
+            ratio = SequenceMatcher(None, name, user.get_full_name()).ratio()
+            if ratio > 0.5:
+                ratios[user] = ratio
+
+        if ratios:
+            return max(ratios, key=lambda k: ratios[k])
         return None
 
     @property
     def partner_preference1_user(self):
         """Get the user most similar to the first partner preference."""
-        return self._match_partner_name_to_user(self.partner_preference1, self.semester)
+        return self._match_partner_name_to_user(self.partner_preference1)
 
     @property
     def partner_preference2_user(self):
         """Get the user most similar to the second partner preference."""
-        return self._match_partner_name_to_user(self.partner_preference2, self.semester)
+        return self._match_partner_name_to_user(self.partner_preference2)
 
     @property
     def partner_preference3_user(self):
         """Get the user most similar to the third partner preference."""
-        return self._match_partner_name_to_user(self.partner_preference3, self.semester)
+        return self._match_partner_name_to_user(self.partner_preference3)
 
     def get_preferred_partners(self):
         """Get the preferred project partners of a user."""

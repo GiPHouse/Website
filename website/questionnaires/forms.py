@@ -51,7 +51,10 @@ class QuestionnaireForm(forms.Form):
             )
         else:
             self.fields[field_name] = forms.CharField(
-                label=question.question, widget=forms.Textarea(attrs={"rows": 4, "placeholder": ""},)
+                label=question.question,
+                widget=forms.Textarea(
+                    attrs={"rows": 4, "placeholder": ""},
+                ),
             )
 
         if question.optional:
