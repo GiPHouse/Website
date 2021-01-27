@@ -145,6 +145,7 @@ BOOTSTRAP4 = {
     'success_css_class': '',
 }
 
+GSUITE_DOMAIN = "giphouse.nl"
 GSUITE_SCOPES = [
     "https://www.googleapis.com/auth/admin.directory.group",
     "https://www.googleapis.com/auth/apps.groups.settings",

@@ -78,7 +78,6 @@ DJANGO_GITHUB_SYNC_APP_INSTALLATION_ID = os.environ.get('DJANGO_GITHUB_SYNC_APP_
 github.enable_console_debug_logging()
 
 # GSuite service account credentials
-GSUITE_DOMAIN = "giphouse.nl"
 GSUITE_ADMIN_USER = os.environ.get("DJANGO_GSUITE_ADMIN_USER", "")
 GSUITE_ADMIN_CREDENTIALS_BASE64 = os.environ.get("DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64", base64.urlsafe_b64encode(b"{}"))
 GSUITE_ADMIN_CREDENTIALS = base64.urlsafe_b64decode(GSUITE_ADMIN_CREDENTIALS_BASE64)
