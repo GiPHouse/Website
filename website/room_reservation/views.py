@@ -34,7 +34,7 @@ class BaseReservationView(View):
         if start_time >= end_time:
             return False, "Start time needs to be before end time"
 
-        if start_time.hour < 8 or start_time.hour >= 18 or end_time.hour < 8 or start_time.hour > 18:
+        if start_time.hour < 8 or start_time.hour >= 18 or end_time.hour < 8 or end_time.hour > 18:
             return False, "Please enter times between 8:00 and 18:00"
 
         if start_time.weekday() in (5, 6):
