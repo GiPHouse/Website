@@ -90,6 +90,30 @@ class ReservationTest(TestCase):
         )
         self.assertContains(response, "Please enter times between 8:00 and 18:00")
 
+    def test_start_outside_office_hours(self):
+        response = self.client.post(
+            reverse("room_reservation:create_reservation"),
+            {
+                "room": self.room.pk,
+                "start_time": timezone.datetime(2019, 3, 4, 3, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "end_time": timezone.datetime(2019, 3, 4, 13, 0, 0, tzinfo=timezone.get_current_timezone()),
+            },
+            content_type="application/json",
+        )
+        self.assertContains(response, "Please enter times between 8:00 and 18:00")
+
+    def test_end_outside_office_hours(self):
+        response = self.client.post(
+            reverse("room_reservation:create_reservation"),
+            {
+                "room": self.room.pk,
+                "start_time": timezone.datetime(2019, 3, 4, 13, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "end_time": timezone.datetime(2019, 3, 4, 20, 0, 0, tzinfo=timezone.get_current_timezone()),
+            },
+            content_type="application/json",
+        )
+        self.assertContains(response, "Please enter times between 8:00 and 18:00")
+
     def test_in_weekend(self):
         response = self.client.post(
             reverse("room_reservation:create_reservation"),
