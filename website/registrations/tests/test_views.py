@@ -338,6 +338,46 @@ class Step2Test(TestCase):
         )
         self.assertContains(response, "Email address already in use")
 
+    def test_post_step2_existing_student_number(self):
+        existing_user = User.objects.create_user(
+            github_id=self.github_id, student_number=self.student_number, email="non-existent@test.invalid"
+        )
+        Registration.objects.create(
+            user=existing_user,
+            experience=self.experience,
+            course_id=self.se.id,
+            preference1_id=self.project_preference1.id,
+            preference2_id=self.project_preference2.id,
+            preference3_id=self.project_preference3.id,
+            semester=Semester.objects.get_or_create_current_semester(),
+        )
+
+        self.session["github_id"] += 1
+        self.session.save()
+
+        response = self.client.post(
+            "/register/step2",
+            {
+                "first_name": self.first_name,
+                "last_name": self.last_name,
+                "student_number": self.student_number,
+                "github_id": self.github_id + 1,
+                "github_username": self.github_username,
+                "experience": self.experience,
+                "is_international": self.is_international,
+                "course": self.se.id,
+                "email": self.email,
+                "project1": self.project_preference1.id,
+                "project2": self.project_preference2.id,
+                "project3": self.project_preference3.id,
+                "partner1": self.project_partner_preference1,
+                "partner2": self.project_partner_preference2,
+                "partner3": self.project_partner_preference3,
+            },
+            follow=True,
+        )
+        self.assertContains(response, "Student Number already in use.")
+
     def test_step2_works_with_no_last_name(self):
         self.session["github_name"] = f"{self.first_name}"
         self.session.save()
