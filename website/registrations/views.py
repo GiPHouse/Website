@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth import get_user_model, login
+from django.contrib.auth import get_user_model, login, logout
 from django.db import transaction
 from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect
@@ -27,13 +27,12 @@ class Step1View(TemplateView):
 
     def dispatch(self, request, *args, **kwargs):
         """Check whether user is authenticated and if registration is possible."""
-        if request.user.is_authenticated:
-            messages.warning(request, "You are already logged in", extra_tags="success")
-            return redirect("home")
-
         if not Semester.objects.get_first_semester_with_open_registration():
             messages.warning(request, "Registrations are currently not open", extra_tags="danger")
             return redirect("home")
+
+        if request.user.is_authenticated:
+            logout(request)
 
         return super().dispatch(request, *args, **kwargs)
 

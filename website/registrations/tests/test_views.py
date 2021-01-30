@@ -43,11 +43,15 @@ class Step1Test(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_step1_authenticated(self):
+        semester = Semester.objects.get_or_create_current_semester()
+        semester.registration_start = timezone.now()
+        semester.registration_end = timezone.now() + timezone.timedelta(days=1)
+        semester.save()
+
         self.client.force_login(self.test_user)
 
         response = self.client.get("/register/step1")
-
-        self.assertRedirects(response, reverse("home"))
+        self.assertFalse(response.context["user"].is_authenticated)
 
     def test_step1_no_semester(self):
         response = self.client.get("/register/step1", follow=True)
