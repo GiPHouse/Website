@@ -137,7 +137,7 @@ class Step2Form(forms.Form):
             .filter(student_number=student_number)
             .exists()
         ):
-            ValidationError("Student Number already in use.", code="exists")
+            raise ValidationError("Student Number already in use.", code="exists")
         return student_number
 
     def clean(self):
