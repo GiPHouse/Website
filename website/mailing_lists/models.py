@@ -78,11 +78,6 @@ class MailingList(models.Model):
         return set(course_emails + project_emails + user_emails + extra_emails)
 
     @property
-    def number_of_users(self):
-        """Return number of users currently in a mailing list."""
-        return self.users.count()
-
-    @property
     def mailinglist_aliases(self):
         """Return the alias of a mailinglist."""
         aliaslist = [

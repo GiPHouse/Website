@@ -46,7 +46,7 @@ class MailingListAdmin(admin.ModelAdmin):
     """Admin class for Mailing List."""
 
     form = MailingListAdminForm
-    list_display = ("address", "description", "number_of_users", "mailinglist_aliases")
+    list_display = ("address", "description", "mailinglist_aliases")
     list_filter = ("address",)
     readonly_fields = ("gsuite_group_name",)
     inlines = [CourseSemesterLinkInline, ExtraEmailInline, AliasInline]
