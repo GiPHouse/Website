@@ -48,7 +48,7 @@ class MyTestCase(TestCase):
     @patch("tasks.admin.render")
     def test_task_progress_bar(self, render):
         self.task_admin.task_progress_bar("request", 0)
-        render.assert_called_with("request", "admin/tasks/progress_bar.html", {"task": 0})
+        render.assert_called_with("request", "admin/tasks/progress_bar.html", {"task": 0, "title": "Progress"})
 
     @patch("tasks.admin.messages.error")
     @patch("tasks.admin.messages.success")

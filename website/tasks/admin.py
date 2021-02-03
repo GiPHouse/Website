@@ -54,7 +54,7 @@ class TaskAdmin(admin.ModelAdmin):
 
     def task_progress_bar(self, request, task):
         """Show a progress bar for a Task."""
-        return render(request, "admin/tasks/progress_bar.html", {"task": task})
+        return render(request, "admin/tasks/progress_bar.html", {"task": task, "title": "Progress"})
 
     def get_urls(self):
         """Get admin urls."""
