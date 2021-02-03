@@ -2,6 +2,7 @@ from difflib import SequenceMatcher
 
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.utils.functional import cached_property
 
 from courses.models import Course, Semester
 
@@ -73,54 +74,20 @@ class Registration(models.Model):
             return max(ratios, key=lambda k: ratios[k])
         return None
 
-    @property
+    @cached_property
     def partner_preference1_user(self):
         """Get the user most similar to the first partner preference."""
         return self._match_partner_name_to_user(self.partner_preference1)
 
-    @property
+    @cached_property
     def partner_preference2_user(self):
         """Get the user most similar to the second partner preference."""
         return self._match_partner_name_to_user(self.partner_preference2)
 
-    @property
+    @cached_property
     def partner_preference3_user(self):
         """Get the user most similar to the third partner preference."""
         return self._match_partner_name_to_user(self.partner_preference3)
-
-    def get_preferred_partners(self):
-        """Get the preferred project partners of a user."""
-        return User.objects.filter(
-            pk__in=[
-                self.partner_preference1_user.pk,
-                self.partner_preference2_user.pk,
-                self.partner_preference3_user.pk,
-            ]
-        ).distinct()
-
-    def get_partner1_display(self):
-        """Get the displayable version for a registration's 1st preferred project partner."""
-        if self.partner_preference1_user:
-            return self.partner_preference1_user
-        elif self.partner_preference1:
-            return f"'{self.partner_preference1}'"
-        return None
-
-    def get_partner2_display(self):
-        """Get the displayable version for a registration's 2nd preferred project partner."""
-        if self.partner_preference2_user:
-            return self.partner_preference2_user
-        elif self.partner_preference2:
-            return f"'{self.partner_preference2}'"
-        return None
-
-    def get_partner3_display(self):
-        """Get the displayable version for a registration's 3rd preferred project partner."""
-        if self.partner_preference3_user:
-            return self.partner_preference3_user
-        elif self.partner_preference3:
-            return f"'{self.partner_preference3}'"
-        return None
 
     def __str__(self):
         """Give user information about this object."""
