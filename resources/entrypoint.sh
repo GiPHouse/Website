@@ -16,6 +16,7 @@ cd /giphouse/src/website/
 ./manage.py compilescss
 ./manage.py collectstatic --no-input -v0 --ignore="*.scss"
 ./manage.py migrate --no-input
+./manage.py clearsessions
 
 cat << EOF | ./manage.py shell
 from django.contrib.auth import get_user_model
