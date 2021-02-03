@@ -57,12 +57,13 @@ class TeamAssignmentGenerator:
             total=1, completed=0, redirect_url=reverse("admin:registrations_employee_changelist")
         )
 
-        self.logger = logging.getLogger("django.automaticteams")
-        self.logger.info("Create team constraints")
+        self.logger = logging.getLogger("automaticteams")
+
         self._set_up_model()
 
     def _set_up_model(self):
         """Set up all boolean variables for a model to solve."""
+        self.logger.info("Create team constraints")
         self.model = cp_model.CpModel()
 
         self.assigned_managers = {}
@@ -75,8 +76,10 @@ class TeamAssignmentGenerator:
             for p in range(len(self.projects)):
                 self.assigned_engineers[(r, p)] = self.model.NewBoolVar(f"assigned_engineer{r}_to_project{p}")
 
+        self.logger.info("Adding constraints")
         self._add_constraints()
 
+        self.logger.info("Maximizing objectives")
         self.model.Maximize(sum(self._get_objectives()))
 
     def generate_team_assignment(self):
@@ -245,6 +248,8 @@ class TeamAssignmentGenerator:
         of 1 person their first preference. The total value per person is 12, as this is divisible by all possible
         numbers needed.
         """
+        self.logger.info("Creating project preference objective")
+
         manager_preferred_projects = {}
         for r in range(len(self.managers)):
             pref_is_none = [
@@ -312,6 +317,8 @@ class TeamAssignmentGenerator:
         results are normalized to the same range as other objective functions. Of course, the general weight of all
         objectives can be customized in `_get_objectives()`
         """
+        self.logger.info("Creating programming experience objective")
+
         programming_experience_for_engineer = {}
 
         for r in range(len(self.engineers)):
@@ -381,6 +388,8 @@ class TeamAssignmentGenerator:
         The objective is then formed by the sum of the 'preferredness' of all the true facts for all assigned managers
         and engineers over the different projects that can be assigned.
         """
+        self.logger.info("Creating partner preference objective")
+
         # Set up extra boolean variables for the case: engineer - engineer
         engineer_together_in_project_with_engineer = {}
         for e1 in range(len(self.engineers)):
