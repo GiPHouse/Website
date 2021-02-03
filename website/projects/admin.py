@@ -8,6 +8,8 @@ from django.db.models import Count, Q
 from django.shortcuts import redirect
 from django.urls import path
 
+from courses.models import Semester
+
 from mailing_lists.models import MailingList
 
 from projects.forms import ProjectAdminForm, RepositoryInlineForm, RepositoryInlineFormset
@@ -150,10 +152,15 @@ class ProjectAdmin(admin.ModelAdmin):
 
     synchronise_to_GitHub.short_description = "Synchronise selected projects to GitHub"
 
-    def synchronise_all_projects_to_GitHub(self, request):
-        """Synchronise all project(teams) to GitHub."""
+    def synchronise_current_projects_to_GitHub(self, request):
+        """Synchronise project(teams) of the current semester to GitHub."""
         return self.synchronise_to_GitHub(
-            request, [p for p in Project.objects.all() if p.is_archived != Repository.Archived.CONFIRMED]
+            request,
+            [
+                p
+                for p in Project.objects.filter(semester=Semester.objects.get_or_create_current_semester())
+                if p.is_archived != Repository.Archived.CONFIRMED
+            ],
         )
 
     def get_urls(self):
@@ -162,7 +169,7 @@ class ProjectAdmin(admin.ModelAdmin):
         custom_urls = [
             path(
                 "sync-to-github/",
-                self.admin_site.admin_view(self.synchronise_all_projects_to_GitHub),
+                self.admin_site.admin_view(self.synchronise_current_projects_to_GitHub),
                 name="synchronise_to_github",
             ),
         ]
