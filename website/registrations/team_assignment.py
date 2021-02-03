@@ -85,7 +85,7 @@ class TeamAssignmentGenerator:
     def generate_team_assignment(self):
         """Try to solve the CSP and return the generated assignment if feasible."""
         solver = cp_model.CpSolver()
-        solver.parameters.max_time_in_seconds = 60.0
+        solver.parameters.max_time_in_seconds = 180.0
         self.logger.info("Solve team constraints")
         status = solver.Solve(self.model)
         self.logger.debug(f"{solver.ResponseStats()}")
