@@ -150,21 +150,16 @@ class TeamAssignmentGenerator:
 
     def execute_solve_task(self):
         """Assign each user to a project and store the output in a task."""
-        try:
-
-            project_for_registrations = self.generate_team_assignment()
-            if not project_for_registrations:
-                self.logger.error("No solution found")
-                self.task.fail = True
-            else:
-                self.logger.info("Create csv output")
-                output = StringIO()
-                self.write_csv(output, project_for_registrations)
-                self.task.data = output.getvalue()
-                self.task.success_message = "Successfully assigned all users to a project"
-        except Exception as e:
-            self.logger.exception(e)
+        project_for_registrations = self.generate_team_assignment()
+        if not project_for_registrations:
+            self.logger.error("No solution found")
             self.task.fail = True
+        else:
+            self.logger.info("Create csv output")
+            output = StringIO()
+            self.write_csv(output, project_for_registrations)
+            self.task.data = output.getvalue()
+            self.task.success_message = "Successfully assigned all users to a project"
         self.task.completed = 1
         self.task.save()
 

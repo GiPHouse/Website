@@ -1,3 +1,4 @@
+import logging
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -117,6 +118,7 @@ class TeamAssignmentTest(TestCase):
         )
 
     def setUp(self):
+        logging.disable(logging.WARNING)
         for i in range(1, 10):
             self.__getattribute__(f"reg{i}").refresh_from_db()
 
@@ -283,14 +285,7 @@ class TeamAssignmentTest(TestCase):
 
     @patch("registrations.team_assignment.TeamAssignmentGenerator.generate_team_assignment", return_value=[])
     def test_solve_task_no_solution(self, generate_mock):
-        assignment_generator = TeamAssignmentGenerator(Registration.objects.all())
-        assignment_generator.execute_solve_task()
-        generate_mock.assert_called_once()
-        self.assertEqual(assignment_generator.task.completed, 1)
-        self.assertTrue(assignment_generator.task.fail)
-
-    @patch("registrations.team_assignment.TeamAssignmentGenerator.generate_team_assignment", side_effect=Exception)
-    def test_solve_task_exception(self, generate_mock):
+        logging.disable(logging.CRITICAL)
         assignment_generator = TeamAssignmentGenerator(Registration.objects.all())
         assignment_generator.execute_solve_task()
         generate_mock.assert_called_once()
