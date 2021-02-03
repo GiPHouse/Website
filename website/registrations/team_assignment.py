@@ -115,9 +115,7 @@ class TeamAssignmentGenerator:
         """Write the result of the team creation to a csv file."""
         writer = csv.writer(output, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
         writer.writerow(CSV_STRUCTURE)
-        for registration in Registration.objects.filter(
-            semester=self.semester, course__in=[Course.objects.se(), Course.objects.sdm()]
-        ).order_by("user__first_name", "user__last_name"):
+        for registration in sorted(self.managers + self.engineers, key=lambda e: (e.user.get_full_name())):
             project = project_for_registrations.get(registration.pk, None)
             partners = [
                 Registration.objects.get(pk=reg).user for reg, p in project_for_registrations.items() if p == project
