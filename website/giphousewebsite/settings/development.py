@@ -26,18 +26,24 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'brief': {
-            'format': '%(name)s %(levelname)s %(message)s'
+        'verbose': {
+            'format': '{asctime} ({levelname}) {name}: {message}',
+            'style': '{',
         },
     },
     'handlers': {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'formatter': 'brief',
+            'formatter': 'verbose',
         }
     },
     'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': False,
+        },
         'gsuitesync': {
             'handlers': ['console'],
             'level': os.environ.get('DJANGO_LOG_LEVEL', 'DEBUG'),
