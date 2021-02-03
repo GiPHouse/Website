@@ -1,3 +1,4 @@
+import logging
 from unittest.mock import MagicMock, patch
 
 from django.contrib import messages
@@ -417,6 +418,7 @@ class RegistrationAdminTest(TestCase):
 
     @patch("threading.Thread")
     def test_download_csv__post(self, mock_thread):
+        logging.disable(logging.CRITICAL)
         response = self.client.post(
             reverse("admin:registrations_employee_changelist"),
             {
