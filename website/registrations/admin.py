@@ -211,7 +211,7 @@ class UserAdmin(admin.ModelAdmin):
         custom_urls = [
             path(
                 "import/",
-                ImportAssignmentAdminView.as_view(),
+                self.admin_site.admin_view(ImportAssignmentAdminView.as_view()),
                 name="import",
             ),
         ]
