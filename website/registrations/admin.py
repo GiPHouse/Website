@@ -211,7 +211,7 @@ class UserAdmin(admin.ModelAdmin):
         custom_urls = [
             path(
                 "import/",
-                ImportAssignmentAdminView.as_view(),
+                self.admin_site.admin_view(ImportAssignmentAdminView.as_view()),
                 name="import",
             ),
         ]
@@ -231,7 +231,8 @@ class ImportAssignmentAdminView(View):
     def get(self, request):
         """Get a form to select the semester to import for."""
         form = CsvImportForm()
-        payload = {"form": form, "header": CSV_STRUCTURE[:5]}
+        payload = {"form": form, "header": CSV_STRUCTURE[:5], "title": "Import"}
+
         return render(request, "admin/registrations/import-csv.html", payload)
 
     @staticmethod
