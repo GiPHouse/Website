@@ -217,10 +217,11 @@ class GetProjectsTest(TestCase):
         self.assertEqual(list(self.github_mock.call_args.args[0]), list(Project.objects.all()))
         self.sync_mock.perform_asynchronous_sync.assert_called_once()
 
-    def test_synchronise_all_projects_to_GitHub(self):
+    @freeze_time("2020-06-01")
+    def test_synchronise_current_projects_to_GitHub(self):
         original_sync_action = self.project_admin.synchronise_to_GitHub
         self.project_admin.synchronise_to_GitHub = MagicMock()
-        self.project_admin.synchronise_all_projects_to_GitHub(self.request)
+        self.project_admin.synchronise_current_projects_to_GitHub(self.request)
         self.project_admin.synchronise_to_GitHub.assert_called_once()
         args = self.project_admin.synchronise_to_GitHub.call_args.args
         self.assertEqual(args[0], self.request)
