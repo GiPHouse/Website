@@ -2,6 +2,7 @@ from difflib import SequenceMatcher
 
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.utils.functional import cached_property
 
 from courses.models import Course, Semester
 
@@ -73,17 +74,17 @@ class Registration(models.Model):
             return max(ratios, key=lambda k: ratios[k])
         return None
 
-    @property
+    @cached_property
     def partner_preference1_user(self):
         """Get the user most similar to the first partner preference."""
         return self._match_partner_name_to_user(self.partner_preference1)
 
-    @property
+    @cached_property
     def partner_preference2_user(self):
         """Get the user most similar to the second partner preference."""
         return self._match_partner_name_to_user(self.partner_preference2)
 
-    @property
+    @cached_property
     def partner_preference3_user(self):
         """Get the user most similar to the third partner preference."""
         return self._match_partner_name_to_user(self.partner_preference3)
