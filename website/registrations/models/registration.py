@@ -89,40 +89,6 @@ class Registration(models.Model):
         """Get the user most similar to the third partner preference."""
         return self._match_partner_name_to_user(self.partner_preference3)
 
-    def get_preferred_partners(self):
-        """Get the preferred project partners of a user."""
-        return User.objects.filter(
-            pk__in=[
-                self.partner_preference1_user.pk,
-                self.partner_preference2_user.pk,
-                self.partner_preference3_user.pk,
-            ]
-        ).distinct()
-
-    def get_partner1_display(self):
-        """Get the displayable version for a registration's 1st preferred project partner."""
-        if self.partner_preference1_user:
-            return self.partner_preference1_user
-        elif self.partner_preference1:
-            return f"'{self.partner_preference1}'"
-        return None
-
-    def get_partner2_display(self):
-        """Get the displayable version for a registration's 2nd preferred project partner."""
-        if self.partner_preference2_user:
-            return self.partner_preference2_user
-        elif self.partner_preference2:
-            return f"'{self.partner_preference2}'"
-        return None
-
-    def get_partner3_display(self):
-        """Get the displayable version for a registration's 3rd preferred project partner."""
-        if self.partner_preference3_user:
-            return self.partner_preference3_user
-        elif self.partner_preference3:
-            return f"'{self.partner_preference3}'"
-        return None
-
     def __str__(self):
         """Give user information about this object."""
         return f"{self.user.get_full_name()} ({self.semester})"
