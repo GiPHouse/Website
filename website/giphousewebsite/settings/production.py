@@ -32,17 +32,15 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(asctime)s %(name)s %(levelname)s %(message)s'
-        },
-        'brief': {
-            'format': '%(name)s %(levelname)s %(message)s'
+            'format': '{asctime} ({levelname}) {name}: {message}',
+            'style': '{',
         },
     },
     'handlers': {
         'console': {
-            'level': 'DEBUG',
+            'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
             'class': 'logging.StreamHandler',
-            'formatter': 'brief',
+            'formatter': 'verbose',
         },
         'file': {
             'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
@@ -59,17 +57,17 @@ LOGGING = {
         },
         'gsuitesync': {
             'handlers': ['console', 'file'],
-            'level': os.environ.get('DJANGO_LOG_LEVEL', 'DEBUG'),
+            'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
             'propagate': False,
         },
         'github': {
             'handlers': ['console', 'file'],
-            'level': os.environ.get('DJANGO_LOG_LEVEL', 'DEBUG'),
+            'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
             'propagate': False,
         },
         'automaticteams': {
             'handlers': ['console', 'file'],
-            'level': os.environ.get('DJANGO_LOG_LEVEL', 'DEBUG'),
+            'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
             'propagate': False,
         },
     },
