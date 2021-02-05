@@ -153,7 +153,7 @@ class Lecture(models.Model):
         Describing that course and title should be unique together.
         """
 
-        unique_together = (("course", "title"),)
+        unique_together = (("course", "title", "semester"),)
 
     date = models.DateField()
 

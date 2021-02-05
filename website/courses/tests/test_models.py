@@ -22,6 +22,15 @@ class ModelTest(TestCase):
 
         cls.lecture = Lecture.objects.create(semester=cls.semester, date=cls.date, course=cls.course, title=cls.title)
 
+    def test_create_lecture_same_title(self):
+        new_semester = Semester.objects.create(year=self.year + 1, season=self.season)
+
+        Lecture.objects.create(
+            semester=new_semester, date=timezone.now(), course=self.lecture.course, title=self.lecture.title
+        )
+
+        self.assertEquals(2, Lecture.objects.filter(title=self.lecture.title, course=self.lecture.course).count())
+
     def test_get_slides_filename(self):
         self.assertEqual(
             get_slides_filename(self.lecture, None),
