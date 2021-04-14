@@ -49,10 +49,8 @@ This is the code for the website of [GiPHouse](http://giphouse.nl/) powered by [
 
 ## Features
 
-The GiPHouse website is meant to support all the GiPHouse courses. To do this, it has three main features: registrations, questionnaires and room reservations. Besides these features, the website also has some smaller features to provide information about GiPHouse and its courses.
-
 ### Authentication and Users
-Because every student needs to have an Github account to participate in the GiPHouse courses, authentication is based on Github OAuth. This removes the need to save separate usernames and passwords. Instead of usernames and passwords, the website uses GitHub IDs to authenticate users.
+Because every student needs to have an GitHub account to participate in the GiPHouse courses, authentication is based on GitHub OAuth. This removes the need to save separate usernames and passwords. Instead of usernames and passwords, the website uses GitHub IDs to authenticate users.
 
 A [custom user model](https://docs.djangoproject.com/en/dev/topics/auth/customizing/#using-a-custom-user-model-when-starting-a-project) (called `Employee`) has been created to make this possible.
 
@@ -158,7 +156,6 @@ This sync starts by creating groups in G Suite for all mailing lists currently n
 
 ### Tasks
 A task is a process that takes more time than can fit in a request. The process is run in a separate thread and the status is synced to the task. The task is then used to show the user the progress and redirect them when it is finished.
-
 
 ### Styling
 [Bootstrap](https://getbootstrap.com/) and [Font Awesome](https://fontawesome.com/) are used to style the website. Their respective SCSS versions are used.
