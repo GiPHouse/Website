@@ -10,7 +10,7 @@ license = "AGPL-3.0-only"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-Django = "^3.0"
+Django = "~3.1"
 requests = "^2.22"
 libsass = "^0.20"
 django-compressor = "^2.3"
