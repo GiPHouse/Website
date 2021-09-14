@@ -219,3 +219,22 @@ class QuestionnaireTest(TestCase):
             f'"{self.closed_answer.answer.value}"',
         )
         self.assertEqual(response.status_code, 200)
+
+    def test_duplicate_questionnaires(self):
+        response = self.client.post(
+            reverse("admin:questionnaires_questionnaire_changelist"),
+            {ACTION_CHECKBOX_NAME: [self.active_questions.pk], "action": "duplicate_questionnaires", "index": 0},
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(Questionnaire.objects.count(), 2)
+
+        new_questionnaire = Questionnaire.objects.last()
+
+        self.assertEqual(new_questionnaire.title, self.active_questions.title)
+        self.assertEqual(new_questionnaire.semester, Semester.objects.get_or_create_current_semester())
+        self.assertEqual(new_questionnaire.question_set.count(), self.active_questions.question_set.count())
+
+        for q1, q2 in zip(new_questionnaire.question_set.all(), self.active_questions.question_set.all()):
+            self.assertEqual(q1, q2)
