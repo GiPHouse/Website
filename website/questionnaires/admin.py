@@ -1,9 +1,12 @@
 import csv
 from io import StringIO
 
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.contrib.admin.utils import model_ngettext
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
+
+from courses.models import Semester
 
 from questionnaires.filters import (
     AnswerAdminParticipantFilter,
@@ -63,6 +66,29 @@ class QuestionnaireAdmin(admin.ModelAdmin):
 
     inlines = (QuestionInline,)
     search_fields = ("title",)
+
+    actions = ("duplicate_questionnaires",)
+
+    def duplicate_questionnaires(self, request, queryset):
+        """Duplicate a questionnaire and all its questions into a new questionnaire."""
+        for old_questionnaire in queryset:
+            new_questionnaire = Questionnaire.objects.get(pk=old_questionnaire.pk)
+            new_questionnaire.pk = None
+            new_questionnaire.semester = Semester.objects.get_or_create_current_semester()
+            new_questionnaire.save()
+
+            for old_question in old_questionnaire.question_set.all():
+                new_question = Question.objects.get(pk=old_question.pk)
+                new_question.pk = None
+                new_question.questionnaire = new_questionnaire
+                new_question.save()
+
+            self.message_user(
+                request,
+                "Successfully duplicated %(count)d %(items)s. Do not forget to update the availability deadlines!"
+                % {"count": len(queryset), "items": model_ngettext(self.opts, len(queryset))},
+                messages.SUCCESS,
+            )
 
 
 @admin.register(QuestionnaireSubmission)
