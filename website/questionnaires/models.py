@@ -125,6 +125,7 @@ class Question(models.Model):
         return self.question_type != self.OPEN
 
     def clean(self):
+        """Clean the model."""
         super(Question, self).clean()
         if self.with_comments and self.question_type == self.OPEN:
             raise ValidationError("Only closed questions can have a comments field.")
@@ -199,6 +200,7 @@ class Answer(models.Model):
 
     @property
     def comments(self):
+        """Get the correct comments value."""
         if not self.question.with_comments:
             return None
 
@@ -216,6 +218,7 @@ class Answer(models.Model):
 
     @comments.setter
     def comments(self, value):
+        """Set the correct comments value."""
         if not self.question.with_comments:
             return
 

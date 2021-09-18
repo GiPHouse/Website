@@ -48,6 +48,7 @@ class AnswerInline(admin.TabularInline):
     ordering = ["peer", "question"]
 
     def answer_display(self, obj):
+        """Return answer value for closed questions."""
         if obj.question.is_closed:
             return obj.answer if obj.answer else ""
         return ""
@@ -55,6 +56,7 @@ class AnswerInline(admin.TabularInline):
     answer_display.short_description = "answer"
 
     def comments_display(self, obj):
+        """Return comments data or answer data for open questions."""
         if obj.question.is_closed:
             return obj.comments if obj.comments else ""
         return obj.answer if obj.answer else ""
@@ -225,6 +227,7 @@ class AnswerAdmin(admin.ModelAdmin):
     questionnaire.admin_order_field = "submission__questionnaire"
 
     def answer_display(self, obj):
+        """Return answer value for closed questions."""
         if obj.question.is_closed:
             return obj.answer if obj.answer else ""
         return ""
@@ -232,6 +235,7 @@ class AnswerAdmin(admin.ModelAdmin):
     answer_display.short_description = "answer"
 
     def comments_display(self, obj):
+        """Return comments data or answer data for open questions."""
         if obj.question.is_closed:
             return obj.comments if obj.comments else ""
         return obj.answer if obj.answer else ""
