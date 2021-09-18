@@ -27,6 +27,10 @@ class QuestionnaireForm(forms.Form):
 
             for peer in peers_question:
                 self._build_form_field(self.get_field_name(question, peer), question, peer)
+                if question.is_closed and question.with_comments:
+                    self._build_form_field(
+                        self.get_field_name(question, peer, comments=True), question, peer, is_comments=True
+                    )
 
     def clean(self):
         """Validate that the questionnaire is not yet answered."""
@@ -39,9 +43,8 @@ class QuestionnaireForm(forms.Form):
         else:
             raise ValidationError("Questionnaire already submitted.", code="invalid")
 
-    def _build_form_field(self, field_name, question, peer=None):
-
-        if question.is_closed:
+    def _build_form_field(self, field_name, question, peer=None, is_comments=False):
+        if question.is_closed and not is_comments:
             self.fields[field_name] = forms.TypedChoiceField(
                 label=question.question,
                 widget=RadioSelectButtonGroup,
@@ -57,7 +60,7 @@ class QuestionnaireForm(forms.Form):
                 ),
             )
 
-        if question.optional:
+        if question.optional or is_comments:
             self.fields[field_name].required = False
             self.fields[field_name].widget.is_required = False
             self.fields[field_name].help_text = "Optional"
@@ -65,9 +68,15 @@ class QuestionnaireForm(forms.Form):
         if peer is not None:
             self.fields[field_name].peer = f"{peer.get_full_name()}"
 
+        self.fields[field_name].is_comments_field = is_comments
+
     @staticmethod
-    def get_field_name(question, peer=None):
+    def get_field_name(question, peer=None, comments=False):
         """Generate the name of a field used in the HTML to identify a question."""
         if peer is not None:
+            if comments:
+                return f"question-{question.pk}-{peer.pk}-comments"
             return f"question-{question.pk}-{peer.pk}"
+        if comments:
+            return f"question-{question.pk}-comments"
         return f"question-{question.pk}"

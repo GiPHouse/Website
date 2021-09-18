@@ -43,9 +43,23 @@ class AnswerInline(admin.TabularInline):
 
     model = Answer
     can_delete = False
-    readonly_fields = ("question", "peer", "answer")
+    readonly_fields = ("question", "peer", "answer_display", "comments_display")
     extra = 0
     ordering = ["peer", "question"]
+
+    def answer_display(self, obj):
+        if obj.question.is_closed:
+            return obj.answer if obj.answer else ""
+        return ""
+
+    answer_display.short_description = "answer"
+
+    def comments_display(self, obj):
+        if obj.question.is_closed:
+            return obj.comments if obj.comments else ""
+        return obj.answer if obj.answer else ""
+
+    comments_display.short_description = "comments"
 
     def has_add_permission(self, request, obj=None):
         """Disable changing answers in the admin."""
@@ -168,7 +182,15 @@ class AnswerAdmin(admin.ModelAdmin):
 
     readonly_fields = ("answer",)
 
-    list_display = ("questionnaire", "question", "participant_name", "peer_name", "on_time", "answer_short")
+    list_display = (
+        "questionnaire",
+        "question",
+        "participant_name",
+        "peer_name",
+        "on_time",
+        "answer_display",
+        "comments_display",
+    )
 
     actions = ("export_answers",)
 
@@ -202,13 +224,19 @@ class AnswerAdmin(admin.ModelAdmin):
     questionnaire.short_description = "Questionnaire"
     questionnaire.admin_order_field = "submission__questionnaire"
 
-    def answer_short(self, obj):
-        """Return answer preview."""
-        if obj.question.is_closed or len(str(obj.answer)) < 30:
-            return obj.answer
-        return f"{str(obj.answer)[:27]}..."
+    def answer_display(self, obj):
+        if obj.question.is_closed:
+            return obj.answer if obj.answer else ""
+        return ""
 
-    answer_short.short_description = "Answer"
+    answer_display.short_description = "answer"
+
+    def comments_display(self, obj):
+        if obj.question.is_closed:
+            return obj.comments if obj.comments else ""
+        return obj.answer if obj.answer else ""
+
+    comments_display.short_description = "comments"
 
     def export_answers(self, request, queryset):
         """Export selected answers to a CSV file."""
