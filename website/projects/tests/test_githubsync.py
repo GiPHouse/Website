@@ -24,7 +24,7 @@ class GitHubAPITalkerTest(TestCase):
         cls.semester = Semester(year=2020, season=Semester.FALL)
         cls.project1 = Project(name="test1", github_team_id="87654321", semester=cls.semester)
         cls.repo1 = Repository(name="test-repo1", github_repo_id="987654321", project=cls.project1)
-        cls.employee1 = Employee(github_username="testgithubuser")
+        cls.employee1 = Employee(github_username="testgithubuser", github_id=123456)
 
     def setUp(self):
         """Create a mock pygithub object to talk with."""
@@ -99,8 +99,8 @@ class GitHubAPITalkerTest(TestCase):
         self.talker._organization.get_team.assert_called_once_with(self.project1.github_team_id)
 
     def test_get_user(self):
-        self.talker.get_user(self.employee1.github_username)
-        self.talker._github.get_user.assert_called_once_with(self.employee1.github_username)
+        self.talker.get_user(self.employee1.github_id)
+        self.talker._github.get_user_by_id.assert_called_once_with(self.employee1.github_id)
 
     def test_get_repo(self):
         self.talker.get_repo(self.repo1.github_repo_id)
@@ -209,7 +209,7 @@ class GitHubSyncTest(TestCase):
     def test_sync_team_member__not_in_team(self):
         self.github_team.has_in_members.return_value = False
         return_value = self.sync.sync_team_member(self.employee1, self.project1)
-        self.talker.get_user.assert_called_once_with(self.employee1.github_username)
+        self.talker.get_user.assert_called_once_with(self.employee1.github_id)
         self.github_team.add_membership.assert_called_once_with(self.github_user, role="member")
         self.assert_info()
         self.assertTrue(return_value)
@@ -226,7 +226,7 @@ class GitHubSyncTest(TestCase):
     def test_sync_team_member__already_in_team(self):
         self.github_team.has_in_members.return_value = True
         return_value = self.sync.sync_team_member(self.employee1, self.project1)
-        self.talker.get_user.assert_called_once_with(self.employee1.github_username)
+        self.talker.get_user.assert_called_once_with(self.employee1.github_id)
         self.github_team.add_membership.assert_not_called()
         self.assert_no_log()
         self.assertFalse(return_value)
