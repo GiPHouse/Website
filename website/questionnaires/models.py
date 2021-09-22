@@ -191,7 +191,7 @@ class Answer(models.Model):
                 self.agreementanswerdata = AgreementAnswerData(answer=self, value=value)
             self.agreementanswerdata.save()
 
-        elif self.question.question_type == Question.QUALITY:
+        else:
             try:
                 self.qualityanswerdata.value = value
             except QualityAnswerData.DoesNotExist:
@@ -210,7 +210,7 @@ class Answer(models.Model):
             except AgreementAnswerData.DoesNotExist:
                 return None
 
-        elif self.question.question_type == Question.QUALITY:
+        else:
             try:
                 return self.qualityanswerdata.comments
             except QualityAnswerData.DoesNotExist:
@@ -229,7 +229,7 @@ class Answer(models.Model):
                 self.agreementanswerdata = AgreementAnswerData(answer=self, comments=value)
             self.agreementanswerdata.save()
 
-        elif self.question.question_type == Question.QUALITY:
+        else:
             try:
                 self.qualityanswerdata.comments = value
             except QualityAnswerData.DoesNotExist:
