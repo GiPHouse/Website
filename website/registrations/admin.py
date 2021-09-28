@@ -85,6 +85,7 @@ class UserAdmin(admin.ModelAdmin):
     inlines = [RegistrationInline]
     list_display = (
         "__str__",
+        "github_username",
         "get_current_project",
         "is_staff",
     )
