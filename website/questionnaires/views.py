@@ -34,7 +34,9 @@ class OverviewView(LoginRequiredMessageMixin, TemplateView):
 
             try:
                 context["submissions"].append(
-                    QuestionnaireSubmission.objects.get(questionnaire=questionnaire, participant=self.request.user)
+                    QuestionnaireSubmission.objects.get(
+                        questionnaire=questionnaire, participant=self.request.user, submitted=True
+                    )
                 )
             except QuestionnaireSubmission.DoesNotExist:
                 context["questionnaires"].append(questionnaire)
@@ -79,9 +81,20 @@ class QuestionnaireView(LoginRequiredMessageMixin, FormView):
 
     def form_valid(self, form):
         """Validate the form."""
-        submission = QuestionnaireSubmission.objects.create(
-            questionnaire=form.questionnaire, participant=self.request.user
-        )
+        if "submit" in self.request.POST:
+            # Re-evaluate the form to check required fields
+            form_check_required_fields = QuestionnaireForm(**self.get_form_kwargs(), check_required=True)
+            if not form_check_required_fields.is_valid():
+                form._errors = form_check_required_fields.errors
+                return self.form_invalid(form)
+
+            submission, _ = QuestionnaireSubmission.objects.get_or_create(
+                questionnaire=form.questionnaire, participant=self.request.user, submitted=True
+            )
+        else:
+            submission, _ = QuestionnaireSubmission.objects.get_or_create(
+                questionnaire=form.questionnaire, participant=self.request.user, submitted=False
+            )
 
         for question in form.questions:
 
@@ -92,8 +105,12 @@ class QuestionnaireView(LoginRequiredMessageMixin, FormView):
 
             for peer in peers:
                 field_name = QuestionnaireForm.get_field_name(question, peer)
-                answer = Answer.objects.create(submission=submission, peer=peer, question=question)
+                answer, _ = Answer.objects.get_or_create(submission=submission, peer=peer, question=question)
                 answer.answer = form.cleaned_data[field_name]
 
-        messages.success(self.request, "Questionnaire successfully submitted!", extra_tags="success")
-        return redirect("home")
+        if submission.submitted:
+            messages.success(self.request, "Questionnaire successfully submitted!", extra_tags="success")
+            return redirect("home")
+        else:
+            messages.info(self.request, "Questionnaire saved", extra_tags="info")
+            return self.render_to_response(self.get_context_data())

@@ -9,9 +9,16 @@ from questionnaires.models import QuestionnaireSubmission
 class QuestionnaireForm(forms.Form):
     """Dynamic form generating a questionnaires form."""
 
-    def __init__(self, participant, questionnaire, peers, no_peers_warning, *args, **kwargs):
+    def __init__(self, participant, questionnaire, peers, no_peers_warning, check_required=False, *args, **kwargs):
         """Dynamically setup form."""
         super().__init__(*args, **kwargs)
+
+        self.check_required = check_required
+
+        try:
+            self.submission = QuestionnaireSubmission.objects.get(participant=participant, questionnaire=questionnaire)
+        except QuestionnaireSubmission.DoesNotExist:
+            self.submission = None
 
         self.participant = participant
         self.questionnaire = questionnaire
@@ -32,7 +39,7 @@ class QuestionnaireForm(forms.Form):
         """Validate that the questionnaire is not yet answered."""
         try:
             QuestionnaireSubmission.objects.get(
-                participant_id=self.participant.id, questionnaire_id=self.questionnaire.id
+                participant_id=self.participant.id, questionnaire_id=self.questionnaire.id, submitted=True
             )
         except QuestionnaireSubmission.DoesNotExist:
             pass
@@ -57,10 +64,18 @@ class QuestionnaireForm(forms.Form):
                 ),
             )
 
-        if question.optional:
+        if not self.check_required or question.optional:
+            # Mark all questions as not required as to allow partial submissions for intermediate saves
             self.fields[field_name].required = False
             self.fields[field_name].widget.is_required = False
+
+        if question.optional:
             self.fields[field_name].help_text = "Optional"
+
+        if self.submission:
+            answer = self.submission.answer_set.filter(question=question, peer=peer).first()
+            # self.initial['field_name'] = answer.answer.value if answer else None
+            self.fields[field_name].initial = answer.answer.value if answer else None
 
         if peer is not None:
             self.fields[field_name].peer = f"{peer.get_full_name()}"

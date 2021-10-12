@@ -85,6 +85,8 @@ class QuestionnaireSubmission(models.Model):
     questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
     participant = models.ForeignKey(Employee, on_delete=models.CASCADE)
 
+    submitted = models.BooleanField(default=False)
+
     late = models.BooleanField()
     created = models.DateTimeField(auto_now_add=True)
 
