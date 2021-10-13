@@ -94,7 +94,7 @@ class QuestionnaireAdmin(admin.ModelAdmin):
 
 
 class SubmittedSubmissionsFilter(SimpleListFilter):
-    """Filter for submitted and unsubmitted questionnaire submissions."""
+    """Filter for submitted and un-submitted questionnaire submissions."""
 
     title = "submitted"
     parameter_name = "un-submitted"
@@ -184,8 +184,8 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
         return response
 
 
-class SubmittedSubmissionsAnswerFilter(SubmittedResponsesFilter):
-    """Filter for submitted and unsubmitted questionnaire answers."""
+class SubmittedSubmissionsAnswerFilter(SubmittedSubmissionsFilter):
+    """Filter for submitted and un-submitted questionnaire answers."""
 
     def queryset(self, request, queryset):
         """Filter the queryset."""
