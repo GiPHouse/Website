@@ -2,9 +2,11 @@ import csv
 from io import StringIO
 
 from django.contrib import admin, messages
+from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.utils import model_ngettext
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
+from django.utils.encoding import force_text
 
 from courses.models import Semester
 
@@ -91,6 +93,35 @@ class QuestionnaireAdmin(admin.ModelAdmin):
             )
 
 
+class SubmittedSubmissionsFilter(SimpleListFilter):
+    """Filter for submitted and unsubmitted questionnaire submissions."""
+
+    title = "submitted"
+    parameter_name = "un-submitted"
+
+    def lookups(self, request, model_admin):
+        """Filter values."""
+        return ((True, "Include un-submitted"),)
+
+    def choices(self, changelist):
+        """Override the default value to display only submitted."""
+        yield {
+            "selected": self.value() is None,
+            "query_string": changelist.get_query_string({}, [self.parameter_name]),
+            "display": "Only submitted",
+        }
+        for lookup, title in self.lookup_choices:
+            yield {
+                "selected": self.value() == force_text(lookup),
+                "query_string": changelist.get_query_string({self.parameter_name: lookup}, []),
+                "display": title,
+            }
+
+    def queryset(self, request, queryset):
+        """Filter the queryset."""
+        return queryset if self.value() is not None else queryset.filter(submitted=True)
+
+
 @admin.register(QuestionnaireSubmission)
 class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
     """QuestionnaireSubmission model admin."""
@@ -101,6 +132,7 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
 
     list_display = ("questionnaire", "participant_name", "on_time")
     list_filter = (
+        SubmittedSubmissionsFilter,
         SubmissionAdminSemesterFilter,
         SubmissionAdminQuestionnaireFilter,
         SubmissionAdminParticipantFilter,
@@ -151,8 +183,13 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
         response["Content-Disposition"] = "attachment; filename=submissions.csv"
         return response
 
-    def get_queryset(self, request):
-        return super(QuestionnaireSubmissionAdmin, self).get_queryset(request).filter(submitted=True)
+
+class SubmittedSubmissionsAnswerFilter(SubmittedResponsesFilter):
+    """Filter for submitted and unsubmitted questionnaire answers."""
+
+    def queryset(self, request, queryset):
+        """Filter the queryset."""
+        return queryset if self.value() is not None else queryset.filter(submission__submitted=True)
 
 
 @admin.register(Answer)
@@ -160,6 +197,7 @@ class AnswerAdmin(admin.ModelAdmin):
     """Answer model admin."""
 
     list_filter = (
+        SubmittedSubmissionsAnswerFilter,
         AnswerAdminSemesterFilter,
         AnswerAdminQuestionnaireFilter,
         AnswerAdminQuestionFilter,
