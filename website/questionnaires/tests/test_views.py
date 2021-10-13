@@ -15,7 +15,7 @@ from registrations.models import Employee, Registration
 User: Employee = get_user_model()
 
 
-def generate_post_data(questionnaire_id, peers):
+def generate_post_data(questionnaire_id, peers, submit=True):
     post_data = {}
     for question in Question.objects.filter(questionnaire_id=questionnaire_id):
         if question.about_team_member:
@@ -28,6 +28,10 @@ def generate_post_data(questionnaire_id, peers):
                 post_data[field_name] = 1
             else:
                 post_data[field_name] = "Something"
+    if submit:
+        post_data["submit"] = "submit"
+    else:
+        post_data["save"] = "save"
     return post_data
 
 
@@ -137,6 +141,17 @@ class QuestionnaireTest(TestCase):
             follow=True,
         )
         self.assertRedirects(response, reverse("home"))
+
+    def test_save_questionnaire(self):
+        current_peers = User.objects.exclude(pk=self.user.pk)
+        post_data = generate_post_data(self.active_questions.id, current_peers, submit=False)
+
+        response = self.client.post(
+            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id}),
+            post_data,
+            follow=True,
+        )
+        self.assertContains(response, "Questionnaire saved")
 
     def test_post_questionnaire_twice(self):
 
