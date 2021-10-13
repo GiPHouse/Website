@@ -151,6 +151,9 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
         response["Content-Disposition"] = "attachment; filename=submissions.csv"
         return response
 
+    def get_queryset(self, request):
+        return super(QuestionnaireSubmissionAdmin, self).get_queryset(request).filter(submitted=True)
+
 
 @admin.register(Answer)
 class AnswerAdmin(admin.ModelAdmin):
