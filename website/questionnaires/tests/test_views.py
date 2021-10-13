@@ -174,6 +174,26 @@ class QuestionnaireTest(TestCase):
 
         self.assertContains(response, "Questionnaire already submitted.")
 
+    def test_post_invalid(self):
+        post_data = {"submit": "submit"}
+
+        response = self.client.post(
+            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id}),
+            post_data,
+            follow=True,
+        )
+        self.assertContains(response, "invalid")
+
+    def test_save_invalid(self):
+        post_data = {"save": "save"}
+
+        response = self.client.post(
+            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id}),
+            post_data,
+            follow=True,
+        )
+        self.assertContains(response, "Questionnaire saved")
+
     def test_post_closed(self):
 
         response = self.client.post(
