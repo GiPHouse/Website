@@ -16,7 +16,9 @@ class QuestionnaireForm(forms.Form):
         self.check_required = check_required
 
         try:
-            self.submission = QuestionnaireSubmission.objects.get(participant=participant, questionnaire=questionnaire)
+            self.submission = QuestionnaireSubmission.objects.get(
+                participant=participant, questionnaire=questionnaire, submitted=False
+            )
         except QuestionnaireSubmission.DoesNotExist:
             self.submission = None
 
@@ -65,7 +67,7 @@ class QuestionnaireForm(forms.Form):
             )
 
         if not self.check_required or question.optional:
-            # Mark all questions as not required as to allow partial submissions for intermediate saves
+            # Mark all questions as not required, to allow intermediate saves
             self.fields[field_name].required = False
             self.fields[field_name].widget.is_required = False
 
@@ -73,8 +75,8 @@ class QuestionnaireForm(forms.Form):
             self.fields[field_name].help_text = "Optional"
 
         if self.submission:
+            # Set the initial value for a field if a submission already exists
             answer = self.submission.answer_set.filter(question=question, peer=peer).first()
-            # self.initial['field_name'] = answer.answer.value if answer else None
             self.fields[field_name].initial = answer.answer.value if answer else None
 
         if peer is not None:

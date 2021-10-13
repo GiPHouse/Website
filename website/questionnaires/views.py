@@ -29,7 +29,8 @@ class OverviewView(LoginRequiredMessageMixin, TemplateView):
         context = super().get_context_data()
 
         context["submissions"] = []
-        context["questionnaires"] = []
+        context["open_questionnaires"] = []
+        context["questionnaires_in_progress"] = []
         for questionnaire in Questionnaire.objects.current_questionnaires():
 
             try:
@@ -39,7 +40,9 @@ class OverviewView(LoginRequiredMessageMixin, TemplateView):
                     )
                 )
             except QuestionnaireSubmission.DoesNotExist:
-                context["questionnaires"].append(questionnaire)
+                context["questionnaires_in_progress"].append(questionnaire) if QuestionnaireSubmission.objects.filter(
+                    questionnaire=questionnaire, participant=self.request.user, submitted=False
+                ).exists() else context["open_questionnaires"].append(questionnaire)
 
         return context
 
