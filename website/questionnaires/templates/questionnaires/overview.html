@@ -26,7 +26,7 @@
                                 {% if questionnaire.is_open %}
                                     <a class="btn btn-primary" role="button" href="{% url 'questionnaires:questionnaire' questionnaire.pk %}">Continue</a>
                                 {% elif questionnaire.is_late %}
-                                    <a class="btn btn-primary" role="button" href="{% url 'questionnaires:questionnaire' questionnaire.pk %}">SContinue (Late)</a>
+                                    <a class="btn btn-primary" role="button" href="{% url 'questionnaires:questionnaire' questionnaire.pk %}">Continue (Late)</a>
                                 {% else %}
                                     <a class="btn btn-primary disabled" role="button" href="#">Continue</a>
                                 {% endif %}
