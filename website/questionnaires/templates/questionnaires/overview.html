@@ -8,7 +8,7 @@
     <div class="col-8">
         <div>
             <h4>Questionnaires</h4>
-			{% if questionnaires %}
+			{% if open_questionnaires or questionnaires_in_progress %}
 				<table class="table">
 					<thead>
 						<tr>
@@ -18,7 +18,22 @@
 						</tr>
 					</thead>
 					<tbody>
-						{% for questionnaire in questionnaires %}
+                    {% for questionnaire in questionnaires_in_progress %}
+                        <tr>
+                            <td>{{ questionnaire.title }}</td>
+                            <td>{{ questionnaire.get_until_date|default_if_none:'Closed' }}</td>
+                            <td>
+                                {% if questionnaire.is_open %}
+                                    <a class="btn btn-primary" role="button" href="{% url 'questionnaires:questionnaire' questionnaire.pk %}">Continue</a>
+                                {% elif questionnaire.is_late %}
+                                    <a class="btn btn-primary" role="button" href="{% url 'questionnaires:questionnaire' questionnaire.pk %}">Continue (Late)</a>
+                                {% else %}
+                                    <a class="btn btn-primary disabled" role="button" href="#">Continue</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    {% for questionnaire in open_questionnaires %}
 							<tr>
 								<td>{{ questionnaire.title }}</td>
 								<td>{{ questionnaire.get_until_date|default_if_none:'Closed' }}</td>
