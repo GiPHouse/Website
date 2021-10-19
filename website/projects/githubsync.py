@@ -78,9 +78,9 @@ class GitHubAPITalker:
         """Get a team from the GiPHouse GitHub organization."""
         return self.github_organization.get_team(team_id)
 
-    def get_user(self, username):
+    def get_user(self, user_id):
         """Get a user from GitHub."""
-        return self.github_service.get_user(username)
+        return self.github_service.get_user_by_id(user_id)
 
     def get_role_of_user(self, user):
         """Get the role of a user in the GiPHouse GitHub organization."""
@@ -142,7 +142,7 @@ class GitHubSync:
 
             github_team = self.github.get_team(project.github_team_id)
 
-            github_employee = self.github.get_user(employee.github_username)
+            github_employee = self.github.get_user(employee.github_id)
             if not github_team.has_in_members(github_employee):
                 github_team.add_membership(github_employee, role="member")
                 self.users_invited += 1
