@@ -26,6 +26,9 @@ def generate_post_data(questionnaire_id, peers, submit=True):
             field_name = QuestionnaireForm.get_field_name(question, peer)
             if question.is_closed:
                 post_data[field_name] = 1
+                if question.with_comments:
+                    comments_field = QuestionnaireForm.get_field_name(question, peer, comments=True)
+                    post_data[comments_field] = "comments"
             else:
                 post_data[field_name] = "Something"
     if submit:
@@ -114,6 +117,21 @@ class QuestionnaireTest(TestCase):
             question_type=Question.AGREEMENT,
             about_team_member=False,
             optional=True,
+        )
+        Question.objects.create(
+            questionnaire=cls.active_questions,
+            question="Closed Question global",
+            question_type=Question.QUALITY,
+            about_team_member=True,
+            with_comments=True,
+        )
+        Question.objects.create(
+            questionnaire=cls.active_questions,
+            question="Closed Question global",
+            question_type=Question.AGREEMENT,
+            about_team_member=False,
+            optional=True,
+            with_comments=True,
         )
 
     def setUp(self):

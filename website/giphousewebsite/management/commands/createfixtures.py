@@ -242,11 +242,13 @@ class Command(BaseCommand):
 
     def create_question(self):
         """Create one fake question."""
+        question_type = random.choice(Question.CHOICES)[0]
         Question.objects.create(
             questionnaire=Questionnaire.objects.order_by("?").first(),
             question=fake.sentence().replace(".", "?"),
-            question_type=random.choice(Question.CHOICES)[0],
+            question_type=question_type,
             about_team_member=random.choice([True, False]),
+            with_comments=False if question_type == Question.OPEN else random.choice([True, False]),
         )
 
     @staticmethod
@@ -258,6 +260,9 @@ class Command(BaseCommand):
             AgreementAnswerData.objects.create(answer=answer, value=random.choice(AgreementAnswerData.CHOICES)[0])
         elif question.question_type == Question.QUALITY:
             QualityAnswerData.objects.create(answer=answer, value=random.choice(QualityAnswerData.CHOICES)[0])
+
+        if question.with_comments and random.choice([True, False]):
+            answer.comments = fake.sentence()
 
     def create_submission(self):
         """Create one fake submission."""

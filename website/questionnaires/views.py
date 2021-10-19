@@ -110,6 +110,10 @@ class QuestionnaireView(LoginRequiredMessageMixin, FormView):
                 field_name = QuestionnaireForm.get_field_name(question, peer)
                 answer, _ = Answer.objects.get_or_create(submission=submission, peer=peer, question=question)
                 answer.answer = form.cleaned_data[field_name]
+                if question.with_comments:
+                    answer.comments = form.cleaned_data[
+                        QuestionnaireForm.get_field_name(question, peer, comments=True)
+                    ]
 
         if submission.submitted:
             messages.success(self.request, "Questionnaire successfully submitted!", extra_tags="success")
