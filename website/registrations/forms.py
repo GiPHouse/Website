@@ -88,6 +88,12 @@ class Step2Form(forms.Form):
 
     international = forms.BooleanField(label="I don't speak Dutch", required=False)
 
+    available_during_scheduled_timeslot = forms.BooleanField(
+        label="I am available during the scheduled timeslot for the course",
+        required=False,
+        initial=True,
+    )
+
     comments = forms.CharField(
         widget=forms.Textarea(attrs={"placeholder": "Do you have any comments?"}),
         required=False,

@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
@@ -85,6 +86,8 @@ class QuestionnaireSubmission(models.Model):
     questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
     participant = models.ForeignKey(Employee, on_delete=models.CASCADE)
 
+    submitted = models.BooleanField(default=True)
+
     late = models.BooleanField()
     created = models.DateTimeField(auto_now_add=True)
 
@@ -116,11 +119,18 @@ class Question(models.Model):
     question_type = models.PositiveSmallIntegerField(choices=CHOICES)
     about_team_member = models.BooleanField(default=False)
     optional = models.BooleanField(default=False)
+    with_comments = models.BooleanField(default=False)
 
     @property
     def is_closed(self):
         """Return True if the question is closed."""
         return self.question_type != self.OPEN
+
+    def clean(self):
+        """Clean the model."""
+        super(Question, self).clean()
+        if self.with_comments and self.question_type == self.OPEN:
+            raise ValidationError("Only closed questions can have a comments field.")
 
     def get_likert_choices(self):
         """Get the appropriate choices for the question."""
@@ -190,6 +200,44 @@ class Answer(models.Model):
                 self.qualityanswerdata = QualityAnswerData(answer=self, value=value)
             self.qualityanswerdata.save()
 
+    @property
+    def comments(self):
+        """Get the correct comments value."""
+        if not self.question.with_comments:
+            return None
+
+        if self.question.question_type == Question.AGREEMENT:
+            try:
+                return self.agreementanswerdata.comments
+            except AgreementAnswerData.DoesNotExist:
+                return None
+
+        else:
+            try:
+                return self.qualityanswerdata.comments
+            except QualityAnswerData.DoesNotExist:
+                return None
+
+    @comments.setter
+    def comments(self, value):
+        """Set the correct comments value."""
+        if not self.question.with_comments:
+            return
+
+        if self.question.question_type == Question.AGREEMENT:
+            try:
+                self.agreementanswerdata.comments = value
+            except AgreementAnswerData.DoesNotExist:
+                self.agreementanswerdata = AgreementAnswerData(answer=self, comments=value)
+            self.agreementanswerdata.save()
+
+        else:
+            try:
+                self.qualityanswerdata.comments = value
+            except QualityAnswerData.DoesNotExist:
+                self.qualityanswerdata = QualityAnswerData(answer=self, comments=value)
+            self.qualityanswerdata.save()
+
     def __str__(self):
         """Return string representation of the answer."""
         return f"{self.submission.participant} answers #{self.question.id}"
@@ -210,6 +258,7 @@ class AbstractLikertData(models.Model):
     """Abstract class describing Likert answer."""
 
     answer = models.OneToOneField(Answer, on_delete=models.CASCADE, related_name="%(class)s")
+    comments = models.TextField(blank=True, null=True)
 
     class Meta:
         """Meta class making sure this model is abstract."""

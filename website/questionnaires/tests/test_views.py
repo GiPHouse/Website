@@ -15,7 +15,7 @@ from registrations.models import Employee, Registration
 User: Employee = get_user_model()
 
 
-def generate_post_data(questionnaire_id, peers):
+def generate_post_data(questionnaire_id, peers, submit=True):
     post_data = {}
     for question in Question.objects.filter(questionnaire_id=questionnaire_id):
         if question.about_team_member:
@@ -26,8 +26,15 @@ def generate_post_data(questionnaire_id, peers):
             field_name = QuestionnaireForm.get_field_name(question, peer)
             if question.is_closed:
                 post_data[field_name] = 1
+                if question.with_comments:
+                    comments_field = QuestionnaireForm.get_field_name(question, peer, comments=True)
+                    post_data[comments_field] = "comments"
             else:
                 post_data[field_name] = "Something"
+    if submit:
+        post_data["submit"] = "submit"
+    else:
+        post_data["save"] = "save"
     return post_data
 
 
@@ -111,6 +118,21 @@ class QuestionnaireTest(TestCase):
             about_team_member=False,
             optional=True,
         )
+        Question.objects.create(
+            questionnaire=cls.active_questions,
+            question="Closed Question global",
+            question_type=Question.QUALITY,
+            about_team_member=True,
+            with_comments=True,
+        )
+        Question.objects.create(
+            questionnaire=cls.active_questions,
+            question="Closed Question global",
+            question_type=Question.AGREEMENT,
+            about_team_member=False,
+            optional=True,
+            with_comments=True,
+        )
 
     def setUp(self):
         self.client = Client()
@@ -138,6 +160,17 @@ class QuestionnaireTest(TestCase):
         )
         self.assertRedirects(response, reverse("home"))
 
+    def test_save_questionnaire(self):
+        current_peers = User.objects.exclude(pk=self.user.pk)
+        post_data = generate_post_data(self.active_questions.id, current_peers, submit=False)
+
+        response = self.client.post(
+            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id}),
+            post_data,
+            follow=True,
+        )
+        self.assertContains(response, "Questionnaire saved")
+
     def test_post_questionnaire_twice(self):
 
         current_peers = User.objects.exclude(pk=self.user.pk)
@@ -158,6 +191,26 @@ class QuestionnaireTest(TestCase):
         )
 
         self.assertContains(response, "Questionnaire already submitted.")
+
+    def test_post_invalid(self):
+        post_data = {"submit": "submit"}
+
+        response = self.client.post(
+            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id}),
+            post_data,
+            follow=True,
+        )
+        self.assertContains(response, "invalid")
+
+    def test_save_invalid(self):
+        post_data = {"save": "save"}
+
+        response = self.client.post(
+            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id}),
+            post_data,
+            follow=True,
+        )
+        self.assertContains(response, "Questionnaire saved")
 
     def test_post_closed(self):
 
