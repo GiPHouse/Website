@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
 
@@ -73,3 +74,28 @@ class QuestionnairesTest(TestCase):
 
     def test_open_likert_values(self):
         self.assertEqual(self.open_question.get_likert_choices(), ())
+
+    def test_set_comments_no_comments_field(self):
+        answer = Answer.objects.create(question=self.agreement_question, submission=self.submission)
+        self.assertIsNone(answer.comments)
+        answer.comments = "test"
+        self.assertIsNone(answer.comments)
+
+    def test_set_agreement_comments(self):
+        self.agreement_question.with_comments = True
+        answer = Answer.objects.create(question=self.agreement_question, submission=self.submission)
+        self.assertIsNone(answer.comments)
+        answer.comments = "test"
+        self.assertEqual(answer.comments, "test")
+
+    def test_set_quality_comments(self):
+        self.quality_question.with_comments = True
+        answer = Answer.objects.create(question=self.quality_question, submission=self.submission)
+        self.assertIsNone(answer.comments)
+        answer.comments = "test"
+        self.assertEqual(answer.comments, "test")
+
+    def test_clean(self):
+        self.open_question.clean()
+        self.open_question.with_comments = True
+        self.assertRaises(ValidationError, self.open_question.clean)

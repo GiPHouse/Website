@@ -21,7 +21,11 @@
 				</div>
 			{% endifchanged %}
 			<div class="col-2">
-				<p class="font-weight-bold"> {{ field.field.peer }}</p>
+                {% if field.field.is_comments_field %}
+                    <p class="font-italic">Comments</p>
+                {% else %}
+                    <p class="font-weight-bold"> {{ field.field.peer }}</p>
+                {% endif %}
 			</div>
 			<div class="col-10 col-lg-10">
 				{% bootstrap_field field show_label=False %}
