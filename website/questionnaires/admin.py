@@ -226,13 +226,13 @@ class AnswerAdmin(admin.ModelAdmin):
     readonly_fields = ("answer",)
 
     list_display = (
-        "questionnaire",
         "question",
         "participant_name",
         "peer_name",
-        "on_time",
         "answer_display",
         "comments_display",
+        "on_time",
+        "questionnaire",
     )
 
     actions = ("export_answers",)
@@ -308,3 +308,6 @@ class AnswerAdmin(admin.ModelAdmin):
         response = HttpResponse(content.getvalue(), content_type="application/x-zip-compressed")
         response["Content-Disposition"] = "attachment; filename=submissions.csv"
         return response
+
+    class Media:
+        css = {"all": ("admin/questionnaires/css/custom-answer-admin.css",)}
