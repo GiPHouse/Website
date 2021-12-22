@@ -26,6 +26,16 @@ class Registration(models.Model):
         (EXPERIENCE_ADVANCED, "Advanced"),
     )
 
+    ATTENDANCE_OFFLINE = 1
+    ATTENDANCE_ONLINE = 2
+    ATTENDANCE_PREFERRED_ONLINE = 3
+
+    ATTENDANCE_CHOICES = (
+        (ATTENDANCE_OFFLINE, "Attending offline"),
+        (ATTENDANCE_ONLINE, "Only online"),
+        (ATTENDANCE_PREFERRED_ONLINE, "Preferably online"),
+    )
+
     class Meta:
         """Meta class for Registration."""
 
@@ -49,6 +59,7 @@ class Registration(models.Model):
     experience = models.PositiveSmallIntegerField(choices=EXPERIENCE_CHOICES)
     is_international = models.BooleanField(default=False)
     available_during_scheduled_timeslot = models.BooleanField(default=True)
+    attendance = models.PositiveSmallIntegerField(choices=ATTENDANCE_CHOICES, default=ATTENDANCE_OFFLINE)
     comments = models.TextField(null=True, blank=True)
 
     @property
