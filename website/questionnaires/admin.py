@@ -1,10 +1,13 @@
 import csv
 from io import StringIO
 
+from admin_totals.admin import ModelAdminTotals
 from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.utils import model_ngettext
 from django.contrib.auth import get_user_model
+from django.db.models import Avg
+from django.db.models.functions import Coalesce
 from django.http import HttpResponse
 from django.utils.encoding import force_text
 
@@ -209,7 +212,7 @@ class SubmittedSubmissionsAnswerFilter(SubmittedSubmissionsFilter):
 
 
 @admin.register(Answer)
-class AnswerAdmin(admin.ModelAdmin):
+class AnswerAdmin(ModelAdminTotals):
     """Answer model admin."""
 
     list_filter = (
@@ -234,6 +237,13 @@ class AnswerAdmin(admin.ModelAdmin):
         "answer_display",
         "comments_display",
     )
+
+    list_totals = [
+        (
+            "answer_display",
+            lambda field: Avg(Coalesce("qualityanswerdata__value", 0) + Coalesce("agreementanswerdata__value", 0)),
+        ),
+    ]
 
     actions = ("export_answers",)
 
