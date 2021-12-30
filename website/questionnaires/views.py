@@ -92,12 +92,16 @@ class QuestionnaireView(LoginRequiredMessageMixin, FormView):
                 return self.form_invalid(form)
 
             submission, _ = QuestionnaireSubmission.objects.get_or_create(
-                questionnaire=form.questionnaire, participant=self.request.user, submitted=True
+                questionnaire=form.questionnaire, participant=self.request.user
             )
+            submission.submitted = True
+            submission.save()
         else:
             submission, _ = QuestionnaireSubmission.objects.get_or_create(
-                questionnaire=form.questionnaire, participant=self.request.user, submitted=False
+                questionnaire=form.questionnaire, participant=self.request.user
             )
+            submission.submitted = False
+            submission.save()
 
         for question in form.questions:
 
