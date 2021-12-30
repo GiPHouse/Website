@@ -18,6 +18,8 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__
 # Application definition
 
 INSTALLED_APPS = [
+    'giphousewebsite',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -30,7 +32,6 @@ INSTALLED_APPS = [
     'admin_auto_filters',
     'admin_totals',
 
-    'giphousewebsite',
     'questionnaires.apps.QuestionnairesConfig',
     'github_oauth.apps.GithubConfig',
     'registrations.apps.RegistrationsConfig',

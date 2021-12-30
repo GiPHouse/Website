@@ -1,0 +1,35 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+    {% block extrahead %}
+        {{ block.super }}
+        <link rel="shortcut icon" type="image/png" href="{% static 'img/favicon.png' %}"/>
+        <meta name="msapplication-TileColor" content="#268AFF">
+        <meta name="theme-color" content="#268AFF">
+        <style>
+            :root {
+                --giphouse-base: #268AFF;
+                --giphouse-dark: #145ab9;
+                --giphouse-accent: #e5dc5d;
+                --accent: white;
+                --primary: var(--giphouse-base);
+                --secondary: var(--giphouse-accent);
+                --link-fg: var(--body-fg);
+                --link-hover-color: var(--giphouse-dark);
+                --link-selected-fg: var(--giphouse-accent);
+                --header-bg: var(--giphouse-base);
+                --header-color: white;
+                --default-button-bg: var(--giphouse-dark);
+                --default-button-hover-bg: var(--giphouse-base);
+                --button-hover-bg: var(--giphouse-dark);
+                --breadcrumbs-link-fg: var(--giphouse-accent);
+                --breadcrumbs-fg: white;
+                --breadcrumbs-bg: var(--giphouse-dark);
+            }
+            #user-tools a:focus, #user-tools a:hover {
+                color: var(--giphouse-dark);
+            }
+            .content a:not(table a) {
+                color: var(--giphouse-base);
+            }
+        </style>
+{% endblock %}
