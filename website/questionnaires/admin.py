@@ -2,6 +2,7 @@ import csv
 from io import StringIO
 
 from admin_totals.admin import ModelAdminTotals
+
 from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.utils import model_ngettext
