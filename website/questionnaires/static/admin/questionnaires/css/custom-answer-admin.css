@@ -1,0 +1,13 @@
+.field-question {
+    white-space: normal;
+}
+.column-peer_name, .column-participant_name {
+    min-width: 100px;
+}
+.column-answer_display {
+    min-width: 100px;
+}
+.column-comments_display {
+    min-width: 300px;
+    max-width: 500px;
+}
