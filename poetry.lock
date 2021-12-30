@@ -10,6 +10,17 @@ python-versions = ">=3.6"
 six = "*"
 
 [[package]]
+name = "admin-totals"
+version = "1.0.1"
+description = "Django Admin Totals, add totals to your columns in Django admin. "
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+Django = "*"
+
+[[package]]
 name = "asgiref"
 version = "3.4.1"
 description = "ASGI specs, helper code, and adapters"
@@ -806,12 +817,17 @@ production = ["uwsgi", "psycopg2-binary"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "01157beb6df0c6d3f6bb17515e25443d0430fdf3ffe6f900988c9ffad06939d4"
+content-hash = "326049421d5b3fe1fe723c18ac9d5132c83c755706b0194685a21d91ab436d4a"
 
 [metadata.files]
 absl-py = [
     {file = "absl-py-1.0.0.tar.gz", hash = "sha256:ac511215c01ee9ae47b19716599e8ccfa746f2e18de72bdf641b79b22afa27ea"},
     {file = "absl_py-1.0.0-py3-none-any.whl", hash = "sha256:84e6dcdc69c947d0c13e5457d056bd43cade4c2393dce00d684aedea77ddc2a3"},
+]
+admin-totals = [
+    {file = "admin-totals-1.0.1.tar.gz", hash = "sha256:ba46e0307d35f3e6b2d10db8f23bb593e8024d59a074946d5a292b8de98f2509"},
+    {file = "admin_totals-1.0.1-py2-none-any.whl", hash = "sha256:609017540245373afe78dca105760331a9c2aa6fbafca1b5b5f1d12c7e6b3895"},
+    {file = "admin_totals-1.0.1-py3-none-any.whl", hash = "sha256:59c190e478f8d31d10117f75d4ff0a4dc73db8975ef9d6438515ff326019638d"},
 ]
 asgiref = [
     {file = "asgiref-3.4.1-py3-none-any.whl", hash = "sha256:ffc141aa908e6f175673e7b1b3b7af4fdb0ecb738fc5c8b88f69f055c2415214"},
