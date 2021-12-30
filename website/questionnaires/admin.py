@@ -6,7 +6,6 @@ from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.utils import model_ngettext
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
-from django.utils.encoding import force_text
 
 from courses.models import Semester
 
@@ -128,7 +127,7 @@ class SubmittedSubmissionsFilter(SimpleListFilter):
         }
         for lookup, title in self.lookup_choices:
             yield {
-                "selected": self.value() == force_text(lookup),
+                "selected": self.value() == lookup,
                 "query_string": changelist.get_query_string({self.parameter_name: lookup}, []),
                 "display": title,
             }
