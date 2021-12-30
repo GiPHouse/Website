@@ -310,4 +310,6 @@ class AnswerAdmin(admin.ModelAdmin):
         return response
 
     class Media:
+        """Custom styling."""
+
         css = {"all": ("admin/questionnaires/css/custom-answer-admin.css",)}
