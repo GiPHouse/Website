@@ -238,3 +238,15 @@ class QuestionnaireTest(TestCase):
 
         for q1, q2 in zip(new_questionnaire.question_set.all(), self.active_questions.question_set.all()):
             self.assertEqual(q1, q2)
+
+    def test_download_emails(self):
+        response = self.client.post(
+            reverse("admin:questionnaires_questionnaire_changelist"),
+            {
+                ACTION_CHECKBOX_NAME: [self.active_questions.pk],
+                "action": "download_emails_for_employees_without_submission",
+                "index": 0,
+            },
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
