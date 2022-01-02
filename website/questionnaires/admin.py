@@ -89,7 +89,7 @@ class QuestionnaireAdmin(admin.ModelAdmin):
     inlines = (QuestionInline,)
     search_fields = ("title",)
 
-    actions = ("duplicate_questionnaires",)
+    actions = ("duplicate_questionnaires", "download_emails_for_employees_without_submission")
 
     def duplicate_questionnaires(self, request, queryset):
         """Duplicate a questionnaire and all its questions into a new questionnaire."""
@@ -111,6 +111,23 @@ class QuestionnaireAdmin(admin.ModelAdmin):
                 % {"count": len(queryset), "items": model_ngettext(self.opts, len(queryset))},
                 messages.SUCCESS,
             )
+
+    def download_emails_for_employees_without_submission(self, request, queryset):
+        """Export the email addresses of employees that did not submit for the questionnaire to a .TXT file."""
+        content = StringIO()
+
+        for q in queryset:
+            employees = Employee.objects.filter(registration__semester=q.semester).exclude(
+                pk__in=q.questionnairesubmission_set.filter(submitted=True).values("pk")
+            )
+            emails = ", ".join(employees.values_list("email", flat=True))
+            content.write(f"No submission for {q}:\n\n")
+            content.write(emails)
+            content.write("\n\n\n\n")
+
+        response = HttpResponse(content.getvalue(), content_type="text/plain")
+        response["Content-Disposition"] = "attachment; filename=not-submitted.txt"
+        return response
 
 
 class SubmittedSubmissionsFilter(SimpleListFilter):
