@@ -118,7 +118,7 @@ class QuestionnaireAdmin(admin.ModelAdmin):
 
         for q in queryset:
             employees = Employee.objects.filter(registration__semester=q.semester).exclude(
-                pk__in=q.questionnairesubmission_set.filter(submitted=True).values("pk")
+                pk__in=q.questionnairesubmission_set.filter(submitted=True).values("participant__pk")
             )
             emails = ", ".join(employees.values_list("email", flat=True))
             content.write(f"No submission for {q}:\n\n")
@@ -167,7 +167,12 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
 
     inlines = (AnswerInline,)
 
-    list_display = ("questionnaire", "participant_name", "on_time")
+    list_display = (
+        "questionnaire",
+        "participant_name",
+        "on_time",
+        "submitted",
+    )
     list_filter = (
         SubmittedSubmissionsFilter,
         SubmissionAdminSemesterFilter,
