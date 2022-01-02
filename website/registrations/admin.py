@@ -97,6 +97,7 @@ class UserAdmin(admin.ModelAdmin):
         "is_staff",
         "registration__is_international",
         "registration__available_during_scheduled_timeslot",
+        "registration__attendance",
     )
 
     # Necessary for the autocomplete filter
@@ -150,6 +151,7 @@ class UserAdmin(admin.ModelAdmin):
                 "Experience",
                 "Non-dutch",
                 "Available during scheduled timeslot",
+                "Physical attendance",
                 "Registration Comments",
             ]
         )
@@ -171,6 +173,7 @@ class UserAdmin(admin.ModelAdmin):
                     registration.experience,
                     registration.is_international,
                     registration.available_during_scheduled_timeslot,
+                    registration.attendance,
                     registration.comments,
                 ]
             )
