@@ -55,7 +55,7 @@ class SemesterManager(models.Manager):
         Given that there is no deterministic way to determine the start of the semesters,
         we start the semesters at reasonable dates that are close to the actual start dates.
 
-        The spring semester starts on the monday in the last week of january.
+        The spring semester starts on the 10 days before the monday in the last week of january.
         The fall semester starts on september 1st.
 
         August is considered spring semester for simplicity.
@@ -64,7 +64,7 @@ class SemesterManager(models.Manager):
             year=timezone.now().year, month=1, day=31, hour=0, minute=0, second=0, microsecond=0
         )
 
-        spring_semester_start = jan31 - timezone.timedelta(days=jan31.weekday())
+        spring_semester_start = jan31 - timezone.timedelta(days=jan31.weekday()) - timezone.timedelta(days=10)
 
         fall_semester_start = timezone.now().replace(
             year=timezone.now().year, month=9, day=1, hour=0, minute=0, second=0, microsecond=0
