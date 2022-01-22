@@ -18,7 +18,7 @@ function text(content) {
 
 function addNotification(textContent, undoCallback) {
   const closeBtn = el('button', {type: 'button', class: 'btn btn-outline-light justify-content-end'}, el('i', {class: 'fas fa-times'}));
-  const undoBtn = el('button', {type: 'button', class: 'btn btn-outline-light justify-content-end mr-2'}, el('i', {class: 'fas fa-undo-alt'}), text(' UNDO'));
+  const undoBtn = el('button', {type: 'button', class: 'btn btn-outline-light justify-content-end me-2'}, el('i', {class: 'fas fa-undo-alt'}), text(' UNDO'));
 
   const notif = el('div', {class: 'notification-collapsed'},
       el('p', {}, text(textContent)),

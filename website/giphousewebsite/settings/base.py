@@ -28,7 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'sass_processor',
-    'bootstrap4',
+    'django_bootstrap5',
     'admin_auto_filters',
     'admin_totals',
 
@@ -134,7 +134,7 @@ LOGIN_URL = '/'
 
 DATE_FORMAT = '%d-%b-%y'
 
-BOOTSTRAP4 = {
+BOOTSTRAP5 = {
     'error_css_class': '',
     'success_css_class': '',
 }
