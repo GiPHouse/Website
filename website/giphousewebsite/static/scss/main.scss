@@ -45,6 +45,12 @@ $navbar-padding-y: 1rem;
   align-items: center;
 }
 
+.client-logo img {
+  object-fit: contain;
+  width: 100%;
+  height: 100%;
+}
+
 .project-logo {
   height: auto;
   width: 15rem;
