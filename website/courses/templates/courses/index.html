@@ -16,10 +16,10 @@
                             <div class="card">
                                 <div class="card-header bg-primary" id="heading-lecture-{{ lecture.pk }}">
                                     <h2 class="card-header-text left-and-right mb-0">
-                                        <button class="btn btn-link text-white" type="button" data-toggle="collapse" data-target="#lecture-{{ lecture.pk }}" aria-expanded="false" aria-controls="lecture-{{ lecture.pk }}">
+                                        <button class="btn btn-link text-white" type="button" data-bs-toggle="collapse" data-bs-target="#lecture-{{ lecture.pk }}" aria-expanded="false" aria-controls="lecture-{{ lecture.pk }}">
                                             {{ lecture.date }} - {{ lecture.title }}
                                         </button>
-                                        <button class="btn btn-link text-white" type="button" data-toggle="collapse" data-target="#lecture-{{ lecture.pk }}" aria-expanded="false" aria-controls="lecture-{{ lecture.pk }}">
+                                        <button class="btn btn-link text-white" type="button" data-bs-toggle="collapse" data-bs-target="#lecture-{{ lecture.pk }}" aria-expanded="false" aria-controls="lecture-{{ lecture.pk }}">
                                             <i class="fas fa-bars"></i>
                                         </button>
                                     </h2>
@@ -32,14 +32,14 @@
                                                 <tbody>
                                                     <tr>
                                                         <th scope="row">Teacher</th>
-                                                        <td class="col-1">{{ lecture.teacher|default:"-" }}</td>
+                                                        <td>{{ lecture.teacher|default:"-" }}</td>
                                                     </tr>
                                                     <tr>
                                                         <th scope="row">Location</th>
-                                                        <td class="col-1">{{ lecture.location|default:"-" }}</td>
+                                                        <td>{{ lecture.location|default:"-" }}</td>
                                                     </tr>
                                                     <tr>
-                                                        <td class="col-1" colspan="2">
+                                                        <td colspan="2">
                                                             {% if lecture.slides %}
                                                                 <a href="{{ lecture.slides.url }}">Download Slides</a>
                                                             {% else %}

@@ -20,6 +20,7 @@
 
     <div id="calendar" data-events='{{ reservations|safe }}' data-csrf="{{ csrf_token }}"></div>
 
+    <script src="{% static 'js/jquery-3.5.1.slim.min.js' %}"></script>
     <script src="{% static 'js/fullcalendar/core/main.min.js' %}"></script>
     <script src="{% static 'js/fullcalendar/daygrid/main.min.js' %}"></script>
     <script src="{% static 'js/fullcalendar/timegrid/main.min.js' %}"></script>

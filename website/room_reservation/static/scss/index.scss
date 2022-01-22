@@ -35,7 +35,7 @@
       float: left;
       margin-bottom: 0;
       // Make the text the same size as the buttons
-      @include button-size($btn-padding-y, $btn-padding-x, $btn-font-size, $btn-line-height, $btn-border-radius);
+      @include button-size($btn-padding-y, $btn-padding-x, $btn-font-size, $btn-border-radius);
     }
   }
   .notification-collapsed {

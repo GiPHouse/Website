@@ -1,4 +1,4 @@
-from bootstrap4.widgets import RadioSelectButtonGroup
+from django_bootstrap5.widgets import RadioSelectButtonGroup
 
 from django import forms
 from django.forms import ValidationError
