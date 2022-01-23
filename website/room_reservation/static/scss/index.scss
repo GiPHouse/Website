@@ -1,7 +1,17 @@
-@import "fullcalendar/core/main.scss";
-@import "fullcalendar/daygrid/main.scss";
-@import "fullcalendar/timegrid/main.scss";
-@import "fullcalendar/bootstrap/main.scss";
+@import "fullcalendar/main.min.css";
+
+
+#calendar a:not(.fc-event-draggable) {
+  text-decoration: none;
+  cursor: default;
+  &:hover {
+    color: $primary;
+  }
+}
+
+.fc-event {
+  background-color: var(--fc-event-bg-color,#3788d8);
+}
 
 #external-events .fc-event.draggable {
   cursor: pointer;
@@ -10,6 +20,11 @@
 #external-events .fc-event {
   margin: 10px;
   padding: 10px 8px;
+}
+
+.fc-event, .fc-event:hover {
+  color: #fff;
+  text-decoration: none;
 }
 
 #notifications {

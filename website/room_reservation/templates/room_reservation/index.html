@@ -13,18 +13,13 @@
         <div id="external-events-list" class="row {% if request.user.is_authenticated %}draggable{% endif %}">
             {% for room in rooms %}
                 {# The `draggable` attribute is used in calendar-init.js to make the rooms draggable. #}
-                <div class="fc-event col-2 {% if request.user.is_authenticated %}draggable{% endif %}" data-event='{ "title": "{{ room.name }}", "duration": "02:00", "editable": true, "extendedProps": { "room": {{ room.id }} } }'>{{ room }}</div>
+                <div class="fc-timegrid-event fc-v-event fc-event fc-event-draggable fc-event-resizable fc-event-start fc-event-end fc-event-past col-2 {% if request.user.is_authenticated %}draggable{% endif %}" data-event='{ "title": "{{ room.name }}", "duration": "02:00", "editable": true, "extendedProps": { "room": {{ room.id }} } }'>{{ room }}</div>
             {% endfor %}
         </div>
     </div>
 
     <div id="calendar" data-events='{{ reservations|safe }}' data-csrf="{{ csrf_token }}"></div>
 
-    <script src="{% static 'js/jquery-3.5.1.slim.min.js' %}"></script>
-    <script src="{% static 'js/fullcalendar/core/main.min.js' %}"></script>
-    <script src="{% static 'js/fullcalendar/daygrid/main.min.js' %}"></script>
-    <script src="{% static 'js/fullcalendar/timegrid/main.min.js' %}"></script>
-    <script src="{% static 'js/fullcalendar/bootstrap/main.min.js' %}"></script>
-    <script src="{% static 'js/fullcalendar/interaction/main.min.js' %}"></script>
+    <script src="{% static 'js/fullcalendar/main.min.js' %}"></script>
     <script src="{% static 'js/calendar-init.js' %}"></script>
 {% endblock %}
