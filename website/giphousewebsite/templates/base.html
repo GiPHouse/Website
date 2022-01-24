@@ -17,7 +17,7 @@
 <body>
 {% render_main_menu %}
 
-<div class="container pt-4">
+<div class="container pt-4 pb-5">
     {% if messages %}
         {% for message in messages %}
             {% bootstrap_alert message alert_type=message.extra_tags dismissible=True %}
