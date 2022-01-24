@@ -11,9 +11,7 @@
         <form method="post" class="form">
             {% csrf_token %}
             {% bootstrap_form form %}
-            {% buttons %}
-                <button type="submit" class="btn btn-primary">Submit</button>
-            {% endbuttons %}
+            {% bootstrap_button type="submit" content="Submit" %}
         </form>
     </div>
 {% endblock %}
