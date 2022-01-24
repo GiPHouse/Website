@@ -105,6 +105,8 @@ class Step2View(FormView):
                 partner_preference3=form.cleaned_data["partner3"],
                 comments=form.cleaned_data["comments"],
                 is_international=form.cleaned_data["international"],
+                available_during_scheduled_timeslot=form.cleaned_data["available_during_scheduled_timeslot"],
+                attendance=form.cleaned_data["attendance"],
             )
 
         del self.request.session["github_id"]
