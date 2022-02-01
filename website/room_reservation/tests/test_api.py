@@ -225,3 +225,37 @@ class ReservationTest(TestCase):
             reverse("room_reservation:delete_reservation", kwargs={"pk": self.other_reservation.pk})
         )
         self.assertContains(response, "You can only delete your own events")
+
+    def test_room_with_special_availability_overlap(self):
+        self.room.special_availability = [
+            {"from": "2019-03-04|12:00", "until": "2019-03-04|15:30"},
+            {"from": "2019-03-04|16:00", "until": "2019-03-04|17:30"},
+        ]
+        self.room.save()
+        response = self.client.post(
+            reverse("room_reservation:create_reservation"),
+            {
+                "room": self.room.pk,
+                "start_time": timezone.datetime(2019, 3, 4, 12, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "end_time": timezone.datetime(2019, 3, 4, 16, 0, 0, tzinfo=timezone.get_current_timezone()),
+            },
+            content_type="application/json",
+        )
+        self.assertContains(response, "Rooms is not available at this time")
+
+    def test_room_with_special_availability_no_overlap(self):
+        self.room.special_availability = [
+            {"from": "2019-03-04|12:00", "until": "2019-03-04|15:30"},
+            {"from": "2019-03-04|16:00", "until": "2019-03-04|17:30"},
+        ]
+        self.room.save()
+        response = self.client.post(
+            reverse("room_reservation:create_reservation"),
+            {
+                "room": self.room.pk,
+                "start_time": timezone.datetime(2019, 3, 4, 12, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "end_time": timezone.datetime(2019, 3, 4, 14, 0, 0, tzinfo=timezone.get_current_timezone()),
+            },
+            content_type="application/json",
+        )
+        self.assertIsNotNone(Reservation.objects.filter(pk=json.loads(response.content)["pk"]).first())

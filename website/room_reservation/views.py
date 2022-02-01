@@ -9,7 +9,7 @@ from django.utils import dateparse, timezone
 from django.views import View
 from django.views.generic import TemplateView
 
-from room_reservation.models import Reservation, Room
+from room_reservation.models import Reservation, Room, in_special_availability
 
 
 class BaseReservationView(View):
@@ -39,6 +39,14 @@ class BaseReservationView(View):
 
         if start_time.weekday() in (5, 6):
             return False, "Rooms cannot be reserved in the weekends"
+
+        room = Room.objects.get(id=room)
+        if (
+            room.special_availability is not None
+            and room.special_availability != []
+            and not in_special_availability(room.special_availability, start_time, end_time)
+        ):
+            return False, "Rooms is not available at this time"
 
         already_taken = (
             Reservation.objects.filter(room=room)
