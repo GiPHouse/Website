@@ -8,7 +8,7 @@ User: Employee = get_user_model()
 
 
 def in_special_availability(available_timeslots: [], start_time, end_time):
-    """Checks whether a certain time slot is in a list of available timeslots."""
+    """Check whether a certain time slot is in a list of available timeslots."""
     for timeslot in available_timeslots:
         start = timezone.datetime.fromisoformat(timeslot["from"]).astimezone(timezone.get_current_timezone())
         end = timezone.datetime.fromisoformat(timeslot["until"]).astimezone(timezone.get_current_timezone())
