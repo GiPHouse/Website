@@ -25,7 +25,10 @@ class Room(models.Model):
     special_availability = models.JSONField(
         null=True,
         blank=True,
-        help_text='If filled in, the room will only accept reservations during the specified timeslots. Enter valid JSON in the following format: [{"from":"2022-01-31|08:00","until":"2022-02-01|18:00"},{"from":"2022-02-02|15:30","until":"2022-02-02|18:00"}].',
+        help_text="If filled in, the room will only accept reservations during the specified timeslots. "
+        "Enter valid JSON in the following format: "
+        '[{"from":"2022-01-31|08:00","until":"2022-02-01|18:00"},'
+        '{"from":"2022-02-02|15:30","until":"2022-02-02|18:00"}].',
     )
 
     def __str__(self):
