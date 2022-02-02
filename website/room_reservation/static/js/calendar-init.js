@@ -17,14 +17,14 @@ function text(content) {
 }
 
 function addNotification(textContent, undoCallback) {
-  const closeBtn = el('button', {type: 'button', class: 'btn btn-outline-light justify-content-end'}, el('i', {class: 'fas fa-times'}));
-  const undoBtn = el('button', {type: 'button', class: 'btn btn-outline-light justify-content-end me-2'}, el('i', {class: 'fas fa-undo-alt'}), text(' UNDO'));
+  const closeBtn = el('button', {type: 'button', class: 'btn btn-outline-light justify-content-end m-1'}, el('i', {class: 'fas fa-times'}));
+  const undoBtn = el('button', {type: 'button', class: 'btn btn-outline-light justify-content-end m-1'}, el('i', {class: 'fas fa-undo-alt'}), text(' UNDO'));
 
   const notif = el('div', {class: 'notification-collapsed'},
       el('p', {}, text(textContent)),
-      el('ul', {class: 'nav justify-content-end'},
-          el('li', {class: 'nav-item'}, undoBtn),
-          el('li', {class: 'nav-item'}, closeBtn)));
+      el('div', {class: 'nav justify-content-end'},
+          el('div', {class: 'nav-item'}, undoBtn),
+          el('div', {class: 'nav-item'}, closeBtn)));
   notifications.prepend(notif);
 
   closeBtn.addEventListener('click', event => {

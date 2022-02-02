@@ -1,5 +1,16 @@
 @import "fullcalendar/main.min.css";
 
+.fc .fc-button-primary, .fc .fc-button-primary:disabled {
+  color: #ffffff;
+  background-color: $primary;
+  border-color: $primary;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active, .fc .fc-button-primary:not(:disabled):active, .fc .fc-button-primary:hover {
+  color: #ffffff;
+  background-color: tint-color($primary, $btn-active-bg-shade-amount);
+  border-color: tint-color($primary, $btn-active-bg-shade-amount);
+}
 
 #calendar a:not(.fc-event-draggable) {
   text-decoration: none;
@@ -32,10 +43,9 @@
   z-index: 100;
   right: 0;
   color: white;
-  max-width: 50%;
+  max-width: 80%;
 
   .notification {
-    max-width: 500px;
     border-radius: 5px;
     @media(min-width: 800px) {
       margin-right: 20px;
