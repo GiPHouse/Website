@@ -199,8 +199,8 @@ class GitHubSync:
             if github_user.login not in employee_list:
                 try:
                     if self.github.get_role_of_user(github_user) != "admin":  # Prevent removing organization owners
-                        self.github.remove_user(github_user)
-                        self.info(f"Removed {github_user.name} from team {github_team.name} and the organization.")
+                        github_team.remove_membership(github_user)
+                        self.info(f"Removed {github_user.name} from team {github_team.name}.")
                     else:
                         github_team.remove_membership(github_user)
                         self.info(
@@ -392,6 +392,12 @@ class GitHubSync:
                 continue
             team.delete()
 
+    def delete_users_not_in_team_from_organization(self):
+        members = self.github.github_organization.get_members(filter_="all", role="member")
+        for member in members:
+            member.get_teams()
+
+
     def perform_sync(self):
         """Sync all selected projects to GitHub."""
         try:
@@ -407,7 +413,15 @@ class GitHubSync:
                 self.fail = True
             self.task.completed += 1
             self.task.save()
+
+        try:
+            self.delete_users_not_in_team_from_organization()
+        except Exception as e:
+            self.logger.exception(e)
+            self.fail = True
+
         self.task.fail = self.fail
+        self.task.save()
 
         self.task.success_message = (
             f"A total of {self.teams_created} teams and {self.repos_created} repositories have been created, "
