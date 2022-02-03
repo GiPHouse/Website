@@ -17,14 +17,14 @@ function text(content) {
 }
 
 function addNotification(textContent, undoCallback) {
-  const closeBtn = el('button', {type: 'button', class: 'btn btn-outline-light justify-content-end'}, el('i', {class: 'fas fa-times'}));
-  const undoBtn = el('button', {type: 'button', class: 'btn btn-outline-light justify-content-end mr-2'}, el('i', {class: 'fas fa-undo-alt'}), text(' UNDO'));
+  const closeBtn = el('button', {type: 'button', class: 'btn btn-outline-light justify-content-end m-1'}, el('i', {class: 'fas fa-times'}));
+  const undoBtn = el('button', {type: 'button', class: 'btn btn-outline-light justify-content-end m-1'}, el('i', {class: 'fas fa-undo-alt'}), text(' UNDO'));
 
   const notif = el('div', {class: 'notification-collapsed'},
       el('p', {}, text(textContent)),
-      el('ul', {class: 'nav justify-content-end'},
-          el('li', {class: 'nav-item'}, undoBtn),
-          el('li', {class: 'nav-item'}, closeBtn)));
+      el('div', {class: 'nav justify-content-end'},
+          el('div', {class: 'nav-item'}, undoBtn),
+          el('div', {class: 'nav-item'}, closeBtn)));
   notifications.prepend(notif);
 
   closeBtn.addEventListener('click', event => {
@@ -99,7 +99,7 @@ async function changeEvent(info) {
 
 document.addEventListener('DOMContentLoaded', function() {
   const calendarEl = document.getElementById('calendar');
-  const Draggable = FullCalendarInteraction.Draggable;
+  const Draggable = FullCalendar.Draggable;
 
   const containerEl = document.getElementById('external-events-list');
   if (containerEl !== null) {
@@ -107,18 +107,15 @@ document.addEventListener('DOMContentLoaded', function() {
       itemSelector: '.fc-event.draggable',
     });
   }
+
   const calendar = new FullCalendar.Calendar(calendarEl, {
-    plugins: [ 'dayGrid', 'timeGrid', 'bootstrap', 'interaction' ],
-    themeSystem: 'bootstrap',
-    header: {
+    initialView: 'timeGridWeek',
+    headerToolbar: {
       right: 'timeGridWeek,dayGridMonth today,prev,next',
     },
-    defaultView: 'timeGridWeek',
     weekNumbers: true,
-    weekNumbersWithinDays: true,
     weekends: false,
     firstDay: 1,
-    timeFormat: "HH:mm",
     slotLabelFormat: {
       hour: '2-digit',
       minute: '2-digit',
@@ -129,8 +126,8 @@ document.addEventListener('DOMContentLoaded', function() {
       minute: '2-digit',
       hour12: false,
     },
-    minTime: '8:00',
-    maxTime: '18:00',
+    slotMinTime: '8:00',
+    slotMaxTime: '18:00',
     height: 'auto',
     allDaySlot: false,
     nowIndicator: true,
@@ -192,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
     },
     eventDrop: changeEvent,
     eventResize: changeEvent,
-    datesRender: function({view}) {
+    datesSet: function({view}) {
       window.location.hash = view.currentStart.toISOString();
     },
     events: JSON.parse(document.getElementById('calendar').getAttribute('data-events'))

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load bootstrap4 %}
+{% load django_bootstrap5 %}
 
 {% block title %}
     {{form.questionnaire.title}} - Questionnaire - {{ block.super }}
@@ -24,7 +24,7 @@
                 {% if field.field.is_comments_field %}
                     <p class="font-italic">Comments</p>
                 {% else %}
-                    <p class="font-weight-bold"> {{ field.field.peer }}</p>
+                    <p class="fw-bold"> {{ field.field.peer }}</p>
                 {% endif %}
 			</div>
 			<div class="col-10 col-lg-10">
@@ -32,8 +32,8 @@
             </div>
         {% endfor %}
 		<div class="col-12 mb-5">
-            <button type="submit" name="save" value="save" class="btn btn-primary">Save</button>
-            <button type="submit" name="submit" value="submit" class="btn btn-secondary">Submit</button>
-		</div>
+            {% bootstrap_button "Save" name="save" value="save" button_type="submit" button_class="btn-primary" %}
+            {% bootstrap_button "Submit" name="submit" value="submit" button_type="submit" button_class="btn-secondary" %}
+        </div>
     </form>
 {% endblock %}

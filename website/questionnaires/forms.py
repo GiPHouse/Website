@@ -1,9 +1,8 @@
-from bootstrap4.widgets import RadioSelectButtonGroup
-
 from django import forms
 from django.forms import ValidationError
 
 from questionnaires.models import QuestionnaireSubmission
+from questionnaires.widgets import ButtonGroupWidget
 
 
 class QuestionnaireForm(forms.Form):
@@ -56,7 +55,7 @@ class QuestionnaireForm(forms.Form):
         if question.is_closed and not is_comments:
             self.fields[field_name] = forms.TypedChoiceField(
                 label=question.question,
-                widget=RadioSelectButtonGroup,
+                widget=ButtonGroupWidget,
                 choices=question.get_likert_choices(),
                 coerce=int,
                 empty_value=None,

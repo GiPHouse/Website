@@ -3,24 +3,20 @@
 @import "fontawesome/brands.scss";
 @import "fontawesome/solid.scss";
 
-// Variable overrides
-$container-max-widths: (
-  sm: 540px,
-  lg: 860px,
-  xl: 861px,
-  md: 1080px
-);
-
-.invalid-feedback {
-    display: block !important;
-}
-
-$primary: #268AFF;
+$blue: #268AFF;
 $secondary: #FD9A28;
 $navbar-padding-y: 1rem;
 
+.btn-primary {
+  color: #ffffff !important; // override the color, because the contrast color would be black
+}
+
 .section-title {
   margin-bottom: 1rem;
+}
+
+.card-header button {
+  text-decoration: none;
 }
 
 // Our own classes

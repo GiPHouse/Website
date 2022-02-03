@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load bootstrap4 %}
+{% load django_bootstrap5 %}
 {% block title %}
     Registration Information - {{ block.super }}
 {% endblock %}
@@ -11,9 +11,7 @@
         <form method="post" class="form">
             {% csrf_token %}
             {% bootstrap_form form %}
-            {% buttons %}
-                <button type="submit" class="btn btn-primary">Submit</button>
-            {% endbuttons %}
+            {% bootstrap_button "Submit" name="submit" value="submit" button_type="submit" button_class="btn-secondary" %}
         </form>
     </div>
 {% endblock %}

@@ -1,7 +1,28 @@
-@import "fullcalendar/core/main.scss";
-@import "fullcalendar/daygrid/main.scss";
-@import "fullcalendar/timegrid/main.scss";
-@import "fullcalendar/bootstrap/main.scss";
+@import "fullcalendar/main.min.css";
+
+.fc .fc-button-primary, .fc .fc-button-primary:disabled {
+  color: #ffffff;
+  background-color: $primary;
+  border-color: $primary;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active, .fc .fc-button-primary:not(:disabled):active, .fc .fc-button-primary:hover {
+  color: #ffffff;
+  background-color: tint-color($primary, $btn-active-bg-shade-amount);
+  border-color: tint-color($primary, $btn-active-bg-shade-amount);
+}
+
+#calendar a:not(.fc-event-draggable) {
+  text-decoration: none;
+  cursor: default;
+  &:hover {
+    color: $primary;
+  }
+}
+
+.fc-event {
+  background-color: var(--fc-event-bg-color,#3788d8);
+}
 
 #external-events .fc-event.draggable {
   cursor: pointer;
@@ -12,15 +33,19 @@
   padding: 10px 8px;
 }
 
+.fc-event, .fc-event:hover {
+  color: #fff;
+  text-decoration: none;
+}
+
 #notifications {
   position: absolute;
   z-index: 100;
   right: 0;
   color: white;
-  max-width: 50%;
+  max-width: 80%;
 
   .notification {
-    max-width: 500px;
     border-radius: 5px;
     @media(min-width: 800px) {
       margin-right: 20px;
@@ -35,7 +60,7 @@
       float: left;
       margin-bottom: 0;
       // Make the text the same size as the buttons
-      @include button-size($btn-padding-y, $btn-padding-x, $btn-font-size, $btn-line-height, $btn-border-radius);
+      @include button-size($btn-padding-y, $btn-padding-x, $btn-font-size, $btn-border-radius);
     }
   }
   .notification-collapsed {
