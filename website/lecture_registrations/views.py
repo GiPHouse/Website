@@ -12,6 +12,8 @@ from lecture_registrations.models import LectureRegistration
 
 
 class LectureRegistrationView(LoginRequiredMixin, View):
+    """Register for a lecture."""
+
     def post(self, request, pk, *args, **kwargs):
         """Register a user on POST."""
         try:
@@ -83,6 +85,8 @@ class LectureRegistrationView(LoginRequiredMixin, View):
 
 
 class LectureUnregistrationView(LoginRequiredMixin, View):
+    """Unregister for a lecture."""
+
     def post(self, request, pk, *args, **kwargs):
         """Unregister a user on POST."""
         try:
