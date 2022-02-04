@@ -173,6 +173,30 @@ class Lecture(models.Model):
         upload_to=get_slides_filename, validators=[FileExtensionValidator(["pdf"])], blank=True, null=True
     )
 
+    capacity = models.PositiveSmallIntegerField(null=True, blank=True)
+
+    register_until = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def can_register(self):
+        """Return True if users should be able to (un)register for this lecture at this point in time."""
+        return not (self.registration_required and self.register_until and timezone.now() > self.register_until)
+
+    @property
+    def registration_required(self):
+        """Is registration for this lecture enabled."""
+        return self.register_until is not None
+
+    @property
+    def capacity_reached(self):
+        """Is the registration capacity for this lecture reached."""
+        return self.capacity is not None and self.lectureregistration_set.count() >= self.capacity
+
+    @property
+    def registered_users(self):
+        """Return a list of employees that are registered for this lecture."""
+        return self.lectureregistration_set.values_list("employee", flat=True)
+
     def __str__(self):
         """Return value of Lecture and date object."""
         return f"{ self.course } ({ self.date })"
