@@ -14,8 +14,11 @@ from registrations.models import Employee, Registration
 
 
 class ModelTest(TestCase):
+    """Test the lecture registration model logic."""
+
     @classmethod
     def setUpTestData(cls):
+        """Set up test data."""
         cls.season = Semester.SPRING
         cls.year = 2019
         cls.course = Course.objects.create(name="Test Course")
@@ -29,15 +32,18 @@ class ModelTest(TestCase):
         cls.lecture = Lecture.objects.create(semester=cls.semester, date=cls.date, course=cls.course, title=cls.title)
 
     def test_lecture_registration_not_required(self):
+        """Test registration not required."""
         self.assertFalse(self.lecture.registration_required)
 
     def test_lecture_registration_required(self):
+        """Test registration is required."""
         self.lecture.register_until = timezone.datetime(2018, 9, 10)
         self.lecture.save()
         self.assertTrue(self.lecture.registration_required)
 
     @freeze_time("2018-09-09")
     def test_lecture_can_register(self):
+        """Test when registration is possible."""
         with self.subTest("If registration is not required at all"):
             self.assertTrue(self.lecture.can_register)
 
@@ -56,6 +62,7 @@ class ModelTest(TestCase):
             self.assertFalse(self.lecture.can_register)
 
     def test_lecture_capacity_reached(self):
+        """Test when capacity is reached."""
         self.assertFalse(self.lecture.capacity_reached)
 
         self.lecture.capacity = 2
@@ -70,8 +77,11 @@ class ModelTest(TestCase):
 
 
 class ViewTest(TestCase):
+    """Test the lecture registration and unregistration views."""
+
     @classmethod
     def setUpTestData(cls):
+        """Set up test data."""
         cls.user = Employee.objects.create_user(github_id=0, github_username="test")
         cls.season = Semester.SPRING
         cls.year = 2019
@@ -122,11 +132,13 @@ class ViewTest(TestCase):
         )
 
     def setUp(self):
+        """Set up a client."""
         self.client = Client()
         self.client.force_login(self.user)
 
     @freeze_time("2018-09-09")
     def test_register(self):
+        """Registering for a lecture should work fine."""
         self.assertEqual(self.lecture.lectureregistration_set.count(), 0)
         response = self.client.post(
             reverse("lecture_registrations:register_for_lecture", args=[self.lecture.pk]), follow=True
@@ -145,16 +157,19 @@ class ViewTest(TestCase):
 
     @freeze_time("2018-09-09")
     def test_register_non_existing_lecture(self):
+        """Registering for a non-existing lecture should fail."""
         response = self.client.post(reverse("lecture_registrations:register_for_lecture", args=[3]), follow=True)
         self.assertEqual(response.status_code, 404)
 
     @freeze_time("2018-09-09")
     def test_unregister_non_existing_lecture(self):
+        """Unregistering for a non-existing lecture should fail."""
         response = self.client.post(reverse("lecture_registrations:unregister_for_lecture", args=[3]), follow=True)
         self.assertEqual(response.status_code, 404)
 
     @freeze_time("2018-09-09")
     def test_register_wrong_semester(self):
+        """Registering a user that is not registered for that semester should fail."""
         self.registration.semester = self.other_semester
         self.registration.save()
         response = self.client.post(
@@ -167,6 +182,7 @@ class ViewTest(TestCase):
 
     @freeze_time("2018-09-09")
     def test_register_already_registered(self):
+        """Registering a user when they are already registered should fail."""
         LectureRegistration.objects.create(lecture=self.lecture, employee=self.user)
         response = self.client.post(
             reverse("lecture_registrations:register_for_lecture", args=[self.lecture.pk]), follow=True
@@ -178,6 +194,7 @@ class ViewTest(TestCase):
 
     @freeze_time("2018-09-09")
     def test_register_no_registration_required(self):
+        """Registering a user when no registration is required should fail."""
         self.lecture.register_until = None
         self.lecture.save()
         response = self.client.post(
@@ -190,6 +207,7 @@ class ViewTest(TestCase):
 
     @freeze_time("2018-09-13")
     def test_register_registration_closed(self):
+        """Registering a user when the deadline has passed should fail."""
         response = self.client.post(
             reverse("lecture_registrations:register_for_lecture", args=[self.lecture.pk]), follow=True
         )
@@ -200,6 +218,7 @@ class ViewTest(TestCase):
 
     @freeze_time("2018-09-13")
     def test_unregister_registration_closed(self):
+        """Unregistering a user when the deadline has passed should fail."""
         LectureRegistration.objects.create(lecture=self.lecture, employee=self.user)
         response = self.client.post(
             reverse("lecture_registrations:unregister_for_lecture", args=[self.lecture.pk]), follow=True
@@ -211,6 +230,7 @@ class ViewTest(TestCase):
 
     @freeze_time("2018-09-09")
     def test_register_capacity_reached(self):
+        """Registering a user when the lecture's capacity has been reached should fail."""
         LectureRegistration.objects.create(lecture=self.lecture, employee=None)
         LectureRegistration.objects.create(lecture=self.lecture, employee=None)
         response = self.client.post(
@@ -223,6 +243,7 @@ class ViewTest(TestCase):
 
     @freeze_time("2018-09-09")
     def test_unregister_not_registered(self):
+        """Unregistering a user that is not registered should have no effect."""
         response = self.client.post(
             reverse("lecture_registrations:unregister_for_lecture", args=[self.lecture.pk]), follow=True
         )
@@ -233,6 +254,7 @@ class ViewTest(TestCase):
 
     @freeze_time("2018-09-09")
     def test_unregister(self):
+        """Unregistering a user that was registered should work fine."""
         LectureRegistration.objects.create(lecture=self.lecture, employee=self.user)
         response = self.client.post(
             reverse("lecture_registrations:unregister_for_lecture", args=[self.lecture.pk]), follow=True
