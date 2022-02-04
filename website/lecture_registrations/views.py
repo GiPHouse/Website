@@ -59,7 +59,7 @@ class LectureRegistrationView(LoginRequiredMixin, View):
         if lecture.capacity_reached:
             messages.error(
                 request,
-                f"Capacity for {lecture} has been reached.",
+                f"Capacity has been reached for {lecture}.",
             )
             return redirect(
                 reverse(
