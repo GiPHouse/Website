@@ -44,7 +44,7 @@
                                                             <th scope="row">Registrations</th>
                                                             <td>
                                                                 {{ lecture.lectureregistration_set.count }} / {{ lecture.capacity|default_if_none:"∞" }} {% if request.user.pk in lecture.registered_users %}<span class="ms-4">You are registered</span>{% endif %}
-                                                                {% if request.user and lecture.can_register %}
+                                                                {% if request.user.is_authenticated and lecture.can_register %}
                                                                     {% if request.user.pk in lecture.registered_users %}
                                                                         <form name="lecture-registration-form" class="mt-2" action="{% url 'lecture_registrations:unregister_for_lecture' lecture.pk %}" method="post">
                                                                             {% csrf_token %}
