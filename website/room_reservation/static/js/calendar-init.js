@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'timeGridWeek',
     headerToolbar: {
-      right: 'timeGridWeek,dayGridMonth today,prev,next',
+      right: 'timeGridDay,timeGridWeek,dayGridMonth today,prev,next',
     },
     weekNumbers: true,
     weekends: false,
