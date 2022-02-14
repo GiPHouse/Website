@@ -129,6 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
     slotMinTime: '8:00',
     slotMaxTime: '18:00',
     height: 'auto',
+    slotEventOverlap: true,
     allDaySlot: false,
     nowIndicator: true,
     editable: false,
