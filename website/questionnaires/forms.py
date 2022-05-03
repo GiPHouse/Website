@@ -79,7 +79,10 @@ class QuestionnaireForm(forms.Form):
         if self.submission:
             # Set the initial value for a field if a submission already exists
             answer = self.submission.answer_set.filter(question=question, peer=peer).first()
-            self.fields[field_name].initial = answer.answer.value if answer else None
+            if is_comments:
+                self.fields[field_name].initial = answer.answer.comments if answer else None
+            else:
+                self.fields[field_name].initial = answer.answer.value if answer else None
 
         if peer is not None:
             self.fields[field_name].peer = f"{peer.get_full_name()}"

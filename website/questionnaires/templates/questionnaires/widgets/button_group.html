@@ -2,7 +2,7 @@
     {% for group, options, index in widget.optgroups %}
         {% for option in options %}
             <input type="radio" class="btn-check" name="{{ option.name }}" id="{{ option.attrs.id }}" autocomplete="off"{% if option.value != None %} value="{{ option.value|stringformat:'s' }}"{% if option.attrs.checked %} checked{% endif %}{% endif %}{% if widget.required %} required{% endif %}>
-            <label class="{{ widget.attrs.class|add:'btn btn-outline-primary' }}" for="{{ option.attrs.id }}">{{ option.label }}</label>
+            <label class="{{ widget.attrs.class|add:' btn btn-outline-primary' }}" for="{{ option.attrs.id }}">{{ option.label }}</label>
         {% endfor %}
     {% endfor %}
 </div>
