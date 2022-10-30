@@ -17,6 +17,11 @@
 <body>
 {% render_main_menu %}
 
+<header id="page-header">
+    {% block header_image_container %}
+        <img src="{% block header_image %}{% static "img/huygens.jpg" %}{% endblock header_image %}" class="w-100" alt="header"/>
+    {% endblock header_image_container %}
+</header>
 <div class="container pt-4 pb-5">
     {% bootstrap_messages %}
 
