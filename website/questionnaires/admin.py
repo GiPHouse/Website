@@ -94,7 +94,7 @@ class QuestionnaireAdmin(ObjectActionsMixin, admin.ModelAdmin):
 
     object_actions_after_fieldsets = ("duplicate", "download_emails_for_employees_without_submission")
 
-    @object_action(label="Duplicate", perform_after_saving=True, include_in_queryset_actions=False)
+    @object_action(label="Duplicate", include_in_queryset_actions=False)
     def duplicate(self, request, obj):
         """Duplicate a questionnaire and all its questions into a new questionnaire."""
         new_questionnaire = Questionnaire.objects.get(pk=obj.pk)
