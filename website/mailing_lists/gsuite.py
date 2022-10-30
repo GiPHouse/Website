@@ -215,7 +215,7 @@ class GSuiteSyncService:
             # wait a minute.
             n = 0
             while True:
-                sleep(min(2 ** n + random(), 64))
+                sleep(min(2**n + random(), 64))
                 try:
                     self.groups_settings_api.groups().update(
                         groupUniqueId=f"{group.name}@{settings.GSUITE_DOMAIN}",

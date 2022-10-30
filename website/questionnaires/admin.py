@@ -115,7 +115,11 @@ class QuestionnaireAdmin(ObjectActionsMixin, admin.ModelAdmin):
         )
         return redirect("admin:questionnaires_questionnaire_change", new_questionnaire.pk)
 
-    @object_action(label="Download emails for employees without submission", perform_after_saving=True, include_in_queryset_actions=False)
+    @object_action(
+        label="Download emails for employees without submission",
+        perform_after_saving=True,
+        include_in_queryset_actions=False,
+    )
     def download_emails_for_employees_without_submission(self, request, obj):
         """Export the email addresses of employees that did not submit for the questionnaire to a .TXT file."""
         content = StringIO()
