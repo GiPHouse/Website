@@ -10,7 +10,10 @@ from django.contrib.auth import get_user_model
 from django.db.models import Avg
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse
-from django.utils.encoding import force_text
+from django.shortcuts import redirect
+from django.utils.encoding import force_str
+from django_easy_admin_object_actions.admin import ObjectActionsMixin
+from django_easy_admin_object_actions.decorators import object_action
 
 from courses.models import Semester
 
@@ -83,47 +86,47 @@ class QuestionAdmin(admin.ModelAdmin):
 
 
 @admin.register(Questionnaire)
-class QuestionnaireAdmin(admin.ModelAdmin):
+class QuestionnaireAdmin(ObjectActionsMixin, admin.ModelAdmin):
     """Questionnaire model admin."""
 
     inlines = (QuestionInline,)
     search_fields = ("title",)
 
-    actions = ("duplicate_questionnaires", "download_emails_for_employees_without_submission")
+    object_actions_after_fieldsets = ("duplicate", "download_emails_for_employees_without_submission")
 
-    def duplicate_questionnaires(self, request, queryset):
+    @object_action(label="Duplicate", perform_after_saving=True, include_in_queryset_actions=False)
+    def duplicate(self, request, obj):
         """Duplicate a questionnaire and all its questions into a new questionnaire."""
-        for old_questionnaire in queryset:
-            new_questionnaire = Questionnaire.objects.get(pk=old_questionnaire.pk)
-            new_questionnaire.pk = None
-            new_questionnaire.semester = Semester.objects.get_or_create_current_semester()
-            new_questionnaire.save()
+        new_questionnaire = Questionnaire.objects.get(pk=obj.pk)
+        new_questionnaire.pk = None
+        new_questionnaire.semester = Semester.objects.get_or_create_current_semester()
+        new_questionnaire.save()
 
-            for old_question in old_questionnaire.question_set.all():
-                new_question = Question.objects.get(pk=old_question.pk)
-                new_question.pk = None
-                new_question.questionnaire = new_questionnaire
-                new_question.save()
+        for old_question in obj.question_set.all():
+            new_question = Question.objects.get(pk=old_question.pk)
+            new_question.pk = None
+            new_question.questionnaire = new_questionnaire
+            new_question.save()
 
-            self.message_user(
-                request,
-                "Successfully duplicated %(count)d %(items)s. Do not forget to update the availability deadlines!"
-                % {"count": len(queryset), "items": model_ngettext(self.opts, len(queryset))},
-                messages.SUCCESS,
-            )
+        self.message_user(
+            request,
+            f"Questionnaire was successfully duplicated from {obj}. Do not forget to update the availability deadlines!",
+            messages.SUCCESS,
+        )
+        return redirect("admin:questionnaires_questionnaire_change", new_questionnaire.pk)
 
-    def download_emails_for_employees_without_submission(self, request, queryset):
+    @object_action(label="Download emails for employees without submission", perform_after_saving=True, include_in_queryset_actions=False)
+    def download_emails_for_employees_without_submission(self, request, obj):
         """Export the email addresses of employees that did not submit for the questionnaire to a .TXT file."""
         content = StringIO()
 
-        for q in queryset:
-            employees = Employee.objects.filter(registration__semester=q.semester).exclude(
-                pk__in=q.questionnairesubmission_set.filter(submitted=True).values("participant__pk")
-            )
-            emails = ", ".join(employees.values_list("email", flat=True))
-            content.write(f"No submission for {q}:\n\n")
-            content.write(emails)
-            content.write("\n\n\n\n")
+        employees = Employee.objects.filter(registration__semester=obj.semester).exclude(
+            pk__in=obj.questionnairesubmission_set.filter(submitted=True).values("participant__pk")
+        )
+        emails = ", ".join(employees.values_list("email", flat=True))
+        content.write(f"No submission for {obj}:\n\n")
+        content.write(emails)
+        content.write("\n\n\n\n")
 
         response = HttpResponse(content.getvalue(), content_type="text/plain")
         response["Content-Disposition"] = "attachment; filename=not-submitted.txt"
@@ -149,7 +152,7 @@ class SubmittedSubmissionsFilter(SimpleListFilter):
         }
         for lookup, title in self.lookup_choices:
             yield {
-                "selected": self.value() == force_text(lookup),
+                "selected": self.value() == force_str(lookup),
                 "query_string": changelist.get_query_string({self.parameter_name: lookup}, []),
                 "display": title,
             }

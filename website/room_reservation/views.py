@@ -9,6 +9,7 @@ from django.utils import dateparse, timezone
 from django.views import View
 from django.views.generic import TemplateView
 
+from courses.models import Semester
 from room_reservation.models import Reservation, Room, in_special_availability
 
 
@@ -99,7 +100,7 @@ class ShowCalendarView(TemplateView, BaseReservationView):
             [
                 {
                     "pk": reservation.pk,
-                    "title": f"{reservation.room.name} ({reservation.reservee.get_full_name()})",
+                    "title": f"{reservation.room.name} {reservation.reservee.registration_set.get(semester=Semester.objects.get_or_create_current_semester()).project if reservation.reservee.registration_set.filter(semester=Semester.objects.get_or_create_current_semester()).exists() else ''} ({reservation.reservee.get_full_name() if reservation.reservee != self.request.user else 'you'})",
                     "reservee": reservation.reservee.get_full_name(),
                     "room": reservation.room_id,
                     "start": reservation.start_time.isoformat(),

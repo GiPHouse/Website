@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'django_bootstrap5',
     'admin_auto_filters',
     'admin_totals',
+    'django_easy_admin_object_actions',
 
     'questionnaires.apps.QuestionnairesConfig',
     'github_oauth.apps.GithubConfig',
