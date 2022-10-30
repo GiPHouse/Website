@@ -10,6 +10,7 @@ from django.views import View
 from django.views.generic import TemplateView
 
 from courses.models import Semester
+
 from room_reservation.models import Reservation, Room, in_special_availability
 
 
@@ -92,6 +93,22 @@ class ShowCalendarView(TemplateView, BaseReservationView):
 
     template_name = "room_reservation/index.html"
 
+    def _reservation_title(self, reservation):
+        """Return the title of the reservation."""
+        room_name = reservation.room.name
+        reservee_registrations = reservation.reservee.registration_set.filter(
+            semester=Semester.objects.get_or_create_current_semester()
+        )
+        team_name = reservee_registrations.first().project if reservee_registrations.exists() else None
+        reservee_display_name = (
+            reservation.reservee.get_full_name() if reservation.reservee != self.request.user else "you"
+        )
+        return (
+            f"{room_name} {team_name} ({reservee_display_name})"
+            if team_name
+            else f"{room_name} ({reservee_display_name})"
+        )
+
     def get_context_data(self, **kwargs):
         """Load all information for the calendar."""
         context = super(ShowCalendarView, self).get_context_data(**kwargs)
@@ -100,7 +117,7 @@ class ShowCalendarView(TemplateView, BaseReservationView):
             [
                 {
                     "pk": reservation.pk,
-                    "title": f"{reservation.room.name} {reservation.reservee.registration_set.get(semester=Semester.objects.get_or_create_current_semester()).project if reservation.reservee.registration_set.filter(semester=Semester.objects.get_or_create_current_semester()).exists() else ''} ({reservation.reservee.get_full_name() if reservation.reservee != self.request.user else 'you'})",
+                    "title": self._reservation_title(reservation),
                     "reservee": reservation.reservee.get_full_name(),
                     "room": reservation.room_id,
                     "start": reservation.start_time.isoformat(),

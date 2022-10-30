@@ -5,13 +5,13 @@ from admin_totals.admin import ModelAdminTotals
 
 from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
-from django.contrib.admin.utils import model_ngettext
 from django.contrib.auth import get_user_model
 from django.db.models import Avg
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.utils.encoding import force_str
+
 from django_easy_admin_object_actions.admin import ObjectActionsMixin
 from django_easy_admin_object_actions.decorators import object_action
 
@@ -110,7 +110,8 @@ class QuestionnaireAdmin(ObjectActionsMixin, admin.ModelAdmin):
 
         self.message_user(
             request,
-            f"Questionnaire was successfully duplicated from {obj}. Do not forget to update the availability deadlines!",
+            f"Questionnaire was successfully duplicated from {obj}. "
+            f"Do not forget to update the availability deadlines!",
             messages.SUCCESS,
         )
         return redirect("admin:questionnaires_questionnaire_change", new_questionnaire.pk)
