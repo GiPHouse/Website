@@ -22,7 +22,8 @@ RUN apt-get update && \
     mkdir --parents /giphouse/static/ && \
     chmod +x /usr/local/bin/entrypoint.sh && \
     \
-    curl -sSL https://install.python-poetry.org | python && \
+    curl -sSL https://install.python-poetry.org | python - && \
+    export PATH="/root/.local/bin:$PATH" && \
     poetry config --no-interaction --no-ansi virtualenvs.create false && \
     poetry install --no-interaction --no-ansi --no-dev --extras "production"
 
