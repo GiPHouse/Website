@@ -7,8 +7,9 @@
     {% if not projects %}
         <h5>No projects found.</h5>
     {% else %}
-        {% for project in projects %}
-            <div class="" id={{ project.id }}>
+        <div class="row">
+            {% for project in projects %}
+            <div class="col-12 col-md-6" id={{ project.id }}>
                 <div class="card my-4">
                     {% if project.client.logo %}<img class="project-logo mt-2 mx-2" src="{{ project.client.logo.url }}" alt="logo {{ project.client.name }}">{% endif %}
                     <div class="card-body">
