@@ -222,8 +222,8 @@ class QuestionnaireTest(TestCase):
 
     def test_duplicate_questionnaires(self):
         response = self.client.post(
-            reverse("admin:questionnaires_questionnaire_changelist"),
-            {ACTION_CHECKBOX_NAME: [self.active_questions.pk], "action": "duplicate_questionnaires", "index": 0},
+            reverse("admin:questionnaires_questionnaire_change", kwargs={"object_id": self.active_questions.id}),
+            {"_duplicate": True},
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
@@ -241,12 +241,8 @@ class QuestionnaireTest(TestCase):
 
     def test_download_emails(self):
         response = self.client.post(
-            reverse("admin:questionnaires_questionnaire_changelist"),
-            {
-                ACTION_CHECKBOX_NAME: [self.active_questions.pk],
-                "action": "download_emails_for_employees_without_submission",
-                "index": 0,
-            },
+            reverse("admin:questionnaires_questionnaire_change", kwargs={"object_id": self.active_questions.id}),
+            {"_download_emails_for_employees_without_submission": True},
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
