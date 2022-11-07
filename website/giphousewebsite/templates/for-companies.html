@@ -1,55 +1,96 @@
 {% extends 'base.html' %}
 {% block title %}For Companies - {{ block.super }}{% endblock %}
 {% block content %}
-    <h3>I would like to run a project with GiPHouse</h3>
+    <h3>Running a project at GiPHouse</h3>
+    <p>GiPHouse is a unique student-run software development company linked to two courses at the Radboud University’s Computing Science and Information Sciences programmes. During the spring semester, students from both bachelor and master’s programmes get their first experience working on a software development project for a 'real' customer, and meanwhile learn technical and soft skills (collaboration in teams, agile principles, etc).</p>
+    <p>We're always looking for new potential clients who want to run a project at GiPHouse. In the past, all different kinds of project have run at GiPHouse, from all kinds of different clients: from small start-ups, to large (inter)national organizations.</p>
+    <p>For most organizations, this is a unique opportunity to get a group of enthusiastic students to work on a project for low cost, for which the organization does not have the time to invest in too much. From our experience, projects that involve developing prototypes, proof of concepts or simple tools, are most successful.</p>
+    <div class="row">
+        <p>Here are some examples of projects that have run at GiPHouse in the past:</p>
+        <div class="col-12 col-md-6">
+            <ul>
+                <li><strong>NS Engineer app</strong>: creating a proof-of-concept self-service app for NS maintenance engineers to remotely send commands to gates at train stations.</li>
+                <li><strong>RU WeblectureControl</strong>: development of a unified central control system for a large variety of internet-connected AV control systems.</li>
+                <li><strong>Thirona Performance Dashboard</strong>: building a dashboard for statistics from image analysis software pipelines.</li>
+            </ul>
+        </div>
+        <div class="col-12 col-md-6">
+            <ul>
+                <li><strong>InfoSupport Deppy</strong>: further development of a tool that provides insights into dependencies of a software project.</li>
+                <li><strong>Gears2VA</strong>: building a prototype of voice assistant implementation in an information system.</li>
+            </ul>
+        </div>
+    </div>
+    <hr class="my-5">
+    <div class="row">
+        <h3>I would like to run a project with GiPHouse</h3>
+        <p>Our projects are carried out during the second semester (usually around February - June). During the first semester (September - December) the GiPHouse management will look for suitable projects for the students to work on. They can be contacted on <a href="mailto:sales@giphouse.nl">sales@giphouse.nl</a>. During this period it's possible to contact us to see whether there is room for your project(s). In the first contact, we will check with you whether the project is suitable for the course.</p>
+        <div class="col-12 col-lg-6">
+            <h5>Project description</h5>
+            <p>If your project is suitable, we will ask you to write a project description. This description will be used by students to express their preference for certain projects. This description should contain the following (please also check the example project description):</p>
+            <ul>
+                <li>About one paragraph about the client (company), what is it that you do?</li>
+                <li>Information on the project, what is the project about? What is the purpose of the project?</li>
+                <li>Necessary skills, what programming language or frameworks will be used? (optional)</li>
+                <li>Contact information, who are you? How can the project group reach you?</li>
+            </ul>
+            <p>After an agreement is reached on the project description, the contracts can be signed and the project is ready for the spring semester.</p>
 
-    <p>In order to have our students work on your project there some steps have to be taken.</p>
-	<p>Our projects are carried out during the second semester (please check <a href="https://www.ru.nl/english/news-agenda/agenda/academic-calendar/"> the website of the university for the academic calendar</a>). During the first semester a student assistants will look for suitable projects for the students to work on, they can be contacted on directors [AT] giphouse.nl. During this period it's possible to contact the student assistant to see whether there is room for your project(s).</p>
-	<p>In the first contact the student assistant will check with you whether the project is suitable for the course. If this is the case, we expect a project description from you. This description can then be used for students to express preference for certain projects. This description should contain the following (an example project description is provided below):
-	<ul>
-		<li>About one paragraph about the client (company), what is it that you do?</li>
-		<li>Information on the project, what is the project about? What is the purpose of the project?</li>
-		<li>Necessary skills, what programming language will be used? (Optional)</li>
-		<li>Contact information, who are you? How can the project group reach you?</li>
-	</ul>
-	<p>After an agreement is reached on the project description, the contracts can be signed and the project is ready for the spring semester.</p>
+            <h5>Costs</h5>
+            <p>Running a project within GiPHouse (spring semester) is possible for only &euro;350,-. This is a fixed price and the money will mainly be used for project-related costs like development tools and servers, printing, travelling and administrative costs. Note that this money is not used to pay students for their work: they get a reward for their work in the form of study credits.</p>
 
-    <h4>Example project description</h4>
+            <h5>Intellectual property and non-disclosure</h5>
+            <p>The intellectual property of the project is always owned by the client, and not by GiPHouse or the students working on it.</p>
+            <p>For educational purposes, students are expected to present their progress to the teachers to the other students of the courses. We also need to keep a copy of the students work. This means that it is not possible to enforce a non-disclosure agreement that would not allow this to happen. Moreover, we cannot enforce our students to sign a non-disclosure agreement when working on your project. If your project really requires an NDA, the exact details need to be discussed upfront. In our experience however, this has never been a deal-breaker and we've always found a solution that is satisfactory for all parties.</p>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card text-bg-light mb-3">
+              <div class="card-header">
+                  <h4><em>Example project description:</em><br>GiPHouse GSuite+GitHub sync</h4>
+              </div>
+              <div class="card-body">
+                <h5 class="card-title">GiPHouse</h5>
+                <p class="card-text">GiPHouse is a virtual software company completely run by students. For more than 25 years now, GiPHouse has provided a platform in which real projects for real companies can be created. Furthermore, it has been a learning platform for students who want to get real life software development experience.  </p>
 
-    <h5>GiPHouse</h5>
-    <p>GiPHouse is a virtual software company completely run by students. For more than 25 years now, GiPHouse has provided a platform in which real projects for real companies can be created. Furthermore, it has been a learning platform for students who want to get real life software development experience.  </p>
+                <h5 class="card-title">The project</h5>
+                <p class="card-text">At the moment, GiPHouse uses several different systems (e.g. G Suite and Github) to manage and monitor its projects and administration. The goal of this project is to create a more efficient method to administer the projects and student data. At this moment we have a system running on <a href="https://giphouse.nl">giphouse.nl</a> but we still have to do a lot of manual work in other systems. We would like to automate as many of those tasks as possible.</p>
+                <p class="card-text">With the registration of students we already gain a lot of information of users (e.g. Github accounts, mail addresses). Right now we have to manually create repositories for the teams and add every user manually, we would like to do this automatically once we have everyone divided in teams. The same goes for functionalities of G Suite that we use. Depending on how long this takes, we would also like to look into ways to fairly divide the students into teams using our system.</p>
+                <p class="card-text">In this project there will be a big focus on code quality. At the moment, the website has a high code quality and if we integrate this project into our live environment we seek the same level of quality. You can take a look into the current website here: <a href="https://github.com/Giphouse/Website">https://github.com/Giphouse/Website</a>.</p>
 
-    <h5>The project</h5>
-    <p>At the moment, GiPHouse uses several different systems (e.g. G Suite and Github) to manage and monitor its projects and administration. The goal of this project is to create a more efficient method to administer the projects and student data. At this moment we have a system running on <a href="https://giphouse.nl">giphouse.nl</a> but we still have to do a lot of manual work in other systems. We would like to automate as many of those tasks as possible.</p>
-    <p>With the registration of students we already gain a lot of information of users (e.g. Github accounts, mail addresses). Right now we have to manually create repositories for the teams and add every user manually, we would like to do this automatically once we have everyone divided in teams. The same goes for functionalities of G Suite that we use. Depending on how long this takes, we would also like to look into ways to fairly divide the students into teams using our system.</p>
-    <p>In this project there will be a big focus on code quality. At the moment, the website has a high code quality and if we integrate this project into our live environment we seek the same level of quality.You can take a look into the current website here: github.com/Giphouse/Website.</p>
+                <h5 class="card-title">Skills</h5>
+                <p class="card-text">Experience with Django (a popular web framework in Python) is a plus.</p>
 
-    <h5>Skills</h5>
-    <p>Experience with Django (a popular web framework in Python) is a plus.</p>
+                <h5 class="card-title">Contact Information</h5>
+                <p class="card-text">Name: A B<br>
+                    E-mail: a@b.com<br>
+                    Phone/WhatsApp/Telegram: 06-12345678
+                </p>
+              </div>
+            </div>
+        </div>
+    </div>
 
-    <h5>Contact information</h5>
-    <p>Name: A B</p>
-    <p>E-mail: a@b.com </p>
-    <p>Phone/WhatsApp/Telegram: 06-12345678</p>
+    <hr class="my-5">
 
     <h3>While the project is running</h3>
-	<p> There are some things that you should be aware of when you would like to have a project with GiPHouse, these will be explained below. If you have any questions feel free to contact us (directors [AT] giphouse.nl). Please make sure you have read the bullets below.</p>
+    <p>There are some things that you should be aware of when you would like to have a project with GiPHouse, these will be explained below. If you have any questions feel free to contact us (<a href="mailto:sales@giphouse.nl">sales@giphouse.nl</a>). Please make sure you have read the bullets below.</p>
 
-    <ul>
-        <li>We expect you to be available at the start of the project for an initial meeting, the student assistant you had contact with at the start will notify when this is. During the project we expect you to be available for the team. There is not a set window for this, but you are expected to be available for questions/discussion at least once every two weeks. The exact frequency and moments for this can be discussed with the team of students.</li>
-        <li>While the students are expected to deliver an end product that you are satisfied with, they also have to work on several aspects of software development in order to be able to pass the course. This means that students still have to work on aspects that may seem superfluous like tests, making sure the software is maintainable, and documentation.</li>
-	    <li>The students are also expected to present their progress to the teachers of the course and to other students of the courses. This means that it is not possible to enforce an NDA that would not allow this to happen. Of course the content of these presentations can be discussed with the team to ensure that no confidential information is presented.</li>
-	    <li>GiPHouse will provide students with their development environment. This means that students have GitHub services and AWS servers available to them to make sure they can properly work on their product. If there are any issues, for example there was a security vulnerability and the server was corrupted with a Bitcoin miner, the server may be shut down temporarily. This leads to difficulties with development, so please make sure your product is secure if you share anything with your team.</li>
-        <li>GiPHouse is working with students and not with paid professionals. This means that we cannot guarantee that every project will be completely up to par with the customers' wishes. By emphasising good communication between students and the customers, we try to give the projects a successful conclusion. We know from experience that most projects are finished or mostly finished and customers are predominantly satisfied with us.</li>
-	    <li>While nearly every project is considered a great success by our clients, it's always possible that something is not going the right way. If there are any problems along the way (e.g. you feel that the final product will not be satisfactory), please contact the student assistant as soon as possible.</li>
-    </ul>
-
-    <h4>Finalizing the project</h4>
-    <ul>
-        <li> At the end of the project we have some questions that we hope you can answer. These questions help the teachers with the gradings of the students. Topics that are covered are the quality of the product, your satisfaction with the product and the way of working, and questions on you collaboration.</li>
-        <li> The students are expected to reach an agreement with you on how the product should be handed over to you. We urge you to think about this in advance to ensure you can actually use the product after the team is done working on it.</li>
-</ul>
-
-    <h3>Costs</h3>
-    <p>Running a project within GiPHouse (spring semester) is possible for only &euro;350,-. This is a fixed price and the money will mainly be used for project-related costs like printing, travelling and administrative costs. We also need to occasionally upgrade or buy new hardware. Note that this money is not used to pay students for their work: they get a reward for their work in the form of credits.</p>
+    <div class="row">
+        <div class="col-12 col-md-6">
+            <ul>
+                <li>We expect you to be available at the start of the project for an initial kick-off meeting. We will let you know when this will be.</li>
+                <li>During the project we expect you to be available for the team. There is not a set window for this, but you are expected to be available for questions/discussion at least once every two weeks. The exact frequency and moments for this can be discussed with the team of students.</li>
+                <li>At the end of the project we have some questions that we hope you can answer. These questions help the teachers with the grading of the students. Topics that are covered are the quality of the product, your satisfaction with the product and the way of working, communication, and questions on your collaboration.</li>
+                <li>The students are expected to reach an agreement with you on how the product should be handed over to you. We urge you to think about this in advance to ensure you can actually use the product after the team is done working on it. Note that after the project is over, GiPHouse or the students cannot deliver any support anymore.</li>
+                <li>GiPHouse will provide students with their development environment. This means that students have GitHub services and AWS servers available to them to make sure they can properly work on their product. In case your project requires a team to run an existing product on these services, it is important that this product is stable and secure. It is also possible that you provide this infrastructure yourself.</li>
+            </ul>
+        </div>
+        <div class="col-12 col-md-6">
+            <ul>
+                <li>While the students are expected to deliver an end product that you are satisfied with, they also have to work on several aspects of software development in order to be able to pass the course. This means that students still have to work on aspects that may seem superfluous, like tests, maintainability, and documentation.</li>
+                <li>GiPHouse is working with students and not with paid professionals. This means that we cannot guarantee that every project will be completely up to par with the customers' wishes. By emphasising good communication between students and the customers, we try to give the projects a successful conclusion. We know from experience that most projects are finished or mostly finished and customers are predominantly satisfied with us.</li>
+                <li>While nearly every project is considered a great success by our clients, it's always possible that something is not going the right way. If there are any problems along the way (e.g. you feel that the final product will not be satisfactory), please contact the management as soon as possible.</li>
+            </ul>
+        </div>
+    </div>
 {% endblock %}
