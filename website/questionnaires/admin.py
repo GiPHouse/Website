@@ -10,7 +10,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Avg
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 
 from courses.models import Semester
 
@@ -149,7 +149,7 @@ class SubmittedSubmissionsFilter(SimpleListFilter):
         }
         for lookup, title in self.lookup_choices:
             yield {
-                "selected": self.value() == force_text(lookup),
+                "selected": self.value() == force_str(lookup),
                 "query_string": changelist.get_query_string({self.parameter_name: lookup}, []),
                 "display": title,
             }
