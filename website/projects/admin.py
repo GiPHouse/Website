@@ -95,6 +95,8 @@ class ProjectAdmin(admin.ModelAdmin):
     search_fields = ("name",)
     readonly_fields = ("github_team_id",)
 
+    prepopulated_fields = {"slug": ("name",)}
+
     def is_archived(self, instance):
         """Return the archived status of a Project instance (required to display property as check mark)."""
         return instance.is_archived != Repository.Archived.NOT_ARCHIVED

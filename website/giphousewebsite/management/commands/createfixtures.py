@@ -171,7 +171,7 @@ class Command(BaseCommand):
             suffix = "" if i == 0 else f"-{i}"
             archived = i % 3
             Repository.objects.create(
-                name=f"{slugify(project.name)}-{semester.get_season_display()}-{semester.year}{suffix}",
+                name=f"{project.slug}-{semester.get_season_display()}-{semester.year}{suffix}",
                 project=project,
                 private=True if i == 0 else random.choice([True, False]),
                 is_archived=archived,
