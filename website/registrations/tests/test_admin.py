@@ -155,7 +155,7 @@ class RegistrationAdminTest(TestCase):
                 '"First name","Last name","Student number","GitHub username",'
                 '"Course","1st project preference","2nd project preference","3rd project preference",'
                 '"1st partner preference","2nd partner preference","3rd partner preference",'
-                '"Experience","Non-dutch","Available during scheduled timeslot","Physical attendance",'
+                '"Experience","Non-dutch","Available during scheduled timeslot","Wants to sign an NDA","Physical attendance",'
                 '"Registration Comments"'
             ),
         )
@@ -176,6 +176,7 @@ class RegistrationAdminTest(TestCase):
                 f'"{self.registration.experience}",'
                 f'"{self.registration.is_international}",'
                 f'"{self.registration.available_during_scheduled_timeslot}",'
+                f'"{self.registration.wants_to_sign_nda}",'
                 f'"{self.registration.attendance}",'
                 f'"{self.registration.comments}"'
             ),
