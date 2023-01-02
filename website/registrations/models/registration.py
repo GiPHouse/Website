@@ -59,6 +59,7 @@ class Registration(models.Model):
     experience = models.PositiveSmallIntegerField(choices=EXPERIENCE_CHOICES)
     is_international = models.BooleanField(default=False)
     available_during_scheduled_timeslot = models.BooleanField(default=True)
+    wants_to_sign_nda = models.BooleanField(default=False)
     attendance = models.PositiveSmallIntegerField(choices=ATTENDANCE_CHOICES, default=ATTENDANCE_OFFLINE)
     comments = models.TextField(null=True, blank=True)
 

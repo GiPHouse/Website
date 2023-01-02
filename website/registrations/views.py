@@ -106,6 +106,7 @@ class Step2View(FormView):
                 comments=form.cleaned_data["comments"],
                 is_international=form.cleaned_data["international"],
                 available_during_scheduled_timeslot=form.cleaned_data["available_during_scheduled_timeslot"],
+                wants_to_sign_nda=form.cleaned_data["wants_to_sign_nda"],
                 attendance=form.cleaned_data["attendance"],
             )
 
