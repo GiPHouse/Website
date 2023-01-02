@@ -56,9 +56,10 @@ class MemoryCache(Cache):
 memory_cache = MemoryCache()
 
 
-def chunks(l, n):
-    for i in range(0, len(l), n):
-        yield l[i : i + n]
+def chunks(list, chunk_size):
+    """Yield successive n-sized chunks from list."""
+    for i in range(0, len(list), chunk_size):
+        yield list[i : i + chunk_size]
 
 
 class GSuiteSyncService:
