@@ -1,10 +1,11 @@
 import json
-from freezegun import freeze_time
 
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
+
+from freezegun import freeze_time
 
 from registrations.models import Employee
 
