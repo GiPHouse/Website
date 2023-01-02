@@ -2,7 +2,6 @@ from django.core import validators
 from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
-from django.utils.text import slugify
 
 from courses.models import Semester
 

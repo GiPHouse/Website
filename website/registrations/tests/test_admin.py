@@ -32,8 +32,12 @@ class RegistrationAdminTest(TestCase):
         cls.semester.registration_end = timezone.now() + timezone.timedelta(days=30)
         cls.semester.save()
 
-        cls.project = Project.objects.create(name="GiPHouse1234", description="Test", semester=cls.semester)
-        cls.project2 = Project.objects.create(name="4321aProject", description="Test", semester=cls.semester)
+        cls.project = Project.objects.create(
+            name="GiPHouse1234", slug="giphouse1234", description="Test", semester=cls.semester
+        )
+        cls.project2 = Project.objects.create(
+            name="4321aProject", slug="4321aproject", description="Test", semester=cls.semester
+        )
 
         cls.manager = User.objects.create(
             github_id=1, github_username="manager", first_name="Man", last_name="Ager", student_number="s1234567"

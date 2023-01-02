@@ -6,7 +6,6 @@ from django.core.management import BaseCommand
 from django.db import IntegrityError
 from django.db.models import Count
 from django.utils import timezone
-from django.utils.text import slugify
 
 from faker import Faker
 from faker.providers import address, company, date_time, internet, lorem, person
