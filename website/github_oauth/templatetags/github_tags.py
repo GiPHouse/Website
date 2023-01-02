@@ -10,7 +10,7 @@ register = template.Library()
 
 
 @register.simple_tag(takes_context=True)
-def url_github_callback(context, callback_action):
+def url_github_callback(context, callback_action, next_url=None):
     """
     Tag used to load GitHub login/authorization url into templates.
 
@@ -23,5 +23,5 @@ def url_github_callback(context, callback_action):
     """
     request = context["request"]
     callback = request.build_absolute_uri(reverse(f"github_oauth:{callback_action}"))
-    callback = f"{callback}?next={request.path}"
+    callback = f"{callback}?next={next_url or request.path}"
     return f"{URL_GITHUB_LOGIN}&redirect_uri={quote(callback)}"

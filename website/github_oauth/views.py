@@ -37,7 +37,7 @@ class BaseGithubView(View):
 
         if request.user.is_authenticated:
             messages.warning(request, "You are already logged in", extra_tags="success")
-            return redirect("home")
+            return redirect(self._get_redirect_url(request))
 
         return self.get(request, code)
 
@@ -68,6 +68,9 @@ class GithubLoginView(BaseGithubView):
             login(request, user)
             messages.success(request, "Login Successful", extra_tags="success")
             return redirect(self._get_redirect_url(request, default_url=self.redirect_url_failure))
+        elif Semester.objects.get_first_semester_with_open_registration():
+            messages.warning(request, "Redirecting to course registration", extra_tags="danger")
+            return redirect(reverse_lazy("registrations:step1"))
 
         messages.warning(request, "Login Failed", extra_tags="danger")
         return redirect(self._get_redirect_url(request, default_url=self.redirect_url_failure))
