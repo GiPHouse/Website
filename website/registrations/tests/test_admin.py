@@ -155,8 +155,8 @@ class RegistrationAdminTest(TestCase):
                 '"First name","Last name","Student number","GitHub username",'
                 '"Course","1st project preference","2nd project preference","3rd project preference",'
                 '"1st partner preference","2nd partner preference","3rd partner preference",'
-                '"Experience","Non-dutch","Available during scheduled timeslot","Wants to sign an NDA","Physical attendance",'
-                '"Registration Comments"'
+                '"Experience","Non-dutch","Available during scheduled timeslot","Wants to sign an NDA",'
+                '"Physical attendance","Registration Comments"'
             ),
         )
         self.assertContains(
