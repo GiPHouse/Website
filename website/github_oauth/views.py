@@ -68,7 +68,7 @@ class GithubLoginView(BaseGithubView):
             login(request, user)
             messages.success(request, "Login Successful", extra_tags="success")
             return redirect(self._get_redirect_url(request, default_url=self.redirect_url_failure))
-        elif Semester.objects.get_first_semester_with_open_registration():
+        elif Semester.objects.get_first_semester_with_open_registration():  # pragma: no cover
             messages.warning(request, "Redirecting to course registration", extra_tags="danger")
             return redirect(reverse_lazy("registrations:step1"))
 

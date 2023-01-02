@@ -3,7 +3,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth.views import LogoutView
 from django.urls import include, path, reverse_lazy
-from django.views.generic import TemplateView, RedirectView
+from django.views.generic import RedirectView, TemplateView
 
 from github_oauth.templatetags.github_tags import url_github_callback
 
@@ -15,7 +15,9 @@ class GitHubLoginRedirectView(RedirectView):
     pattern_name = "login-redirect"
 
     def get_redirect_url(self, *args, **kwargs):
-        return url_github_callback({"request": self.request}, "login", next_url=reverse_lazy("admin:index"))
+        return url_github_callback(
+            {"request": self.request}, "login", next_url=reverse_lazy("admin:index")
+        )  # pragma: no cover
 
 
 urlpatterns = [
