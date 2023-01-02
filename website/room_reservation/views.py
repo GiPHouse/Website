@@ -33,9 +33,9 @@ class BaseReservationView(View):
         end_time = end_time.astimezone(timezone.get_current_timezone())
 
         if start_time.date() < timezone.now().date():
-            return False, "Reservations cannot be made in the past."
+            return False, "Reservation cannot be made in the past."
 
-        if start_time.date() > timezone.now() + self.time_window_future:
+        if start_time.date() > timezone.now().date() + self.time_window_future:
             return False, "Reservation too far in the future."
 
         if end_time.date() - start_time.date() >= timezone.timedelta(days=1):

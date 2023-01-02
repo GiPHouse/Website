@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
+from freezegun import freeze_time
 
 from registrations.models import Employee
 
@@ -12,6 +13,7 @@ from room_reservation.models import Reservation, Room
 User: Employee = get_user_model()
 
 
+@freeze_time("2019-03-01")
 class ReservationTest(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -125,6 +127,30 @@ class ReservationTest(TestCase):
             content_type="application/json",
         )
         self.assertContains(response, "Rooms cannot be reserved in the weekends")
+
+    def test_too_far_in_future(self):
+        response = self.client.post(
+            reverse("room_reservation:create_reservation"),
+            {
+                "room": self.room.pk,
+                "start_time": timezone.datetime(2020, 3, 3, 13, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "end_time": timezone.datetime(2020, 3, 3, 14, 0, 0, tzinfo=timezone.get_current_timezone()),
+            },
+            content_type="application/json",
+        )
+        self.assertContains(response, "Reservation too far in the future")
+
+    def test_in_the_past(self):
+        response = self.client.post(
+            reverse("room_reservation:create_reservation"),
+            {
+                "room": self.room.pk,
+                "start_time": timezone.datetime(2019, 2, 3, 13, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "end_time": timezone.datetime(2019, 2, 3, 14, 0, 0, tzinfo=timezone.get_current_timezone()),
+            },
+            content_type="application/json",
+        )
+        self.assertContains(response, "Reservation cannot be made in the past")
 
     def test_double_reservation(self):
         self.client.post(
