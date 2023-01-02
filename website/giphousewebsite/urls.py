@@ -9,12 +9,14 @@ from github_oauth.templatetags.github_tags import url_github_callback
 
 
 class GitHubLoginRedirectView(RedirectView):
+    """Redirect to GitHub login page."""
 
     permanent = True
     query_string = True
     pattern_name = "login-redirect"
 
     def get_redirect_url(self, *args, **kwargs):
+        """Return the redirect url for GitHub login."""
         return url_github_callback(
             {"request": self.request}, "login", next_url=reverse_lazy("admin:index")
         )  # pragma: no cover
