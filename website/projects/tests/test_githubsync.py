@@ -152,6 +152,7 @@ class GitHubSyncTest(TestCase):
         self.talker = MagicMock()
         self.github_user = MagicMock()
         self.github_user.login = self.employee1.github_username
+        self.github_user.id = self.employee1.github_id
         self.github_team = MagicMock()
         self.github_team.name = self.project1.name
         self.github_team.description = self.project1.generate_team_description()

@@ -8,6 +8,7 @@ from django.urls import reverse
 from github import Github, GithubException, GithubIntegration, UnknownObjectException
 
 from projects.models import ProjectToBeDeleted, Repository, RepositoryToBeDeleted
+
 from registrations.models import Employee
 
 from tasks.models import Task
@@ -220,13 +221,13 @@ class GitHubSync:
             try:
                 employee = Employee.objects.get(github_username=github_user.login, github_id=github_user.id)
             except Employee.DoesNotExist:
-                self.warning(
-                    f"Employee {github_user.name} is not registered, but is in the GitHub team. Did not remove from the organisation."
-                )  # pragma: no cover
-                continue
+                employee = None
 
-            if self.github.get_role_of_user(github_user) != "admin" and not employee.registration_set.filter(
-                project__isnull=False, project__repository__is_archived=Repository.Archived.NOT_ARCHIVED
+            if self.github.get_role_of_user(github_user) != "admin" and (
+                employee is None
+                or not employee.registration_set.exclude(project_id=project.id).filter(
+                    project__isnull=False, project__repository__is_archived=Repository.Archived.NOT_ARCHIVED
+                )
             ):  # Prevent removing organization owners and employees that are still active in a different team
                 try:
                     self.github.remove_user(github_user)
