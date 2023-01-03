@@ -101,8 +101,8 @@ class Step2Form(forms.Form):
         initial=True,
     )
 
-    wants_to_sign_nda = forms.BooleanField(
-        label="I agree to sign an NDA if applicable",
+    has_problems_with_signing_an_nda = forms.BooleanField(
+        label="I have problems with signing an NDA",
         required=False,
         initial=False,
     )
