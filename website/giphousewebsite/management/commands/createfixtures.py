@@ -144,25 +144,28 @@ class Command(BaseCommand):
             .first()
         )
         repo_count = semester.project_set.count() % 3 + 1
+        name = (
+            fake.word().capitalize()
+            + " "
+            + random.choice(
+                [
+                    "Creator",
+                    "Builder",
+                    "To " + fake.file_extension(),
+                    "Reader",
+                    "Website",
+                    "App",
+                    "Solution",
+                    "In The Cloud",
+                    "As A Service",
+                    "Using Blockchain",
+                ]
+            )
+        )
+        slug = slugify(name)
         project = Project.objects.create(
-            name=(
-                fake.word().capitalize()
-                + " "
-                + random.choice(
-                    [
-                        "Creator",
-                        "Builder",
-                        "To " + fake.file_extension(),
-                        "Reader",
-                        "Website",
-                        "App",
-                        "Solution",
-                        "In The Cloud",
-                        "As A Service",
-                        "Using Blockchain",
-                    ]
-                )
-            ),
+            name=name,
+            slug=slug,
             semester=semester,
             description=" ".join(fake.paragraphs(nb=3)),
             client=client,
@@ -171,7 +174,7 @@ class Command(BaseCommand):
             suffix = "" if i == 0 else f"-{i}"
             archived = i % 3
             Repository.objects.create(
-                name=f"{slugify(project.name)}-{semester.get_season_display()}-{semester.year}{suffix}",
+                name=f"{project.slug}-{semester.get_season_display()}-{semester.year}{suffix}",
                 project=project,
                 private=True if i == 0 else random.choice([True, False]),
                 is_archived=archived,

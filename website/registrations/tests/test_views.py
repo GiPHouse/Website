@@ -108,15 +108,15 @@ class Step2Test(TestCase):
         cls.experience = Registration.EXPERIENCE_BEGINNER
 
         cls.project_preference1 = Project.objects.create(
-            semester=cls.semester, name="project1", description="Test Project 1"
+            semester=cls.semester, name="project1", slug="project1", description="Test Project 1"
         )
 
         cls.project_preference2 = Project.objects.create(
-            semester=cls.semester, name="project2", description="Test Project 2"
+            semester=cls.semester, name="project2", slug="project2", description="Test Project 2"
         )
 
         cls.project_preference3 = Project.objects.create(
-            semester=cls.semester, name="project3", description="Test Project 3"
+            semester=cls.semester, name="project3", slug="project3", description="Test Project 3"
         )
 
         cls.project_partner_preference1 = "Piet Janssen"
