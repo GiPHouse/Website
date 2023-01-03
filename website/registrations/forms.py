@@ -101,6 +101,12 @@ class Step2Form(forms.Form):
         initial=True,
     )
 
+    has_problems_with_signing_an_nda = forms.BooleanField(
+        label="I have problems with signing an NDA",
+        required=False,
+        initial=False,
+    )
+
     attendance = forms.ChoiceField(
         label="Physical attendance",
         help_text="In this course, it is highly recommended to work "
