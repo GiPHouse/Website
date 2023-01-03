@@ -21,6 +21,9 @@ def url_github_callback(context, callback_action):
         The Github OAuth callback view can use the 'next' parameter to redirect the user to the same page.
     :return: url to request GitHub OAuth authentication with an optional redirect.
     """
+    if "request" not in context:
+        return ""  # pragma: no cover
+
     request = context["request"]
     callback = request.build_absolute_uri(reverse(f"github_oauth:{callback_action}"))
     callback = f"{callback}?next={request.path}"
