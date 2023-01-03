@@ -1,5 +1,4 @@
 import json
-from datetime import timedelta
 from json import JSONDecodeError
 
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -17,6 +16,9 @@ from room_reservation.models import Reservation, Room, in_special_availability
 class BaseReservationView(View):
     """Base class for reservation API endpoints."""
 
+    time_window_future = timezone.timedelta(days=14)
+    time_window_past = timezone.timedelta(days=30)
+
     def validate(self, room, start_time, end_time, pk=None):
         """
         Validate the input for the reservation.
@@ -29,6 +31,12 @@ class BaseReservationView(View):
         """
         start_time = start_time.astimezone(timezone.get_current_timezone())
         end_time = end_time.astimezone(timezone.get_current_timezone())
+
+        if start_time.date() < timezone.now().date():
+            return False, "Reservation cannot be made in the past."
+
+        if start_time.date() > timezone.now().date() + self.time_window_future:
+            return False, "Reservation too far in the future."
 
         if end_time.date() - start_time.date() >= timezone.timedelta(days=1):
             return False, "Reservation too long. Please shorten your reservation"
@@ -125,8 +133,8 @@ class ShowCalendarView(TemplateView, BaseReservationView):
                     "editable": self.can_edit(reservation),
                 }
                 for reservation in Reservation.objects.filter(
-                    start_time__date__gte=timezone.now() - timedelta(days=60),
-                    start_time__date__lt=timezone.now() + timedelta(days=60),
+                    start_time__date__gte=timezone.now() - self.time_window_past,
+                    start_time__date__lt=timezone.now() + self.time_window_future,
                 )
             ]
         )
