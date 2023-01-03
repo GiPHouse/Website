@@ -97,6 +97,7 @@ class UserAdmin(admin.ModelAdmin):
         "is_staff",
         "registration__is_international",
         "registration__available_during_scheduled_timeslot",
+        "registration__has_problems_with_signing_an_nda",
         "registration__attendance",
     )
 
@@ -151,6 +152,7 @@ class UserAdmin(admin.ModelAdmin):
                 "Experience",
                 "Non-dutch",
                 "Available during scheduled timeslot",
+                "Has problems with signing an NDA",
                 "Physical attendance",
                 "Registration Comments",
             ]
@@ -173,6 +175,7 @@ class UserAdmin(admin.ModelAdmin):
                     registration.experience,
                     registration.is_international,
                     registration.available_during_scheduled_timeslot,
+                    registration.has_problems_with_signing_an_nda,
                     registration.attendance,
                     registration.comments,
                 ]

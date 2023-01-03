@@ -54,6 +54,13 @@ class Step2Form(forms.Form):
         label="What is your programming experience?",
         choices=Registration.EXPERIENCE_CHOICES,
         initial=Registration.EXPERIENCE_BEGINNER,
+        help_text="<strong>Beginner</strong>: I passed the programming "
+        "courses from my curriculum but it was not easy.<br>"
+        "<strong>Intermediate</strong>: the programming courses in "
+        "the curriculum were easy for me and I have experience "
+        "with some small (hobby) projects.<br>"
+        "<strong>Advanced</strong>: I have a lot of experience with "
+        "programming.",
     )
 
     project1 = forms.ModelChoiceField(label="First project preference", queryset=None, required=False)
@@ -92,6 +99,12 @@ class Step2Form(forms.Form):
         label="I am available during the scheduled timeslot for the course",
         required=False,
         initial=True,
+    )
+
+    has_problems_with_signing_an_nda = forms.BooleanField(
+        label="I have problems with signing an NDA",
+        required=False,
+        initial=False,
     )
 
     attendance = forms.ChoiceField(

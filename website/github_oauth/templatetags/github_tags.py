@@ -10,7 +10,7 @@ register = template.Library()
 
 
 @register.simple_tag(takes_context=True)
-def url_github_callback(context, callback_action):
+def url_github_callback(context, callback_action, next_url=None):
     """
     Tag used to load GitHub login/authorization url into templates.
 
@@ -19,9 +19,13 @@ def url_github_callback(context, callback_action):
         A new url is created based on the callback_action and the current path.
         The current path is added as the 'next' parameter to the redirect_uri.
         The Github OAuth callback view can use the 'next' parameter to redirect the user to the same page.
+    :param next_url: The url to redirect to after successful authentication.
     :return: url to request GitHub OAuth authentication with an optional redirect.
     """
+    if "request" not in context:
+        return ""  # pragma: no cover
+
     request = context["request"]
     callback = request.build_absolute_uri(reverse(f"github_oauth:{callback_action}"))
-    callback = f"{callback}?next={request.path}"
+    callback = f"{callback}?next={next_url or request.path}" if next_url or request.path else callback
     return f"{URL_GITHUB_LOGIN}&redirect_uri={quote(callback)}"
