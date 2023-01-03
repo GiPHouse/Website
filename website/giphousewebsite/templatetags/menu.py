@@ -18,6 +18,9 @@ def render_main_menu(context):
 
     Accounts for logged-in status and locale.
     """
+    if "request" not in context:
+        return {"menu": []}  # pragma: no cover
+
     path = context["request"].path
 
     for item in MAIN_MENU:
@@ -39,4 +42,4 @@ def render_main_menu(context):
         if "visible" not in item or "visible" in item and item["visible"](context.get("request"))
     ]
 
-    return {"menu": menu, "request": context.get("request")}
+    return {"menu": menu, "request": context.get("request", None)}
