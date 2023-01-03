@@ -1,0 +1,4 @@
+Contact: mailto:security@giphouse.nl
+Expires: 2025-12-30T23:00:00.000Z
+Preferred-Languages: en, nl
+Canonical: https://giphouse.nl/.well-known/security.txt
