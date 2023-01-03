@@ -22,6 +22,9 @@ def url_github_callback(context, callback_action, next_url=None):
     :param next_url: The url to redirect to after successful authentication.
     :return: url to request GitHub OAuth authentication with an optional redirect.
     """
+    if "request" not in context:
+        return ""  # pragma: no cover
+
     request = context["request"]
     callback = request.build_absolute_uri(reverse(f"github_oauth:{callback_action}"))
     callback = f"{callback}?next={next_url or request.path}" if next_url or request.path else callback
