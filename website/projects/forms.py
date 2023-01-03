@@ -68,19 +68,6 @@ class ProjectAdminForm(forms.ModelForm):
         return instance
 
 
-class RepositoryInlineFormset(forms.models.BaseInlineFormSet):
-    """Custom formset for projects and their repositories."""
-
-    def clean(self):
-        """Make sure a project has at least one repository."""
-        repositories_left = 0
-        for form in self.forms:
-            if form.cleaned_data and not form.cleaned_data.get("DELETE", False):
-                repositories_left += 1
-        if repositories_left < 1:
-            raise forms.ValidationError("Projects must have at least one repository.")
-
-
 class RepositoryInlineForm(forms.ModelForm):
     """Form for RepositoryInline."""
 

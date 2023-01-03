@@ -12,7 +12,7 @@ from courses.models import Semester
 
 from mailing_lists.models import MailingList
 
-from projects.forms import ProjectAdminForm, RepositoryInlineForm, RepositoryInlineFormset
+from projects.forms import ProjectAdminForm, RepositoryInlineForm
 from projects.githubsync import GitHubSync
 from projects.models import Client, Project, Repository
 
@@ -67,7 +67,6 @@ class RepositoryInline(admin.StackedInline):
     """Inline form for Repository."""
 
     form = RepositoryInlineForm
-    formset = RepositoryInlineFormset
     model = Repository
 
     readonly_fields = ("github_repo_id",)
