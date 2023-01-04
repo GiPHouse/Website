@@ -56,6 +56,12 @@ class MemoryCache(Cache):
 memory_cache = MemoryCache()
 
 
+def chunks(list, chunk_size):
+    """Yield successive n-sized chunks from list."""
+    for i in range(0, len(list), chunk_size):
+        yield list[i : i + chunk_size]
+
+
 class GSuiteSyncService:
     """Services for syncing groups and settings for groups."""
 
@@ -272,12 +278,13 @@ class GSuiteSyncService:
 
         :param group: group data
         """
+        group_key = f"{group.name}@{settings.GSUITE_DOMAIN}"
         try:
             aliases_response = (
                 self.directory_api.groups()
                 .aliases()
                 .list(
-                    groupKey=f"{group.name}@{settings.GSUITE_DOMAIN}",
+                    groupKey=group_key,
                 )
                 .execute()
             )
@@ -288,34 +295,30 @@ class GSuiteSyncService:
         existing_aliases = [a["alias"] for a in aliases_response.get("aliases", [])]
         new_aliases = [f"{a}@{settings.GSUITE_DOMAIN}" for a in group.aliases]
 
-        remove_list = [x for x in existing_aliases if x not in new_aliases]
-        insert_list = [x for x in new_aliases if x not in existing_aliases]
+        remove_list = list(filter(lambda x: x not in new_aliases, existing_aliases))
+        insert_list = list(filter(lambda x: x not in existing_aliases, new_aliases))
 
-        batch = self.directory_api.new_batch_http_request()
-        for remove_alias in remove_list:
-            batch.add(
-                self.directory_api.groups()
-                .aliases()
-                .delete(groupKey=f"{group.name}@{settings.GSUITE_DOMAIN}", alias=remove_alias)
-            )
+        for chunk in chunks(remove_list, 50):
+            batch = self.directory_api.new_batch_http_request()
+            for remove_alias in chunk:
+                batch.add(self.directory_api.groups().aliases().delete(groupKey=group_key, alias=remove_alias))
 
-        try:
-            batch.execute()
-        except HttpError:
-            logger.exception(f"Could not remove an alias for list {group.name}")
+            try:
+                batch.execute()
+            except HttpError:
+                logger.exception(f"Could not remove an alias for list {group.name}")
 
-        batch = self.directory_api.new_batch_http_request()
-        for insert_alias in insert_list:
-            batch.add(
-                self.directory_api.groups()
-                .aliases()
-                .insert(groupKey=f"{group.name}@{settings.GSUITE_DOMAIN}", body={"alias": insert_alias})
-            )
+        for chunk in chunks(insert_list, 50):
+            batch = self.directory_api.new_batch_http_request()
+            for insert_alias in chunk:
+                batch.add(
+                    self.directory_api.groups().aliases().insert(groupKey=group_key, body={"alias": insert_alias})
+                )
 
-        try:
-            batch.execute()
-        except HttpError:
-            logger.exception(f"Could not insert an alias for list {group.name}")
+            try:
+                batch.execute()
+            except HttpError:
+                logger.exception(f"Could not insert an alias for list {group.name}")
 
         logger.info(f"List {group.name} aliases updated")
 
@@ -364,11 +367,12 @@ class GSuiteSyncService:
 
         :param group: group data
         """
+        group_key = f"{group.name}@{settings.GSUITE_DOMAIN}"
         try:
             members_response = (
                 self.directory_api.members()
                 .list(
-                    groupKey=f"{group.name}@{settings.GSUITE_DOMAIN}",
+                    groupKey=group_key,
                 )
                 .execute()
             )
@@ -377,7 +381,7 @@ class GSuiteSyncService:
                 members_response = (
                     self.directory_api.members()
                     .list(
-                        groupKey=f"{group.name}@{settings.GSUITE_DOMAIN}",
+                        groupKey=group_key,
                         pageToken=members_response["nextPageToken"],
                     )
                     .execute()
@@ -391,34 +395,32 @@ class GSuiteSyncService:
             return  # the list does not exist or something else is wrong
         new_members = group.addresses
 
-        remove_list = [x for x in existing_members if x not in new_members]
-        insert_list = [x for x in new_members if x not in existing_members and x not in existing_managers]
+        remove_list = list(filter(lambda x: x not in new_members, existing_members))
+        insert_list = list(filter(lambda x: x not in existing_members and x not in existing_managers, new_members))
 
-        batch = self.directory_api.new_batch_http_request()
-        for remove_member in remove_list:
-            batch.add(
-                self.directory_api.members().delete(
-                    groupKey=f"{group.name}@{settings.GSUITE_DOMAIN}", memberKey=remove_member
+        for chunk in chunks(remove_list, 50):
+            batch = self.directory_api.new_batch_http_request()
+            for remove_member in chunk:
+                batch.add(self.directory_api.members().delete(groupKey=group_key, memberKey=remove_member))
+
+            try:
+                batch.execute()
+            except HttpError:
+                logger.exception(f"Could not remove a list member from {group.name}")
+
+        for chunk in chunks(insert_list, 50):
+            batch = self.directory_api.new_batch_http_request()
+            for insert_member in chunk:
+                batch.add(
+                    self.directory_api.members().insert(
+                        groupKey=group_key, body={"email": insert_member, "role": "MEMBER"}
+                    )
                 )
-            )
 
-        try:
-            batch.execute()
-        except HttpError:
-            logger.exception(f"Could not remove a list member from {group.name}")
-
-        batch = self.directory_api.new_batch_http_request()
-        for insert_member in insert_list:
-            batch.add(
-                self.directory_api.members().insert(
-                    groupKey=f"{group.name}@{settings.GSUITE_DOMAIN}", body={"email": insert_member, "role": "MEMBER"}
-                )
-            )
-
-        try:
-            batch.execute()
-        except HttpError:
-            logger.exception(f"Could not insert a list member in {group.name}")
+            try:
+                batch.execute()
+            except HttpError:
+                logger.exception(f"Could not insert a list member in {group.name}")
 
         logger.info(f"List {group.name} members updated")
 
