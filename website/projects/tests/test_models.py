@@ -15,10 +15,12 @@ class EmployeeQueryTest(TestCase):
     def setUpTestData(cls):
         """Sets up one semester, four projects and three employees"""
         cls.semester = Semester.objects.create(year=2020, season=Semester.SPRING)
-        cls.project1 = Project.objects.create(name="test1", semester=cls.semester)
-        cls.project2 = Project.objects.create(name="test2", semester=cls.semester)
-        cls.project3 = Project.objects.create(name="test3", semester=cls.semester)
-        cls.project4 = Project.objects.create(name="test4", semester=cls.semester, github_team_id=12345678)
+        cls.project1 = Project.objects.create(name="test1", slug="test1", semester=cls.semester)
+        cls.project2 = Project.objects.create(name="test2", slug="test2", semester=cls.semester)
+        cls.project3 = Project.objects.create(name="test3", slug="test3", semester=cls.semester)
+        cls.project4 = Project.objects.create(
+            name="test4", slug="test4", semester=cls.semester, github_team_id=12345678
+        )
         cls.repo1 = Repository.objects.create(name="testrepo1", project=cls.project3)
         cls.repo2 = Repository.objects.create(name="testrepo2", project=cls.project3, github_repo_id=87654321)
         cls.repo3 = Repository.objects.create(name="testrepo3", project=cls.project2)

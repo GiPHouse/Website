@@ -17,7 +17,8 @@ services:
             - '${DEPLOY_DIRECTORY}/nginx/vhost.d/:/etc/nginx/vhost.d/'
             - '${DEPLOY_DIRECTORY}/nginx/dhparam/:/etc/nginx/dhparam/'
             - '${DEPLOY_DIRECTORY}/media/:/giphouse/media/'
-            - '${DEPLOY_DIRECTORY}/static/:/giphouse/static/'
+            - '${DEPLOY_DIRECTORY}/static/:/giphouse/static/:ro'
+            - '${DEPLOY_DIRECTORY}/security.txt/:/giphouse/security.txt:ro'
         environment:
             ENABLE_IPV6: 'true'
 

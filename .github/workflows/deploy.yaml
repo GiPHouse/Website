@@ -76,6 +76,14 @@ jobs:
             mkdir --parents "${DEPLOY_DIRECTORY}/nginx/vhost.d/"
           EOF
 
+      - name: "Set nginx template variables"
+        run: |
+            envsubst < resources/giphouse.nginx.conf > /tmp/out.tmp
+            mv /tmp/out.tmp resources/giphouse.nginx.conf
+
+      - name: "Copy security.txt file"
+        run: "scp -o StrictHostKeyChecking=no resources/security.txt \"${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}:${DEPLOY_DIRECTORY}/security.txt\""
+
       - name: "Upload main nginx config"
         run: "scp -o StrictHostKeyChecking=no resources/giphouse.nginx.conf \"${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}:${DEPLOY_DIRECTORY}/nginx/vhost.d/${DEPLOYMENT_HOST}\""
 

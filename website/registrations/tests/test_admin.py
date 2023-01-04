@@ -32,8 +32,12 @@ class RegistrationAdminTest(TestCase):
         cls.semester.registration_end = timezone.now() + timezone.timedelta(days=30)
         cls.semester.save()
 
-        cls.project = Project.objects.create(name="GiPHouse1234", description="Test", semester=cls.semester)
-        cls.project2 = Project.objects.create(name="4321aProject", description="Test", semester=cls.semester)
+        cls.project = Project.objects.create(
+            name="GiPHouse1234", slug="giphouse1234", description="Test", semester=cls.semester
+        )
+        cls.project2 = Project.objects.create(
+            name="4321aProject", slug="4321aproject", description="Test", semester=cls.semester
+        )
 
         cls.manager = User.objects.create(
             github_id=1, github_username="manager", first_name="Man", last_name="Ager", student_number="s1234567"
@@ -155,8 +159,8 @@ class RegistrationAdminTest(TestCase):
                 '"First name","Last name","Student number","GitHub username",'
                 '"Course","1st project preference","2nd project preference","3rd project preference",'
                 '"1st partner preference","2nd partner preference","3rd partner preference",'
-                '"Experience","Non-dutch","Available during scheduled timeslot","Physical attendance",'
-                '"Registration Comments"'
+                '"Experience","Non-dutch","Available during scheduled timeslot","Has problems with signing an NDA",'
+                '"Physical attendance","Registration Comments"'
             ),
         )
         self.assertContains(
@@ -176,6 +180,7 @@ class RegistrationAdminTest(TestCase):
                 f'"{self.registration.experience}",'
                 f'"{self.registration.is_international}",'
                 f'"{self.registration.available_during_scheduled_timeslot}",'
+                f'"{self.registration.has_problems_with_signing_an_nda}",'
                 f'"{self.registration.attendance}",'
                 f'"{self.registration.comments}"'
             ),

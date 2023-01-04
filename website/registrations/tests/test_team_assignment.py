@@ -49,9 +49,9 @@ class TeamAssignmentTest(TestCase):
             first_name="User9", last_name="Test9", github_id=9, github_username="user9"
         )
 
-        cls.project1 = Project.objects.create(name="Project 1", semester=cls.semester)
-        cls.project2 = Project.objects.create(name="Project 2", semester=cls.semester)
-        cls.project3 = Project.objects.create(name="Project 3", semester=cls.semester)
+        cls.project1 = Project.objects.create(name="Project 1", slug="project1", semester=cls.semester)
+        cls.project2 = Project.objects.create(name="Project 2", slug="project2", semester=cls.semester)
+        cls.project3 = Project.objects.create(name="Project 3", slug="project3", semester=cls.semester)
 
         cls.reg1 = Registration.objects.create(
             user=cls.user1,
