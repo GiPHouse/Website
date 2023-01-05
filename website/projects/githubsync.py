@@ -9,6 +9,8 @@ from github import Github, GithubException, GithubIntegration, UnknownObjectExce
 
 from projects.models import ProjectToBeDeleted, Repository, RepositoryToBeDeleted
 
+from registrations.models import Employee
+
 from tasks.models import Task
 
 
@@ -216,7 +218,17 @@ class GitHubSync:
         github_team = self.github.get_team(project.github_team_id)
 
         for github_user in github_team.get_members():
-            if self.github.get_role_of_user(github_user) != "admin":  # Prevent removing organization owners
+            try:
+                employee = Employee.objects.get(github_username=github_user.login, github_id=github_user.id)
+            except Employee.DoesNotExist:
+                employee = None
+
+            if self.github.get_role_of_user(github_user) != "admin" and (
+                employee is None
+                or not employee.registration_set.exclude(project_id=project.id).filter(
+                    project__isnull=False, project__repository__is_archived=Repository.Archived.NOT_ARCHIVED
+                )
+            ):  # Prevent removing organization owners and employees that are still active in a different team
                 try:
                     self.github.remove_user(github_user)
                     self.users_removed += 1
