@@ -32,8 +32,10 @@ class GetProjectsTest(TestCase):
 
         cls.semester = Semester.objects.create(year=2020, season=Semester.SPRING)
 
-        cls.project = Project.objects.create(name="test", semester=cls.semester)
-        cls.project_archived = Project.objects.create(name="test-archived", semester=cls.semester)
+        cls.project = Project.objects.create(name="test", slug="test", semester=cls.semester)
+        cls.project_archived = Project.objects.create(
+            name="test-archived", slug="test-archived", semester=cls.semester
+        )
 
         cls.manager = User.objects.create(github_id=1, github_username="manager")
         Registration.objects.create(
@@ -105,6 +107,7 @@ class GetProjectsTest(TestCase):
             reverse("admin:projects_project_add"),
             {
                 "name": "Test project",
+                "slug": "test-project",
                 "semester": self.semester.id,
                 "email": "a@a.com",
                 "description": "Test project description",

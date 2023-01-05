@@ -45,8 +45,6 @@ class ProjectAdminForm(forms.ModelForm):
                 registration__project=self.instance,
             )
 
-    email = forms.EmailField(help_text="The email address that is used for the CSV export feature", required=False)
-
     managers = forms.ModelMultipleChoiceField(
         queryset=None, required=False, widget=widgets.FilteredSelectMultiple("Managers", False)
     )
@@ -68,19 +66,6 @@ class ProjectAdminForm(forms.ModelForm):
         instance = super().save()
         self.save_m2m()
         return instance
-
-
-class RepositoryInlineFormset(forms.models.BaseInlineFormSet):
-    """Custom formset for projects and their repositories."""
-
-    def clean(self):
-        """Make sure a project has at least one repository."""
-        repositories_left = 0
-        for form in self.forms:
-            if form.cleaned_data and not form.cleaned_data.get("DELETE", False):
-                repositories_left += 1
-        if repositories_left < 1:
-            raise forms.ValidationError("Projects must have at least one repository.")
 
 
 class RepositoryInlineForm(forms.ModelForm):

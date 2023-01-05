@@ -2,7 +2,6 @@ from django.core import validators
 from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
-from django.utils.text import slugify
 
 from courses.models import Semester
 
@@ -33,9 +32,10 @@ class Project(models.Model):
         """Meta class for Project model."""
 
         ordering = ["semester", "name"]
-        unique_together = [["name", "semester"]]
+        unique_together = [["name", "semester"], ["slug", "semester"]]
 
     name = models.CharField("name", max_length=50)
+    slug = models.SlugField("slug", max_length=50, blank=False, null=False)
 
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
     description = models.TextField()
@@ -58,7 +58,7 @@ class Project(models.Model):
 
     def generate_email(self):
         """Generate the standard email for this project."""
-        return f"{self.semester.year}{self.semester.get_season_display().lower()}-{slugify(self.name)}"
+        return f"{self.slug}-{self.semester.year}{self.semester.get_season_display().lower()}"
 
     def generate_team_description(self):
         """Generate the standardized team description for this project."""

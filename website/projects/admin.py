@@ -12,7 +12,7 @@ from courses.models import Semester
 
 from mailing_lists.models import MailingList
 
-from projects.forms import ProjectAdminForm, RepositoryInlineForm, RepositoryInlineFormset
+from projects.forms import ProjectAdminForm, RepositoryInlineForm
 from projects.githubsync import GitHubSync
 from projects.models import Client, Project, Repository
 
@@ -67,17 +67,23 @@ class RepositoryInline(admin.StackedInline):
     """Inline form for Repository."""
 
     form = RepositoryInlineForm
-    formset = RepositoryInlineFormset
     model = Repository
 
     readonly_fields = ("github_repo_id",)
 
-    def __init__(self, *args, **kwargs):
-        """Initialize the form."""
-        super().__init__(*args, **kwargs)
+    def get_extra(self, request, obj=None, **kwargs):
+        """Only show an extra inline if none exist."""
+        return 0 if obj else 1
+
+
+class MailinglistInline(admin.StackedInline):
+    """Inline form for MailingList."""
+
+    model = MailingList.projects.through
+    extra = 1
 
     def get_extra(self, request, obj=None, **kwargs):
-        """Only show an extra empty repository inline if no other repos exist."""
+        """Only show an extra inline if none exist."""
         return 0 if obj else 1
 
 
@@ -90,10 +96,12 @@ class ProjectAdmin(admin.ModelAdmin):
     list_display = ["name", "client", "is_archived", "number_of_repos"]
 
     actions = ["create_mailing_lists", "synchronise_to_GitHub", "archive_all_repositories"]
-    inlines = [RepositoryInline]
+    inlines = [RepositoryInline, MailinglistInline]
 
     search_fields = ("name",)
     readonly_fields = ("github_team_id",)
+
+    prepopulated_fields = {"slug": ("name",)}
 
     def is_archived(self, instance):
         """Return the archived status of a Project instance (required to display property as check mark)."""
