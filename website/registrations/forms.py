@@ -54,9 +54,9 @@ class Step2Form(forms.Form):
         label="What is your programming experience?",
         choices=Registration.EXPERIENCE_CHOICES,
         initial=Registration.EXPERIENCE_BEGINNER,
-        help_text="<strong>NOTE: </strong>If you have not passed "
-        "the programming courses in your curriculum yet, this "
-        "course will become quite difficult for you.<br>"
+        help_text="<strong>NOTE: </strong>If you did not pass the programming "
+        "courses, please do not register for this course as it will be hard for "
+        "you to pass<br>"
         "<strong>Beginner</strong>: I passed the programming "
         "courses from my curriculum but it was not easy.<br>"
         "<strong>Intermediate</strong>: the programming courses in "
@@ -98,10 +98,25 @@ class Step2Form(forms.Form):
 
     international = forms.BooleanField(label="I don't speak Dutch", required=False)
 
-    available_during_scheduled_timeslot = forms.BooleanField(
-        label="I am available during the scheduled timeslot for the course",
+    available_during_scheduled_timeslot_1 = forms.BooleanField(
+        label="I am available during scheduled timeslot 1 for the course",
         required=False,
         initial=True,
+        help_text="Timeslot 1: Monday 13:30 - 15:15",
+    )
+
+    available_during_scheduled_timeslot_2 = forms.BooleanField(
+        label="I am available during scheduled timeslot 2 for the course",
+        required=False,
+        initial=True,
+        help_text="Timeslot 2: Monday 15:30 - 17:15",
+    )
+
+    available_during_scheduled_timeslot_3 = forms.BooleanField(
+        label="I am available during scheduled timeslot 3 for the course",
+        required=False,
+        initial=True,
+        help_text="Timeslot 3: Wednesday 15:30 - 17:15",
     )
 
     has_problems_with_signing_an_nda = forms.BooleanField(
