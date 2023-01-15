@@ -54,16 +54,16 @@ class Step2Form(forms.Form):
         label="What is your programming experience?",
         choices=Registration.EXPERIENCE_CHOICES,
         initial=Registration.EXPERIENCE_BEGINNER,
-        help_text="<strong>NOTE: </strong>If you did not pass the programming "
-        "courses, please do not register for this course as it will be hard for "
-        "you to pass<br>"
-        "<strong>Beginner</strong>: I passed the programming "
+        help_text="<strong>Beginner</strong>: I passed the programming "
         "courses from my curriculum but it was not easy.<br>"
         "<strong>Intermediate</strong>: the programming courses in "
         "the curriculum were easy for me and I have experience "
         "with some small (hobby) projects.<br>"
         "<strong>Advanced</strong>: I have a lot of experience with "
-        "programming.",
+        "programming.<br>"
+        "<strong>NOTE</strong>: If you did not pass the programming "
+        "courses and you are following the Software Engineering course, please "
+        "do not register for this course.",
     )
 
     project1 = forms.ModelChoiceField(label="First project preference", queryset=None, required=False)
@@ -123,6 +123,7 @@ class Step2Form(forms.Form):
         label="I have problems with signing an NDA",
         required=False,
         initial=False,
+        help_text="If you check this box, you will not be placed in a project that requires an NDA.",
     )
 
     comments = forms.CharField(
