@@ -96,9 +96,10 @@ class UserAdmin(admin.ModelAdmin):
         "registration__experience",
         "is_staff",
         "registration__is_international",
-        "registration__available_during_scheduled_timeslot",
+        "registration__available_during_scheduled_timeslot_1",
+        "registration__available_during_scheduled_timeslot_2",
+        "registration__available_during_scheduled_timeslot_3",
         "registration__has_problems_with_signing_an_nda",
-        "registration__attendance",
     )
 
     # Necessary for the autocomplete filter
@@ -151,9 +152,10 @@ class UserAdmin(admin.ModelAdmin):
                 "3rd partner preference",
                 "Experience",
                 "Non-dutch",
-                "Available during scheduled timeslot",
+                "Available during scheduled timeslot 1",
+                "Available during scheduled timeslot 2",
+                "Available during scheduled timeslot 3",
                 "Has problems with signing an NDA",
-                "Physical attendance",
                 "Registration Comments",
             ]
         )
@@ -174,9 +176,10 @@ class UserAdmin(admin.ModelAdmin):
                     registration.partner_preference3,
                     registration.experience,
                     registration.is_international,
-                    registration.available_during_scheduled_timeslot,
+                    registration.available_during_scheduled_timeslot_1,
+                    registration.available_during_scheduled_timeslot_2,
+                    registration.available_during_scheduled_timeslot_3,
                     registration.has_problems_with_signing_an_nda,
-                    registration.attendance,
                     registration.comments,
                 ]
             )

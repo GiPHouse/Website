@@ -60,7 +60,10 @@ class Step2Form(forms.Form):
         "the curriculum were easy for me and I have experience "
         "with some small (hobby) projects.<br>"
         "<strong>Advanced</strong>: I have a lot of experience with "
-        "programming.",
+        "programming.<br>"
+        "<strong>NOTE</strong>: If you did not pass the programming "
+        "courses and you are following the Software Engineering course, please "
+        "do not register for this course.",
     )
 
     project1 = forms.ModelChoiceField(label="First project preference", queryset=None, required=False)
@@ -95,28 +98,32 @@ class Step2Form(forms.Form):
 
     international = forms.BooleanField(label="I don't speak Dutch", required=False)
 
-    available_during_scheduled_timeslot = forms.BooleanField(
-        label="I am available during the scheduled timeslot for the course",
+    available_during_scheduled_timeslot_1 = forms.BooleanField(
+        label="I am available during scheduled timeslot 1 for the course",
         required=False,
         initial=True,
+        help_text="Timeslot 1: Monday 13:30 - 15:15",
+    )
+
+    available_during_scheduled_timeslot_2 = forms.BooleanField(
+        label="I am available during scheduled timeslot 2 for the course",
+        required=False,
+        initial=True,
+        help_text="Timeslot 2: Monday 15:30 - 17:15",
+    )
+
+    available_during_scheduled_timeslot_3 = forms.BooleanField(
+        label="I am available during scheduled timeslot 3 for the course",
+        required=False,
+        initial=True,
+        help_text="Timeslot 3: Wednesday 15:30 - 17:15",
     )
 
     has_problems_with_signing_an_nda = forms.BooleanField(
         label="I have problems with signing an NDA",
         required=False,
         initial=False,
-    )
-
-    attendance = forms.ChoiceField(
-        label="Physical attendance",
-        help_text="In this course, it is highly recommended to work "
-        "face-to-face in the same working room as your groupmates. "
-        "Are you able to physically attend group meetings at Radboud "
-        "University? Or would you prefer to collaborate only online "
-        "(even if this makes the course harder)",
-        choices=Registration.ATTENDANCE_CHOICES,
-        initial=Registration.ATTENDANCE_OFFLINE,
-        required=False,
+        help_text="If you check this box, you will not be placed in a project that requires an NDA.",
     )
 
     comments = forms.CharField(
