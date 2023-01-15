@@ -54,7 +54,10 @@ class Step2Form(forms.Form):
         label="What is your programming experience?",
         choices=Registration.EXPERIENCE_CHOICES,
         initial=Registration.EXPERIENCE_BEGINNER,
-        help_text="<strong>Beginner</strong>: I passed the programming "
+        help_text="<strong>NOTE: </strong>If you have not passed "
+        "the programming courses in your curriculum yet, this "
+        "course will become quite difficult for you.<br>"
+        "<strong>Beginner</strong>: I passed the programming "
         "courses from my curriculum but it was not easy.<br>"
         "<strong>Intermediate</strong>: the programming courses in "
         "the curriculum were easy for me and I have experience "
