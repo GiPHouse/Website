@@ -310,10 +310,14 @@ class TeamAssignmentTest(TestCase):
             '"User5","Test5","","Software Engineering","","","x","x","x","","1","x","1","","","","0","","",""\r\n'
             '"User7","Test7","","Software Engineering","","","x","x","x","","1","x","1","","","","0","","",""\r\n'
             '"User8","Test8","","Software Engineering","","","x","x","x","","1","x","1","","","","0","","",""\r\n'
-            '"User3","Test3","","System Development Management","","","x","x","x","","1","x","1","","","","0","","",""\r\n'
-            '"User6","Test6","","System Development Management","","","x","x","x","","1","x","1","","","","0","","",""\r\n'
-            '"User9","Test9","","System Development Management","","","x","x","x","","1","x","1","","","","0","","",""\r\n'
-            '"User1","Test1","","Software Engineering","Project 1","","x","x","x","","1","","","","","","0","","",""\r\n'
+            '"User3","Test3","","System Development Management","","","x","x","x","","1","x","1","","","","0","","",""'
+            '\r\n'
+            '"User6","Test6","","System Development Management","","","x","x","x","","1","x","1","","","","0","","",""'
+            '\r\n'
+            '"User9","Test9","","System Development Management","","","x","x","x","","1","x","1","","","","0","","",""'
+            '\r\n'
+            '"User1","Test1","","Software Engineering","Project 1","","x","x","x","","1","","","","","","0","","",""'
+            '\r\n'
         )
 
         self.assertEqual(assignment_generator.task.data, result)
