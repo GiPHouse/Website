@@ -289,9 +289,9 @@ class Step2Test(TestCase):
             preference2_id=self.project_preference2.id,
             preference3_id=self.project_preference3.id,
             semester=older_semester,
-            available_during_scheduled_timeslot_1= self.available_during_scheduled_timeslot_1,
-            available_during_scheduled_timeslot_2= self.available_during_scheduled_timeslot_2,
-            available_during_scheduled_timeslot_3= self.available_during_scheduled_timeslot_3,
+            available_during_scheduled_timeslot_1=self.available_during_scheduled_timeslot_1,
+            available_during_scheduled_timeslot_2=self.available_during_scheduled_timeslot_2,
+            available_during_scheduled_timeslot_3=self.available_during_scheduled_timeslot_3,
         )
 
         response = self.client.post(
@@ -333,9 +333,9 @@ class Step2Test(TestCase):
             preference2_id=self.project_preference2.id,
             preference3_id=self.project_preference3.id,
             semester=Semester.objects.get_or_create_current_semester(),
-            available_during_scheduled_timeslot_1= self.available_during_scheduled_timeslot_1,
-            available_during_scheduled_timeslot_2= self.available_during_scheduled_timeslot_2,
-            available_during_scheduled_timeslot_3= self.available_during_scheduled_timeslot_3,
+            available_during_scheduled_timeslot_1=self.available_during_scheduled_timeslot_1,
+            available_during_scheduled_timeslot_2=self.available_during_scheduled_timeslot_2,
+            available_during_scheduled_timeslot_3=self.available_during_scheduled_timeslot_3,
         )
 
         self.session["github_id"] += 1
@@ -379,9 +379,9 @@ class Step2Test(TestCase):
             preference2_id=self.project_preference2.id,
             preference3_id=self.project_preference3.id,
             semester=Semester.objects.get_or_create_current_semester(),
-            available_during_scheduled_timeslot_1= self.available_during_scheduled_timeslot_1,
-            available_during_scheduled_timeslot_2= self.available_during_scheduled_timeslot_2,
-            available_during_scheduled_timeslot_3= self.available_during_scheduled_timeslot_3,
+            available_during_scheduled_timeslot_1=self.available_during_scheduled_timeslot_1,
+            available_during_scheduled_timeslot_2=self.available_during_scheduled_timeslot_2,
+            available_during_scheduled_timeslot_3=self.available_during_scheduled_timeslot_3,
         )
 
         self.session["github_id"] += 1
