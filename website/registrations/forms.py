@@ -110,18 +110,6 @@ class Step2Form(forms.Form):
         initial=False,
     )
 
-    attendance = forms.ChoiceField(
-        label="Physical attendance",
-        help_text="In this course, it is highly recommended to work "
-        "face-to-face in the same working room as your groupmates. "
-        "Are you able to physically attend group meetings at Radboud "
-        "University? Or would you prefer to collaborate only online "
-        "(even if this makes the course harder)",
-        choices=Registration.ATTENDANCE_CHOICES,
-        initial=Registration.ATTENDANCE_OFFLINE,
-        required=False,
-    )
-
     comments = forms.CharField(
         widget=forms.Textarea(attrs={"placeholder": "Do you have any comments?"}),
         required=False,

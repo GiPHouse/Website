@@ -85,7 +85,6 @@ class RegistrationAdminTest(TestCase):
             "registration_set-0-course": cls.course.id,
             "registration_set-0-project": cls.project.id,
             "registration_set-0-experience": Registration.EXPERIENCE_BEGINNER,
-            "registration_set-0-attendance": Registration.ATTENDANCE_OFFLINE,
             "_save": "Save",
         }
 
@@ -160,7 +159,7 @@ class RegistrationAdminTest(TestCase):
                 '"Course","1st project preference","2nd project preference","3rd project preference",'
                 '"1st partner preference","2nd partner preference","3rd partner preference",'
                 '"Experience","Non-dutch","Available during scheduled timeslot","Has problems with signing an NDA",'
-                '"Physical attendance","Registration Comments"'
+                '"Registration Comments"'
             ),
         )
         self.assertContains(
@@ -181,7 +180,6 @@ class RegistrationAdminTest(TestCase):
                 f'"{self.registration.is_international}",'
                 f'"{self.registration.available_during_scheduled_timeslot}",'
                 f'"{self.registration.has_problems_with_signing_an_nda}",'
-                f'"{self.registration.attendance}",'
                 f'"{self.registration.comments}"'
             ),
         )

@@ -123,7 +123,6 @@ class Step2Test(TestCase):
         cls.project_partner_preference2 = "FirstTest LastTest"
         cls.project_partner_preference3 = ""
 
-        cls.attendance = Registration.ATTENDANCE_OFFLINE
         cls.available_during_scheduled_timeslot = True
 
         cls.is_international = False
@@ -182,7 +181,6 @@ class Step2Test(TestCase):
                 "partner2": self.project_partner_preference2,
                 "partner3": self.project_partner_preference3,
                 "available_during_scheduled_timeslot": self.available_during_scheduled_timeslot,
-                "attendance": self.attendance,
             },
             follow=True,
         )
@@ -210,7 +208,6 @@ class Step2Test(TestCase):
                 "partner2": self.project_partner_preference2,
                 "partner3": self.project_partner_preference3,
                 "available_during_scheduled_timeslot": self.available_during_scheduled_timeslot,
-                "attendance": self.attendance,
             },
             follow=True,
         )
@@ -267,7 +264,6 @@ class Step2Test(TestCase):
                 "partner2": self.project_partner_preference2,
                 "partner3": self.project_partner_preference3,
                 "available_during_scheduled_timeslot": self.available_during_scheduled_timeslot,
-                "attendance": self.attendance,
             },
         )
         self.assertContains(response, "User already registered for this semester.")
@@ -286,7 +282,6 @@ class Step2Test(TestCase):
             preference3_id=self.project_preference3.id,
             semester=older_semester,
             available_during_scheduled_timeslot=self.available_during_scheduled_timeslot,
-            attendance=self.attendance,
         )
 
         response = self.client.post(
@@ -308,7 +303,6 @@ class Step2Test(TestCase):
                 "partner2": self.project_partner_preference2,
                 "partner3": self.project_partner_preference3,
                 "available_during_scheduled_timeslot": self.available_during_scheduled_timeslot,
-                "attendance": self.attendance,
             },
             follow=True,
         )
@@ -328,7 +322,6 @@ class Step2Test(TestCase):
             preference3_id=self.project_preference3.id,
             semester=Semester.objects.get_or_create_current_semester(),
             available_during_scheduled_timeslot=self.available_during_scheduled_timeslot,
-            attendance=self.attendance,
         )
 
         self.session["github_id"] += 1
@@ -353,7 +346,6 @@ class Step2Test(TestCase):
                 "partner2": self.project_partner_preference2,
                 "partner3": self.project_partner_preference3,
                 "available_during_scheduled_timeslot": self.available_during_scheduled_timeslot,
-                "attendance": self.attendance,
             },
             follow=True,
         )
@@ -372,7 +364,6 @@ class Step2Test(TestCase):
             preference3_id=self.project_preference3.id,
             semester=Semester.objects.get_or_create_current_semester(),
             available_during_scheduled_timeslot=self.available_during_scheduled_timeslot,
-            attendance=self.attendance,
         )
 
         self.session["github_id"] += 1
@@ -397,7 +388,6 @@ class Step2Test(TestCase):
                 "partner2": self.project_partner_preference2,
                 "partner3": self.project_partner_preference3,
                 "available_during_scheduled_timeslot": self.available_during_scheduled_timeslot,
-                "attendance": self.attendance,
             },
             follow=True,
         )
@@ -426,7 +416,6 @@ class Step2Test(TestCase):
                 "partner2": self.project_partner_preference2,
                 "partner3": self.project_partner_preference3,
                 "available_during_scheduled_timeslot": self.available_during_scheduled_timeslot,
-                "attendance": self.attendance,
             },
             follow=True,
         )
@@ -450,7 +439,6 @@ class Step2Test(TestCase):
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,
                 "available_during_scheduled_timeslot": self.available_during_scheduled_timeslot,
-                "attendance": self.attendance,
             },
             follow=True,
         )
@@ -473,7 +461,6 @@ class Step2Test(TestCase):
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,
                 "available_during_scheduled_timeslot": self.available_during_scheduled_timeslot,
-                "attendance": self.attendance,
             },
             follow=True,
         )
