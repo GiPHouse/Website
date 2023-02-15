@@ -38,4 +38,5 @@ urlpatterns = [
     path("projects/", include("projects.urls")),
     path("reservations/", include("room_reservation.urls")),
     path("lectures/", include("lecture_registrations.urls")),
+    path("tinymce/", include("tinymce.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

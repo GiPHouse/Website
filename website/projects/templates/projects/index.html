@@ -14,8 +14,8 @@
                     {% if project.client.logo %}<img class="project-logo mt-2 mx-2" src="{{ project.client.logo.url }}" alt="logo {{ project.client.name }}">{% endif %}
                     <div class="card-body">
                         <h4 class="card-title">{{ project.name }}</h4>
-                        {% if project.client %}<h6 class="card-subtitle text-muted mb-2">By {{ project.client.name}}</h6>{% endif %}
-                        <p class="card-text">{{ project.description|linebreaks }}</p>
+                        {% if project.client %}<h6 class="card-subtitle text-muted mb-2">By {{ project.client.name }}</h6>{% endif %}
+                        <p class="card-text">{{ project.description | safe }}</p>
                     </div>
                 </div>
             </div>

@@ -30,6 +30,7 @@ uWSGI = {version = "^2.0.19", optional = true}
 admin-totals = "^1.0.1"
 django-bootstrap5 = "^22.1"
 django-easy-admin-object-actions = "^1.1.0"
+django-tinymce = "^3.4.0"
 
 [tool.poetry.extras]
 production = ["uwsgi", "psycopg2-binary"]

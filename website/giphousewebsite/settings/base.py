@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'admin_auto_filters',
     'admin_totals',
     'django_easy_admin_object_actions',
+    'tinymce',
 
     'questionnaires.apps.QuestionnairesConfig',
     'github_oauth.apps.GithubConfig',
@@ -146,3 +147,16 @@ GSUITE_SCOPES = [
     "https://www.googleapis.com/auth/admin.directory.group",
     "https://www.googleapis.com/auth/apps.groups.settings",
 ]
+
+TINYMCE_DEFAULT_CONFIG = {
+    "max_height": 500,
+    "menubar": False,
+    "plugins": "autolink autoresize link image code media paste lists",
+    "toolbar": "h2 h3 | bold italic underline strikethrough | image media | link unlink "
+    "| bullist numlist | undo redo | code",
+    "contextmenu": "bold italic underline strikethrough | link",
+    "paste_as_text": True,
+    "relative_urls": False,
+    "remove_script_host": False,
+    "autoresize_bottom_margin": 50,
+}
