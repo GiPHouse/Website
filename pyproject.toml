@@ -31,6 +31,7 @@ admin-totals = "^1.0.1"
 django-bootstrap5 = "^22.1"
 django-easy-admin-object-actions = "^1.1.0"
 django-tinymce = "^3.4.0"
+django-bleach = "^3.0.1"
 
 [tool.poetry.extras]
 production = ["uwsgi", "psycopg2-binary"]
