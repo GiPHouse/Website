@@ -84,6 +84,7 @@ class GetProjectsTest(TestCase):
         self.sync_mock.users_removed = 1
         self.sync_mock.repos_archived = 1
         self.github_mock = MagicMock(return_value=self.sync_mock)
+        self.aws_mock = MagicMock()
         messages.error = MagicMock()
         messages.warning = MagicMock()
         messages.success = MagicMock()
@@ -232,6 +233,11 @@ class GetProjectsTest(TestCase):
         self.assertIn(self.project, args[1])
         self.assertNotIn(self.project_archived, args[1])
         self.project_admin.synchronise_to_GitHub = original_sync_action
+
+    def test_synchronise_to_AWS(self):
+        with patch("projects.admin.AWSSync", self.aws_mock):
+            self.project_admin.synchronise_to_AWS(self.request)
+        self.aws_mock.assert_called_once()
 
     def test_archive_all_repositories(self):
         self.project_admin.archive_all_repositories(self.request, Project.objects.all())
