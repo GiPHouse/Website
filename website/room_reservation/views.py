@@ -134,7 +134,7 @@ class ShowCalendarView(TemplateView, BaseReservationView):
                 }
                 for reservation in Reservation.objects.filter(
                     start_time__date__gte=timezone.now() - self.time_window_past,
-                    start_time__date__lt=timezone.now() + self.time_window_future,
+                    start_time__date__lte=timezone.now() + self.time_window_future,
                 )
             ]
         )
