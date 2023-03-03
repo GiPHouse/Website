@@ -11,6 +11,7 @@ class AWSSync:
     def __init__(self):
         """Create an AWSSync instance."""
         self.logger = logging.getLogger("django.aws")
+        self.logger.setLevel(logging.DEBUG)
         self.org_info = None
         self.fail = False
         self.logger.info("Created AWSSync instance.")
