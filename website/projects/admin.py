@@ -12,6 +12,7 @@ from courses.models import Semester
 
 from mailing_lists.models import MailingList
 
+from projects.awssync import AWSSync
 from projects.forms import ProjectAdminForm, RepositoryInlineForm
 from projects.githubsync import GitHubSync
 from projects.models import Client, Project, Repository
@@ -171,6 +172,12 @@ class ProjectAdmin(admin.ModelAdmin):
             ],
         )
 
+    def synchronise_to_AWS(self, request):
+        """Synchronise to Amazon Web Services."""
+        sync = AWSSync()
+        sync.button_pressed()
+        return redirect("admin:projects_project_changelist")
+
     def get_urls(self):
         """Get admin urls."""
         urls = super().get_urls()
@@ -180,6 +187,7 @@ class ProjectAdmin(admin.ModelAdmin):
                 self.admin_site.admin_view(self.synchronise_current_projects_to_GitHub),
                 name="synchronise_to_github",
             ),
+            path("sync-to-aws/", self.admin_site.admin_view(self.synchronise_to_AWS), name="synchronise_to_aws"),
         ]
         return custom_urls + urls
 
