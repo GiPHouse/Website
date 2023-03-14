@@ -18,6 +18,20 @@ from projects import awssync
 from projects.models import Project
 
 
+class SyncDataTest(TestCase):
+    """Test SyncData class (struct)."""
+
+    def setUp(self):
+        """setup test environment."""
+        self.sync = awssync.SyncData
+
+    def test_throw_type_error_SyncData_class(self):
+        """Test Type Error when equals is called on wrong type."""
+        with self.assertRaises(TypeError) as context:
+            self.sync("", "", "") == []
+        self.assertTrue("Must compare to object of type SyncData" in str(context.exception))
+
+
 class AWSSyncTest(TestCase):
     """Test AWSSync class."""
 
@@ -42,11 +56,10 @@ class AWSSyncTest(TestCase):
     def test_get_emails_with_teamids_normal(self):
         """Test get_emails_with_teamids function."""
         email_id = self.sync.get_emails_with_teamids()
+
         self.assertIsInstance(email_id, list)
-        self.assertIsInstance(email_id[0], dict)
-        expected_result = [
-            {"project_email": "test1@giphouse.nl", "project_slug": "test1", "project_semester": "Spring 2023"}
-        ]
+        self.assertIsInstance(email_id[0], awssync.SyncData)
+        expected_result = [awssync.SyncData("test1@giphouse.nl", "test1", "Spring 2023")]
         self.assertEqual(email_id, expected_result)
 
     def test_get_emails_with_teamids_no_project(self):
