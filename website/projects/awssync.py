@@ -13,6 +13,26 @@ from mailing_lists.models import MailingList
 from projects.models import Project
 
 
+class SyncData:
+    """Structure for AWS giphouse sync data."""
+
+    def __init__(self, project_email, project_slug, project_semester):
+        """Create SyncData instance."""
+        self.project_email = project_email
+        self.project_slug = project_slug
+        self.project_semester = project_semester
+
+    def __eq__(self, other):
+        """Overload equals for SyncData type."""
+        if not isinstance(other, SyncData):
+            raise TypeError("Must compare to object of type SyncData")
+        return (
+            self.project_email == other.project_email
+            and self.project_slug == other.project_slug
+            and self.project_semester == other.project_semester
+        )
+
+
 class AWSSync:
     """Synchronise with Amazon Web Services."""
 
@@ -46,11 +66,11 @@ class AWSSync:
 
     def get_emails_with_teamids(self):
         """
-        Create a list of dictionaries containing email, slug and semester.
+        Create a list of SyncData struct containing email, slug and semester.
 
         Slug and semester combined are together an uniqueness constraint.
 
-        :return: list of dictionaries of email, slug and semester
+        :return: list of SyncData structs with email, slug and semester
         """
         email_ids = []
 
@@ -62,12 +82,9 @@ class AWSSync:
             project_slug = project["slug"]
             project_semester = str(Semester.objects.get(pk=project["semester"]))
             project_email = MailingList.objects.get(pk=project["mailinglist"]).email_address
-            email_dict = {
-                "project_email": project_email,
-                "project_slug": project_slug,
-                "project_semester": project_semester,
-            }
-            email_ids.append(email_dict)
+
+            sync_data = SyncData(project_email, project_slug, project_semester)
+            email_ids.append(sync_data)
         return email_ids
 
     def create_aws_organization(self):
