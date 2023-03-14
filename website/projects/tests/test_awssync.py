@@ -128,3 +128,35 @@ class AWSSyncTest(TestCase):
         org.create_aws_organization()
         self.assertTrue(org.fail)
         self.assertIsNone(org.org_info)
+
+
+class AWSSyncListTest(TestCase):
+    """Test AWSSyncList class."""
+
+    def setUp(self):
+        self.sync = awssync.AWSSync()
+        self.syncData = awssync.SyncData
+
+        self.test1 = self.syncData("test1@test1.test1", "test1", "test1")
+        self.test2 = self.syncData("test2@test2.test2", "test2", "test2")
+        self.test3 = self.syncData("test3@test3.test3", "test3", "test3")
+
+    def test_AWS_sync_list_both_empty(self):
+        gip_list = []
+        aws_list = []
+        self.assertEquals(self.sync.generate_aws_sync_list(gip_list, aws_list), [])
+
+    def test_AWS_sync_list_empty_AWS(self):
+        gip_list = [self.test1, self.test2]
+        aws_list = []
+        self.assertEquals(self.sync.generate_aws_sync_list(gip_list, aws_list), gip_list)
+
+    def test_AWS_sync_list_empty_GiP(self):
+        gip_list = []
+        aws_list = [self.test1, self.test2]
+        self.assertEquals(self.sync.generate_aws_sync_list(gip_list, aws_list), [])
+
+    def test_AWS_sync_list_both_full(self):
+        gip_list = [self.test1, self.test2]
+        aws_list = [self.test2, self.test3]
+        self.assertEquals(self.sync.generate_aws_sync_list(gip_list, aws_list), [self.test1])

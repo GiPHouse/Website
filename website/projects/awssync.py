@@ -99,3 +99,12 @@ class AWSSync:
             self.logger.error("Something went wrong creating an AWS organization.")
             self.logger.debug(f"{error}")
             self.logger.debug(f"{error.response}")
+
+    def generate_aws_sync_list(self, giphouse_data, aws_data):
+        """
+        Generate the list of users that are registered on the GiPhouse website, but are not yet invited for AWS.
+
+        This includes their ID and email address, to be able to put users in the correct AWS orginization later.
+        """
+        sync_list = [x for x in giphouse_data if x not in aws_data]
+        return sync_list
