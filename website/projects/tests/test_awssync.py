@@ -1,3 +1,5 @@
+"""Tests for awssync.py."""
+
 from unittest.mock import patch
 
 import boto3
@@ -8,18 +10,71 @@ from django.test import TestCase
 
 from moto import mock_organizations
 
+from courses.models import Semester
+
+from mailing_lists.models import MailingList
+
 from projects import awssync
+from projects.models import Project
 
 
 class AWSSyncTest(TestCase):
     """Test AWSSync class."""
 
     def setUp(self):
+        """Set up testing environment."""
         self.sync = awssync.AWSSync()
+        self.semester = Semester.objects.create(year=2023, season=Semester.SPRING)
+        self.mailing_list = MailingList.objects.create(address="test1")
+        self.project = Project.objects.create(id=1, name="test1", semester=self.semester, slug="test1")
+        self.mailing_list.projects.add(self.project)
 
     def test_button_pressed(self):
+        """Test button_pressed function."""
         return_value = self.sync.button_pressed()
         self.assertTrue(return_value)
+
+    def test_get_all_mailing_lists(self):
+        """Test get_all_mailing_lists function."""
+        mailing_lists = self.sync.get_all_mailing_lists()
+        self.assertIsInstance(mailing_lists, list)
+
+    def test_get_emails_with_teamids_normal(self):
+        """Test get_emails_with_teamids function."""
+        email_id = self.sync.get_emails_with_teamids()
+        self.assertIsInstance(email_id, list)
+        self.assertIsInstance(email_id[0], dict)
+        expected_result = [
+            {"project_email": "test1@giphouse.nl", "project_slug": "test1", "project_semester": "Spring 2023"}
+        ]
+        self.assertEqual(email_id, expected_result)
+
+    def test_get_emails_with_teamids_no_project(self):
+        """Test get_emails_with_teamids function."""
+        MailingList.objects.all().delete()
+        self.mailing_list = MailingList.objects.create(address="test2")
+        email_id = self.sync.get_emails_with_teamids()
+        self.assertIsInstance(email_id, list)
+        self.assertEqual(email_id, [])
+
+    def test_get_emails_with_teamids_no_mailing_list(self):
+        """Test get_emails_with_teamids function."""
+        MailingList.objects.all().delete()
+        Project.objects.all().delete()
+        email_id = self.sync.get_emails_with_teamids()
+        self.assertIsInstance(email_id, list)
+        self.assertEqual(email_id, [])
+
+    def test_get_emails_with_teamids_different_semester(self):
+        """Test get_emails_with_teamids function."""
+        MailingList.objects.all().delete()
+        new_semester = Semester.objects.create(year=2022, season=Semester.FALL)
+        self.mailing_list = MailingList.objects.create(address="test2")
+        self.project = Project.objects.create(id=2, name="test2", semester=new_semester, slug="test2")
+        self.mailing_list.projects.add(self.project)
+        email_id = self.sync.get_emails_with_teamids()
+        self.assertIsInstance(email_id, list)
+        self.assertEqual(email_id, [])
 
     def mock_api(self, operation_name, kwarg):
         if operation_name == "CreateOrganization":
