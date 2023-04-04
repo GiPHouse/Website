@@ -1,5 +1,6 @@
 """Tests for awssync.py."""
 
+import json
 from unittest.mock import patch
 
 import boto3
@@ -114,6 +115,32 @@ class AWSSyncTest(TestCase):
                 "create_organization",
             )
 
+        if operation_name == "CreatePolicy":
+            raise ClientError(
+                {
+                    "Error": {
+                        "Message": """The provided policy document does not meet the
+                                      requirements of the specified policy type.""",
+                        "Code": "MalformedPolicyDocumentException",
+                    },
+                    "ResponseMetadata": {
+                        "RequestId": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+                        "HTTPStatusCode": 400,
+                        "HTTPHeaders": {
+                            "x-amzn-requestid": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+                            "content-type": "application/x-amz-json-1.1",
+                            "content-length": "147",
+                            "date": "Sun, 01 Jan 2023 00:00:00 GMT",
+                            "connection": "close",
+                        },
+                        "RetryAttempts": 0,
+                    },
+                    "Message": """The provided policy document does not meet the
+                                  requirements of the specified policy type.""",
+                },
+                "create_policy",
+            )
+
     @mock_organizations
     def test_create_aws_organization(self):
         moto_client = boto3.client("organizations")
@@ -128,6 +155,71 @@ class AWSSyncTest(TestCase):
         org.create_aws_organization()
         self.assertTrue(org.fail)
         self.assertIsNone(org.org_info)
+
+    @mock_organizations
+    def test_create_scp_policy(self):
+        self.sync.create_aws_organization()
+
+        policy_name = "DenyAll"
+        policy_description = "Deny all access."
+        policy_content = {"Version": "2012-10-17", "Statement": [{"Effect": "Deny", "Action": "*", "Resource": "*"}]}
+        policy = self.sync.create_scp_policy(policy_name, policy_description, policy_content)
+
+        self.assertFalse(self.sync.fail)
+        self.assertEqual(policy["PolicySummary"]["Name"], policy_name)
+        self.assertEqual(policy["PolicySummary"]["Description"], policy_description)
+        self.assertEqual(policy["Content"], json.dumps(policy_content))
+
+    @mock_organizations
+    def test_create_scp_policy__exception(self):
+        self.sync.create_aws_organization()
+
+        policy_name = "DenyAll"
+        policy_description = "Deny all access."
+        policy_content = {
+            "Version": "2012-10-17",
+            "Statement": [{"Effect": "NonExistentEffect", "Action": "*", "Resource": "*"}],
+        }
+        with patch("botocore.client.BaseClient._make_api_call", self.mock_api):
+            policy = self.sync.create_scp_policy(policy_name, policy_description, policy_content)
+
+        self.assertTrue(self.sync.fail)
+        self.assertIsNone(policy)
+
+    @mock_organizations
+    def test_attach_scp_policy(self):
+        moto_client = boto3.client("organizations")
+        self.sync.create_aws_organization()
+
+        policy_name = "DenyAll"
+        policy_description = "Deny all access."
+        policy_content = {"Version": "2012-10-17", "Statement": [{"Effect": "Deny", "Action": "*", "Resource": "*"}]}
+        policy = self.sync.create_scp_policy(policy_name, policy_description, policy_content)
+
+        policy_id = policy["PolicySummary"]["Id"]
+        root_id = moto_client.list_roots()["Roots"][0]["Id"]
+        self.sync.attach_scp_policy(policy_id, root_id)
+
+        current_scp_policies = moto_client.list_policies_for_target(TargetId=root_id, Filter="SERVICE_CONTROL_POLICY")
+        current_scp_policy_ids = [scp_policy["Id"] for scp_policy in current_scp_policies["Policies"]]
+
+        self.assertIn(policy_id, current_scp_policy_ids)
+        self.assertFalse(self.sync.fail)
+
+    @mock_organizations
+    def test_attach_scp_policy__exception(self):
+        self.sync.create_aws_organization()
+
+        policy_name = "DenyAll"
+        policy_description = "Deny all access."
+        policy_content = {"Version": "2012-10-17", "Statement": [{"Effect": "Deny", "Action": "*", "Resource": "*"}]}
+        policy = self.sync.create_scp_policy(policy_name, policy_description, policy_content)
+
+        policy_id = policy["PolicySummary"]["Id"]
+        root_id = self.sync.org_info["Id"]  # Retrieves organization ID, not root ID, resulting in ClientError.
+        self.sync.attach_scp_policy(policy_id, root_id)
+
+        self.assertTrue(self.sync.fail)
 
 
 class AWSSyncListTest(TestCase):
