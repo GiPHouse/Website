@@ -1,5 +1,6 @@
 """Framework for synchronisation with Amazon Web Services (AWS)."""
 
+import json
 import logging
 
 import boto3
@@ -108,3 +109,44 @@ class AWSSync:
         """
         sync_list = [x for x in giphouse_data if x not in aws_data]
         return sync_list
+
+    def create_scp_policy(self, policy_name, policy_description, policy_content):
+        """
+        Create a SCP policy.
+
+        :param policy_name: The policy name.
+        :param policy_description: The policy description.
+        :param policy_content: The policy configuration as a dictionary. The policy is automatically
+                               converted to JSON format, including escaped quotation marks.
+        :return: Details of newly created policy as a dict on success and NoneType object otherwise.
+        """
+        client = boto3.client("organizations")
+        try:
+            response = client.create_policy(
+                Content=json.dumps(policy_content),
+                Description=policy_description,
+                Name=policy_name,
+                Type="SERVICE_CONTROL_POLICY",
+            )
+        except ClientError as error:
+            self.fail = True
+            self.logger.error("Something went wrong creating an SCP policy.")
+            self.logger.error(error)
+        else:
+            return response["Policy"]
+
+    def attach_scp_policy(self, policy_id, target_id):
+        """
+        Attaches a SCP policy to a target (root, OU, or member account).
+
+        :param policy_id: The ID of the policy to be attached.
+        :param target_id: The ID of the target root, OU, or member account.
+        """
+        client = boto3.client("organizations")
+        try:
+            client.attach_policy(PolicyId=policy_id, TargetId=target_id)
+        except ClientError as error:
+            self.fail = True
+            self.logger.error("Something went wrong attaching an SCP policy to a target.")
+            self.logger.debug(f"{error}")
+            self.logger.debug(f"{error.response}")
