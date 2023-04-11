@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import boto3
 
+import botocore
 from botocore.exceptions import ClientError
 
 from django.test import TestCase
@@ -43,11 +44,52 @@ class AWSSyncTest(TestCase):
         self.mailing_list = MailingList.objects.create(address="test1")
         self.project = Project.objects.create(id=1, name="test1", semester=self.semester, slug="test1")
         self.mailing_list.projects.add(self.project)
+        self.mock_org = mock_organizations()
+        self.mock_org.start()
+
+    def tearDown(self):
+        self.mock_org.stop()
 
     def test_button_pressed(self):
         """Test button_pressed function."""
         return_value = self.sync.button_pressed()
         self.assertTrue(return_value)
+
+    def test_create_aws_organization(self):
+        moto_client = boto3.client("organizations")
+        org = self.sync
+        org.create_aws_organization()
+        describe_org = moto_client.describe_organization()["Organization"]
+        self.assertEqual(describe_org, org.org_info)
+
+    def test_create_aws_organization__exception(self):
+        org = self.sync
+        with patch("botocore.client.BaseClient._make_api_call", AWSAPITalkerTest.mock_api):
+            org.create_aws_organization()
+        self.assertTrue(org.fail)
+        self.assertIsNone(org.org_info)
+
+    def test_create_course_iteration_OU(self):
+        moto_client = boto3.client("organizations")
+        org = self.sync
+        org.create_aws_organization()
+        org.create_course_iteration_OU(1)
+        describe_unit = moto_client.describe_organizational_unit(OrganizationalUnitId=org.iterationOU_info["Id"])[
+            "OrganizationalUnit"
+        ]
+        self.assertEqual(describe_unit, org.iterationOU_info)
+
+    def test_create_course_iteration_OU_without_organization(self):
+        org = self.sync
+        org.create_course_iteration_OU(1)
+        self.assertTrue(org.fail)
+
+    def test_create_course_iteration_OU__exception(self):
+        org = self.sync
+        org.create_aws_organization()
+        with patch("botocore.client.BaseClient._make_api_call", AWSAPITalkerTest.mock_api):
+            org.create_course_iteration_OU(1)
+        self.assertTrue(org.fail)
 
     def test_get_all_mailing_lists(self):
         """Test get_all_mailing_lists function."""
@@ -90,73 +132,6 @@ class AWSSyncTest(TestCase):
         self.assertIsInstance(email_id, list)
         self.assertEqual(email_id, [])
 
-    def mock_api(self, operation_name, kwarg):
-        if operation_name == "CreateOrganization":
-            raise ClientError(
-                {
-                    "Error": {
-                        "Message": "The AWS account is already a member of an organization.",
-                        "Code": "AlreadyInOrganizationException",
-                    },
-                    "ResponseMetadata": {
-                        "RequestId": "ffffffff-ffff-ffff-ffff-ffffffffffff",
-                        "HTTPStatusCode": 400,
-                        "HTTPHeaders": {
-                            "x-amzn-requestid": "ffffffff-ffff-ffff-ffff-ffffffffffff",
-                            "content-type": "application/x-amz-json-1.1",
-                            "content-length": "111",
-                            "date": "Sun, 01 Jan 2023 00:00:00 GMT",
-                            "connection": "close",
-                        },
-                        "RetryAttempts": 0,
-                    },
-                    "Message": "The AWS account is already a member of an organization.",
-                },
-                "create_organization",
-            )
-
-        if operation_name == "CreatePolicy":
-            raise ClientError(
-                {
-                    "Error": {
-                        "Message": """The provided policy document does not meet the
-                                      requirements of the specified policy type.""",
-                        "Code": "MalformedPolicyDocumentException",
-                    },
-                    "ResponseMetadata": {
-                        "RequestId": "ffffffff-ffff-ffff-ffff-ffffffffffff",
-                        "HTTPStatusCode": 400,
-                        "HTTPHeaders": {
-                            "x-amzn-requestid": "ffffffff-ffff-ffff-ffff-ffffffffffff",
-                            "content-type": "application/x-amz-json-1.1",
-                            "content-length": "147",
-                            "date": "Sun, 01 Jan 2023 00:00:00 GMT",
-                            "connection": "close",
-                        },
-                        "RetryAttempts": 0,
-                    },
-                    "Message": """The provided policy document does not meet the
-                                  requirements of the specified policy type.""",
-                },
-                "create_policy",
-            )
-
-    @mock_organizations
-    def test_create_aws_organization(self):
-        moto_client = boto3.client("organizations")
-        org = self.sync
-        org.create_aws_organization()
-        describe_org = moto_client.describe_organization()["Organization"]
-        self.assertEqual(describe_org, org.org_info)
-
-    @patch("botocore.client.BaseClient._make_api_call", mock_api)
-    def test_create_aws_organization__exception(self):
-        org = self.sync
-        org.create_aws_organization()
-        self.assertTrue(org.fail)
-        self.assertIsNone(org.org_info)
-
-    @mock_organizations
     def test_create_scp_policy(self):
         self.sync.create_aws_organization()
 
@@ -170,7 +145,6 @@ class AWSSyncTest(TestCase):
         self.assertEqual(policy["PolicySummary"]["Description"], policy_description)
         self.assertEqual(policy["Content"], json.dumps(policy_content))
 
-    @mock_organizations
     def test_create_scp_policy__exception(self):
         self.sync.create_aws_organization()
 
@@ -180,13 +154,12 @@ class AWSSyncTest(TestCase):
             "Version": "2012-10-17",
             "Statement": [{"Effect": "NonExistentEffect", "Action": "*", "Resource": "*"}],
         }
-        with patch("botocore.client.BaseClient._make_api_call", self.mock_api):
+        with patch("botocore.client.BaseClient._make_api_call", AWSAPITalkerTest.mock_api):
             policy = self.sync.create_scp_policy(policy_name, policy_description, policy_content)
 
         self.assertTrue(self.sync.fail)
         self.assertIsNone(policy)
 
-    @mock_organizations
     def test_attach_scp_policy(self):
         moto_client = boto3.client("organizations")
         self.sync.create_aws_organization()
@@ -206,7 +179,6 @@ class AWSSyncTest(TestCase):
         self.assertIn(policy_id, current_scp_policy_ids)
         self.assertFalse(self.sync.fail)
 
-    @mock_organizations
     def test_attach_scp_policy__exception(self):
         self.sync.create_aws_organization()
 
@@ -252,3 +224,79 @@ class AWSSyncListTest(TestCase):
         gip_list = [self.test1, self.test2]
         aws_list = [self.test2, self.test3]
         self.assertEquals(self.sync.generate_aws_sync_list(gip_list, aws_list), [self.test1])
+
+
+class AWSAPITalkerTest(TestCase):
+    def mock_api(self, operation_name, kwarg):
+        if operation_name == "CreateOrganization":
+            raise ClientError(
+                {
+                    "Error": {
+                        "Message": "The AWS account is already a member of an organization.",
+                        "Code": "AlreadyInOrganizationException",
+                    },
+                    "ResponseMetadata": {
+                        "RequestId": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+                        "HTTPStatusCode": 400,
+                        "HTTPHeaders": {
+                            "x-amzn-requestid": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+                            "content-type": "application/x-amz-json-1.1",
+                            "content-length": "111",
+                            "date": "Sun, 01 Jan 2023 00:00:00 GMT",
+                            "connection": "close",
+                        },
+                        "RetryAttempts": 0,
+                    },
+                    "Message": "The AWS account is already a member of an organization.",
+                },
+                "create_organization",
+            )
+        if operation_name == "CreateOrganizationalUnit":
+            raise ClientError(
+                {
+                    "Error": {
+                        "Message": "The OU already exists.",
+                        "Code": "ParentNotFoundException",
+                    },
+                    "ResponseMetadata": {
+                        "RequestId": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+                        "HTTPStatusCode": 400,
+                        "HTTPHeaders": {
+                            "x-amzn-requestid": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+                            "content-type": "application/x-amz-json-1.1",
+                            "content-length": "111",
+                            "date": "Sun, 01 Jan 2023 00:00:00 GMT",
+                            "connection": "close",
+                        },
+                        "RetryAttempts": 0,
+                    },
+                    "Message": "The OU already exists.",
+                },
+                "create_organizational_unit",
+            )
+        if operation_name == "CreatePolicy":
+            raise ClientError(
+                {
+                    "Error": {
+                        "Message": """The provided policy document does not meet the
+                                      requirements of the specified policy type.""",
+                        "Code": "MalformedPolicyDocumentException",
+                    },
+                    "ResponseMetadata": {
+                        "RequestId": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+                        "HTTPStatusCode": 400,
+                        "HTTPHeaders": {
+                            "x-amzn-requestid": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+                            "content-type": "application/x-amz-json-1.1",
+                            "content-length": "147",
+                            "date": "Sun, 01 Jan 2023 00:00:00 GMT",
+                            "connection": "close",
+                        },
+                        "RetryAttempts": 0,
+                    },
+                    "Message": """The provided policy document does not meet the
+                                  requirements of the specified policy type.""",
+                },
+                "create_policy",
+            )
+        return botocore.client.BaseClient._make_api_call(self, operation_name, kwarg)

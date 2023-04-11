@@ -42,6 +42,7 @@ class AWSSync:
         self.logger = logging.getLogger("django.aws")
         self.logger.setLevel(logging.DEBUG)
         self.org_info = None
+        self.iterationOU_info = None
         self.fail = False
         self.logger.info("Created AWSSync instance.")
 
@@ -100,6 +101,33 @@ class AWSSync:
             self.logger.error("Something went wrong creating an AWS organization.")
             self.logger.debug(f"{error}")
             self.logger.debug(f"{error.response}")
+
+    def create_course_iteration_OU(self, iteration_id):
+        """
+        Create an OU for the course iteration.
+
+        :param iteration_id: The ID of the course iteration
+
+        :return: The ID of the OU
+        """
+        client = boto3.client("organizations")
+        if self.org_info is None:
+            self.logger.info("No organization info found. Creating an AWS organization.")
+            self.fail = True
+        else:
+            try:
+                response = client.create_organizational_unit(
+                    ParentId=self.org_info["Id"],
+                    Name=f"Course Iteration {iteration_id}",
+                )
+                self.logger.info(f"Created an OU for course iteration {iteration_id}.")
+                self.iterationOU_info = response["OrganizationalUnit"]
+                return response["OrganizationalUnit"]["Id"]
+            except ClientError as error:
+                self.fail = True
+                self.logger.error(f"Something went wrong creating an OU for course iteration {iteration_id}.")
+                self.logger.debug(f"{error}")
+                self.logger.debug(f"{error.response}")
 
     def generate_aws_sync_list(self, giphouse_data, aws_data):
         """
