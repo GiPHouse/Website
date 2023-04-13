@@ -1,4 +1,5 @@
 """Framework for synchronisation with Amazon Web Services (AWS)."""
+from __future__ import annotations
 
 import json
 import logging
@@ -32,6 +33,60 @@ class SyncData:
             and self.project_slug == other.project_slug
             and self.project_semester == other.project_semester
         )
+
+    def __repr__(self):
+        """Overload to string function for SyncData type."""
+        return f"SyncData('{self.project_email}', '{self.project_slug}', '{self.project_semester}')"
+
+
+class Iteration:
+    """Datatype for AWS data in the Course iteration OU."""
+
+    def __init__(self, name, ou_id, members: list[SyncData]):
+        """Initialize Iteration object."""
+        self.name = name
+        self.ou_id = ou_id
+        self.members = members
+
+    def __repr__(self):
+        """Overload to string function for Iteration datatype."""
+        return f"Iteration('{self.name}', '{self.ou_id}', {self.members})"
+
+    def __eq__(self, other: Iteration) -> bool:
+        """Overload equals operator for Iteration objects."""
+        if not isinstance(other, Iteration):
+            raise TypeError("Must compare to object of type Iteration")
+        return self.name == other.name and self.ou_id == other.ou_id and self.members == other.members
+
+
+class AWSTree:
+    """Tree structure for AWS data."""
+
+    def __init__(self, name, ou_id, iterations: list[Iteration]):
+        """Initialize AWSTree object."""
+        self.name = name
+        self.ou_id = ou_id
+        self.iterations = iterations
+
+    def __repr__(self):
+        """Overload to string function for AWSTree object."""
+        return f"AWSTree('{self.name}', '{self.ou_id}', {self.iterations})"
+
+    def __eq__(self, other: AWSTree) -> bool:
+        """Overload equals operator for AWSTree objects."""
+        if not isinstance(other, AWSTree):
+            raise TypeError("Must compare to object of type AWSTree")
+        return self.name == other.name and self.ou_id == other.ou_id and self.iterations == other.iterations
+
+    def awstree_to_syncdata_list(self):
+        """Convert AWSTree to list of SyncData elements."""
+        awslist = []
+
+        for iteration in self.iterations:
+            for member in iteration.members:
+                awslist.append(member)
+
+        return awslist
 
 
 class AWSSync:
@@ -129,7 +184,7 @@ class AWSSync:
                 self.logger.debug(f"{error}")
                 self.logger.debug(f"{error.response}")
 
-    def generate_aws_sync_list(self, giphouse_data, aws_data):
+    def generate_aws_sync_list(self, giphouse_data: list[SyncData], aws_data: list[SyncData]):
         """
         Generate the list of users that are registered on the GiPhouse website, but are not yet invited for AWS.
 
@@ -178,3 +233,62 @@ class AWSSync:
             self.logger.error("Something went wrong attaching an SCP policy to a target.")
             self.logger.debug(f"{error}")
             self.logger.debug(f"{error.response}")
+
+    # TODO: check if this function is really needed
+
+    def check_for_double_member_email(self, aws_list: list[SyncData], sync_list: list[SyncData]):
+        """Check if no users are assigned to multiple projects."""
+        sync_emails = [x.project_email for x in sync_list]
+        aws_emails = [x.project_email for x in aws_list]
+
+        duplicates = [email for email in sync_emails if email in aws_emails]
+
+        for duplicate in duplicates:
+            error = f"Email address {duplicate} is already in the list of members in AWS"
+            self.logger.info("An email clash occured while syncing.")
+            self.logger.debug(error)
+
+        if duplicates != []:
+            return True
+        return False
+
+    def check_current_ou_exists(self, AWSdata: AWSTree):
+        """
+        Check if the the OU (organizational unit) for the current semester already exists in AWS.
+
+        Get data in tree structure (dictionary) defined in the function that retrieves the AWS data
+        """
+        current = Semester.objects.get_or_create_current_semester()
+
+        for iteration in AWSdata.iterations:
+            if current == iteration.name:
+                return (True, iteration.ou_id)
+
+        return (False, None)
+
+    # TODO: Do we want to check for this?
+    def check_members_in_correct_iteration(self, AWSdata: AWSTree):
+        """Check if the data from the member tag matches the semester OU it is in."""
+        incorrect_emails = []
+        for iteration in AWSdata.iterations:
+            for member in iteration.members:
+                if member.project_semester != iteration.name:
+                    incorrect_emails.append(member.project_email)
+
+        if incorrect_emails != []:
+            return (False, incorrect_emails)
+
+        return (True, None)
+
+    def check_double_iteration_names(self, AWSdata: AWSTree):
+        """Check if there are multiple OU's with the same name in AWS."""
+        names = [iteration.name for iteration in AWSdata.iterations]
+        doubles = []
+
+        for name in names:
+            if names.count(name) != 1 and name not in doubles:
+                doubles.append(name)
+
+        if doubles != []:
+            return (True, doubles)
+        return (False, None)
