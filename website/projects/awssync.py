@@ -188,7 +188,7 @@ class AWSSync:
         """
         Generate the list of users that are registered on the GiPhouse website, but are not yet invited for AWS.
 
-        This includes their ID and email address, to be able to put users in the correct AWS orginization later.
+        This includes their ID and email address, to be able to put users in the correct AWS organization later.
         """
         sync_list = [x for x in giphouse_data if x not in aws_data]
         return sync_list
@@ -199,8 +199,8 @@ class AWSSync:
 
         :param policy_name: The policy name.
         :param policy_description: The policy description.
-        :param policy_content: The policy configuration as a dictionary. The policy is automatically
-                               converted to JSON format, including escaped quotation marks.
+        :param policy_content: The policy configuration as a dictionary.
+        The policy is automatically converted to JSON format, including escaped quotation marks.
         :return: Details of newly created policy as a dict on success and NoneType object otherwise.
         """
         client = boto3.client("organizations")
@@ -292,3 +292,44 @@ class AWSSync:
         if doubles != []:
             return (True, doubles)
         return (False, None)
+
+    def extract_aws_setup(self, parent_ou_id):
+        """
+        Give a list of all the children of the parent OU.
+
+        :param parent_ou_id: The ID of the parent OU.
+        """
+        client = boto3.client("organizations")
+        try:
+            response = client.list_organizational_units_for_parent(ParentId=parent_ou_id)
+            aws_tree = AWSTree("root", parent_ou_id, [])
+            for iteration in response["OrganizationalUnits"]:
+                ou_id = iteration["Id"]
+                ou_name = iteration["Name"]
+                response = client.list_accounts_for_parent(ParentId=ou_id)
+                children = response["Accounts"]
+                syncData = []
+                for child in children:
+                    account_id = child["Id"]
+                    account_email = child["Email"]
+                    response = client.list_tags_for_resource(ResourceId=account_id)
+                    tags = response["Tags"]
+                    merged_tags = {d["Key"]: d["Value"] for d in tags}
+                    self.logger.debug(merged_tags)
+                    if all(key in merged_tags for key in ["project_slug", "project_semester"]):
+                        syncData.append(
+                            SyncData(account_email, merged_tags["project_slug"], merged_tags["project_semester"])
+                        )
+                    else:
+                        self.logger.error(
+                            "Could not find project_slug or project_semester tag for account with ID: " + account_id
+                        )
+                        self.fail = True
+
+                aws_tree.iterations.append(Iteration(ou_name, ou_id, syncData))
+            return aws_tree
+        except ClientError as error:
+            self.fail = True
+            self.logger.error("Something went wrong extracting the AWS setup.")
+            self.logger.debug(f"{error}")
+            self.logger.debug(f"{error.response}")

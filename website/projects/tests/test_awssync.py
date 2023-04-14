@@ -193,6 +193,52 @@ class AWSSyncTest(TestCase):
 
         self.assertTrue(self.sync.fail)
 
+    @mock_organizations
+    def test_get_aws_data(self):
+        moto_client = boto3.client("organizations")
+        self.sync.create_aws_organization()
+        root_id = moto_client.list_roots()["Roots"][0]["Id"]
+
+        response_OU_1 = moto_client.create_organizational_unit(ParentId=root_id, Name="OU_1")
+        OU_1_id = response_OU_1["OrganizationalUnit"]["Id"]
+        response_account_1 = moto_client.create_account(
+            Email="account_1@gmail.com",
+            AccountName="account_1",
+            Tags=[{"Key": "project_semester", "Value": "2021"}, {"Key": "project_slug", "Value": "test1"}],
+        )
+        account_id_1 = response_account_1["CreateAccountStatus"]["AccountId"]
+        moto_client.move_account(AccountId=account_id_1, SourceParentId=root_id, DestinationParentId=OU_1_id)
+
+        aws_tree = self.sync.extract_aws_setup(root_id)
+        iteration_test = awssync.Iteration("OU_1", OU_1_id, [awssync.SyncData("account_1@gmail.com", "test1", "2021")])
+        aws_tree_test = awssync.AWSTree("root", root_id, [iteration_test])
+        self.assertEquals(aws_tree, aws_tree_test)
+
+    @mock_organizations
+    def test_get_aws_data_no_root(self):
+        boto3.client("organizations")
+        self.sync.create_aws_organization()
+        self.sync.extract_aws_setup("NonExistentRootID")
+        self.assertTrue(self.sync.fail)
+
+    @mock_organizations
+    def test_get_aws_data_no_slugs(self):
+        moto_client = boto3.client("organizations")
+        self.sync.create_aws_organization()
+        root_id = moto_client.list_roots()["Roots"][0]["Id"]
+
+        response_OU_1 = moto_client.create_organizational_unit(ParentId=root_id, Name="OU_1")
+        OU_1_id = response_OU_1["OrganizationalUnit"]["Id"]
+        response_account_1 = moto_client.create_account(
+            Email="account_1@gmail.com",
+            AccountName="account_1",
+            Tags=[],
+        )
+        account_id_1 = response_account_1["CreateAccountStatus"]["AccountId"]
+        moto_client.move_account(AccountId=account_id_1, SourceParentId=root_id, DestinationParentId=OU_1_id)
+        self.sync.extract_aws_setup(root_id)
+        self.assertTrue(self.sync.fail)
+
 
 class AWSSyncListTest(TestCase):
     """Test AWSSyncList class."""
