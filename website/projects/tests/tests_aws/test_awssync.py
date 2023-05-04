@@ -8,7 +8,9 @@ import boto3
 import botocore
 from botocore.exceptions import ClientError
 
-from django.test import TestCase
+from django.contrib.auth import get_user_model
+from django.test import Client, TestCase
+from django.urls import reverse
 
 from moto import mock_organizations, mock_sts
 
@@ -18,6 +20,10 @@ from mailing_lists.models import MailingList
 
 from projects.aws import awssync
 from projects.models import Project
+
+from registrations.models import Employee
+
+User: Employee = get_user_model()
 
 
 class AWSSyncTest(TestCase):
@@ -32,6 +38,9 @@ class AWSSyncTest(TestCase):
         self.mailing_list.projects.add(self.project)
         self.mock_org = mock_organizations()
         self.mock_org.start()
+        self.admin = User.objects.create_superuser(github_id=0, github_username="super")
+        self.client = Client()
+        self.client.force_login(self.admin)
 
     def tearDown(self):
         self.mock_org.stop()
@@ -41,8 +50,31 @@ class AWSSyncTest(TestCase):
 
     def test_button_pressed(self):
         """Test button_pressed function."""
-        return_value = self.sync.button_pressed()
+        response = self.client.get(reverse("admin:projects_project_changelist"), follow=False)
+        return_value = self.sync.button_pressed(response.wsgi_request)
         self.assertTrue(return_value)
+
+    def test_error_message_sync_button(self):
+        """Test if error is on screen when pipeline gives error"""
+        with patch("projects.awssync.AWSSync.pipeline", return_value=False):
+            response = self.client.get(reverse("admin:synchronise_to_aws"), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "An error occurred during synchronization with AWS. Check the console for more information",
+        )
+
+    def test_success_message_sync_button(self):
+        """Test if error not on screen when pipeline succeeds."""
+        with patch("projects.awssync.AWSSync.pipeline", return_value=True):
+            response = self.client.get(reverse("admin:synchronise_to_aws"), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Successfully synchronized all projects to AWS.",
+        )
 
     def test_create_aws_organization(self):
         moto_client = boto3.client("organizations")

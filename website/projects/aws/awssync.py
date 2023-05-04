@@ -10,6 +10,8 @@ import boto3
 from botocore.exceptions import ClientError
 from botocore.exceptions import NoCredentialsError
 
+from django.contrib import messages
+
 from courses.models import Semester
 
 from mailing_lists.models import MailingList
@@ -20,7 +22,7 @@ from projects.models import Project
 
 
 class AWSSync:
-    """Synchronise with Amazon Web Services."""
+    """Synchronize with Amazon Web Services."""
 
     def __init__(self):
         """Create an AWSSync instance."""
@@ -92,14 +94,25 @@ class AWSSync:
         ]
         self.logger.info("Created AWSSync instance.")
 
-    def button_pressed(self):
+    def button_pressed(self, request):
         """
         Print debug message to show that the button has been pressed.
 
         :return: True if function executes successfully
         """
         self.logger.info("Pressed button")
-        self.logger.debug(f"Pipeline result: {self.pipeline()}")
+        pipeline_result = self.pipeline()
+        self.logger.debug(f"Pipeline result: {pipeline_result}")
+        if not pipeline_result:
+            messages.error(
+                request,
+                "An error occurred during synchronization with AWS. Check the console for more information",
+            )
+        else:
+            messages.success(
+                request,
+                "Successfully synchronized all projects to AWS.",
+            )
         return True
 
     def get_all_mailing_lists(self):
@@ -550,7 +563,7 @@ class AWSSync:
 
         for duplicate in duplicates:
             error = f"Email address {duplicate} is already in the list of members in AWS"
-            self.logger.info("An email clash occured while syncing.")
+            self.logger.info("An email clash occurred while syncing.")
             self.logger.debug(error)
 
         if duplicates != []:
