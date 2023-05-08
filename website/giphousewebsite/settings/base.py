@@ -32,6 +32,8 @@ INSTALLED_APPS = [
     'admin_auto_filters',
     'admin_totals',
     'django_easy_admin_object_actions',
+    'tinymce',
+    'django_bleach',
 
     'questionnaires.apps.QuestionnairesConfig',
     'github_oauth.apps.GithubConfig',
@@ -146,3 +148,44 @@ GSUITE_SCOPES = [
     "https://www.googleapis.com/auth/admin.directory.group",
     "https://www.googleapis.com/auth/apps.groups.settings",
 ]
+
+TINYMCE_DEFAULT_CONFIG = {
+    "max_height": 500,
+    "menubar": False,
+    "plugins": "autolink autoresize link image code media paste lists",
+    "toolbar": "h2 h3 | bold italic underline strikethrough | image | link unlink "
+    "| bullist numlist | undo redo | code",
+    "contextmenu": "bold italic underline strikethrough | link",
+    "paste_as_text": True,
+    "relative_urls": False,
+    "remove_script_host": False,
+    "autoresize_bottom_margin": 50,
+}
+
+# HTML input sanitization settings for the bleach template filter
+BLEACH_ALLOWED_TAGS = [
+    "h2",
+    "h3",
+    "p",
+    "a",
+    "div",
+    "strong",
+    "em",
+    "i",
+    "b",
+    "ul",
+    "li",
+    "br",
+    "ol",
+    "img",
+    "span",
+]
+
+BLEACH_ALLOWED_ATTRIBUTES = {
+    "*": ["class", "style"],
+    "a": ["href", "rel", "target", "title"],
+    "img": ["alt", "title", "src"],
+}
+
+BLEACH_STRIP_TAGS = True
+BLEACH_STRIP_COMMENTS = False

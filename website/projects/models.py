@@ -3,6 +3,8 @@ from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 
+from tinymce.models import HTMLField
+
 from courses.models import Semester
 
 from registrations.models import Employee
@@ -38,7 +40,7 @@ class Project(models.Model):
     slug = models.SlugField("slug", max_length=50, blank=False, null=False)
 
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
-    description = models.TextField()
+    description = HTMLField()
     client = models.ForeignKey(Client, on_delete=models.SET_NULL, blank=True, null=True)
 
     comments = models.TextField(
