@@ -401,6 +401,7 @@ class AWSSync:
         """
         client = boto3.client("organizations")
 
+        account_fail = False
         # Request new member account.
         try:
             response_create = client.create_account(
@@ -414,27 +415,32 @@ class AWSSync:
             )
         except ClientError as error:
             self.logger.debug(error)
-            return False, "CLIENTERROR_CREATE_ACCOUNT"
+            account_fail = True
 
-        # Repeatedly check status of new member account request.
-        request_id = response_create["CreateAccountStatus"]["Id"]
+        if account_fail:
+            return False, "FAILED CREATING ACCOUNT"
+        else:
+            # Repeatedly check status of new member account request.
+            request_id = response_create["CreateAccountStatus"]["Id"]
 
-        for _ in range(1, self.ACCOUNT_REQUEST_MAX_ATTEMPTS + 1):
-            time.sleep(self.ACCOUNT_REQUEST_INTERVAL_SECONDS)
+            for _ in range(1, self.ACCOUNT_REQUEST_MAX_ATTEMPTS + 1):
+                time.sleep(self.ACCOUNT_REQUEST_INTERVAL_SECONDS)
+                describe_fail = False
 
-            try:
-                response_status = client.describe_create_account_status(CreateAccountRequestId=request_id)
-            except ClientError as error:
-                self.logger.debug(error)
-                return False, "CLIENTERROR_DESCRIBE_CREATE_ACCOUNT_STATUS"
+                try:
+                    response_status = client.describe_create_account_status(CreateAccountRequestId=request_id)
+                except ClientError as error:
+                    self.logger.debug(error)
+                    describe_fail = True
 
-            request_state = response_status["CreateAccountStatus"]["State"]
-            if request_state == "FAILED":
-                return False, response_status["CreateAccountStatus"]["FailureReason"]
-            elif request_state == "SUCCEEDED":
-                return True, response_status["CreateAccountStatus"]["AccountId"]
-
-        return False, "STILL_IN_PROGRESS"
+                if describe_fail:
+                    return False, "FAILED DESCRIBING ACCOUNT"
+                else:
+                    request_state = response_status["CreateAccountStatus"]["State"]
+                    if request_state == "SUCCEEDED":
+                        return True, response_status["CreateAccountStatus"]["AccountId"]
+                    else:
+                        return False, response_status["CreateAccountStatus"]["FailureReason"]
 
     def pipeline_create_and_move_accounts(self, new_member_accounts, root_id, destination_ou_id):
         """
