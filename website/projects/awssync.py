@@ -388,7 +388,7 @@ class AWSSync:
             return False
         return True
 
-    def pipeline_create_account(self, sync_data):
+    def pipeline_create_account(self, sync_data: SyncData):
         """
         Create a single new AWS member account in the organization of the API caller.
 
@@ -396,8 +396,7 @@ class AWSSync:
             self.ACCOUNT_REQUEST_INTERVAL_SECONDS: thread sleeping time before each status check
             self.ACCOUNT_REQUEST_MAX_ATTEMPTS:     maximum number of times to thread sleep and check
 
-        :param email:    The e-mail address of the new member account.
-        :param username: The username of the new member account.
+        :param sync_data: SyncData object containing project_email and project_slug.
         :returns:        (True, account_id) on success and otherwise (False, failure_reason).
         """
         client = boto3.client("organizations")
@@ -419,6 +418,7 @@ class AWSSync:
 
         # Repeatedly check status of new member account request.
         request_id = response_create["CreateAccountStatus"]["Id"]
+
         for _ in range(1, self.ACCOUNT_REQUEST_MAX_ATTEMPTS + 1):
             time.sleep(self.ACCOUNT_REQUEST_INTERVAL_SECONDS)
 
