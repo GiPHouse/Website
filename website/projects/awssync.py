@@ -1,4 +1,5 @@
 """Framework for synchronisation with Amazon Web Services (AWS)."""
+from __future__ import annotations
 
 import json
 import logging
@@ -13,6 +14,7 @@ from courses.models import Semester
 
 from mailing_lists.models import MailingList
 
+from projects.awssync_checks import Checks
 from projects.awssync_structs import AWSTree, Iteration, SyncData
 from projects.models import Project
 
@@ -517,15 +519,9 @@ class AWSSync:
         if self.check_for_double_member_email(aws_sync_data, merged_sync_data):
             return False
 
-        success, incorrect_emails = self.check_members_in_correct_iteration(aws_tree)
-        if not success:
-            self.logger.debug(f"Got incorrectly placed AWS member accounts: {incorrect_emails}.")
-            return False
-
-        failure, double_iteration_names = self.check_double_iteration_names(aws_tree)
-        if failure:
-            self.logger.debug(f"Found double iteration names: {double_iteration_names}.")
-            return False
+        checker = Checks()
+        checker.check_members_in_correct_iteration(aws_tree)
+        checker.check_double_iteration_names(aws_tree)
 
         # Check/create course iteration OU.
         current_course_iteration_exists, response = self.pipeline_update_current_course_iteration_ou(aws_tree)
@@ -573,32 +569,6 @@ class AWSSync:
             if current == iteration.name:
                 return (True, iteration.ou_id)
 
-        return (False, None)
-
-    def check_members_in_correct_iteration(self, AWSdata: AWSTree):
-        """Check if the data from the member tag matches the semester OU it is in."""
-        incorrect_emails = []
-        for iteration in AWSdata.iterations:
-            for member in iteration.members:
-                if member.project_semester != iteration.name:
-                    incorrect_emails.append(member.project_email)
-
-        if incorrect_emails != []:
-            return (False, incorrect_emails)
-
-        return (True, None)
-
-    def check_double_iteration_names(self, AWSdata: AWSTree):
-        """Check if there are multiple OU's with the same name in AWS."""
-        names = [iteration.name for iteration in AWSdata.iterations]
-        doubles = []
-
-        for name in names:
-            if names.count(name) != 1 and name not in doubles:
-                doubles.append(name)
-
-        if doubles != []:
-            return (True, doubles)
         return (False, None)
 
     def extract_aws_setup(self, parent_ou_id):
