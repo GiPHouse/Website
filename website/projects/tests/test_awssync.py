@@ -618,9 +618,7 @@ class AWSSyncTest(TestCase):
         self.sync.extract_aws_setup = MagicMock(return_value=aws_tree)
         self.sync.get_emails_with_teamids = MagicMock(return_value=gip_teams)
         with patch.object(Semester.objects, "get_or_create_current_semester", return_value="Spring 2023"):
-            success = self.sync.pipeline()
-
-        self.assertFalse(success)
+            self.assertRaises(Exception, self.sync.pipeline)
 
     def test_pipeline__edge_case_double_iteration_names(self):
         moto_client = boto3.client("organizations")
@@ -643,9 +641,7 @@ class AWSSyncTest(TestCase):
         self.sync.extract_aws_setup = MagicMock(return_value=aws_tree)
         self.sync.get_emails_with_teamids = MagicMock(return_value=gip_teams)
         with patch.object(Semester.objects, "get_or_create_current_semester", return_value="Spring 2023"):
-            success = self.sync.pipeline()
-
-        self.assertFalse(success)
+            self.assertRaises(Exception, self.sync.pipeline)
 
     def test_pipeline__failed_creating_iteration_ou(self):
         moto_client = boto3.client("organizations")

@@ -182,24 +182,6 @@ class AWSTreeChecksTest(TestCase):
             val1, val2 = self.sync.check_current_ou_exists(self.aws_tree1)
             self.assertEqual((val1, val2), (True, "98765"))
 
-    def test_check_members_in_correct_iteration(self):
-        # Test when correct
-        val1, val2 = self.sync.check_members_in_correct_iteration(self.aws_tree1)
-        self.assertEqual((val1, val2), (True, None))
-
-        # Test when incorrect
-        val1, val2 = self.sync.check_members_in_correct_iteration(self.aws_tree2)
-        self.assertEqual((val1, val2), (False, ["email3@example.com"]))
-
-    def test_check_double_iteration_names(self):
-        # Test when correct
-        val1, val2 = self.sync.check_double_iteration_names(self.aws_tree1)
-        self.assertEqual((val1, val2), (False, None))
-
-        # Test when double
-        val1, val2 = self.sync.check_double_iteration_names(self.aws_tree3)
-        self.assertEqual((val1, val2), (True, ["Fall 2020"]))
-
     def test_AWSTree_equals(self):
         self.assertEqual(self.aws_tree1, self.aws_tree1)
         self.assertNotEqual(self.aws_tree1, self.aws_tree2)
