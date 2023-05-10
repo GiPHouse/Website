@@ -6,7 +6,7 @@ from django.test import TestCase
 
 from courses.models import Semester
 
-from projects import awssync
+from projects.aws import awssync
 
 
 class SyncDataTest(TestCase):
