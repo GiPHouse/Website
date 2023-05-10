@@ -16,7 +16,7 @@ from courses.models import Semester
 
 from mailing_lists.models import MailingList
 
-from projects import awssync
+from projects.aws import awssync
 from projects.models import Project
 
 
@@ -315,7 +315,7 @@ class AWSSyncTest(TestCase):
             check_iam_policy = self.sync.check_iam_policy(iam_user_arn, desired_actions)
 
         # Mock return value of check_iam_policy.
-        with patch("projects.awssync.AWSSync.check_iam_policy") as mocker:
+        with patch("projects.aws.awssync.AWSSync.check_iam_policy") as mocker:
             mocker.return_value = check_iam_policy
             success = self.sync.pipeline_preconditions()
 
@@ -350,7 +350,7 @@ class AWSSyncTest(TestCase):
             check_api_actions = self.sync.check_iam_policy(iam_user_arn, desired_actions)
 
             # Mock return value of check_iam_policy.
-            with patch("projects.awssync.AWSSync.check_iam_policy") as mocker:
+            with patch("projects.aws.awssync.AWSSync.check_iam_policy") as mocker:
                 mocker.return_value = check_api_actions
                 success = self.sync.pipeline_preconditions()
 
@@ -377,7 +377,7 @@ class AWSSyncTest(TestCase):
             check_iam_policy = self.sync.check_iam_policy(iam_user_arn, desired_actions)
 
         # Mock return value of check_iam_policy.
-        with patch("projects.awssync.AWSSync.check_iam_policy") as mocker:
+        with patch("projects.aws.awssync.AWSSync.check_iam_policy") as mocker:
             mocker.return_value = check_iam_policy
             success = self.sync.pipeline_preconditions()
 
@@ -407,9 +407,9 @@ class AWSSyncTest(TestCase):
             check_iam_policy = self.sync.check_iam_policy(iam_user_arn, desired_actions)
 
         # Mock return value of check_iam_policy.
-        with patch("projects.awssync.AWSSync.check_iam_policy") as mocker_iam:
+        with patch("projects.aws.awssync.AWSSync.check_iam_policy") as mocker_iam:
             mocker_iam.return_value = check_iam_policy
-            with patch("projects.awssync.AWSSync.check_aws_api_connection") as mocker_api:
+            with patch("projects.aws.awssync.AWSSync.check_aws_api_connection") as mocker_api:
                 mocker_api.return_value = True, {"Account": "daddy", "Arn": "01234567890123456789"}
                 success = self.sync.pipeline_preconditions()
 
@@ -440,12 +440,12 @@ class AWSSyncTest(TestCase):
             check_iam_policy = self.sync.check_iam_policy(iam_user_arn, desired_actions)
 
         # Mock return value of check_iam_policy.
-        with patch("projects.awssync.AWSSync.check_iam_policy") as mocker_iam:
+        with patch("projects.aws.awssync.AWSSync.check_iam_policy") as mocker_iam:
             mocker_iam.return_value = check_iam_policy
 
             # Mock return value of check_organization_existence with no SCP policy enabled.
             organization_info["AvailablePolicyTypes"] = []
-            with patch("projects.awssync.AWSSync.check_organization_existence") as mocker:
+            with patch("projects.aws.awssync.AWSSync.check_organization_existence") as mocker:
                 mocker.return_value = True, organization_info
                 success = self.sync.pipeline_preconditions()
 
@@ -548,7 +548,7 @@ class AWSSyncTest(TestCase):
             mocker().simulate_principal_policy.return_value = mock_evaluation_results
             check_iam_policy = self.sync.check_iam_policy(iam_user_arn, desired_actions)
 
-        with patch("projects.awssync.AWSSync.check_iam_policy") as mocker:
+        with patch("projects.aws.awssync.AWSSync.check_iam_policy") as mocker:
             mocker.return_value = check_iam_policy
             success = self.sync.pipeline()
 
@@ -815,7 +815,7 @@ class AWSSyncTest(TestCase):
         root_id = moto_client.list_roots()["Roots"][0]["Id"]
         course_iteration_id = self.sync.create_course_iteration_OU("2023Fall")
 
-        with patch("projects.awssync.AWSSync.pipeline_create_account") as mocker:
+        with patch("projects.aws.awssync.AWSSync.pipeline_create_account") as mocker:
             mocker.return_value = False, "EMAIL_ALREADY_EXISTS"
             success = self.sync.pipeline_create_and_move_accounts(new_member_accounts, root_id, course_iteration_id)
 

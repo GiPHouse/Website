@@ -14,8 +14,8 @@ from courses.models import Semester
 
 from mailing_lists.models import MailingList
 
-from projects.awssync_checks import Checks
-from projects.awssync_structs import AWSTree, Iteration, SyncData
+from projects.aws.awssync_checks import Checks
+from projects.aws.awssync_structs import AWSTree, Iteration, SyncData
 from projects.models import Project
 
 
