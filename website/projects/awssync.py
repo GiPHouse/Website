@@ -427,6 +427,7 @@ class AWSSync:
             response = self.pipeline_create_account(new_member)
             # Repeatedly check status of new member account request.
             request_id = response["CreateAccountStatus"]["Id"]
+
             can_move = False
 
             for _ in range(1, self.ACCOUNT_REQUEST_MAX_ATTEMPTS + 1):
