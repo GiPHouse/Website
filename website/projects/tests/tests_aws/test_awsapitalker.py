@@ -195,3 +195,14 @@ class AWSAPITalkerTest(TestCase):
         roots = self.api_talker.list_roots()
 
         self.assertTrue(len(roots) == 1)
+
+    def test_describe_create_account_status(self):
+        self.create_organization()
+
+        account = self.api_talker.create_account("test@example.com", "Test")
+        account_id = account["CreateAccountStatus"]["Id"]
+
+        request = self.api_talker.describe_create_account_status(account_id)
+        request_state = request["CreateAccountStatus"]["State"]
+
+        self.assertEqual(request_state, "SUCCEEDED")
