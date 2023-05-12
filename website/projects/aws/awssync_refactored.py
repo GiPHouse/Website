@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import logging
+import time
+
 from botocore.exceptions import ClientError
 
 from courses.models import Semester
@@ -14,6 +17,12 @@ class AWSSyncRefactored:
     def __init__(self):
         """Create an AWSSync instance."""
         self.api_talker = AWSAPITalker()
+
+        self.ACCOUNT_REQUEST_INTERVAL_SECONDS = 5
+        self.ACCOUNT_REQUEST_MAX_ATTEMPTS = 3
+
+        self.logger = logging.getLogger("django.aws")
+        self.logger.setLevel(logging.DEBUG)
 
     def get_or_create_course_ou(self, tree: AWSTree) -> str:
         """Create organizational unit under root with name of current semester."""
@@ -44,13 +53,13 @@ class AWSSyncRefactored:
         :param destination_ou_id:   The organization's destination OU ID.
         :returns:                   True iff **all** new member accounts were created and moved successfully.
         """
-        client = boto3.client("organizations")
+
         overall_success = True
         for new_member in new_member_accounts:
             # Create member account
             response = self.api_talker.create_account(new_member.project_email, new_member.project_slug, [
-                {"Key": "project_slug", "Value": sync_data.project_slug},
-                {"Key": "project_semester", "Value": sync_data.project_semester},
+                {"Key": "project_slug", "Value": new_member.project_slug},
+                {"Key": "project_semester", "Value": new_member.project_semester},
             ])
             # Repeatedly check status of new member account request.
             request_id = response["CreateAccountStatus"]["Id"]
@@ -73,9 +82,9 @@ class AWSSyncRefactored:
             if can_move:
 
                 try:
-                    root_id = client.list_roots()["Roots"][0]["Id"]
-                    client.move_account(
-                        AccountId=account_id, SourceParentId=root_id, DestinationParentId=destination_ou_id
+                    root_id = self.api_talker.list_roots()[0]["Id"]
+                    self.api_talker.move_account(
+                        account_id, root_id, destination_ou_id
                     )
                 except ClientError as error:
                     self.logger.debug(error)
