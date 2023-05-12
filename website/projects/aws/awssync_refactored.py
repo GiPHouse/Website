@@ -61,7 +61,7 @@ class AWSSyncRefactored:
                 time.sleep(self.ACCOUNT_REQUEST_INTERVAL_SECONDS)
 
                 try:
-                    response_status = self.api_talker.org.client.describe_create_account_status(CreateAccountRequestId=request_id)
+                    response_status = self.api_talker.describe_create_account_status(request_id)
                 except ClientError as error:
                     self.logger.debug(error)
 
