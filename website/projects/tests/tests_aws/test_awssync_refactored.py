@@ -83,4 +83,15 @@ class AWSSyncRefactoredTest(TestCase):
     def test_attach_policy__reraised_exception(self):
         self.assertRaises(ClientError, self.sync.attach_policy, "r-123", "p-123")
 
-    def test_create_account
+    def test_create_and_move_account(self):
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        root_id = self.sync.api_talker.list_roots()[0]["Id"]
+
+        dest_ou = self.sync.api_talker.create_organizational_unit(root_id, "destination_ou")
+        dest_ou_id = dest_ou["OrganizationalUnit"]["Id"]
+        members = [SyncData("alice@giphouse.nl", "alices-project", "Spring 2023"), SyncData("bob@giphouse.nl", "bobs-project", "Fall 2023")]
+
+        success = self.sync.create_and_move_accounts(members, root_id, dest_ou_id)
+        self.assertTrue(success)
+
+
