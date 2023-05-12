@@ -82,3 +82,5 @@ class AWSSyncRefactoredTest(TestCase):
 
     def test_attach_policy__reraised_exception(self):
         self.assertRaises(ClientError, self.sync.attach_policy, "r-123", "p-123")
+
+    def test_create_account
