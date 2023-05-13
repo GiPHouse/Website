@@ -82,3 +82,20 @@ class AWSSyncRefactoredTest(TestCase):
 
     def test_attach_policy__reraised_exception(self):
         self.assertRaises(ClientError, self.sync.attach_policy, "r-123", "p-123")
+
+    def test_ensure_organization_created__already_exists(self):
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        self.sync.ensure_organization_created()
+
+    def test_ensure_organization_created__new(self):
+        self.assertRaises(ClientError, self.sync.api_talker.describe_organization)
+        self.sync.ensure_organization_created()
+        self.assertIsNotNone(self.sync.api_talker.describe_organization)
+
+    def test_ensure_organization_created__reraised_exception(self):
+        create_organization_error = ClientError({"Error": {"Code": "AccessDeniedException"}}, "create_organization")
+        with patch.object(self.sync.api_talker, "create_organization", side_effect=create_organization_error):
+            try:
+                self.sync.ensure_organization_created()
+            except ClientError as error:
+                self.assertEqual(error.response["Error"]["Code"], "AccessDeniedException")
