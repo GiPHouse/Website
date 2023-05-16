@@ -165,6 +165,7 @@ class AWSAPITalker:
         """
         Describe the status of the given account creation request.
 
-        :return: dictionary containing account creation status information
+        :param create_account_request_id: ID of the account creation request to be described. 
+        :return: dictionary containing account creation status information.
         """
         return self.org_client.describe_create_account_status(CreateAccountRequestId=create_account_request_id)
