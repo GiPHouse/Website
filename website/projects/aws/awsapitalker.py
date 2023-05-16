@@ -160,3 +160,12 @@ class AWSAPITalker:
         page_iterator = paginator.paginate()
 
         return self.combine_pages(page_iterator, "Roots")
+
+    def describe_create_account_status(self, create_account_request_id: str) -> dict:
+        """
+        Describe the status of the given account creation request.
+
+        :param create_account_request_id: ID of the account creation request to be described.
+        :return: dictionary containing account creation status information.
+        """
+        return self.org_client.describe_create_account_status(CreateAccountRequestId=create_account_request_id)

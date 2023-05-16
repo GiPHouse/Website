@@ -228,3 +228,73 @@ class AWSSyncRefactoredTest(TestCase):
                 self.sync.ensure_organization_created()
             except ClientError as error:
                 self.assertEqual(error.response["Error"]["Code"], "AccessDeniedException")
+    def test_create_move_account(self):
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        root_id = self.sync.api_talker.list_roots()[0]["Id"]
+
+        dest_ou = self.sync.api_talker.create_organizational_unit(root_id, "destination_ou")
+        dest_ou_id = dest_ou["OrganizationalUnit"]["Id"]
+        members = [
+            SyncData("alice@giphouse.nl", "alices-project", "Spring 2023"),
+            SyncData("bob@giphouse.nl", "bobs-project", "Fall 2023"),
+        ]
+
+        success = self.sync.create_and_move_accounts(members, root_id, dest_ou_id)
+        self.assertTrue(success)
+        self.assertEqual(self.sync.accounts_created, 2)
+        self.assertEqual(self.sync.accounts_moved, 2)
+
+    def test_create_move_account__exception_failure(self):
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        root_id = self.sync.api_talker.list_roots()[0]["Id"]
+
+        dest_ou = self.sync.api_talker.create_organizational_unit(root_id, "destination_ou")
+        dest_ou_id = dest_ou["OrganizationalUnit"]["Id"]
+        members = [
+            SyncData("alice@giphouse.nl", "alices-project", "Spring 2023"),
+            SyncData("bob@giphouse.nl", "bobs-project", "Fall 2023"),
+        ]
+
+        with patch.object(self.sync.api_talker, "move_account", side_effect=ClientError({}, "move_account")):
+            success = self.sync.create_and_move_accounts(members, root_id, dest_ou_id)
+
+        self.assertFalse(success)
+
+    def test_create_move_account__no_move(self):
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        root_id = self.sync.api_talker.list_roots()[0]["Id"]
+
+        dest_ou = self.sync.api_talker.create_organizational_unit(root_id, "destination_ou")
+        dest_ou_id = dest_ou["OrganizationalUnit"]["Id"]
+        members = [
+            SyncData("alice@giphouse.nl", "alices-project", "Spring 2023"),
+            SyncData("bob@giphouse.nl", "bobs-project", "Fall 2023"),
+        ]
+
+        with patch.object(
+            self.sync.api_talker,
+            "describe_create_account_status",
+            side_effect=ClientError({}, "describe_create_account_status"),
+        ):
+            success = self.sync.create_and_move_accounts(members, root_id, dest_ou_id)
+
+        self.assertFalse(success)
+
+    def test_create_move_account__bad_state(self):
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        root_id = self.sync.api_talker.list_roots()[0]["Id"]
+
+        dest_ou = self.sync.api_talker.create_organizational_unit(root_id, "destination_ou")
+        dest_ou_id = dest_ou["OrganizationalUnit"]["Id"]
+        members = [
+            SyncData("alice@giphouse.nl", "alices-project", "Spring 2023"),
+            SyncData("alice@giphouse.nl", "bobs-project", "Fall 2023"),
+        ]
+
+        with patch.object(
+            self.sync.api_talker.org_client,
+            "describe_create_account_status",
+            return_value={"CreateAccountStatus": {"State": "FAILED", "FailureReason": "EMAIL_ALREADY_EXISTS"}},
+        ):
+            success = self.sync.create_and_move_accounts(members, root_id, dest_ou_id)
+        self.assertFalse(success)
