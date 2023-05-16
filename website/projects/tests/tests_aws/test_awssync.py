@@ -732,10 +732,11 @@ class AWSSyncTest(TestCase):
     def test_pipeline_create_account(self):
         self.sync.create_aws_organization()
 
-        response = self.sync.pipeline_create_account(
+        success, response = self.sync.pipeline_create_account(
             awssync.SyncData("alice@example.com", "alice", "Spring 2023")
         )
 
+        self.assertTrue(success)
         self.assertIsNotNone(response)
 
     def test_pipeline_create_account__exception_create_account(self):
@@ -743,9 +744,11 @@ class AWSSyncTest(TestCase):
 
         with patch("boto3.client") as mocker:
             mocker().create_account.side_effect = ClientError({}, "create_account")
-            response = self.sync.pipeline_create_account(
+            success, response = self.sync.pipeline_create_account(
                 awssync.SyncData("alice@example.com", "alice", "Spring 2023")
             )
+
+        self.assertFalse(success)
         self.assertEquals(response, "CLIENTERROR_CREATE_ACCOUNT")
 
     def test_pipeline_create_account__exception_describe_account_status(self):
@@ -753,10 +756,11 @@ class AWSSyncTest(TestCase):
 
         with patch("boto3.client") as mocker:
             mocker().describe_create_account_status.side_effect = ClientError({}, "describe_create_account_status")
-            response = self.sync.pipeline_create_account(
+            success, response = self.sync.pipeline_create_account(
                 awssync.SyncData("alice@example.com", "alice", "Spring 2023")
             )
 
+        self.assertFalse(success)
         self.assertEquals(response, "CLIENTERROR_DESCRIBE_CREATE_ACCOUNT_STATUS")
 
     def test_pipeline_create_account__state_failed(self):
@@ -765,9 +769,11 @@ class AWSSyncTest(TestCase):
         with patch("boto3.client") as mocker:
             response = {"CreateAccountStatus": {"State": "FAILED", "FailureReason": "EMAIL_ALREADY_EXISTS"}}
             mocker().describe_create_account_status.return_value = response
-            response = self.sync.pipeline_create_account(
+            success, response = self.sync.pipeline_create_account(
                 awssync.SyncData("alice@example.com", "alice", "Spring 2023")
             )
+
+        self.assertFalse(success)
         self.assertEquals(response, "EMAIL_ALREADY_EXISTS")
 
     def test_pipeline_create_account__state_in_progress(self):
@@ -780,10 +786,11 @@ class AWSSyncTest(TestCase):
                 }
             }
             mocker().describe_create_account_status.return_value = response
-            response = self.sync.pipeline_create_account(
+            success, response = self.sync.pipeline_create_account(
                 awssync.SyncData("alice@example.com", "alice", "Spring 2023")
             )
 
+        self.assertFalse(success)
         self.assertEquals(response, "STILL_IN_PROGRESS")
 
     def test_pipeline_create_and_move_accounts(self):

@@ -390,7 +390,7 @@ class AWSSync:
             return False
         return True
 
-    def pipeline_create_account(self, sync_data: SyncData):
+    def pipeline_create_account(self, sync_data):
         """
         Create a single new AWS member account in the organization of the API caller.
 
@@ -398,20 +398,45 @@ class AWSSync:
             self.ACCOUNT_REQUEST_INTERVAL_SECONDS: thread sleeping time before each status check
             self.ACCOUNT_REQUEST_MAX_ATTEMPTS:     maximum number of times to thread sleep and check
 
-        :param sync_data: SyncData object containing project_email and project_slug.
+        :param email:    The e-mail address of the new member account.
+        :param username: The username of the new member account.
         :returns:        (True, account_id) on success and otherwise (False, failure_reason).
         """
         client = boto3.client("organizations")
-        response_create = client.create_account(
-            Email=sync_data.project_email,
-            AccountName=sync_data.project_slug,
-            IamUserAccessToBilling="DENY",
-            Tags=[
-                {"Key": "project_slug", "Value": sync_data.project_slug},
-                {"Key": "project_semester", "Value": sync_data.project_semester},
-            ],
-        )
-        return response_create
+
+        # Request new member account.
+        try:
+            response_create = client.create_account(
+                Email=sync_data.project_email,
+                AccountName=sync_data.project_slug,
+                IamUserAccessToBilling="DENY",
+                Tags=[
+                    {"Key": "project_slug", "Value": sync_data.project_slug},
+                    {"Key": "project_semester", "Value": sync_data.project_semester},
+                ],
+            )
+        except ClientError as error:
+            self.logger.debug(error)
+            return False, "CLIENTERROR_CREATE_ACCOUNT"
+
+        # Repeatedly check status of new member account request.
+        request_id = response_create["CreateAccountStatus"]["Id"]
+        for _ in range(1, self.ACCOUNT_REQUEST_MAX_ATTEMPTS + 1):
+            time.sleep(self.ACCOUNT_REQUEST_INTERVAL_SECONDS)
+
+            try:
+                response_status = client.describe_create_account_status(CreateAccountRequestId=request_id)
+            except ClientError as error:
+                self.logger.debug(error)
+                return False, "CLIENTERROR_DESCRIBE_CREATE_ACCOUNT_STATUS"
+
+            request_state = response_status["CreateAccountStatus"]["State"]
+            if request_state == "FAILED":
+                return False, response_status["CreateAccountStatus"]["FailureReason"]
+            elif request_state == "SUCCEEDED":
+                return True, response_status["CreateAccountStatus"]["AccountId"]
+
+        return False, "STILL_IN_PROGRESS"
 
     def pipeline_create_and_move_accounts(self, new_member_accounts, root_id, destination_ou_id):
         """
@@ -424,29 +449,11 @@ class AWSSync:
         """
         client = boto3.client("organizations")
         overall_success = True
+
         for new_member in new_member_accounts:
-            # Create member account
-            response = self.pipeline_create_account(new_member)
-            # Repeatedly check status of new member account request.
-            request_id = response["CreateAccountStatus"]["Id"]
-
-            can_move = False
-
-            for _ in range(1, self.ACCOUNT_REQUEST_MAX_ATTEMPTS + 1):
-                time.sleep(self.ACCOUNT_REQUEST_INTERVAL_SECONDS)
-
-                try:
-                    response_status = client.describe_create_account_status(CreateAccountRequestId=request_id)
-                except ClientError as error:
-                    self.logger.debug(error)
-
-                request_state = response_status["CreateAccountStatus"]["State"]
-                if request_state == "SUCCEEDED":
-                    can_move = True
-                    account_id = response_status["CreateAccountStatus"]["AccountId"]
-
-            if can_move:
-
+            success, response = self.pipeline_create_account(new_member)
+            if success:
+                account_id = response
                 try:
                     root_id = client.list_roots()["Roots"][0]["Id"]
                     client.move_account(
@@ -456,7 +463,7 @@ class AWSSync:
                     self.logger.debug(error)
                     overall_success = False
             else:
-                failure_reason = response_status["CreateAccountStatus"]["FailureReason"]
+                failure_reason = response
                 self.logger.debug(failure_reason)
                 overall_success = False
 
