@@ -27,9 +27,6 @@ class AWSSyncRefactored:
         self.ACCOUNT_REQUEST_INTERVAL_SECONDS = 2
         self.ACCOUNT_REQUEST_MAX_ATTEMPTS = 1
 
-        self.logger = logging.getLogger("django.aws")
-        self.logger.setLevel(logging.DEBUG)
-
         self.accounts_created = 0
         self.accounts_moved = 0
 
