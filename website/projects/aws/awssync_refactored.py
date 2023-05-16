@@ -26,8 +26,8 @@ class AWSSyncRefactored:
         self.logger.setLevel(logging.DEBUG)
         self.fail = False
 
-        self.ACCOUNT_REQUEST_INTERVAL_SECONDS = 2
-        self.ACCOUNT_REQUEST_MAX_ATTEMPTS = 1
+        self.ACCOUNT_REQUEST_INTERVAL_SECONDS = 5
+        self.ACCOUNT_REQUEST_MAX_ATTEMPTS = 3
 
         self.accounts_created = 0
         self.accounts_moved = 0
@@ -160,8 +160,6 @@ class AWSSyncRefactored:
             # Repeatedly check status of new member account request.
             request_id = response["CreateAccountStatus"]["Id"]
 
-            can_move = False
-
             for _ in range(self.ACCOUNT_REQUEST_MAX_ATTEMPTS):
                 time.sleep(self.ACCOUNT_REQUEST_INTERVAL_SECONDS)
 
@@ -171,25 +169,24 @@ class AWSSyncRefactored:
                     self.logger.debug(error)
                     overall_success = False
                     return overall_success
-
+                
                 request_state = response_status["CreateAccountStatus"]["State"]
                 if request_state == "SUCCEEDED":
-                    can_move = True
                     account_id = response_status["CreateAccountStatus"]["AccountId"]
 
-            self.accounts_created += 1
-            if can_move:
-
-                try:
-                    self.api_talker.move_account(account_id, root_id, destination_ou_id)
-                    self.accounts_moved += 1
-                except ClientError as error:
-                    self.logger.debug(error)
+                    self.accounts_created += 1
+                    try:
+                        self.api_talker.move_account(account_id, root_id, destination_ou_id)
+                        self.accounts_moved += 1
+                    except ClientError as error:
+                        self.logger.debug(error)
+                        overall_success = False
+                    break
+                elif request_state == "FAILED":
+                    failure_reason = response_status["CreateAccountStatus"]["FailureReason"]
+                    self.logger.debug(failure_reason)
                     overall_success = False
-            else:
-                failure_reason = response_status["CreateAccountStatus"]["FailureReason"]
-                self.logger.debug(failure_reason)
-                overall_success = False
+                    break
 
         return overall_success
 
@@ -218,7 +215,7 @@ class AWSSyncRefactored:
         ou_id = self.get_or_create_course_ou(aws_tree)
 
         # TODO change hardcoded policy id to environment variable
-        policy_id = "hardcoded_policy_id"
+        policy_id = "p-jkrnoldh"
         self.attach_policy(ou_id, policy_id)
 
         if not self.create_and_move_accounts(merged_sync_data, root_id, ou_id):
@@ -226,24 +223,29 @@ class AWSSyncRefactored:
 
         return True
 
-    def success_message(success: bool):
+    def success_message(self, success: bool):
         """
         Print a message to the screen which notifies user whether synchronization succeeded or not.
 
         :param success: whether synchronization was successful or not.
         """
+        self.logger.debug(f"pipeline success: {success}")
         # TODO integrate error box task
 
     def synchronise(self):
         """Synchronise projects of the current semester to AWS and notify user of success or potential errors."""
         try:
             synchronization_success = self.pipeline()
+            self.logger.debug(f"Accounts created: {self.accounts_created}")
+            self.logger.debug(f"Accounts moved: {self.accounts_moved}")
         # TODO extend error handling
         except ClientError as aws_error:
             self.logger.debug("An AWS API call caused an error.")
+            self.logger.debug(aws_error)
             synchronization_success = False
         except Exception as sync_error:
             self.logger.debug("Something went wrong while synchronizing with AWS.")
+            self.logger.debug(sync_error)
             synchronization_success = False
 
         self.success_message(synchronization_success)
