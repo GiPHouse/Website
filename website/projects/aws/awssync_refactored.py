@@ -200,24 +200,20 @@ class AWSSyncRefactored:
         :return: True iff all pipeline stages successfully executed.
         """
         self.ensure_organization_created()
+        # TODO change to sandbox ou when testing on giphouse aws account
         root_id = self.api_talker.list_roots()[0]["Id"]
 
         checker = Checks()
         checker.pipeline_preconditions(api_permissions)
 
-        # TODO refactor according to refactored extract_aws_setup
         aws_tree = self.extract_aws_setup(root_id)
-        if self.fail:
-            self.logger.debug("Extracting AWS setup failed.")
-            return False
-
-        aws_sync_data = aws_tree.awstree_to_syncdata_list()
-        # TODO refactor according to refactored get_emails_with_teamids, generate_aws_sync_list
-        giphouse_sync_data = self.get_emails_with_teamids()
-        merged_sync_data = self.generate_aws_sync_list(giphouse_sync_data, aws_sync_data)
 
         checker.check_members_in_correct_iteration(aws_tree)
         checker.check_double_iteration_names(aws_tree)
+
+        aws_sync_data = aws_tree.awstree_to_syncdata_list()
+        giphouse_sync_data = self.get_syncdata_from_giphouse()
+        merged_sync_data = self.generate_aws_sync_list(giphouse_sync_data, aws_sync_data)
 
         ou_id = self.get_or_create_course_ou(aws_tree)
 
@@ -225,8 +221,7 @@ class AWSSyncRefactored:
         policy_id = "hardcoded_policy_id"
         self.attach_policy(ou_id, policy_id)
 
-        # TODO refactor according to refactored pipeline_create_and_move_accounts
-        if not self.pipeline_create_and_move_accounts(merged_sync_data, root_id, ou_id):
+        if not self.create_and_move_accounts(merged_sync_data, root_id, ou_id):
             return False
 
         return True
