@@ -126,7 +126,6 @@ class AWSSyncRefactored:
             if error.response["Error"]["Code"] != "DuplicatePolicyAttachmentException":
                 raise
 
-<<<<<<< HEAD
     def ensure_organization_created(self):
         """Create an organization if it does not yet exist."""
         try:
@@ -134,6 +133,65 @@ class AWSSyncRefactored:
         except ClientError as error:
             if error.response["Error"]["Code"] != "AlreadyInOrganizationException":
                 raise
+
+    def create_and_move_accounts(
+        self, new_member_accounts: list[SyncData], root_id: str, destination_ou_id: str
+    ) -> bool:
+        """
+        Create multiple accounts in the organization of the API caller and move them from the root to a destination OU.
+
+        :param new_member_accounts: List of SyncData objects.
+        :param root_id:             The organization's root ID.
+        :param destination_ou_id:   The organization's destination OU ID.
+        :returns:                   True iff **all** new member accounts were created and moved successfully.
+        """
+        overall_success = True
+
+        for new_member in new_member_accounts:
+            # Create member account
+            response = self.api_talker.create_account(
+                new_member.project_email,
+                new_member.project_slug,
+                [
+                    {"Key": "project_slug", "Value": new_member.project_slug},
+                    {"Key": "project_semester", "Value": new_member.project_semester},
+                ],
+            )
+            # Repeatedly check status of new member account request.
+            request_id = response["CreateAccountStatus"]["Id"]
+
+            can_move = False
+
+            for _ in range(self.ACCOUNT_REQUEST_MAX_ATTEMPTS):
+                time.sleep(self.ACCOUNT_REQUEST_INTERVAL_SECONDS)
+
+                try:
+                    response_status = self.api_talker.describe_create_account_status(request_id)
+                except ClientError as error:
+                    self.logger.debug(error)
+                    overall_success = False
+                    return overall_success
+
+                request_state = response_status["CreateAccountStatus"]["State"]
+                if request_state == "SUCCEEDED":
+                    can_move = True
+                    account_id = response_status["CreateAccountStatus"]["AccountId"]
+
+            self.accounts_created += 1
+            if can_move:
+
+                try:
+                    self.api_talker.move_account(account_id, root_id, destination_ou_id)
+                    self.accounts_moved += 1
+                except ClientError as error:
+                    self.logger.debug(error)
+                    overall_success = False
+            else:
+                failure_reason = response_status["CreateAccountStatus"]["FailureReason"]
+                self.logger.debug(failure_reason)
+                overall_success = False
+
+        return overall_success
 
     def pipeline(self) -> bool:
         """
@@ -194,63 +252,3 @@ class AWSSyncRefactored:
             synchronization_success = False
 
         self.success_message(synchronization_success)
-=======
-    def create_and_move_accounts(
-        self, new_member_accounts: list[SyncData], root_id: str, destination_ou_id: str
-    ) -> bool:
-        """
-        Create multiple accounts in the organization of the API caller and move them from the root to a destination OU.
-
-        :param new_member_accounts: List of SyncData objects.
-        :param root_id:             The organization's root ID.
-        :param destination_ou_id:   The organization's destination OU ID.
-        :returns:                   True iff **all** new member accounts were created and moved successfully.
-        """
-        overall_success = True
-
-        for new_member in new_member_accounts:
-            # Create member account
-            response = self.api_talker.create_account(
-                new_member.project_email,
-                new_member.project_slug,
-                [
-                    {"Key": "project_slug", "Value": new_member.project_slug},
-                    {"Key": "project_semester", "Value": new_member.project_semester},
-                ],
-            )
-            # Repeatedly check status of new member account request.
-            request_id = response["CreateAccountStatus"]["Id"]
-
-            can_move = False
-
-            for _ in range(self.ACCOUNT_REQUEST_MAX_ATTEMPTS):
-                time.sleep(self.ACCOUNT_REQUEST_INTERVAL_SECONDS)
-
-                try:
-                    response_status = self.api_talker.describe_create_account_status(request_id)
-                except ClientError as error:
-                    self.logger.debug(error)
-                    overall_success = False
-                    return overall_success
-
-                request_state = response_status["CreateAccountStatus"]["State"]
-                if request_state == "SUCCEEDED":
-                    can_move = True
-                    account_id = response_status["CreateAccountStatus"]["AccountId"]
-
-            self.accounts_created += 1
-            if can_move:
-
-                try:
-                    self.api_talker.move_account(account_id, root_id, destination_ou_id)
-                    self.accounts_moved += 1
-                except ClientError as error:
-                    self.logger.debug(error)
-                    overall_success = False
-            else:
-                failure_reason = response_status["CreateAccountStatus"]["FailureReason"]
-                self.logger.debug(failure_reason)
-                overall_success = False
-
-        return overall_success
->>>>>>> 46-class-create-accounts

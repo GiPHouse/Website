@@ -228,6 +228,7 @@ class AWSSyncRefactoredTest(TestCase):
                 self.sync.ensure_organization_created()
             except ClientError as error:
                 self.assertEqual(error.response["Error"]["Code"], "AccessDeniedException")
+                
     def test_create_move_account(self):
         self.sync.api_talker.create_organization(feature_set="ALL")
         root_id = self.sync.api_talker.list_roots()[0]["Id"]
