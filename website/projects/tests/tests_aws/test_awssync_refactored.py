@@ -229,7 +229,7 @@ class AWSSyncRefactoredTest(TestCase):
                 self.sync.ensure_organization_created()
             except ClientError as error:
                 self.assertEqual(error.response["Error"]["Code"], "AccessDeniedException")
-                
+
     def test_create_move_account(self):
         self.sync.api_talker.create_organization(feature_set="ALL")
         root_id = self.sync.api_talker.list_roots()[0]["Id"]
@@ -243,8 +243,6 @@ class AWSSyncRefactoredTest(TestCase):
 
         success = self.sync.create_and_move_accounts(members, root_id, dest_ou_id)
         self.assertTrue(success)
-        self.assertEqual(self.sync.accounts_created, 2)
-        self.assertEqual(self.sync.accounts_moved, 2)
 
     def test_create_move_account__exception_failure(self):
         self.sync.api_talker.create_organization(feature_set="ALL")
@@ -282,7 +280,7 @@ class AWSSyncRefactoredTest(TestCase):
 
         self.assertFalse(success)
 
-    def test_create_move_account__bad_state(self):
+    def test_create_move_account__failed(self):
         self.sync.api_talker.create_organization(feature_set="ALL")
         root_id = self.sync.api_talker.list_roots()[0]["Id"]
 
@@ -301,8 +299,30 @@ class AWSSyncRefactoredTest(TestCase):
             success = self.sync.create_and_move_accounts(members, root_id, dest_ou_id)
         self.assertFalse(success)
 
+    def test_create_move_account__in_progress(self):
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        root_id = self.sync.api_talker.list_roots()[0]["Id"]
+
+        dest_ou = self.sync.api_talker.create_organizational_unit(root_id, "destination_ou")
+        dest_ou_id = dest_ou["OrganizationalUnit"]["Id"]
+        members = [
+            SyncData("alice@giphouse.nl", "alices-project", "Spring 2023"),
+            SyncData("bob@giphouse.nl", "bobs-project", "Fall 2023"),
+        ]
+
+        with patch.object(
+            self.sync.api_talker.org_client,
+            "describe_create_account_status",
+            return_value={"CreateAccountStatus": {"State": "IN_PROGRESS"}},
+        ):
+            success = self.sync.create_and_move_accounts(members, root_id, dest_ou_id)
+
+        self.assertFalse(success)
+
     def test_pipeline__no_accounts_no_ou(self):
-        self.sync.checker.api_talker.simulate_principal_policy = MagicMock(return_value={"EvaluationResults": [{"EvalDecision": "allowed"}]})
+        self.sync.checker.api_talker.simulate_principal_policy = MagicMock(
+            return_value={"EvaluationResults": [{"EvalDecision": "allowed"}]}
+        )
         self.sync.attach_policy = MagicMock(return_value=None)
         pipeline_success = self.sync.pipeline()
 
@@ -312,7 +332,7 @@ class AWSSyncRefactoredTest(TestCase):
 
         current_semester = str(Semester.objects.get_or_create_current_semester())
         current_accounts = self.sync.api_talker.org_client.list_accounts()["Accounts"]
-        
+
         self.assertIn(current_semester, root_ou_names)
         self.assertTrue(pipeline_success)
 
@@ -320,7 +340,9 @@ class AWSSyncRefactoredTest(TestCase):
         self.assertEqual(current_accounts[0]["Name"], "master")
 
     def test_pipeline__new_accounts_existing_ou(self):
-        self.sync.checker.api_talker.simulate_principal_policy = MagicMock(return_value={"EvaluationResults": [{"EvalDecision": "allowed"}]})
+        self.sync.checker.api_talker.simulate_principal_policy = MagicMock(
+            return_value={"EvaluationResults": [{"EvalDecision": "allowed"}]}
+        )
         self.sync.attach_policy = MagicMock(return_value=None)
 
         self.sync.api_talker.create_organization(feature_set="ALL")
@@ -330,10 +352,12 @@ class AWSSyncRefactoredTest(TestCase):
         course_ou = self.sync.api_talker.create_organizational_unit(root_id, current_semester)
         course_ou_id = course_ou["OrganizationalUnit"]["Id"]
 
-        self.sync.get_syncdata_from_giphouse = MagicMock(return_value=[
-            SyncData("alice@giphouse.nl", "alices-project", current_semester),
-            SyncData("bob@giphouse.nl", "bobs-project", current_semester),
-        ])
+        self.sync.get_syncdata_from_giphouse = MagicMock(
+            return_value=[
+                SyncData("alice@giphouse.nl", "alices-project", current_semester),
+                SyncData("bob@giphouse.nl", "bobs-project", current_semester),
+            ]
+        )
 
         pipeline_success = self.sync.pipeline()
         course_accounts = self.sync.api_talker.list_accounts_for_parent(course_ou_id)

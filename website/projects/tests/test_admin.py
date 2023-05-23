@@ -235,7 +235,7 @@ class GetProjectsTest(TestCase):
         self.project_admin.synchronise_to_GitHub = original_sync_action
 
     def test_synchronise_to_AWS(self):
-        with patch("projects.admin.AWSSync", self.aws_mock):
+        with patch("projects.admin.AWSSyncRefactored", self.aws_mock):
             self.project_admin.synchronise_to_AWS(self.request)
         self.aws_mock.assert_called_once()
 

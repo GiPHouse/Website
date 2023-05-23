@@ -147,8 +147,6 @@ class AWSSyncRefactored:
         :param destination_ou_id:   The organization's destination OU ID.
         :returns:                   True iff **all** new member accounts were created and moved successfully.
         """
-        overall_success = True
-
         for new_member in new_member_accounts:
             # Create member account
             response = self.api_talker.create_account(
@@ -168,11 +166,12 @@ class AWSSyncRefactored:
                 try:
                     response_status = self.api_talker.describe_create_account_status(request_id)
                 except ClientError as error:
+                    self.logger.debug(f"Failed to get status of account with e-mail: '{new_member.project_email}'.")
                     self.logger.debug(error)
-                    overall_success = False
-                    return overall_success
-                
+                    break
+
                 request_state = response_status["CreateAccountStatus"]["State"]
+
                 if request_state == "SUCCEEDED":
                     account_id = response_status["CreateAccountStatus"]["AccountId"]
 
@@ -181,16 +180,21 @@ class AWSSyncRefactored:
                         self.api_talker.move_account(account_id, root_id, destination_ou_id)
                         self.accounts_moved += 1
                     except ClientError as error:
+                        self.logger.debug(f"Failed to move account with e-mail: {new_member.project_email}.")
                         self.logger.debug(error)
-                        overall_success = False
-                    break
-                elif request_state == "FAILED":
-                    failure_reason = response_status["CreateAccountStatus"]["FailureReason"]
-                    self.logger.debug(failure_reason)
-                    overall_success = False
                     break
 
-        return overall_success
+                elif request_state == "FAILED":
+                    failure_reason = response_status["CreateAccountStatus"]["FailureReason"]
+                    self.logger.debug(
+                        f"Failed to create account with e-mail: {new_member.project_email}. "
+                        f"Failure reason: {failure_reason}"
+                    )
+                    break
+
+        accounts_to_create = len(new_member_accounts)
+        success = accounts_to_create == self.accounts_created == self.accounts_moved
+        return success
 
     def pipeline(self) -> bool:
         """
