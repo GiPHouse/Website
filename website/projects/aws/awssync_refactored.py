@@ -224,27 +224,32 @@ class AWSSyncRefactored:
 
     def success_message(self, success: bool):
         """
-        Print a message to the screen which notifies user whether synchronization succeeded or not.
+        Print a message to the screen which notifies user whether synchronisation succeeded or not.
 
-        :param success: whether synchronization was successful or not.
+        :param success: whether synchronisation was successful or not.
         """
         self.logger.debug(f"pipeline success: {success}")
         # TODO integrate error box task
 
     def synchronise(self):
-        """Synchronise projects of the current semester to AWS and notify user of success or potential errors."""
+        """
+        Synchronise projects of the current semester to AWS and notify user of success or potential errors.
+
+        return: whether synchronisation was successful or not.
+        """
         try:
-            synchronization_success = self.pipeline()
+            synchronisation_success = self.pipeline()
             self.logger.debug(f"Accounts created: {self.accounts_created}")
             self.logger.debug(f"Accounts moved: {self.accounts_moved}")
         # TODO extend error handling
         except ClientError as aws_error:
             self.logger.debug("An AWS API call caused an error.")
             self.logger.debug(aws_error)
-            synchronization_success = False
+            synchronisation_success = False
         except Exception as sync_error:
-            self.logger.debug("Something went wrong while synchronizing with AWS.")
+            self.logger.debug("Something went wrong while synchronising with AWS.")
             self.logger.debug(sync_error)
-            synchronization_success = False
+            synchronisation_success = False
 
-        self.success_message(synchronization_success)
+        self.success_message(synchronisation_success)
+        return synchronisation_success

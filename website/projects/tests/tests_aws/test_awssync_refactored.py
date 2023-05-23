@@ -214,8 +214,11 @@ class AWSSyncRefactoredTest(TestCase):
         self.assertRaises(ClientError, self.sync.attach_policy, "r-123", "p-123")
 
     def test_ensure_organization_created__already_exists(self):
-        self.sync.api_talker.create_organization(feature_set="ALL")
-        self.sync.ensure_organization_created()
+        create_organization_error = ClientError(
+            {"Error": {"Code": "AlreadyInOrganizationException"}}, "create_organization"
+        )
+        with patch.object(self.sync.api_talker, "create_organization", side_effect=create_organization_error):
+            self.sync.ensure_organization_created()
 
     def test_ensure_organization_created__new(self):
         self.assertRaises(ClientError, self.sync.api_talker.describe_organization)
@@ -365,3 +368,32 @@ class AWSSyncRefactoredTest(TestCase):
 
         self.assertTrue(pipeline_success)
         self.assertEqual(["alice@giphouse.nl", "bob@giphouse.nl"], course_account_emails)
+
+    def test_synchronise(self):
+        self.sync.checker.api_talker.simulate_principal_policy = MagicMock(
+            return_value={"EvaluationResults": [{"EvalDecision": "allowed"}]}
+        )
+        self.sync.attach_policy = MagicMock(return_value=None)
+
+        success = self.sync.synchronise()
+
+        self.assertTrue(success)
+
+    def test_synchronise__aws_error(self):
+        create_organization_error = ClientError({"Error": {"Code": "AccessDeniedException"}}, "create_organization")
+        with patch.object(self.sync.api_talker, "create_organization", side_effect=create_organization_error):
+            success = self.sync.synchronise()
+
+        self.assertFalse(success)
+
+    def test_synchronise__sync_error(self):
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        root_id = self.sync.api_talker.list_roots()[0]["Id"]
+
+        # should cause exception in Checks.check_double_iteration_names
+        self.sync.api_talker.create_organizational_unit(root_id, "Spring 2023")
+        self.sync.api_talker.create_organizational_unit(root_id, "Spring 2023")
+
+        success = self.sync.synchronise()
+
+        self.assertFalse(success)
