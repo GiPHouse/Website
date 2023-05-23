@@ -22,6 +22,7 @@ class AWSSyncRefactored:
     def __init__(self):
         """Create an AWSSync instance."""
         self.api_talker = AWSAPITalker()
+        self.checker = Checks()
         self.logger = logging.getLogger("django.aws")
         self.logger.setLevel(logging.DEBUG)
         self.fail = False
@@ -76,6 +77,7 @@ class AWSSyncRefactored:
         :param parent_ou_id: The ID of the parent OU.
         :return: A AWSTree object containing all the children of the parent OU.
         """
+        member_accounts = []
         aws_tree = AWSTree(
             "root",
             parent_ou_id,
@@ -197,16 +199,12 @@ class AWSSyncRefactored:
         :return: True iff all pipeline stages successfully executed.
         """
         self.ensure_organization_created()
-        # TODO change to sandbox ou when testing on giphouse aws account
         root_id = self.api_talker.list_roots()[0]["Id"]
-
-        checker = Checks()
-        checker.pipeline_preconditions(api_permissions)
+        self.checker.pipeline_preconditions(api_permissions)
 
         aws_tree = self.extract_aws_setup(root_id)
-
-        checker.check_members_in_correct_iteration(aws_tree)
-        checker.check_double_iteration_names(aws_tree)
+        self.checker.check_members_in_correct_iteration(aws_tree)
+        self.checker.check_double_iteration_names(aws_tree)
 
         aws_sync_data = aws_tree.awstree_to_syncdata_list()
         giphouse_sync_data = self.get_syncdata_from_giphouse()
@@ -218,10 +216,7 @@ class AWSSyncRefactored:
         policy_id = "p-jkrnoldh"
         self.attach_policy(ou_id, policy_id)
 
-        if not self.create_and_move_accounts(merged_sync_data, root_id, ou_id):
-            return False
-
-        return True
+        return self.create_and_move_accounts(merged_sync_data, root_id, ou_id)
 
     def success_message(self, success: bool):
         """

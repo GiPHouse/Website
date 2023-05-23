@@ -1,13 +1,13 @@
 """Tests for awssync_refactored.py."""
 import json
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 
 from botocore.exceptions import ClientError
 
 from django.test import TestCase
 
-from moto import mock_organizations
+from moto import mock_iam, mock_organizations, mock_sts
 
 from courses.models import Semester
 
@@ -19,6 +19,8 @@ from projects.models import Project
 
 
 @mock_organizations
+@mock_sts
+@mock_iam
 class AWSSyncRefactoredTest(TestCase):
     def setUp(self):
         """Set up testing environment."""
@@ -152,10 +154,9 @@ class AWSSyncRefactoredTest(TestCase):
         self.sync.api_talker.create_organization(feature_set="ALL")
         root_id = self.sync.api_talker.list_roots()[0]["Id"]
         tree = AWSTree("root", root_id, [])
-        current_semester_name = "Spring 2023"
 
-        with patch.object(Semester.objects, "get_or_create_current_semester", return_value=current_semester_name):
-            course_ou_id = self.sync.get_or_create_course_ou(tree)
+        current_semester_name = str(Semester.objects.get_or_create_current_semester())
+        course_ou_id = self.sync.get_or_create_course_ou(tree)
 
         course_ou_exists = any(
             ou["Id"] == course_ou_id and ou["Name"] == current_semester_name
@@ -299,3 +300,44 @@ class AWSSyncRefactoredTest(TestCase):
         ):
             success = self.sync.create_and_move_accounts(members, root_id, dest_ou_id)
         self.assertFalse(success)
+
+    def test_pipeline__no_accounts_no_ou(self):
+        self.sync.checker.api_talker.simulate_principal_policy = MagicMock(return_value={"EvaluationResults": [{"EvalDecision": "allowed"}]})
+        self.sync.attach_policy = MagicMock(return_value=None)
+        pipeline_success = self.sync.pipeline()
+
+        root_id = self.sync.api_talker.list_roots()[0]["Id"]
+        root_ous = self.sync.api_talker.list_organizational_units_for_parent(root_id)
+        root_ou_names = [ou["Name"] for ou in root_ous]
+
+        current_semester = str(Semester.objects.get_or_create_current_semester())
+        current_accounts = self.sync.api_talker.org_client.list_accounts()["Accounts"]
+        
+        self.assertIn(current_semester, root_ou_names)
+        self.assertTrue(pipeline_success)
+
+        self.assertEqual(len(current_accounts), 1)
+        self.assertEqual(current_accounts[0]["Name"], "master")
+
+    def test_pipeline__new_accounts_existing_ou(self):
+        self.sync.checker.api_talker.simulate_principal_policy = MagicMock(return_value={"EvaluationResults": [{"EvalDecision": "allowed"}]})
+        self.sync.attach_policy = MagicMock(return_value=None)
+
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        root_id = self.sync.api_talker.list_roots()[0]["Id"]
+
+        current_semester = str(Semester.objects.get_or_create_current_semester())
+        course_ou = self.sync.api_talker.create_organizational_unit(root_id, current_semester)
+        course_ou_id = course_ou["OrganizationalUnit"]["Id"]
+
+        self.sync.get_syncdata_from_giphouse = MagicMock(return_value=[
+            SyncData("alice@giphouse.nl", "alices-project", current_semester),
+            SyncData("bob@giphouse.nl", "bobs-project", current_semester),
+        ])
+
+        pipeline_success = self.sync.pipeline()
+        course_accounts = self.sync.api_talker.list_accounts_for_parent(course_ou_id)
+        course_account_emails = [account["Email"] for account in course_accounts]
+
+        self.assertTrue(pipeline_success)
+        self.assertEqual(["alice@giphouse.nl", "bob@giphouse.nl"], course_account_emails)
