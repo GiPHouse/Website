@@ -39,7 +39,9 @@ class AWSSyncRefactored:
         self.SUCCESS_MSG = "Successfully synchronized all projects to AWS."
         self.FAIL_MSG = "Not all accounts were created and moved successfully. Check the console for more information."
         self.API_ERROR_MSG = "An error occurred while calling the AWS API. Check the console for more information."
-        self.SYNC_ERROR_MSG = "An error occurred during synchronization with AWS. Check the console for more information"
+        self.SYNC_ERROR_MSG = (
+            "An error occurred during synchronization with AWS. Check the console for more information"
+        )
 
     def get_syncdata_from_giphouse(self) -> list[SyncData]:
         """
@@ -230,15 +232,6 @@ class AWSSyncRefactored:
 
         return self.create_and_move_accounts(merged_sync_data, root_id, ou_id)
 
-    def success_message(self, success: bool):
-        """
-        Print a message to the screen which notifies user whether synchronisation succeeded or not.
-
-        :param success: whether synchronisation was successful or not.
-        """
-        self.logger.debug(f"pipeline success: {success}")
-        # TODO integrate error box task
-
     def synchronise(self, request):
         """
         Synchronise projects of the current semester to AWS and notify user of success or potential errors.
@@ -249,20 +242,16 @@ class AWSSyncRefactored:
             synchronisation_success = self.pipeline()
 
             if synchronisation_success:
-                self.logger.debug("success")
                 messages.success(request, self.SUCCESS_MSG)
             else:
                 messages.warning(request, self.FAIL_MSG)
-                self.logger.debug("fail")
 
             self.logger.debug(f"Accounts created: {self.accounts_created}/{self.accounts_to_create}")
             self.logger.debug(f"Accounts moved: {self.accounts_moved}/{self.accounts_to_create}")
         except ClientError as api_error:
             messages.error(request, self.API_ERROR_MSG)
-            self.logger.debug("api error")
             self.logger.debug(api_error)
         except Exception as sync_error:
             messages.error(request, self.SYNC_ERROR_MSG)
-            self.logger.debug("sync error")
             self.logger.debug(sync_error)
-
+        return True
