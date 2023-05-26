@@ -175,8 +175,8 @@ class ProjectAdmin(admin.ModelAdmin):
     def synchronise_to_AWS(self, request):
         """Synchronise to Amazon Web Services."""
         sync = AWSSyncRefactored()
-        sync.synchronise()
-        return redirect("admin:projects_project_changelist")
+        sync.synchronise(request)
+        #return redirect("admin:projects_project_changelist")
 
     def get_urls(self):
         """Get admin urls."""

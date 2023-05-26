@@ -5,6 +5,8 @@ import time
 
 from botocore.exceptions import ClientError
 
+from django.contrib import messages
+
 from courses.models import Semester
 
 from mailing_lists.models import MailingList
@@ -27,11 +29,17 @@ class AWSSyncRefactored:
         self.logger.setLevel(logging.DEBUG)
         self.fail = False
 
-        self.ACCOUNT_REQUEST_INTERVAL_SECONDS = 5
+        self.ACCOUNT_REQUEST_INTERVAL_SECONDS = 0.1
         self.ACCOUNT_REQUEST_MAX_ATTEMPTS = 3
 
         self.accounts_created = 0
         self.accounts_moved = 0
+        self.accounts_to_create = 0
+
+        self.SUCCESS_MSG = "Successfully synchronized all projects to AWS."
+        self.FAIL_MSG = "Not all accounts were created and moved successfully. Check the console for more information."
+        self.API_ERROR_MSG = "An error occurred while calling the AWS API. Check the console for more information."
+        self.SYNC_ERROR_MSG = "An error occurred during synchronization with AWS. Check the console for more information"
 
     def get_syncdata_from_giphouse(self) -> list[SyncData]:
         """
@@ -192,8 +200,8 @@ class AWSSyncRefactored:
                     )
                     break
 
-        accounts_to_create = len(new_member_accounts)
-        success = accounts_to_create == self.accounts_created == self.accounts_moved
+        self.accounts_to_create = len(new_member_accounts)
+        success = self.accounts_to_create == self.accounts_created == self.accounts_moved
         return success
 
     def pipeline(self) -> bool:
@@ -231,25 +239,30 @@ class AWSSyncRefactored:
         self.logger.debug(f"pipeline success: {success}")
         # TODO integrate error box task
 
-    def synchronise(self):
+    def synchronise(self, request):
         """
         Synchronise projects of the current semester to AWS and notify user of success or potential errors.
 
-        return: whether synchronisation was successful or not.
+        :param request: HTTP request indicating the synchronization button has been pressed.
         """
         try:
             synchronisation_success = self.pipeline()
-            self.logger.debug(f"Accounts created: {self.accounts_created}")
-            self.logger.debug(f"Accounts moved: {self.accounts_moved}")
-        # TODO extend error handling
-        except ClientError as aws_error:
-            self.logger.debug("An AWS API call caused an error.")
-            self.logger.debug(aws_error)
-            synchronisation_success = False
-        except Exception as sync_error:
-            self.logger.debug("Something went wrong while synchronising with AWS.")
-            self.logger.debug(sync_error)
-            synchronisation_success = False
 
-        self.success_message(synchronisation_success)
-        return synchronisation_success
+            if synchronisation_success:
+                self.logger.debug("success")
+                messages.success(request, self.SUCCESS_MSG)
+            else:
+                messages.warning(request, self.FAIL_MSG)
+                self.logger.debug("fail")
+
+            self.logger.debug(f"Accounts created: {self.accounts_created}/{self.accounts_to_create}")
+            self.logger.debug(f"Accounts moved: {self.accounts_moved}/{self.accounts_to_create}")
+        except ClientError as api_error:
+            messages.error(request, self.API_ERROR_MSG)
+            self.logger.debug("api error")
+            self.logger.debug(api_error)
+        except Exception as sync_error:
+            messages.error(request, self.SYNC_ERROR_MSG)
+            self.logger.debug("sync error")
+            self.logger.debug(sync_error)
+

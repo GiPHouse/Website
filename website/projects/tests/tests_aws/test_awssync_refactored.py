@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 from botocore.exceptions import ClientError
 
 from django.test import TestCase
+from django.urls import reverse
 
 from moto import mock_iam, mock_organizations, mock_sts
 
@@ -369,22 +370,37 @@ class AWSSyncRefactoredTest(TestCase):
         self.assertTrue(pipeline_success)
         self.assertEqual(["alice@giphouse.nl", "bob@giphouse.nl"], course_account_emails)
 
-    def test_synchronise(self):
+    def test_synchronise__success(self):
+        self.sync.checker.api_talker.simulate_principal_policy = MagicMock(
+            return_value={"EvaluationResults": [{"EvalDecision": "allowed"}]}
+        )
+        self.sync.attach_policy = MagicMock(return_value=None)
+        
+        response = self.client.get(reverse("admin:synchronise_to_aws"), follow=True)
+        print(response)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(self.sync.SUCCESS_MSG, response)
+
+    def test_synchronise__failure(self):
         self.sync.checker.api_talker.simulate_principal_policy = MagicMock(
             return_value={"EvaluationResults": [{"EvalDecision": "allowed"}]}
         )
         self.sync.attach_policy = MagicMock(return_value=None)
 
-        success = self.sync.synchronise()
+        create_account_error = ClientError({"Error": {"Code": "AccessDeniedException"}}, "create_account")
+        with patch.object(self.sync.api_talker, "create_organization", side_effect=create_account_error):
+            response = self.client.get(reverse("admin:synchronise_to_aws"), follow=True)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(self.sync.FAIL_MSG, response)
 
-        self.assertTrue(success)
-
-    def test_synchronise__aws_error(self):
+    def test_synchronise__api_error(self):
         create_organization_error = ClientError({"Error": {"Code": "AccessDeniedException"}}, "create_organization")
         with patch.object(self.sync.api_talker, "create_organization", side_effect=create_organization_error):
-            success = self.sync.synchronise()
+            response = self.client.get(reverse("admin:synchronise_to_aws"), follow=True)
 
-        self.assertFalse(success)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(self.sync.API_ERROR_MSG, response)
 
     def test_synchronise__sync_error(self):
         self.sync.api_talker.create_organization(feature_set="ALL")
@@ -394,6 +410,7 @@ class AWSSyncRefactoredTest(TestCase):
         self.sync.api_talker.create_organizational_unit(root_id, "Spring 2023")
         self.sync.api_talker.create_organizational_unit(root_id, "Spring 2023")
 
-        success = self.sync.synchronise()
+        response = self.client.get(reverse("admin:synchronise_to_aws"), follow=True)
 
-        self.assertFalse(success)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(self.sync.SYNC_ERROR_MSG, response)
