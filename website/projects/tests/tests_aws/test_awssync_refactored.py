@@ -36,6 +36,24 @@ class AWSSyncRefactoredTest(TestCase):
         self.client = Client()
         self.client.force_login(self.admin)
 
+    def setup_policy(self):
+        policy_name = "DenyAll"
+        policy_description = "Deny all access."
+        policy_content = {"Version": "2012-10-17", "Statement": [{"Effect": "Deny", "Action": "*", "Resource": "*"}]}
+        policy = self.sync.api_talker.org_client.create_policy(
+            Name=policy_name,
+            Description=policy_description,
+            Content=json.dumps(policy_content),
+            Type="SERVICE_CONTROL_POLICY",
+            Tags=[{"Key": "no_permissions", "Value": "true"}],
+        )
+        AWSPolicy.objects.create(
+            policy_id=policy["Policy"]["PolicySummary"]["Id"],
+            is_current_policy=True,
+            tags_key="no_permissions",
+            tags_value="true",
+        )
+
     def test_get_syncdata_from_giphouse_normal(self):
         """Test get_emails_with_teamids function in optimal conditions."""
         self.semester = Semester.objects.create(year=2023, season=Semester.SPRING)
@@ -222,26 +240,6 @@ class AWSSyncRefactoredTest(TestCase):
     def test_attach_policy__reraised_exception(self):
         self.assertRaises(ClientError, self.sync.attach_policy, "r-123", "p-123")
 
-    def test_ensure_organization_created__already_exists(self):
-        create_organization_error = ClientError(
-            {"Error": {"Code": "AlreadyInOrganizationException"}}, "create_organization"
-        )
-        with patch.object(self.sync.api_talker, "create_organization", side_effect=create_organization_error):
-            self.sync.ensure_organization_created()
-
-    def test_ensure_organization_created__new(self):
-        self.assertRaises(ClientError, self.sync.api_talker.describe_organization)
-        self.sync.ensure_organization_created()
-        self.assertIsNotNone(self.sync.api_talker.describe_organization)
-
-    def test_ensure_organization_created__reraised_exception(self):
-        create_organization_error = ClientError({"Error": {"Code": "AccessDeniedException"}}, "create_organization")
-        with patch.object(self.sync.api_talker, "create_organization", side_effect=create_organization_error):
-            try:
-                self.sync.ensure_organization_created()
-            except ClientError as error:
-                self.assertEqual(error.response["Error"]["Code"], "AccessDeniedException")
-
     def test_get_current_policy_id(self):
         self.policy_id1 = AWSPolicy.objects.create(
             policy_id="Test-Policy1", tags_key="Test-Policy-Id1", is_current_policy=False
@@ -352,7 +350,8 @@ class AWSSyncRefactoredTest(TestCase):
         self.sync.checker.api_talker.simulate_principal_policy = MagicMock(
             return_value={"EvaluationResults": [{"EvalDecision": "allowed"}]}
         )
-        self.sync.attach_policy = MagicMock(return_value=None)
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        self.setup_policy()
         pipeline_success = self.sync.pipeline()
 
         root_id = self.sync.api_talker.list_roots()[0]["Id"]
@@ -372,7 +371,8 @@ class AWSSyncRefactoredTest(TestCase):
         self.sync.checker.api_talker.simulate_principal_policy = MagicMock(
             return_value={"EvaluationResults": [{"EvalDecision": "allowed"}]}
         )
-        self.sync.attach_policy = MagicMock(return_value=None)
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        self.setup_policy()
 
         self.sync.api_talker.create_organization(feature_set="ALL")
         root_id = self.sync.api_talker.list_roots()[0]["Id"]

@@ -27,7 +27,6 @@ class AWSSyncRefactored:
         self.checker = Checks()
         self.logger = logging.getLogger("django.aws")
         self.logger.setLevel(logging.DEBUG)
-        self.fail = False
 
         self.ACCOUNT_REQUEST_INTERVAL_SECONDS = 0.1
         self.ACCOUNT_REQUEST_MAX_ATTEMPTS = 3
@@ -138,14 +137,6 @@ class AWSSyncRefactored:
             if error.response["Error"]["Code"] != "DuplicatePolicyAttachmentException":
                 raise
 
-    def ensure_organization_created(self):
-        """Create an organization if it does not yet exist."""
-        try:
-            self.api_talker.create_organization("ALL")
-        except ClientError as error:
-            if error.response["Error"]["Code"] != "AlreadyInOrganizationException":
-                raise
-
     def get_current_policy_id(self) -> str:
         """Get the currrent policy stored on the GiPHouse website."""
         for policy in AWSPolicy.objects.all():
@@ -219,7 +210,6 @@ class AWSSyncRefactored:
 
         :return: True iff all pipeline stages successfully executed.
         """
-        self.ensure_organization_created()
         root_id = self.api_talker.list_roots()[0]["Id"]
         self.checker.pipeline_preconditions(api_permissions)
 
@@ -233,8 +223,7 @@ class AWSSyncRefactored:
 
         ou_id = self.get_or_create_course_ou(aws_tree)
 
-        # TODO change hardcoded policy id to environment variable
-        policy_id = "p-jkrnoldh"
+        policy_id = self.get_current_policy_id()
         self.attach_policy(ou_id, policy_id)
 
         return self.create_and_move_accounts(merged_sync_data, root_id, ou_id)

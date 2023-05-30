@@ -1,12 +1,8 @@
 """Tests for awssync_structs.py."""
 
-from unittest.mock import patch
-
 from django.test import TestCase
 
-from courses.models import Semester
-
-from projects.aws import awssync
+from projects.aws import awssync_refactored as awssync
 
 
 class SyncDataTest(TestCase):
@@ -25,7 +21,7 @@ class AWSSyncListTest(TestCase):
     """Test AWSSyncList class."""
 
     def setUp(self):
-        self.sync = awssync.AWSSync()
+        self.sync = awssync.AWSSyncRefactored()
         self.syncData = awssync.SyncData
 
         self.test1 = self.syncData("test1@test1.test1", "test1", "test1")
@@ -57,7 +53,7 @@ class AWSTreeChecksTest(TestCase):
     """Test checks done on AWSTree data struncture."""
 
     def setUp(self):
-        self.sync = awssync.AWSSync()
+        self.sync = awssync.AWSSyncRefactored()
         self.awstree = awssync.AWSTree("Name", "1234", [])
         self.iteration = awssync.Iteration("Name", "1234", [])
         self.sync_data = awssync.SyncData("email@example.com", "Project X", "Spring 2020")
@@ -160,27 +156,6 @@ class AWSTreeChecksTest(TestCase):
 
     def test_awstree_to_syncdata_list(self):
         self.assertEqual(self.aws_tree1.awstree_to_syncdata_list(), self.treelist)
-
-    def test_check_for_double_member_email(self):
-        # Test when there are no duplicate emails
-        self.assertFalse(self.sync.check_for_double_member_email(self.aws_list, self.sync_list))
-
-        # Test when there is a duplicate email
-        self.sync_list.append(awssync.SyncData("email4@example.com", "Spring 2022", "Project G"))
-        self.assertTrue(self.sync.check_for_double_member_email(self.aws_list, self.sync_list))
-
-    def test_check_current_ou_exists(self):
-        # Test when current semester OU does not exist
-        with patch.object(Semester.objects, "get_or_create_current_semester", return_value="Fall 2022"):
-            self.assertTrue(Semester.objects.get_or_create_current_semester() == "Fall 2022")
-            val1, val2 = self.sync.check_current_ou_exists(self.aws_tree1)
-            self.assertEqual((val1, val2), (False, None))
-
-        # Test when current semester OU exists
-        with patch.object(Semester.objects, "get_or_create_current_semester", return_value="Spring 2021"):
-            self.assertTrue(Semester.objects.get_or_create_current_semester() == "Spring 2021")
-            val1, val2 = self.sync.check_current_ou_exists(self.aws_tree1)
-            self.assertEqual((val1, val2), (True, "98765"))
 
     def test_AWSTree_equals(self):
         self.assertEqual(self.aws_tree1, self.aws_tree1)
