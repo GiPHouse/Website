@@ -194,3 +194,21 @@ class AWSAPITalkerTest(TestCase):
         request_state = request["CreateAccountStatus"]["State"]
 
         self.assertEqual(request_state, "SUCCEEDED")
+
+    def test_untag_resource(self):
+        self.create_organization()
+
+        tag_key = "Test Key" 
+        tag_value = "Test Value"
+        account = self.api_talker.create_account("test@example.com", "Test", [{"Key": tag_key, "Value": tag_value}])
+        account_id = account["CreateAccountStatus"]["AccountId"]
+        self.api_talker.untag_resource(account_id, [tag_key])
+
+        received_tags = self.api_talker.org_client.list_tags_for_resource(ResourceId=account_id)["Tags"]
+        self.assertEqual(received_tags, [])
+
+        
+
+
+
+
