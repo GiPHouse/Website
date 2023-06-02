@@ -87,6 +87,9 @@ class ChecksTest(TestCase):
             ],
         )
 
+        self.logger = MagicMock()
+        self.checks.logger = self.logger
+
     def test_check_members_in_correct_iteration(self):
         # Test when correct
         self.assertIsNone(self.checks.check_members_in_correct_iteration(self.aws_tree1))
