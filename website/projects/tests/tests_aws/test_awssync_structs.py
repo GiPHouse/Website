@@ -2,7 +2,7 @@
 
 from django.test import TestCase
 
-from projects.aws import awssync_refactored as awssync
+from projects.aws import awssync
 
 
 class SyncDataTest(TestCase):
@@ -21,7 +21,7 @@ class AWSSyncListTest(TestCase):
     """Test AWSSyncList class."""
 
     def setUp(self):
-        self.sync = awssync.AWSSyncRefactored()
+        self.sync = awssync.AWSSync()
         self.syncData = awssync.SyncData
 
         self.test1 = self.syncData("test1@test1.test1", "test1", "test1")
@@ -53,7 +53,7 @@ class AWSTreeChecksTest(TestCase):
     """Test checks done on AWSTree data struncture."""
 
     def setUp(self):
-        self.sync = awssync.AWSSyncRefactored()
+        self.sync = awssync.AWSSync()
         self.awstree = awssync.AWSTree("Name", "1234", [])
         self.iteration = awssync.Iteration("Name", "1234", [])
         self.sync_data = awssync.SyncData("email@example.com", "Project X", "Spring 2020")

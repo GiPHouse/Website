@@ -1,4 +1,4 @@
-"""Tests for awssync_refactored.py."""
+"""Tests for awssync.py."""
 import json
 from unittest.mock import MagicMock, patch
 
@@ -15,7 +15,7 @@ from courses.models import Semester
 
 from mailing_lists.models import MailingList
 
-from projects.aws.awssync_refactored import AWSSyncRefactored
+from projects.aws.awssync import AWSSync
 from projects.aws.awssync_structs import AWSTree, Iteration, SyncData
 from projects.models import AWSPolicy, Project
 
@@ -27,10 +27,10 @@ User: Employee = get_user_model()
 @mock_organizations
 @mock_sts
 @mock_iam
-class AWSSyncRefactoredTest(TestCase):
+class AWSSyncTest(TestCase):
     def setUp(self):
         """Set up testing environment."""
-        self.sync = AWSSyncRefactored()
+        self.sync = AWSSync()
         self.api_talker = self.sync.api_talker
 
         self.admin = User.objects.create_superuser(github_id=0, github_username="super")
@@ -401,14 +401,14 @@ class AWSSyncRefactoredTest(TestCase):
         self.assertEqual(["alice@giphouse.nl", "bob@giphouse.nl"], course_account_emails)
 
     def test_synchronise__success(self):
-        with patch("projects.aws.awssync_refactored.AWSSyncRefactored.pipeline", return_value=True):
+        with patch("projects.aws.awssync.AWSSync.pipeline", return_value=True):
             response = self.client.get(reverse("admin:synchronise_to_aws"), follow=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.sync.SUCCESS_MSG)
 
     def test_synchronise__failure(self):
-        with patch("projects.aws.awssync_refactored.AWSSyncRefactored.pipeline", return_value=False):
+        with patch("projects.aws.awssync.AWSSync.pipeline", return_value=False):
             response = self.client.get(reverse("admin:synchronise_to_aws"), follow=True)
 
         self.assertEqual(response.status_code, 200)
@@ -416,7 +416,7 @@ class AWSSyncRefactoredTest(TestCase):
 
     def test_synchronise__api_error(self):
         api_error = ClientError({"Error": {"Code": "AccessDeniedException"}}, "create_organization")
-        with patch("projects.aws.awssync_refactored.AWSSyncRefactored.pipeline", side_effect=api_error):
+        with patch("projects.aws.awssync.AWSSync.pipeline", side_effect=api_error):
             response = self.client.get(reverse("admin:synchronise_to_aws"), follow=True)
 
         self.assertEqual(response.status_code, 200)
@@ -426,7 +426,7 @@ class AWSSyncRefactoredTest(TestCase):
         sync_error = Exception("Synchronization Error")
         self.sync.api_talker.create_organization(feature_set="ALL")
 
-        with patch("projects.aws.awssync_refactored.AWSSyncRefactored.pipeline", side_effect=sync_error):
+        with patch("projects.aws.awssync.AWSSync.pipeline", side_effect=sync_error):
             response = self.client.get(reverse("admin:synchronise_to_aws"), follow=True)
 
         self.assertEqual(response.status_code, 200)

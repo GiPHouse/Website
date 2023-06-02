@@ -18,7 +18,7 @@ from projects.aws.awssync_structs import AWSTree, Iteration, SyncData
 from projects.models import AWSPolicy, Project
 
 
-class AWSSyncRefactored:
+class AWSSync:
     """Synchronise with Amazon Web Services."""
 
     def __init__(self):
