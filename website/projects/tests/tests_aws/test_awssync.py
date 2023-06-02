@@ -1,959 +1,433 @@
 """Tests for awssync.py."""
-
 import json
 from unittest.mock import MagicMock, patch
 
-import boto3
 
-import botocore
 from botocore.exceptions import ClientError
 
-from django.test import TestCase
+from django.contrib.auth import get_user_model
+from django.test import Client, TestCase
+from django.urls import reverse
 
-from moto import mock_organizations, mock_sts
+from moto import mock_iam, mock_organizations, mock_sts
 
 from courses.models import Semester
 
 from mailing_lists.models import MailingList
 
-from projects.aws import awssync
-from projects.models import Project
+from projects.aws.awssync import AWSSync
+from projects.aws.awssync_structs import AWSTree, Iteration, SyncData
+from projects.models import AWSPolicy, Project
+
+from registrations.models import Employee
+
+User: Employee = get_user_model()
 
 
+@mock_organizations
+@mock_sts
+@mock_iam
 class AWSSyncTest(TestCase):
-    """Test AWSSync class."""
-
     def setUp(self):
         """Set up testing environment."""
-        self.sync = awssync.AWSSync()
+        self.sync = AWSSync()
+        self.api_talker = self.sync.api_talker
+
+        self.admin = User.objects.create_superuser(github_id=0, github_username="super")
+        self.client = Client()
+        self.client.force_login(self.admin)
+
+        self.logger = MagicMock()
+        self.sync.logger = self.logger
+        self.sync.checker.logger = self.logger
+
+    def setup_policy(self):
+        policy_name = "DenyAll"
+        policy_description = "Deny all access."
+        policy_content = {"Version": "2012-10-17", "Statement": [{"Effect": "Deny", "Action": "*", "Resource": "*"}]}
+        policy = self.sync.api_talker.org_client.create_policy(
+            Name=policy_name,
+            Description=policy_description,
+            Content=json.dumps(policy_content),
+            Type="SERVICE_CONTROL_POLICY",
+            Tags=[{"Key": "no_permissions", "Value": "true"}],
+        )
+        AWSPolicy.objects.create(
+            policy_id=policy["Policy"]["PolicySummary"]["Id"],
+            is_current_policy=True,
+            tags_key="no_permissions",
+            tags_value="true",
+        )
+
+    def test_get_syncdata_from_giphouse_normal(self):
+        """Test get_emails_with_teamids function in optimal conditions."""
         self.semester = Semester.objects.create(year=2023, season=Semester.SPRING)
-        self.mailing_list = MailingList.objects.create(address="test1")
-        self.project = Project.objects.create(id=1, name="test1", semester=self.semester, slug="test1")
-        self.mailing_list.projects.add(self.project)
-        self.mock_org = mock_organizations()
-        self.mock_org.start()
+        for i in range(3):
+            self.mailing_list = MailingList.objects.create(address="test" + str(i))
+            self.project = Project.objects.create(
+                id=i, name="test" + str(i), semester=self.semester, slug="test" + str(i)
+            )
+            self.mailing_list.projects.add(self.project)
 
-    def tearDown(self):
-        self.mock_org.stop()
-
-    def simulateFailure(self):
-        self.sync.fail = True
-
-    def test_button_pressed(self):
-        """Test button_pressed function."""
-        return_value = self.sync.button_pressed()
-        self.assertTrue(return_value)
-
-    def test_create_aws_organization(self):
-        moto_client = boto3.client("organizations")
-        org = self.sync
-        org.create_aws_organization()
-        describe_org = moto_client.describe_organization()["Organization"]
-        self.assertEqual(describe_org, org.org_info)
-
-    def test_create_aws_organization__exception(self):
-        org = self.sync
-        with patch("botocore.client.BaseClient._make_api_call", AWSAPITalkerTest.mock_api):
-            org.create_aws_organization()
-        self.assertTrue(org.fail)
-        self.assertIsNone(org.org_info)
-
-    def test_create_course_iteration_OU(self):
-        moto_client = boto3.client("organizations")
-        org = self.sync
-        org.create_aws_organization()
-        org.create_course_iteration_OU("1")
-        describe_unit = moto_client.describe_organizational_unit(OrganizationalUnitId=org.iterationOU_info["Id"])[
-            "OrganizationalUnit"
-        ]
-        self.assertEqual(describe_unit, org.iterationOU_info)
-
-    def test_create_course_iteration_OU_without_organization(self):
-        org = self.sync
-        org.create_course_iteration_OU("1")
-        self.assertTrue(org.fail)
-
-    def test_create_course_iteration_OU__exception(self):
-        org = self.sync
-        org.create_aws_organization()
-        with patch("boto3.client") as mocker:
-            mocker().list_roots.side_effect = ClientError({}, "list_roots")
-            org.create_course_iteration_OU("1")
-        self.assertTrue(org.fail)
-
-    def test_get_all_mailing_lists(self):
-        """Test get_all_mailing_lists function."""
-        mailing_lists = self.sync.get_all_mailing_lists()
-        self.assertIsInstance(mailing_lists, list)
-
-    def test_get_emails_with_teamids_normal(self):
-        """Test get_emails_with_teamids function."""
-        email_id = self.sync.get_emails_with_teamids()
+        email_id = self.sync.get_syncdata_from_giphouse()
 
         self.assertIsInstance(email_id, list)
-        self.assertIsInstance(email_id[0], awssync.SyncData)
-        expected_result = [awssync.SyncData("test1@giphouse.nl", "test1", "Spring 2023")]
+        self.assertIsInstance(email_id[0], SyncData)
+        expected_result = [
+            SyncData("test0@giphouse.nl", "test0", "Spring 2023"),
+            SyncData("test1@giphouse.nl", "test1", "Spring 2023"),
+            SyncData("test2@giphouse.nl", "test2", "Spring 2023"),
+        ]
         self.assertEqual(email_id, expected_result)
 
-    def test_get_emails_with_teamids_no_project(self):
-        """Test get_emails_with_teamids function."""
+    def test_get_syncdata_from_giphouse_no_project(self):
+        """Test get_emails_with_teamids function where the mailinglist is not assigned to a project"""
         MailingList.objects.all().delete()
         self.mailing_list = MailingList.objects.create(address="test2")
-        email_id = self.sync.get_emails_with_teamids()
+        email_id = self.sync.get_syncdata_from_giphouse()
         self.assertIsInstance(email_id, list)
         self.assertEqual(email_id, [])
 
-    def test_get_emails_with_teamids_no_mailing_list(self):
-        """Test get_emails_with_teamids function."""
+    def test_get_syncdata_from_giphouse_no_mailing_list(self):
+        """Test get_emails_with_teamids function where no mailinglists exist"""
         MailingList.objects.all().delete()
         Project.objects.all().delete()
-        email_id = self.sync.get_emails_with_teamids()
+        email_id = self.sync.get_syncdata_from_giphouse()
         self.assertIsInstance(email_id, list)
         self.assertEqual(email_id, [])
 
-    def test_get_emails_with_teamids_different_semester(self):
-        """Test get_emails_with_teamids function."""
+    def test_get_syncdata_from_giphouse_different_semester(self):
+        """Test get_emails_with_teamids function where the semester is not equal to the current semester"""
         MailingList.objects.all().delete()
         new_semester = Semester.objects.create(year=2022, season=Semester.FALL)
-        self.mailing_list = MailingList.objects.create(address="test2")
-        self.project = Project.objects.create(id=2, name="test2", semester=new_semester, slug="test2")
+        self.mailing_list = MailingList.objects.create(address="test4")
+        self.project = Project.objects.create(id=4, name="test4", semester=new_semester, slug="test4")
         self.mailing_list.projects.add(self.project)
-        email_id = self.sync.get_emails_with_teamids()
+        email_id = self.sync.get_syncdata_from_giphouse()
         self.assertIsInstance(email_id, list)
         self.assertEqual(email_id, [])
 
-    def test_create_scp_policy(self):
-        self.sync.create_aws_organization()
-
-        policy_name = "DenyAll"
-        policy_description = "Deny all access."
-        policy_content = {"Version": "2012-10-17", "Statement": [{"Effect": "Deny", "Action": "*", "Resource": "*"}]}
-        policy = self.sync.create_scp_policy(policy_name, policy_description, policy_content)
-
-        self.assertFalse(self.sync.fail)
-        self.assertEqual(policy["PolicySummary"]["Name"], policy_name)
-        self.assertEqual(policy["PolicySummary"]["Description"], policy_description)
-        self.assertEqual(policy["Content"], json.dumps(policy_content))
-
-    def test_create_scp_policy__exception(self):
-        self.sync.create_aws_organization()
-
-        policy_name = "DenyAll"
-        policy_description = "Deny all access."
-        policy_content = {
-            "Version": "2012-10-17",
-            "Statement": [{"Effect": "NonExistentEffect", "Action": "*", "Resource": "*"}],
-        }
-        with patch("botocore.client.BaseClient._make_api_call", AWSAPITalkerTest.mock_api):
-            policy = self.sync.create_scp_policy(policy_name, policy_description, policy_content)
-
-        self.assertTrue(self.sync.fail)
-        self.assertIsNone(policy)
-
-    def test_attach_scp_policy(self):
-        moto_client = boto3.client("organizations")
-        self.sync.create_aws_organization()
-
-        policy_name = "DenyAll"
-        policy_description = "Deny all access."
-        policy_content = {"Version": "2012-10-17", "Statement": [{"Effect": "Deny", "Action": "*", "Resource": "*"}]}
-        policy = self.sync.create_scp_policy(policy_name, policy_description, policy_content)
-
-        policy_id = policy["PolicySummary"]["Id"]
-        root_id = moto_client.list_roots()["Roots"][0]["Id"]
-        self.sync.attach_scp_policy(policy_id, root_id)
-
-        current_scp_policies = moto_client.list_policies_for_target(TargetId=root_id, Filter="SERVICE_CONTROL_POLICY")
-        current_scp_policy_ids = [scp_policy["Id"] for scp_policy in current_scp_policies["Policies"]]
-
-        self.assertIn(policy_id, current_scp_policy_ids)
-        self.assertFalse(self.sync.fail)
-
-    def test_attach_scp_policy__exception(self):
-        self.sync.create_aws_organization()
-
-        policy_name = "DenyAll"
-        policy_description = "Deny all access."
-        policy_content = {"Version": "2012-10-17", "Statement": [{"Effect": "Deny", "Action": "*", "Resource": "*"}]}
-        policy = self.sync.create_scp_policy(policy_name, policy_description, policy_content)
-
-        policy_id = policy["PolicySummary"]["Id"]
-        root_id = self.sync.org_info["Id"]  # Retrieves organization ID, not root ID, resulting in ClientError.
-        self.sync.attach_scp_policy(policy_id, root_id)
-
-        self.assertTrue(self.sync.fail)
-
-    @mock_sts
-    def test_check_aws_api_connection(self):
-        success, caller_identity_info = self.sync.check_aws_api_connection()
-
-        self.assertTrue(success)
-        self.assertIsNotNone(caller_identity_info)
-
-    @mock_sts
-    def test_check_aws_api_connection__exception(self):
-        with patch("boto3.client") as mocker:
-            mocker.get_caller_identity.side_effect = ClientError({}, "get_caller_identity")
-            mocker.return_value = mocker
-            success, caller_identity_info = self.sync.check_aws_api_connection()
-
-        self.assertFalse(success)
-        self.assertIsNone(caller_identity_info)
-
-    # IAM simulate_principal_policy is not covered by moto.
-    def test_check_iam_policy(self):
-        iam_user_arn = "daddy"
-        desired_actions = []
-        mock_evaluation_results = {
-            "EvaluationResults": [
-                {
-                    "EvalActionName": "organizations:CreateOrganizationalUnit",
-                    "EvalDecision": "allowed",
-                    "EvalResourceName": "*",
-                    "MissingContextValues": [],
-                }
-            ]
-        }
-
-        # success == True
-        with patch("boto3.client") as mocker:
-            mocker().simulate_principal_policy.return_value = mock_evaluation_results
-            success = self.sync.check_iam_policy(iam_user_arn, desired_actions)
-        self.assertTrue(success)
-
-        # success == False
-        mock_evaluation_results["EvaluationResults"][0]["EvalDecision"] = "implicitDeny"
-        with patch("boto3.client") as mocker:
-            mocker().simulate_principal_policy.return_value = mock_evaluation_results
-            success = self.sync.check_iam_policy(iam_user_arn, desired_actions)
-        self.assertFalse(success)
-
-    def test_check_iam_policy__exception(self):
-        iam_user_arn = "daddy"
-        desired_actions = []
-
-        with patch("boto3.client") as mocker:
-            mocker().simulate_principal_policy.side_effect = ClientError({}, "simulate_principal_policy")
-            success = self.sync.check_iam_policy(iam_user_arn, desired_actions)
-
-        self.assertFalse(success)
-
-    def test_check_organization_existence(self):
-        moto_client = boto3.client("organizations")
-        organization_create_info = moto_client.create_organization(FeatureSet="ALL")["Organization"]
-        success, organization_describe_info = self.sync.check_organization_existence()
-
-        self.assertTrue(success)
-        self.assertEqual(organization_create_info, organization_describe_info)
-
-    def test_check_organization_existence__exception(self):
-        with patch("boto3.client") as mocker:
-            mocker.describe_organization.side_effect = ClientError({}, "describe_organization")
-            mocker.return_value = mocker
-            success, organization_info = self.sync.check_organization_existence()
-
-        self.assertFalse(success)
-        self.assertIsNone(organization_info)
-
-    @mock_sts
-    def test_check_is_management_account(self):
-        moto_client = boto3.client("organizations")
-
-        moto_client.create_organization(FeatureSet="ALL")["Organization"]
-        _, caller_identity_info = self.sync.check_aws_api_connection()
-        _, organization_info = self.sync.check_organization_existence()
-
-        # is_management_account == True
-        success_acc = self.sync.check_is_management_account(caller_identity_info, organization_info)
-        self.assertTrue(success_acc)
-
-        # is_management_account == False
-        caller_identity_info["Account"] = "daddy"
-        success_acc = self.sync.check_is_management_account(caller_identity_info, organization_info)
-        self.assertFalse(success_acc)
-
-    def test_check_scp_enabled(self):
-        moto_client = boto3.client("organizations")
-
-        # SCP enabled.
-        organization_info = moto_client.create_organization(FeatureSet="ALL")["Organization"]
-        scp_is_enabled = self.sync.check_scp_enabled(organization_info)
-        self.assertTrue(scp_is_enabled)
-
-        # SCP semi-disabled (pending).
-        organization_info["AvailablePolicyTypes"][0]["Status"] = "PENDING_DISABLE"
-        scp_is_enabled = self.sync.check_scp_enabled(organization_info)
-        self.assertFalse(scp_is_enabled)
-
-        # SCP disabled (empty list).
-        organization_info["AvailablePolicyTypes"] = []
-        scp_is_enabled = self.sync.check_scp_enabled(organization_info)
-        self.assertFalse(scp_is_enabled)
-
-    @mock_sts
-    def test_pipeline_preconditions__all_success(self):
-        # Create organization.
-        moto_client = boto3.client("organizations")
-        moto_client.create_organization(FeatureSet="ALL")["Organization"]
-
-        # Mock return value of simulate_principal_policy.
-        iam_user_arn = "daddy"
-        desired_actions = []
-        mock_evaluation_results = {
-            "EvaluationResults": [
-                {
-                    "EvalActionName": "organizations:CreateOrganizationalUnit",
-                    "EvalDecision": "allowed",
-                    "EvalResourceName": "*",
-                    "MissingContextValues": [],
-                }
-            ]
-        }
-
-        with patch("boto3.client") as mocker:
-            mocker().simulate_principal_policy.return_value = mock_evaluation_results
-            check_iam_policy = self.sync.check_iam_policy(iam_user_arn, desired_actions)
-
-        # Mock return value of check_iam_policy.
-        with patch("projects.aws.awssync.AWSSync.check_iam_policy") as mocker:
-            mocker.return_value = check_iam_policy
-            success = self.sync.pipeline_preconditions()
-
-        self.assertTrue(success)
-
-    @mock_sts
-    def test_pipeline_preconditions__no_connection(self):
-        with patch("boto3.client") as mocker:
-            mocker.get_caller_identity.side_effect = ClientError({}, "get_caller_identity")
-            mocker.return_value = mocker
-            success = self.sync.pipeline_preconditions()
-
-        self.assertFalse(success)
-
-    def test_pipeline_preconditions__no_iam(self):
-        # Mock return value of simulate_principal_policy.
-        iam_user_arn = "daddy"
-        desired_actions = []
-        mock_evaluation_results = {
-            "EvaluationResults": [
-                {
-                    "EvalActionName": "organizations:CreateOrganizationalUnit",
-                    "EvalDecision": "implicitDeny",
-                    "EvalResourceName": "*",
-                    "MissingContextValues": [],
-                }
-            ]
-        }
-
-        with patch("boto3.client") as mocker:
-            mocker().simulate_principal_policy.return_value = mock_evaluation_results
-            check_api_actions = self.sync.check_iam_policy(iam_user_arn, desired_actions)
-
-            # Mock return value of check_iam_policy.
-            with patch("projects.aws.awssync.AWSSync.check_iam_policy") as mocker:
-                mocker.return_value = check_api_actions
-                success = self.sync.pipeline_preconditions()
-
-        self.assertFalse(success)
-
-    @mock_sts
-    def test_pipeline_preconditions__no_organization(self):
-        # Mock return value of simulate_principal_policy.
-        iam_user_arn = "daddy"
-        desired_actions = []
-        mock_evaluation_results = {
-            "EvaluationResults": [
-                {
-                    "EvalActionName": "organizations:CreateOrganizationalUnit",
-                    "EvalDecision": "allowed",
-                    "EvalResourceName": "*",
-                    "MissingContextValues": [],
-                }
-            ]
-        }
-
-        with patch("boto3.client") as mocker:
-            mocker().simulate_principal_policy.return_value = mock_evaluation_results
-            check_iam_policy = self.sync.check_iam_policy(iam_user_arn, desired_actions)
-
-        # Mock return value of check_iam_policy.
-        with patch("projects.aws.awssync.AWSSync.check_iam_policy") as mocker:
-            mocker.return_value = check_iam_policy
-            success = self.sync.pipeline_preconditions()
-
-        self.assertFalse(success)
-
-    @mock_sts
-    def test_pipeline_preconditions__no_management(self):
-        moto_client = boto3.client("organizations")
-        moto_client.create_organization(FeatureSet="ALL")
-
-        # Mock return value of simulate_principal_policy.
-        iam_user_arn = "daddy"
-        desired_actions = []
-        mock_evaluation_results = {
-            "EvaluationResults": [
-                {
-                    "EvalActionName": "organizations:CreateOrganizationalUnit",
-                    "EvalDecision": "allowed",
-                    "EvalResourceName": "*",
-                    "MissingContextValues": [],
-                }
-            ]
-        }
-
-        with patch("boto3.client") as mocker:
-            mocker().simulate_principal_policy.return_value = mock_evaluation_results
-            check_iam_policy = self.sync.check_iam_policy(iam_user_arn, desired_actions)
-
-        # Mock return value of check_iam_policy.
-        with patch("projects.aws.awssync.AWSSync.check_iam_policy") as mocker_iam:
-            mocker_iam.return_value = check_iam_policy
-            with patch("projects.aws.awssync.AWSSync.check_aws_api_connection") as mocker_api:
-                mocker_api.return_value = True, {"Account": "daddy", "Arn": "01234567890123456789"}
-                success = self.sync.pipeline_preconditions()
-
-        self.assertFalse(success)
-
-    @mock_sts
-    def test_pipeline_preconditions__no_scp(self):
-        moto_client = boto3.client("organizations")
-
-        organization_info = moto_client.create_organization(FeatureSet="ALL")["Organization"]
-
-        # Mock return value of simulate_principal_policy.
-        iam_user_arn = "daddy"
-        desired_actions = []
-        mock_evaluation_results = {
-            "EvaluationResults": [
-                {
-                    "EvalActionName": "organizations:CreateOrganizationalUnit",
-                    "EvalDecision": "allowed",
-                    "EvalResourceName": "*",
-                    "MissingContextValues": [],
-                }
-            ]
-        }
-
-        with patch("boto3.client") as mocker:
-            mocker().simulate_principal_policy.return_value = mock_evaluation_results
-            check_iam_policy = self.sync.check_iam_policy(iam_user_arn, desired_actions)
-
-        # Mock return value of check_iam_policy.
-        with patch("projects.aws.awssync.AWSSync.check_iam_policy") as mocker_iam:
-            mocker_iam.return_value = check_iam_policy
-
-            # Mock return value of check_organization_existence with no SCP policy enabled.
-            organization_info["AvailablePolicyTypes"] = []
-            with patch("projects.aws.awssync.AWSSync.check_organization_existence") as mocker:
-                mocker.return_value = True, organization_info
-                success = self.sync.pipeline_preconditions()
-
-        self.assertFalse(success)
-
-    """
-    def test_pipeline_create_scp_policy(self):
-        self.sync.create_aws_organization()
-
-        policy_name = "DenyAll"
-        policy_description = "Deny all access."
-        policy_content = {"Version": "2012-10-17", "Statement": [{"Effect": "Deny", "Action": "*", "Resource": "*"}]}
-
-        policy = self.sync.pipeline_create_scp_policy()
-
-        self.assertFalse(self.sync.fail)
-        self.assertEqual(policy["PolicySummary"]["Name"], policy_name)
-        self.assertEqual(policy["PolicySummary"]["Description"], policy_description)
-        self.assertEqual(policy["Content"], json.dumps(policy_content))
-
-    def test_pipeline_create_scp_policy__exception(self):
-        self.sync.create_aws_organization()
-
-        with patch("botocore.client.BaseClient._make_api_call", AWSAPITalkerTest.mock_api):
-            policy = self.sync.pipeline_create_scp_policy()
-
-        self.assertTrue(self.sync.fail)
-        self.assertIsNone(policy)
-    """
-
-    def test_pipeline_policy(self):
-        self.sync.create_aws_organization()
-
-        policy_name = "DenyAll"
-        policy_description = "Deny all access."
-        policy_content = {"Version": "2012-10-17", "Statement": [{"Effect": "Deny", "Action": "*", "Resource": "*"}]}
-        policy = self.sync.create_scp_policy(policy_name, policy_description, policy_content)
-        self.sync.policy_id = policy["PolicySummary"]["Id"]
-
-        ou_id = self.sync.create_course_iteration_OU("Test")
-
-        success = self.sync.pipeline_policy(ou_id)
-        self.assertTrue(success)
-
-    def test_pipeline_policy__exception(self):
-        self.sync.create_aws_organization()
-
-        ou_id = self.sync.create_course_iteration_OU("Test")
-
-        success = self.sync.pipeline_policy(ou_id)
-        self.assertFalse(success)
-
-    def test_pipeline_policy__failure_attach(self):
-        self.sync.create_aws_organization()
-
-        policy_name = "DenyAll"
-        policy_description = "Deny all access."
-        policy_content = {"Version": "2012-10-17", "Statement": [{"Effect": "Deny", "Action": "*", "Resource": "*"}]}
-        policy = self.sync.create_scp_policy(policy_name, policy_description, policy_content)
-        self.sync.policy_id = policy["PolicySummary"]["Id"]
-
-        ou_id = self.sync.create_course_iteration_OU("Test")
-
-        self.sync.attach_scp_policy = MagicMock(side_effect=self.simulateFailure())
-
-        success = self.sync.pipeline_policy(ou_id)
-        self.assertFalse(success)
-
-    @mock_sts
-    def test_pipeline(self):
-        moto_client = boto3.client("organizations")
-
-        # pipeline_preconditions() == False
-        success = self.sync.pipeline()
-        self.assertFalse(success)
-
-        # pipeline_preconditions() == True
-        moto_client.create_organization(FeatureSet="ALL")["Organization"]
-
-        policy_name = "DenyAll"
-        policy_description = "Deny all access."
-        policy_content = {"Version": "2012-10-17", "Statement": [{"Effect": "Deny", "Action": "*", "Resource": "*"}]}
-        policy = self.sync.create_scp_policy(policy_name, policy_description, policy_content)
-        self.sync.policy_id = policy["PolicySummary"]["Id"]
-
-        iam_user_arn = "daddy"
-        desired_actions = []
-        mock_evaluation_results = {
-            "EvaluationResults": [
-                {
-                    "EvalActionName": "organizations:CreateOrganizationalUnit",
-                    "EvalDecision": "allowed",
-                    "EvalResourceName": "*",
-                    "MissingContextValues": [],
-                }
-            ]
-        }
-
-        with patch("boto3.client") as mocker:
-            mocker().simulate_principal_policy.return_value = mock_evaluation_results
-            check_iam_policy = self.sync.check_iam_policy(iam_user_arn, desired_actions)
-
-        with patch("projects.aws.awssync.AWSSync.check_iam_policy") as mocker:
-            mocker.return_value = check_iam_policy
-            success = self.sync.pipeline()
-
-        self.assertTrue(success)
-
-    def test_pipeline__exception_list_roots(self):
-        self.sync.pipeline_preconditions = MagicMock(return_value=True)
-
-        with patch("boto3.client") as mocker:
-            mocker().list_roots.side_effect = ClientError({}, "list_roots")
-            success = self.sync.pipeline()
-
-        self.assertFalse(success)
-
-    def test_pipeline__edge_case_double_emails(self):
-        moto_client = boto3.client("organizations")
-        moto_client.create_organization(FeatureSet="ALL")["Organization"]
-
-        aws_tree = awssync.AWSTree(
-            "Root",
-            "123",
-            [
-                awssync.Iteration(
-                    "Spring 2023",
-                    "456",
-                    [
-                        awssync.SyncData("email1@example.com", "project1", "Spring 2023"),
-                    ],
-                )
-            ],
+    def test_AWS_sync_list_both_empty(self):
+        gip_list = []
+        aws_list = []
+        self.assertEquals(self.sync.generate_aws_sync_list(gip_list, aws_list), [])
+
+    def test_AWS_sync_list_empty_AWS(self):
+        test1 = SyncData("test1@test1.test1", "test1", "test1")
+        test2 = SyncData("test2@test2.test2", "test2", "test2")
+        gip_list = [test1, test2]
+        aws_list = []
+        self.assertEquals(self.sync.generate_aws_sync_list(gip_list, aws_list), gip_list)
+
+    def test_AWS_sync_list_empty_GiP(self):
+        test1 = SyncData("test1@test1.test1", "test1", "test1")
+        test2 = SyncData("test2@test2.test2", "test2", "test2")
+        gip_list = []
+        aws_list = [test1, test2]
+        self.assertEquals(self.sync.generate_aws_sync_list(gip_list, aws_list), [])
+
+    def test_AWS_sync_list_both_full(self):
+        test1 = SyncData("test1@test1.test1", "test1", "test1")
+        test2 = SyncData("test2@test2.test2", "test2", "test2")
+        test3 = SyncData("test3@test3.test3", "test3", "test3")
+        gip_list = [test1, test2]
+        aws_list = [test2, test3]
+        self.assertEquals(self.sync.generate_aws_sync_list(gip_list, aws_list), [test1])
+
+    def test_get_tag_value(self):
+        tags = [{"Key": "project_semester", "Value": "2021"}, {"Key": "project_slug", "Value": "test1"}]
+        self.assertEquals(self.sync.get_tag_value(tags, "project_semester"), "2021")
+        self.assertEquals(self.sync.get_tag_value(tags, "project_slug"), "test1")
+        self.assertEquals(self.sync.get_tag_value(tags, "project_name"), None)
+
+    def test_extract_aws_setup(self):
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        root_id = self.api_talker.list_roots()[0]["Id"]
+
+        ou_response = self.api_talker.create_organizational_unit(parent_id=root_id, ou_name="OU_1")
+        ou_id = ou_response["OrganizationalUnit"]["Id"]
+
+        account_response = self.api_talker.create_account(
+            email="account_1@gmail.com",
+            account_name="account_1",
+            tags=[{"Key": "project_semester", "Value": "2021"}, {"Key": "project_slug", "Value": "test1"}],
         )
-
-        gip_teams = [
-            awssync.SyncData("email1@example.com", "project1", "Spring 2023"),
-            awssync.SyncData("email1@example.com", "project2", "Spring 2023"),
-        ]
-
-        self.sync.pipeline_preconditions = MagicMock(return_value=True)
-        self.sync.extract_aws_setup = MagicMock(return_value=aws_tree)
-        self.sync.get_emails_with_teamids = MagicMock(return_value=gip_teams)
-        with patch.object(Semester.objects, "get_or_create_current_semester", return_value="Spring 2023"):
-            success = self.sync.pipeline()
-
-        self.assertFalse(success)
-
-    def test_pipeline__edge_case_incorrectly_placed(self):
-        moto_client = boto3.client("organizations")
-        moto_client.create_organization(FeatureSet="ALL")["Organization"]
-
-        aws_tree = awssync.AWSTree(
-            "Root",
-            "123",
-            [
-                awssync.Iteration(
-                    "Fall 2023",
-                    "456",
-                    [
-                        awssync.SyncData("email1@example.com", "project1", "Spring 2023"),
-                    ],
-                )
-            ],
-        )
-
-        gip_teams = [awssync.SyncData("email1@example.com", "project1", "Spring 2023")]
-
-        self.sync.pipeline_preconditions = MagicMock(return_value=True)
-        self.sync.extract_aws_setup = MagicMock(return_value=aws_tree)
-        self.sync.get_emails_with_teamids = MagicMock(return_value=gip_teams)
-        with patch.object(Semester.objects, "get_or_create_current_semester", return_value="Spring 2023"):
-            self.assertRaises(Exception, self.sync.pipeline)
-
-    def test_pipeline__edge_case_double_iteration_names(self):
-        moto_client = boto3.client("organizations")
-        moto_client.create_organization(FeatureSet="ALL")["Organization"]
-
-        aws_tree = awssync.AWSTree(
-            "Root",
-            "123",
-            [
-                awssync.Iteration(
-                    "Spring 2023", "456", [awssync.SyncData("email1@example.com", "project1", "Spring 2023")]
-                ),
-                awssync.Iteration("Spring 2023", "789", []),
-            ],
-        )
-
-        gip_teams = [awssync.SyncData("email1@example.com", "project1", "Spring 2023")]
-
-        self.sync.pipeline_preconditions = MagicMock(return_value=True)
-        self.sync.extract_aws_setup = MagicMock(return_value=aws_tree)
-        self.sync.get_emails_with_teamids = MagicMock(return_value=gip_teams)
-        with patch.object(Semester.objects, "get_or_create_current_semester", return_value="Spring 2023"):
-            self.assertRaises(Exception, self.sync.pipeline)
-
-    def test_pipeline__failed_creating_iteration_ou(self):
-        moto_client = boto3.client("organizations")
-        moto_client.create_organization(FeatureSet="ALL")["Organization"]
-
-        self.sync.pipeline_preconditions = MagicMock(return_value=True)
-        with patch("boto3.client") as mocker:
-            mocker().create_organizational_unit.side_effect = ClientError({}, "create_organizational_unit")
-            success = self.sync.pipeline()
-
-        self.assertFalse(success)
-
-    def test_pipeline__exception_attaching_policy(self):
-        self.sync.create_aws_organization()
-        self.sync.pipeline_preconditions = MagicMock(return_value=True)
-
-        with patch("boto3.client") as mocker:
-            mocker().attach_policy.side_effect = ClientError(
-                {"Error": {"Code": "PolicyTypeNotEnabledException"}}, "attach_policy"
-            )
-            success = self.sync.pipeline()
-
-        self.assertFalse(success)
-
-    def test_pipeline__already_attached_policy(self):
-        self.sync.create_aws_organization()
-        self.sync.pipeline_preconditions = MagicMock(return_value=True)
-
-        with patch("boto3.client") as mocker:
-            mocker().attach_policy.side_effect = ClientError(
-                {"Error": {"Code": "DuplicatePolicyAttachmentException"}}, "attach_policy"
-            )
-            success = self.sync.pipeline()
-
-        self.assertFalse(success)
-
-    def test_pipeline__failed_create_and_move_account(self):
-        self.sync.create_aws_organization()
-        self.sync.pipeline_preconditions = MagicMock(return_value=True)
-
-        with patch("boto3.client") as mocker:
-            mocker().move_account.side_effect = ClientError({}, "move_account")
-            success = self.sync.pipeline()
-
-        self.assertFalse(success)
-
-    def test_pipeline__exception_extract_aws_setup(self):
-        self.sync.pipeline_preconditions = MagicMock(return_value=True)
-
-        with patch("boto3.client") as mocker:
-            mocker().list_organizational_units_for_parent.side_effect = ClientError(
-                {}, "list_organizational_units_for_parent"
-            )
-            success = self.sync.pipeline()
-
-        self.assertFalse(success)
-
-    def test_pipeline_update_current_course_iteration_ou___failure_check_current_ou(self):
-
-        self.sync.check_current_ou_exists = MagicMock(return_value=(False, None))
-
-        self.sync.create_aws_organization()
-        success, id = self.sync.pipeline_update_current_course_iteration_ou(None)
-        self.assertTrue(success)
-        self.assertFalse(id is None)
-
-    def test_pipeline_update_current_course_iteration_ou___success(self):
-
-        self.sync.check_current_ou_exists = MagicMock(return_value=(True, "1234"))
-
-        self.sync.create_aws_organization()
-        success, id = self.sync.pipeline_update_current_course_iteration_ou(None)
-        self.assertTrue(success)
-        self.assertEquals(id, "1234")
-
-    def test_pipeline_update_current_course_iteration_ou___failure_create_ou(self):
-
-        self.sync.check_current_ou_exists = MagicMock(return_value=(False, None))
-        self.sync.create_course_iteration_OU = MagicMock(side_effect=self.simulateFailure())
-
-        self.sync.create_aws_organization()
-        success, failure_reason = self.sync.pipeline_update_current_course_iteration_ou(None)
-
-        self.assertFalse(success)
-        self.assertEquals(failure_reason, "ITERATION_OU_CREATION_FAILED")
-        self.assertTrue(self.sync.fail)
-
-    def test_pipeline_create_account(self):
-        self.sync.create_aws_organization()
-
-        success, response = self.sync.pipeline_create_account(
-            awssync.SyncData("alice@example.com", "alice", "Spring 2023")
-        )
-
-        self.assertTrue(success)
-        self.assertIsNotNone(response)
-
-    def test_pipeline_create_account__exception_create_account(self):
-        self.sync.create_aws_organization()
-
-        with patch("boto3.client") as mocker:
-            mocker().create_account.side_effect = ClientError({}, "create_account")
-            success, response = self.sync.pipeline_create_account(
-                awssync.SyncData("alice@example.com", "alice", "Spring 2023")
-            )
-
-        self.assertFalse(success)
-        self.assertEquals(response, "CLIENTERROR_CREATE_ACCOUNT")
-
-    def test_pipeline_create_account__exception_describe_account_status(self):
-        self.sync.create_aws_organization()
-
-        with patch("boto3.client") as mocker:
-            mocker().describe_create_account_status.side_effect = ClientError({}, "describe_create_account_status")
-            success, response = self.sync.pipeline_create_account(
-                awssync.SyncData("alice@example.com", "alice", "Spring 2023")
-            )
-
-        self.assertFalse(success)
-        self.assertEquals(response, "CLIENTERROR_DESCRIBE_CREATE_ACCOUNT_STATUS")
-
-    def test_pipeline_create_account__state_failed(self):
-        self.sync.create_aws_organization()
-
-        with patch("boto3.client") as mocker:
-            response = {"CreateAccountStatus": {"State": "FAILED", "FailureReason": "EMAIL_ALREADY_EXISTS"}}
-            mocker().describe_create_account_status.return_value = response
-            success, response = self.sync.pipeline_create_account(
-                awssync.SyncData("alice@example.com", "alice", "Spring 2023")
-            )
-
-        self.assertFalse(success)
-        self.assertEquals(response, "EMAIL_ALREADY_EXISTS")
-
-    def test_pipeline_create_account__state_in_progress(self):
-        self.sync.create_aws_organization()
-
-        with patch("boto3.client") as mocker:
-            response = {
-                "CreateAccountStatus": {
-                    "State": "IN_PROGRESS",
-                }
-            }
-            mocker().describe_create_account_status.return_value = response
-            success, response = self.sync.pipeline_create_account(
-                awssync.SyncData("alice@example.com", "alice", "Spring 2023")
-            )
-
-        self.assertFalse(success)
-        self.assertEquals(response, "STILL_IN_PROGRESS")
-
-    def test_pipeline_create_and_move_accounts(self):
-        moto_client = boto3.client("organizations")
-        self.sync.create_aws_organization()
-
-        new_member_accounts = [
-            awssync.SyncData("alice@example.com", "alice", "Spring 2023"),
-            awssync.SyncData("bob@example.com", "bob", "Spring 2023"),
-        ]
-        root_id = moto_client.list_roots()["Roots"][0]["Id"]
-        course_iteration_id = self.sync.create_course_iteration_OU("Spring 2023")
-
-        success = self.sync.pipeline_create_and_move_accounts(new_member_accounts, root_id, course_iteration_id)
-        self.assertTrue(success)
-
-    def test_pipeline_create_and_move_accounts__email_exists(self):
-        moto_client = boto3.client("organizations")
-        self.sync.create_aws_organization()
-
-        new_member_accounts = [("alice@example.com", "alice"), ("bob@example.com", "bob")]
-        root_id = moto_client.list_roots()["Roots"][0]["Id"]
-        course_iteration_id = self.sync.create_course_iteration_OU("2023Fall")
-
-        with patch("projects.aws.awssync.AWSSync.pipeline_create_account") as mocker:
-            mocker.return_value = False, "EMAIL_ALREADY_EXISTS"
-            success = self.sync.pipeline_create_and_move_accounts(new_member_accounts, root_id, course_iteration_id)
-
-        self.assertFalse(success)
-
-    def test_pipeline_create_and_move_accounts__exception_move_account(self):
-        moto_client = boto3.client("organizations")
-        self.sync.create_aws_organization()
-
-        new_member_accounts = [("alice@example.com", "alice"), ("bob@example.com", "bob")]
-        root_id = moto_client.list_roots()["Roots"][0]["Id"]
-        course_iteration_id = self.sync.create_course_iteration_OU("2023Fall")
-
-        self.sync.pipeline_create_account = MagicMock(return_value=(True, 1234))
-        with patch("boto3.client") as mocker:
-            mocker().move_account.side_effect = ClientError({}, "move_account")
-            success = self.sync.pipeline_create_and_move_accounts(new_member_accounts, root_id, course_iteration_id)
-
-        self.assertFalse(success)
-
-    @mock_organizations
-    def test_get_aws_data(self):
-        moto_client = boto3.client("organizations")
-        self.sync.create_aws_organization()
-        root_id = moto_client.list_roots()["Roots"][0]["Id"]
-
-        response_OU_1 = moto_client.create_organizational_unit(ParentId=root_id, Name="OU_1")
-        OU_1_id = response_OU_1["OrganizationalUnit"]["Id"]
-        response_account_1 = moto_client.create_account(
-            Email="account_1@gmail.com",
-            AccountName="account_1",
-            Tags=[{"Key": "project_semester", "Value": "2021"}, {"Key": "project_slug", "Value": "test1"}],
-        )
-        account_id_1 = response_account_1["CreateAccountStatus"]["AccountId"]
-        moto_client.move_account(AccountId=account_id_1, SourceParentId=root_id, DestinationParentId=OU_1_id)
+        account_id = account_response["CreateAccountStatus"]["AccountId"]
+        self.api_talker.move_account(account_id=account_id, source_parent_id=root_id, dest_parent_id=ou_id)
 
         aws_tree = self.sync.extract_aws_setup(root_id)
-        iteration_test = awssync.Iteration("OU_1", OU_1_id, [awssync.SyncData("account_1@gmail.com", "test1", "2021")])
-        aws_tree_test = awssync.AWSTree("root", root_id, [iteration_test])
-        self.assertEquals(aws_tree, aws_tree_test)
 
-    @mock_organizations
-    def test_get_aws_data_no_root(self):
-        boto3.client("organizations")
-        self.sync.create_aws_organization()
-        self.sync.extract_aws_setup("NonExistentRootID")
-        self.assertTrue(self.sync.fail)
+        expected_sync_data = [SyncData("account_1@gmail.com", "test1", "2021")]
+        expected_iteration = Iteration("OU_1", ou_id, expected_sync_data)
+        expected_tree = AWSTree("root", root_id, [expected_iteration])
 
-    @mock_organizations
-    def test_get_aws_data_no_slugs(self):
-        moto_client = boto3.client("organizations")
-        self.sync.create_aws_organization()
-        root_id = moto_client.list_roots()["Roots"][0]["Id"]
+        self.assertEqual(aws_tree, expected_tree)
 
-        response_OU_1 = moto_client.create_organizational_unit(ParentId=root_id, Name="OU_1")
+    def test_extract_aws_setup_no_slugs(self):
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        root_id = self.api_talker.list_roots()[0]["Id"]
+
+        response_OU_1 = self.api_talker.create_organizational_unit(parent_id=root_id, ou_name="OU_1")
         OU_1_id = response_OU_1["OrganizationalUnit"]["Id"]
-        response_account_1 = moto_client.create_account(
-            Email="account_1@gmail.com",
-            AccountName="account_1",
-            Tags=[],
+        response_account_1 = self.api_talker.create_account(
+            email="account_1@gmail.com",
+            account_name="account_1",
+            tags=[],
         )
         account_id_1 = response_account_1["CreateAccountStatus"]["AccountId"]
-        moto_client.move_account(AccountId=account_id_1, SourceParentId=root_id, DestinationParentId=OU_1_id)
-        self.sync.extract_aws_setup(root_id)
-        self.assertTrue(self.sync.fail)
 
+        self.api_talker.move_account(account_id=account_id_1, source_parent_id=root_id, dest_parent_id=OU_1_id)
 
-class AWSAPITalkerTest(TestCase):
-    def mock_api(self, operation_name, kwarg):
-        if operation_name == "CreateOrganization":
-            raise ClientError(
-                {
-                    "Error": {
-                        "Message": "The AWS account is already a member of an organization.",
-                        "Code": "AlreadyInOrganizationException",
-                    },
-                    "ResponseMetadata": {
-                        "RequestId": "ffffffff-ffff-ffff-ffff-ffffffffffff",
-                        "HTTPStatusCode": 400,
-                        "HTTPHeaders": {
-                            "x-amzn-requestid": "ffffffff-ffff-ffff-ffff-ffffffffffff",
-                            "content-type": "application/x-amz-json-1.1",
-                            "content-length": "111",
-                            "date": "Sun, 01 Jan 2023 00:00:00 GMT",
-                            "connection": "close",
-                        },
-                        "RetryAttempts": 0,
-                    },
-                    "Message": "The AWS account is already a member of an organization.",
-                },
-                "create_organization",
-            )
-        if operation_name == "CreateOrganizationalUnit":
-            raise ClientError(
-                {
-                    "Error": {
-                        "Message": "The OU already exists.",
-                        "Code": "ParentNotFoundException",
-                    },
-                    "ResponseMetadata": {
-                        "RequestId": "ffffffff-ffff-ffff-ffff-ffffffffffff",
-                        "HTTPStatusCode": 400,
-                        "HTTPHeaders": {
-                            "x-amzn-requestid": "ffffffff-ffff-ffff-ffff-ffffffffffff",
-                            "content-type": "application/x-amz-json-1.1",
-                            "content-length": "111",
-                            "date": "Sun, 01 Jan 2023 00:00:00 GMT",
-                            "connection": "close",
-                        },
-                        "RetryAttempts": 0,
-                    },
-                    "Message": "The OU already exists.",
-                },
-                "create_organizational_unit",
-            )
-        if operation_name == "CreatePolicy":
-            raise ClientError(
-                {
-                    "Error": {
-                        "Message": """The provided policy document does not meet the
-                                      requirements of the specified policy type.""",
-                        "Code": "MalformedPolicyDocumentException",
-                    },
-                    "ResponseMetadata": {
-                        "RequestId": "ffffffff-ffff-ffff-ffff-ffffffffffff",
-                        "HTTPStatusCode": 400,
-                        "HTTPHeaders": {
-                            "x-amzn-requestid": "ffffffff-ffff-ffff-ffff-ffffffffffff",
-                            "content-type": "application/x-amz-json-1.1",
-                            "content-length": "147",
-                            "date": "Sun, 01 Jan 2023 00:00:00 GMT",
-                            "connection": "close",
-                        },
-                        "RetryAttempts": 0,
-                    },
-                    "Message": """The provided policy document does not meet the
-                                  requirements of the specified policy type.""",
-                },
-                "create_policy",
-            )
-        return botocore.client.BaseClient._make_api_call(self, operation_name, kwarg)
+        with self.assertRaises(Exception) as context:
+            self.sync.extract_aws_setup(root_id)
+        self.assertIn("Found incomplete accounts in AWS", str(context.exception))
+
+    def test_get_or_create_course_ou__new(self):
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        root_id = self.sync.api_talker.list_roots()[0]["Id"]
+        tree = AWSTree("root", root_id, [])
+
+        current_semester_name = str(Semester.objects.get_or_create_current_semester())
+        course_ou_id = self.sync.get_or_create_course_ou(tree)
+
+        course_ou_exists = any(
+            ou["Id"] == course_ou_id and ou["Name"] == current_semester_name
+            for ou in self.sync.api_talker.list_organizational_units_for_parent(root_id)
+        )
+
+        self.assertTrue(course_ou_exists)
+
+    def test_get_or_create_course_ou__already_exists(self):
+        tree = AWSTree(
+            "root",
+            "r-123",
+            [
+                Iteration("Spring 2023", "ou-456", [SyncData("alice@giphouse.nl", "alices-project", "Spring 2023")]),
+                Iteration("Fall 2023", "ou-789", [SyncData("bob@giphouse.nl", "bobs-project", "Fall 2023")]),
+            ],
+        )
+
+        with patch.object(Semester.objects, "get_or_create_current_semester", return_value="Spring 2023"):
+            course_ou_id = self.sync.get_or_create_course_ou(tree)
+        self.assertEqual("ou-456", course_ou_id)
+
+    def test_attach_policy__not_attached(self):
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        root_id = self.sync.api_talker.list_roots()[0]["Id"]
+
+        new_policy_content = json.dumps(
+            {"Version": "2012-10-17", "Statement": [{"Effect": "Deny", "Action": "*", "Resource": "*"}]}
+        )
+        new_policy_id = self.sync.api_talker.org_client.create_policy(
+            Content=new_policy_content, Description="Deny all access.", Name="DenyAll", Type="SERVICE_CONTROL_POLICY"
+        )["Policy"]["PolicySummary"]["Id"]
+
+        self.sync.attach_policy(root_id, new_policy_id)
+        attached_policies = self.sync.api_talker.org_client.list_policies_for_target(
+            TargetId=root_id, Filter="SERVICE_CONTROL_POLICY"
+        )["Policies"]
+        attached_policy_ids = [policy["Id"] for policy in attached_policies]
+
+        self.assertIn(new_policy_id, attached_policy_ids)
+
+    def test_attach_policy__caught_exception(self):
+        # Error code "DuplicatePolicyAttachmentException" can not be simulated by moto, so it is mocked.
+        attach_policy_hard_side_effect = ClientError(
+            {"Error": {"Code": "DuplicatePolicyAttachmentException"}}, "attach_policy"
+        )
+        with patch.object(
+            self.sync.api_talker.org_client, "attach_policy", side_effect=attach_policy_hard_side_effect
+        ):
+            return_value = self.sync.attach_policy("r-123", "p-123")
+
+        self.assertIsNone(return_value)
+
+    def test_attach_policy__reraised_exception(self):
+        self.assertRaises(ClientError, self.sync.attach_policy, "r-123", "p-123")
+
+    def test_get_current_policy_id(self):
+        self.policy_id1 = AWSPolicy.objects.create(
+            policy_id="Test-Policy1", tags_key="Test-Policy-Id1", is_current_policy=False
+        )
+        self.policy_id2 = AWSPolicy.objects.create(
+            policy_id="Test-Policy2", tags_key="Test-Policy-Id2", is_current_policy=True
+        )
+        current_policy_id = self.sync.get_current_policy_id()
+        self.assertIsInstance(current_policy_id, str)
+        self.assertEqual(current_policy_id, self.policy_id2.policy_id)
+
+    def test_get_current_policy__no_current_policy_id(self):
+        self.policy_id1 = AWSPolicy.objects.create(
+            policy_id="Test-Policy1", tags_key="Test-Policy-Id1", is_current_policy=False
+        )
+        self.assertRaises(Exception, self.sync.get_current_policy_id)
+
+    def test_create_move_account(self):
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        root_id = self.sync.api_talker.list_roots()[0]["Id"]
+
+        dest_ou = self.sync.api_talker.create_organizational_unit(root_id, "destination_ou")
+        dest_ou_id = dest_ou["OrganizationalUnit"]["Id"]
+        members = [
+            SyncData("alice@giphouse.nl", "alices-project", "Spring 2023"),
+            SyncData("bob@giphouse.nl", "bobs-project", "Fall 2023"),
+        ]
+
+        success = self.sync.create_and_move_accounts(members, root_id, dest_ou_id)
+        self.assertTrue(success)
+
+    def test_create_move_account__exception_failure(self):
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        root_id = self.sync.api_talker.list_roots()[0]["Id"]
+
+        dest_ou = self.sync.api_talker.create_organizational_unit(root_id, "destination_ou")
+        dest_ou_id = dest_ou["OrganizationalUnit"]["Id"]
+        members = [
+            SyncData("alice@giphouse.nl", "alices-project", "Spring 2023"),
+            SyncData("bob@giphouse.nl", "bobs-project", "Fall 2023"),
+        ]
+
+        with patch.object(self.sync.api_talker, "move_account", side_effect=ClientError({}, "move_account")):
+            success = self.sync.create_and_move_accounts(members, root_id, dest_ou_id)
+
+        self.assertFalse(success)
+
+    def test_create_move_account__no_move(self):
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        root_id = self.sync.api_talker.list_roots()[0]["Id"]
+
+        dest_ou = self.sync.api_talker.create_organizational_unit(root_id, "destination_ou")
+        dest_ou_id = dest_ou["OrganizationalUnit"]["Id"]
+        members = [
+            SyncData("alice@giphouse.nl", "alices-project", "Spring 2023"),
+            SyncData("bob@giphouse.nl", "bobs-project", "Fall 2023"),
+        ]
+
+        with patch.object(
+            self.sync.api_talker,
+            "describe_create_account_status",
+            side_effect=ClientError({}, "describe_create_account_status"),
+        ):
+            success = self.sync.create_and_move_accounts(members, root_id, dest_ou_id)
+
+        self.assertFalse(success)
+
+    def test_create_move_account__failed(self):
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        root_id = self.sync.api_talker.list_roots()[0]["Id"]
+
+        dest_ou = self.sync.api_talker.create_organizational_unit(root_id, "destination_ou")
+        dest_ou_id = dest_ou["OrganizationalUnit"]["Id"]
+        members = [
+            SyncData("alice@giphouse.nl", "alices-project", "Spring 2023"),
+            SyncData("alice@giphouse.nl", "bobs-project", "Fall 2023"),
+        ]
+
+        with patch.object(
+            self.sync.api_talker.org_client,
+            "describe_create_account_status",
+            return_value={"CreateAccountStatus": {"State": "FAILED", "FailureReason": "EMAIL_ALREADY_EXISTS"}},
+        ):
+            success = self.sync.create_and_move_accounts(members, root_id, dest_ou_id)
+        self.assertFalse(success)
+
+    def test_create_move_account__in_progress(self):
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        root_id = self.sync.api_talker.list_roots()[0]["Id"]
+
+        dest_ou = self.sync.api_talker.create_organizational_unit(root_id, "destination_ou")
+        dest_ou_id = dest_ou["OrganizationalUnit"]["Id"]
+        members = [
+            SyncData("alice@giphouse.nl", "alices-project", "Spring 2023"),
+            SyncData("bob@giphouse.nl", "bobs-project", "Fall 2023"),
+        ]
+
+        with patch.object(
+            self.sync.api_talker.org_client,
+            "describe_create_account_status",
+            return_value={"CreateAccountStatus": {"State": "IN_PROGRESS"}},
+        ):
+            success = self.sync.create_and_move_accounts(members, root_id, dest_ou_id)
+
+        self.assertFalse(success)
+
+    def test_pipeline__no_accounts_no_ou(self):
+        self.sync.checker.api_talker.simulate_principal_policy = MagicMock(
+            return_value={"EvaluationResults": [{"EvalDecision": "allowed"}]}
+        )
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        self.setup_policy()
+        pipeline_success = self.sync.pipeline()
+
+        root_id = self.sync.api_talker.list_roots()[0]["Id"]
+        root_ous = self.sync.api_talker.list_organizational_units_for_parent(root_id)
+        root_ou_names = [ou["Name"] for ou in root_ous]
+
+        current_semester = str(Semester.objects.get_or_create_current_semester())
+        current_accounts = self.sync.api_talker.org_client.list_accounts()["Accounts"]
+
+        self.assertIn(current_semester, root_ou_names)
+        self.assertTrue(pipeline_success)
+
+        self.assertEqual(len(current_accounts), 1)
+        self.assertEqual(current_accounts[0]["Name"], "master")
+
+    def test_pipeline__new_accounts_existing_ou(self):
+        self.sync.checker.api_talker.simulate_principal_policy = MagicMock(
+            return_value={"EvaluationResults": [{"EvalDecision": "allowed"}]}
+        )
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        self.setup_policy()
+
+        self.sync.api_talker.create_organization(feature_set="ALL")
+        root_id = self.sync.api_talker.list_roots()[0]["Id"]
+
+        current_semester = str(Semester.objects.get_or_create_current_semester())
+        course_ou = self.sync.api_talker.create_organizational_unit(root_id, current_semester)
+        course_ou_id = course_ou["OrganizationalUnit"]["Id"]
+
+        self.sync.get_syncdata_from_giphouse = MagicMock(
+            return_value=[
+                SyncData("alice@giphouse.nl", "alices-project", current_semester),
+                SyncData("bob@giphouse.nl", "bobs-project", current_semester),
+            ]
+        )
+
+        pipeline_success = self.sync.pipeline()
+        course_accounts = self.sync.api_talker.list_accounts_for_parent(course_ou_id)
+        course_account_emails = [account["Email"] for account in course_accounts]
+
+        self.assertTrue(pipeline_success)
+        self.assertEqual(["alice@giphouse.nl", "bob@giphouse.nl"], course_account_emails)
+
+    def test_synchronise__success(self):
+        with patch("projects.aws.awssync.AWSSync.pipeline", return_value=True):
+            response = self.client.get(reverse("admin:synchronise_to_aws"), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.sync.SUCCESS_MSG)
+
+    def test_synchronise__failure(self):
+        with patch("projects.aws.awssync.AWSSync.pipeline", return_value=False):
+            response = self.client.get(reverse("admin:synchronise_to_aws"), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.sync.FAIL_MSG)
+
+    def test_synchronise__api_error(self):
+        api_error = ClientError({"Error": {"Code": "AccessDeniedException"}}, "create_organization")
+        with patch("projects.aws.awssync.AWSSync.pipeline", side_effect=api_error):
+            response = self.client.get(reverse("admin:synchronise_to_aws"), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.sync.API_ERROR_MSG)
+
+    def test_synchronise__sync_error(self):
+        sync_error = Exception("Synchronization Error")
+        self.sync.api_talker.create_organization(feature_set="ALL")
+
+        with patch("projects.aws.awssync.AWSSync.pipeline", side_effect=sync_error):
+            response = self.client.get(reverse("admin:synchronise_to_aws"), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.sync.SYNC_ERROR_MSG)
