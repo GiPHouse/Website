@@ -32,9 +32,14 @@ class AWSSyncRefactoredTest(TestCase):
         """Set up testing environment."""
         self.sync = AWSSyncRefactored()
         self.api_talker = self.sync.api_talker
+
         self.admin = User.objects.create_superuser(github_id=0, github_username="super")
         self.client = Client()
         self.client.force_login(self.admin)
+
+        self.logger = MagicMock()
+        self.sync.logger = self.logger
+        self.sync.checker.logger = self.logger
 
     def setup_policy(self):
         policy_name = "DenyAll"

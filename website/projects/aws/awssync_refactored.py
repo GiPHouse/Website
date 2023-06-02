@@ -246,8 +246,7 @@ class AWSSyncRefactored:
             self.logger.debug(f"Accounts moved: {self.accounts_moved}/{self.accounts_to_create}")
         except ClientError as api_error:
             messages.error(request, self.API_ERROR_MSG)
-            self.logger.debug(api_error)
+            self.logger.error(api_error)
         except Exception as sync_error:
             messages.error(request, self.SYNC_ERROR_MSG)
-            self.logger.debug(sync_error)
-        return True
+            self.logger.error(sync_error)

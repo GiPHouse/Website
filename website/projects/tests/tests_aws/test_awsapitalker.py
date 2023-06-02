@@ -198,7 +198,7 @@ class AWSAPITalkerTest(TestCase):
     def test_untag_resource(self):
         self.create_organization()
 
-        tag_key = "Test Key" 
+        tag_key = "Test Key"
         tag_value = "Test Value"
         account = self.api_talker.create_account("test@example.com", "Test", [{"Key": tag_key, "Value": tag_value}])
         account_id = account["CreateAccountStatus"]["AccountId"]
@@ -206,9 +206,3 @@ class AWSAPITalkerTest(TestCase):
 
         received_tags = self.api_talker.org_client.list_tags_for_resource(ResourceId=account_id)["Tags"]
         self.assertEqual(received_tags, [])
-
-        
-
-
-
-
