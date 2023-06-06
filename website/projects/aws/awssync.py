@@ -163,6 +163,7 @@ class AWSSync:
                 [
                     {"Key": "project_slug", "Value": new_member.project_slug},
                     {"Key": "project_semester", "Value": new_member.project_semester},
+                    {"Key": "course_iteration_tag", "Value": "no-rights"},
                 ],
             )
             # Repeatedly check status of new member account request.
@@ -187,6 +188,7 @@ class AWSSync:
                     try:
                         self.api_talker.move_account(account_id, root_id, destination_ou_id)
                         self.accounts_moved += 1
+                        self.api_talker.untag_resource(account_id, ["course_iteration_tag"])
                     except ClientError as error:
                         self.logger.debug(f"Failed to move account with e-mail: {new_member.project_email}.")
                         self.logger.debug(error)
