@@ -193,7 +193,7 @@ class AWSSync:
                         self.logger.debug(f"Failed to move account with e-mail: {new_member.project_email}.")
                         self.logger.debug(error)
                     break
-                    
+
                 elif request_state == "FAILED":
                     failure_reason = response_status["CreateAccountStatus"]["FailureReason"]
                     self.logger.debug(
