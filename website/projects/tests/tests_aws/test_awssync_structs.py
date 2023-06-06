@@ -14,7 +14,7 @@ class SyncDataTest(TestCase):
 
     def test_throw_type_error_SyncData_class(self):
         """Test Type Error when equals is called on wrong type."""
-        self.assertRaises(TypeError, self.sync("a", "b", "c").__eq__, 123)
+        self.assertRaises(TypeError, self.sync("a", "b").__eq__, 123)
 
 
 class AWSSyncListTest(TestCase):
@@ -24,9 +24,9 @@ class AWSSyncListTest(TestCase):
         self.sync = awssync.AWSSync()
         self.syncData = awssync.SyncData
 
-        self.test1 = self.syncData("test1@test1.test1", "test1", "test1")
-        self.test2 = self.syncData("test2@test2.test2", "test2", "test2")
-        self.test3 = self.syncData("test3@test3.test3", "test3", "test3")
+        self.test1 = self.syncData("test1@test1.test1", "test1")
+        self.test2 = self.syncData("test2@test2.test2", "test2")
+        self.test3 = self.syncData("test3@test3.test3", "test3")
 
     def test_AWS_sync_list_both_empty(self):
         gip_list = []
@@ -56,24 +56,13 @@ class AWSTreeChecksTest(TestCase):
         self.sync = awssync.AWSSync()
         self.awstree = awssync.AWSTree("Name", "1234", [])
         self.iteration = awssync.Iteration("Name", "1234", [])
-        self.sync_data = awssync.SyncData("email@example.com", "Project X", "Spring 2020")
-
-        self.sync_list = [
-            awssync.SyncData("email1@example.com", "Spring 2022", "Project A"),
-            awssync.SyncData("email2@example.com", "Fall 2022", "Project B"),
-            awssync.SyncData("email3@example.com", "Spring 2022", "Project C"),
-        ]
-        self.aws_list = [
-            awssync.SyncData("email4@example.com", "Fall 2021", "Project D"),
-            awssync.SyncData("email5@example.com", "Spring 2022", "Project E"),
-            awssync.SyncData("email6@example.com", "Fall 2022", "Project F"),
-        ]
+        self.sync_data = awssync.SyncData("email@example.com", "Project X")
 
         self.treelist = [
-            awssync.SyncData("email1@example.com", "project1", "Fall 2020"),
-            awssync.SyncData("email2@example.com", "project2", "Fall 2020"),
-            awssync.SyncData("email3@example.com", "project3", "Spring 2021"),
-            awssync.SyncData("email4@example.com", "project4", "Spring 2021"),
+            awssync.SyncData("email1@example.com", "project1"),
+            awssync.SyncData("email2@example.com", "project2"),
+            awssync.SyncData("email3@example.com", "project3"),
+            awssync.SyncData("email4@example.com", "project4"),
         ]
 
         self.aws_tree1 = awssync.AWSTree(
@@ -84,16 +73,16 @@ class AWSTreeChecksTest(TestCase):
                     "Fall 2020",
                     "54321",
                     [
-                        awssync.SyncData("email1@example.com", "project1", "Fall 2020"),
-                        awssync.SyncData("email2@example.com", "project2", "Fall 2020"),
+                        awssync.SyncData("email1@example.com", "project1"),
+                        awssync.SyncData("email2@example.com", "project2"),
                     ],
                 ),
                 awssync.Iteration(
                     "Spring 2021",
                     "98765",
                     [
-                        awssync.SyncData("email3@example.com", "project3", "Spring 2021"),
-                        awssync.SyncData("email4@example.com", "project4", "Spring 2021"),
+                        awssync.SyncData("email3@example.com", "project3"),
+                        awssync.SyncData("email4@example.com", "project4"),
                     ],
                 ),
             ],
@@ -107,39 +96,16 @@ class AWSTreeChecksTest(TestCase):
                     "Fall 2020",
                     "54321",
                     [
-                        awssync.SyncData("email1@example.com", "project1", "Fall 2020"),
-                        awssync.SyncData("email2@example.com", "project2", "Fall 2020"),
+                        awssync.SyncData("email1@example.com", "project1"),
+                        awssync.SyncData("email2@example.com", "project2"),
                     ],
                 ),
                 awssync.Iteration(
-                    "Spring 2021",
+                    "Spring 2020",
                     "98765",
                     [
-                        awssync.SyncData("email3@example.com", "project3", "Fall 2021"),
-                        awssync.SyncData("email4@example.com", "project4", "Spring 2021"),
-                    ],
-                ),
-            ],
-        )
-
-        self.aws_tree3 = awssync.AWSTree(
-            "AWS Tree",
-            "12345",
-            [
-                awssync.Iteration(
-                    "Fall 2020",
-                    "54321",
-                    [
-                        awssync.SyncData("email1@example.com", "project1", "Fall 2020"),
-                        awssync.SyncData("email2@example.com", "project2", "Fall 2020"),
-                    ],
-                ),
-                awssync.Iteration(
-                    "Fall 2020",
-                    "98765",
-                    [
-                        awssync.SyncData("email3@example.com", "project3", "Fall 2021"),
-                        awssync.SyncData("email4@example.com", "project4", "Spring 2021"),
+                        awssync.SyncData("email3@example.com", "project3"),
+                        awssync.SyncData("email4@example.com", "project4"),
                     ],
                 ),
             ],
@@ -152,7 +118,7 @@ class AWSTreeChecksTest(TestCase):
         self.assertEquals(repr(self.iteration), "Iteration('Name', '1234', [])")
 
     def test_repr_SyncData(self):
-        self.assertEquals(repr(self.sync_data), "SyncData('email@example.com', 'Project X', 'Spring 2020')")
+        self.assertEquals(repr(self.sync_data), "SyncData('email@example.com', 'Project X')")
 
     def test_awstree_to_syncdata_list(self):
         self.assertEqual(self.aws_tree1.awstree_to_syncdata_list(), self.treelist)

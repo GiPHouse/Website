@@ -9,7 +9,7 @@ from registrations.models import Employee
 
 
 class AWSPolicy(models.Model):
-    """AWS global policy id and tags submission fields."""
+    """AWS global base OU id, policy id and tags submission fields."""
 
     class Meta:
         """Meta class for AWSPolicy model."""
@@ -17,6 +17,7 @@ class AWSPolicy(models.Model):
         verbose_name = "AWS Policy"
         verbose_name_plural = "AWS Policies"
 
+    base_ou_id = models.CharField(max_length=50, unique=False, default="", null=False, blank=False)
     policy_id = models.CharField(max_length=50, unique=False, null=False, blank=False)
     tags_key = models.CharField(max_length=50, unique=False, default="", null=False, blank=False)
     tags_value = models.CharField(max_length=50, unique=False, default="", null=False, blank=True)

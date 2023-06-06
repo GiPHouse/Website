@@ -210,4 +210,4 @@ class AWSAPITalkerTest(TestCase):
         self.api_talker.untag_resource(account_id, [tag_key])
 
         received_tags = self.api_talker.org_client.list_tags_for_resource(ResourceId=account_id)["Tags"]
-        self.assertEqual(received_tags, [])
+        self.assertEqual(received_tags, [self.api_talker.conditional_tag])

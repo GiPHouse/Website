@@ -24,9 +24,16 @@ from registrations.models import Employee
 User: Employee = get_user_model()
 
 
+class QuietAWSSync(AWSSync):
+    def __init__(self):
+        super().__init__()
+        self.logger = MagicMock()
+
+
 @mock_organizations
 @mock_sts
 @mock_iam
+@patch("projects.admin.AWSSync", new=QuietAWSSync)
 class AWSSyncTest(TestCase):
     def setUp(self):
         """Set up testing environment."""
@@ -40,6 +47,8 @@ class AWSSyncTest(TestCase):
         self.logger = MagicMock()
         self.sync.logger = self.logger
         self.sync.checker.logger = self.logger
+
+        self.sync.ACCOUNT_REQUEST_INTERVAL_SECONDS = 0.1
 
     def setup_policy(self):
         policy_name = "DenyAll"
@@ -59,6 +68,12 @@ class AWSSyncTest(TestCase):
             tags_value="true",
         )
 
+    def get_tags_for_account(self, account_email):
+        accounts = self.sync.api_talker.org_client.list_accounts()["Accounts"]
+        account_id = [account["Id"] for account in accounts if account["Email"] == account_email][0]
+        tags = self.api_talker.org_client.list_tags_for_resource(ResourceId=account_id)["Tags"]
+        return tags
+
     def test_get_syncdata_from_giphouse_normal(self):
         """Test get_emails_with_teamids function in optimal conditions."""
         self.semester = Semester.objects.create(year=2023, season=Semester.SPRING)
@@ -74,9 +89,9 @@ class AWSSyncTest(TestCase):
         self.assertIsInstance(email_id, list)
         self.assertIsInstance(email_id[0], SyncData)
         expected_result = [
-            SyncData("test0@giphouse.nl", "test0", "Spring 2023"),
-            SyncData("test1@giphouse.nl", "test1", "Spring 2023"),
-            SyncData("test2@giphouse.nl", "test2", "Spring 2023"),
+            SyncData("test0@giphouse.nl", "test0"),
+            SyncData("test1@giphouse.nl", "test1"),
+            SyncData("test2@giphouse.nl", "test2"),
         ]
         self.assertEqual(email_id, expected_result)
 
@@ -113,74 +128,45 @@ class AWSSyncTest(TestCase):
         self.assertEquals(self.sync.generate_aws_sync_list(gip_list, aws_list), [])
 
     def test_AWS_sync_list_empty_AWS(self):
-        test1 = SyncData("test1@test1.test1", "test1", "test1")
-        test2 = SyncData("test2@test2.test2", "test2", "test2")
+        test1 = SyncData("test1@test1.test1", "test1")
+        test2 = SyncData("test2@test2.test2", "test2")
         gip_list = [test1, test2]
         aws_list = []
         self.assertEquals(self.sync.generate_aws_sync_list(gip_list, aws_list), gip_list)
 
     def test_AWS_sync_list_empty_GiP(self):
-        test1 = SyncData("test1@test1.test1", "test1", "test1")
-        test2 = SyncData("test2@test2.test2", "test2", "test2")
+        test1 = SyncData("test1@test1.test1", "test1")
+        test2 = SyncData("test2@test2.test2", "test2")
         gip_list = []
         aws_list = [test1, test2]
         self.assertEquals(self.sync.generate_aws_sync_list(gip_list, aws_list), [])
 
     def test_AWS_sync_list_both_full(self):
-        test1 = SyncData("test1@test1.test1", "test1", "test1")
-        test2 = SyncData("test2@test2.test2", "test2", "test2")
-        test3 = SyncData("test3@test3.test3", "test3", "test3")
+        test1 = SyncData("test1@test1.test1", "test1")
+        test2 = SyncData("test2@test2.test2", "test2")
+        test3 = SyncData("test3@test3.test3", "test3")
         gip_list = [test1, test2]
         aws_list = [test2, test3]
         self.assertEquals(self.sync.generate_aws_sync_list(gip_list, aws_list), [test1])
-
-    def test_get_tag_value(self):
-        tags = [{"Key": "project_semester", "Value": "2021"}, {"Key": "project_slug", "Value": "test1"}]
-        self.assertEquals(self.sync.get_tag_value(tags, "project_semester"), "2021")
-        self.assertEquals(self.sync.get_tag_value(tags, "project_slug"), "test1")
-        self.assertEquals(self.sync.get_tag_value(tags, "project_name"), None)
 
     def test_extract_aws_setup(self):
         self.sync.api_talker.create_organization(feature_set="ALL")
         root_id = self.api_talker.list_roots()[0]["Id"]
 
-        ou_response = self.api_talker.create_organizational_unit(parent_id=root_id, ou_name="OU_1")
+        ou_response = self.api_talker.create_organizational_unit(root_id, "OU_1")
         ou_id = ou_response["OrganizationalUnit"]["Id"]
 
-        account_response = self.api_talker.create_account(
-            email="account_1@gmail.com",
-            account_name="account_1",
-            tags=[{"Key": "project_semester", "Value": "2021"}, {"Key": "project_slug", "Value": "test1"}],
-        )
+        account_response = self.api_talker.create_account("account_1@gmail.com", "account_1")
         account_id = account_response["CreateAccountStatus"]["AccountId"]
         self.api_talker.move_account(account_id=account_id, source_parent_id=root_id, dest_parent_id=ou_id)
 
         aws_tree = self.sync.extract_aws_setup(root_id)
 
-        expected_sync_data = [SyncData("account_1@gmail.com", "test1", "2021")]
+        expected_sync_data = [SyncData("account_1@gmail.com", "account_1")]
         expected_iteration = Iteration("OU_1", ou_id, expected_sync_data)
         expected_tree = AWSTree("root", root_id, [expected_iteration])
 
         self.assertEqual(aws_tree, expected_tree)
-
-    def test_extract_aws_setup_no_slugs(self):
-        self.sync.api_talker.create_organization(feature_set="ALL")
-        root_id = self.api_talker.list_roots()[0]["Id"]
-
-        response_OU_1 = self.api_talker.create_organizational_unit(parent_id=root_id, ou_name="OU_1")
-        OU_1_id = response_OU_1["OrganizationalUnit"]["Id"]
-        response_account_1 = self.api_talker.create_account(
-            email="account_1@gmail.com",
-            account_name="account_1",
-            tags=[],
-        )
-        account_id_1 = response_account_1["CreateAccountStatus"]["AccountId"]
-
-        self.api_talker.move_account(account_id=account_id_1, source_parent_id=root_id, dest_parent_id=OU_1_id)
-
-        with self.assertRaises(Exception) as context:
-            self.sync.extract_aws_setup(root_id)
-        self.assertIn("Found incomplete accounts in AWS", str(context.exception))
 
     def test_get_or_create_course_ou__new(self):
         self.sync.api_talker.create_organization(feature_set="ALL")
@@ -202,8 +188,8 @@ class AWSSyncTest(TestCase):
             "root",
             "r-123",
             [
-                Iteration("Spring 2023", "ou-456", [SyncData("alice@giphouse.nl", "alices-project", "Spring 2023")]),
-                Iteration("Fall 2023", "ou-789", [SyncData("bob@giphouse.nl", "bobs-project", "Fall 2023")]),
+                Iteration("Spring 2023", "ou-456", [SyncData("alice@giphouse.nl", "alices-project")]),
+                Iteration("Fall 2023", "ou-789", [SyncData("bob@giphouse.nl", "bobs-project")]),
             ],
         )
 
@@ -245,6 +231,12 @@ class AWSSyncTest(TestCase):
     def test_attach_policy__reraised_exception(self):
         self.assertRaises(ClientError, self.sync.attach_policy, "r-123", "p-123")
 
+    def test_get_current_base_ou_id(self):
+        test_base_ou_id = "o-123456"
+        self.aws_policy = AWSPolicy.objects.create(base_ou_id=test_base_ou_id, is_current_policy=True)
+        current_base_ou_id = self.sync.get_current_base_ou_id()
+        self.assertEqual(current_base_ou_id, test_base_ou_id)
+
     def test_get_current_policy_id(self):
         self.policy_id1 = AWSPolicy.objects.create(
             policy_id="Test-Policy1", tags_key="Test-Policy-Id1", is_current_policy=False
@@ -256,11 +248,28 @@ class AWSSyncTest(TestCase):
         self.assertIsInstance(current_policy_id, str)
         self.assertEqual(current_policy_id, self.policy_id2.policy_id)
 
-    def test_get_current_policy__no_current_policy_id(self):
+    def test_get_current_policy__no_current_policy(self):
         self.policy_id1 = AWSPolicy.objects.create(
             policy_id="Test-Policy1", tags_key="Test-Policy-Id1", is_current_policy=False
         )
+        self.assertRaises(Exception, self.sync.get_current_base_ou_id)
         self.assertRaises(Exception, self.sync.get_current_policy_id)
+        self.assertRaises(Exception, self.sync.get_current_policy_tag)
+
+    def test_get_current_policy_tag__has_key_and_value(self):
+        test_key = "not-moved"
+        test_val = "pending-move"
+        self.aws_policy = AWSPolicy.objects.create(
+            policy_id="p-123456", tags_key=test_key, tags_value=test_val, is_current_policy=True
+        )
+        current_policy_tag = self.sync.get_current_policy_tag()
+        self.assertEqual(current_policy_tag, {"Key": test_key, "Value": test_val})
+
+    def test_get_current_policy_tag__has_key_only(self):
+        test_key = "not-moved"
+        self.aws_policy = AWSPolicy.objects.create(policy_id="p-123456", tags_key=test_key, is_current_policy=True)
+        current_policy_tag = self.sync.get_current_policy_tag()
+        self.assertEqual(current_policy_tag, {"Key": test_key, "Value": ""})
 
     def test_create_move_account(self):
         self.sync.api_talker.create_organization(feature_set="ALL")
@@ -269,40 +278,53 @@ class AWSSyncTest(TestCase):
         dest_ou = self.sync.api_talker.create_organizational_unit(root_id, "destination_ou")
         dest_ou_id = dest_ou["OrganizationalUnit"]["Id"]
         members = [
-            SyncData("alice@giphouse.nl", "alices-project", "Spring 2023"),
-            SyncData("bob@giphouse.nl", "bobs-project", "Fall 2023"),
+            SyncData("alice@giphouse.nl", "alices-project"),
+            SyncData("bob@giphouse.nl", "bobs-project"),
         ]
 
-        success = self.sync.create_and_move_accounts(members, root_id, dest_ou_id)
-        self.assertTrue(success)
+        self.setup_policy()
 
-    def test_create_move_account__exception_failure(self):
+        success = self.sync.create_and_move_accounts(members, root_id, dest_ou_id)
+        tags_alice = self.get_tags_for_account("alice@giphouse.nl")
+        tags_bob = self.get_tags_for_account("bob@giphouse.nl")
+
+        self.assertTrue(success)
+        self.assertNotIn({"Key": "no_permissions", "Value": "true"}, tags_alice + tags_bob)
+
+    def test_create_move_account__exception_move(self):
         self.sync.api_talker.create_organization(feature_set="ALL")
         root_id = self.sync.api_talker.list_roots()[0]["Id"]
 
         dest_ou = self.sync.api_talker.create_organizational_unit(root_id, "destination_ou")
         dest_ou_id = dest_ou["OrganizationalUnit"]["Id"]
         members = [
-            SyncData("alice@giphouse.nl", "alices-project", "Spring 2023"),
-            SyncData("bob@giphouse.nl", "bobs-project", "Fall 2023"),
+            SyncData("alice@giphouse.nl", "alices-project"),
+            SyncData("bob@giphouse.nl", "bobs-project"),
         ]
 
+        self.setup_policy()
         with patch.object(self.sync.api_talker, "move_account", side_effect=ClientError({}, "move_account")):
             success = self.sync.create_and_move_accounts(members, root_id, dest_ou_id)
 
-        self.assertFalse(success)
+        tags_alice = self.get_tags_for_account("alice@giphouse.nl")
+        tags_bob = self.get_tags_for_account("bob@giphouse.nl")
 
-    def test_create_move_account__no_move(self):
+        self.assertFalse(success)
+        self.assertIn({"Key": "no_permissions", "Value": "true"}, tags_alice)
+        self.assertIn({"Key": "no_permissions", "Value": "true"}, tags_bob)
+
+    def test_create_move_account__exception_describe(self):
         self.sync.api_talker.create_organization(feature_set="ALL")
         root_id = self.sync.api_talker.list_roots()[0]["Id"]
 
         dest_ou = self.sync.api_talker.create_organizational_unit(root_id, "destination_ou")
         dest_ou_id = dest_ou["OrganizationalUnit"]["Id"]
         members = [
-            SyncData("alice@giphouse.nl", "alices-project", "Spring 2023"),
-            SyncData("bob@giphouse.nl", "bobs-project", "Fall 2023"),
+            SyncData("alice@giphouse.nl", "alices-project"),
+            SyncData("bob@giphouse.nl", "bobs-project"),
         ]
 
+        self.setup_policy()
         with patch.object(
             self.sync.api_talker,
             "describe_create_account_status",
@@ -310,7 +332,12 @@ class AWSSyncTest(TestCase):
         ):
             success = self.sync.create_and_move_accounts(members, root_id, dest_ou_id)
 
+        tags_alice = self.get_tags_for_account("alice@giphouse.nl")
+        tags_bob = self.get_tags_for_account("bob@giphouse.nl")
+
         self.assertFalse(success)
+        self.assertIn({"Key": "no_permissions", "Value": "true"}, tags_alice)
+        self.assertIn({"Key": "no_permissions", "Value": "true"}, tags_bob)
 
     def test_create_move_account__failed(self):
         self.sync.api_talker.create_organization(feature_set="ALL")
@@ -319,16 +346,18 @@ class AWSSyncTest(TestCase):
         dest_ou = self.sync.api_talker.create_organizational_unit(root_id, "destination_ou")
         dest_ou_id = dest_ou["OrganizationalUnit"]["Id"]
         members = [
-            SyncData("alice@giphouse.nl", "alices-project", "Spring 2023"),
-            SyncData("alice@giphouse.nl", "bobs-project", "Fall 2023"),
+            SyncData("alice@giphouse.nl", "alices-project"),
+            SyncData("alice@giphouse.nl", "bobs-project"),
         ]
 
+        self.setup_policy()
         with patch.object(
             self.sync.api_talker.org_client,
             "describe_create_account_status",
             return_value={"CreateAccountStatus": {"State": "FAILED", "FailureReason": "EMAIL_ALREADY_EXISTS"}},
         ):
             success = self.sync.create_and_move_accounts(members, root_id, dest_ou_id)
+
         self.assertFalse(success)
 
     def test_create_move_account__in_progress(self):
@@ -338,10 +367,11 @@ class AWSSyncTest(TestCase):
         dest_ou = self.sync.api_talker.create_organizational_unit(root_id, "destination_ou")
         dest_ou_id = dest_ou["OrganizationalUnit"]["Id"]
         members = [
-            SyncData("alice@giphouse.nl", "alices-project", "Spring 2023"),
-            SyncData("bob@giphouse.nl", "bobs-project", "Fall 2023"),
+            SyncData("alice@giphouse.nl", "alices-project"),
+            SyncData("bob@giphouse.nl", "bobs-project"),
         ]
 
+        self.setup_policy()
         with patch.object(
             self.sync.api_talker.org_client,
             "describe_create_account_status",
@@ -349,7 +379,12 @@ class AWSSyncTest(TestCase):
         ):
             success = self.sync.create_and_move_accounts(members, root_id, dest_ou_id)
 
+        tags_alice = self.get_tags_for_account("alice@giphouse.nl")
+        tags_bob = self.get_tags_for_account("bob@giphouse.nl")
+
         self.assertFalse(success)
+        self.assertIn({"Key": "no_permissions", "Value": "true"}, tags_alice)
+        self.assertIn({"Key": "no_permissions", "Value": "true"}, tags_bob)
 
     def test_pipeline__no_accounts_no_ou(self):
         self.sync.checker.api_talker.simulate_principal_policy = MagicMock(
@@ -357,9 +392,11 @@ class AWSSyncTest(TestCase):
         )
         self.sync.api_talker.create_organization(feature_set="ALL")
         self.setup_policy()
-        pipeline_success = self.sync.pipeline()
 
         root_id = self.sync.api_talker.list_roots()[0]["Id"]
+        with patch("projects.aws.awssync.AWSSync.get_current_base_ou_id", return_value=root_id):
+            pipeline_success = self.sync.pipeline()
+
         root_ous = self.sync.api_talker.list_organizational_units_for_parent(root_id)
         root_ou_names = [ou["Name"] for ou in root_ous]
 
@@ -388,12 +425,14 @@ class AWSSyncTest(TestCase):
 
         self.sync.get_syncdata_from_giphouse = MagicMock(
             return_value=[
-                SyncData("alice@giphouse.nl", "alices-project", current_semester),
-                SyncData("bob@giphouse.nl", "bobs-project", current_semester),
+                SyncData("alice@giphouse.nl", "alices-project"),
+                SyncData("bob@giphouse.nl", "bobs-project"),
             ]
         )
 
-        pipeline_success = self.sync.pipeline()
+        with patch("projects.aws.awssync.AWSSync.get_current_base_ou_id", return_value=root_id):
+            pipeline_success = self.sync.pipeline()
+
         course_accounts = self.sync.api_talker.list_accounts_for_parent(course_ou_id)
         course_account_emails = [account["Email"] for account in course_accounts]
 
@@ -424,7 +463,6 @@ class AWSSyncTest(TestCase):
 
     def test_synchronise__sync_error(self):
         sync_error = Exception("Synchronization Error")
-        self.sync.api_talker.create_organization(feature_set="ALL")
 
         with patch("projects.aws.awssync.AWSSync.pipeline", side_effect=sync_error):
             response = self.client.get(reverse("admin:synchronise_to_aws"), follow=True)
