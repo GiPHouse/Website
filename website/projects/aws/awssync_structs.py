@@ -4,25 +4,20 @@ from __future__ import annotations
 class SyncData:
     """Structure for AWS giphouse sync data."""
 
-    def __init__(self, project_email: str, project_slug: str, project_semester: str) -> None:
+    def __init__(self, project_email: str, project_slug: str) -> None:
         """Create SyncData instance."""
         self.project_email = project_email
         self.project_slug = project_slug
-        self.project_semester = project_semester
 
     def __eq__(self, other: SyncData) -> bool:
         """Overload equals for SyncData type."""
         if not isinstance(other, SyncData):
             raise TypeError("Must compare to object of type SyncData")
-        return (
-            self.project_email == other.project_email
-            and self.project_slug == other.project_slug
-            and self.project_semester == other.project_semester
-        )
+        return self.project_email == other.project_email and self.project_slug == other.project_slug
 
     def __repr__(self) -> str:
         """Overload to repr function for SyncData type."""
-        return f"SyncData('{self.project_email}', '{self.project_slug}', '{self.project_semester}')"
+        return f"SyncData('{self.project_email}', '{self.project_slug}')"
 
 
 class Iteration:

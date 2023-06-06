@@ -18,6 +18,7 @@ class AWSAPITalker:
         self.sts_client = boto3.client("sts")
 
         self.max_results = 20
+        self.conditional_tag = {"Key": "AutoCreated", "Value": ""}
 
     def create_organization(self, feature_set: str) -> dict:
         """
@@ -37,6 +38,7 @@ class AWSAPITalker:
         :param tags: tags (list of dictionaries containing the keys 'Key' and 'Value') to be attached to the account.
         :return: dictionary containing information about the organizational unit.
         """
+        tags.append(self.conditional_tag)
         return self.org_client.create_organizational_unit(ParentId=parent_id, Name=ou_name, Tags=tags)
 
     def attach_policy(self, target_id: str, policy_id: str):
@@ -79,6 +81,7 @@ class AWSAPITalker:
         :param tags: tags (list of dictionaries containing the keys 'Key' and 'Value') to be attached to the account.
         :return: dictionary containing information about the account creation status.
         """
+        tags.append(self.conditional_tag)
         return self.org_client.create_account(
             Email=email, AccountName=account_name, IamUserAccessToBilling="DENY", Tags=tags
         )

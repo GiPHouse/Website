@@ -203,5 +203,8 @@ class ClientAdmin(admin.ModelAdmin):
 class AWSPolicyAdmin(admin.ModelAdmin):
     """Custom admin for AWS Policies."""
 
-    list_display = ["policy_id", "tags_key", "tags_value", "is_current_policy"]
-    search_fields = ("policy_id",)
+    list_display = ["base_ou_id", "policy_id", "tags_key", "tags_value", "is_current_policy"]
+    search_fields = (
+        "base_ou_id",
+        "policy_id",
+    )

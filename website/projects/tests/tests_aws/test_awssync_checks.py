@@ -26,16 +26,16 @@ class ChecksTest(TestCase):
                     "Fall 2020",
                     "54321",
                     [
-                        SyncData("email1@example.com", "project1", "Fall 2020"),
-                        SyncData("email2@example.com", "project2", "Fall 2020"),
+                        SyncData("email1@example.com", "project1"),
+                        SyncData("email2@example.com", "project2"),
                     ],
                 ),
                 Iteration(
                     "Spring 2021",
                     "98765",
                     [
-                        SyncData("email3@example.com", "project3", "Spring 2021"),
-                        SyncData("email4@example.com", "project4", "Spring 2021"),
+                        SyncData("email3@example.com", "project3"),
+                        SyncData("email4@example.com", "project4"),
                     ],
                 ),
             ],
@@ -49,16 +49,16 @@ class ChecksTest(TestCase):
                     "Fall 2020",
                     "54321",
                     [
-                        SyncData("email1@example.com", "project1", "Fall 2020"),
-                        SyncData("email2@example.com", "project2", "Fall 2020"),
+                        SyncData("email1@example.com", "project1"),
+                        SyncData("email2@example.com", "project2"),
                     ],
                 ),
                 Iteration(
                     "Spring 2021",
                     "98765",
                     [
-                        SyncData("email3@example.com", "project3", "Fall 2021"),
-                        SyncData("email4@example.com", "project4", "Spring 2021"),
+                        SyncData("email3@example.com", "project3"),
+                        SyncData("email4@example.com", "project4"),
                     ],
                 ),
             ],
@@ -72,16 +72,16 @@ class ChecksTest(TestCase):
                     "Fall 2020",
                     "54321",
                     [
-                        SyncData("email1@example.com", "project1", "Fall 2020"),
-                        SyncData("email2@example.com", "project2", "Fall 2020"),
+                        SyncData("email1@example.com", "project1"),
+                        SyncData("email2@example.com", "project2"),
                     ],
                 ),
                 Iteration(
                     "Fall 2020",
                     "98765",
                     [
-                        SyncData("email3@example.com", "project3", "Fall 2021"),
-                        SyncData("email4@example.com", "project4", "Spring 2021"),
+                        SyncData("email3@example.com", "project3"),
+                        SyncData("email4@example.com", "project4"),
                     ],
                 ),
             ],
@@ -89,13 +89,6 @@ class ChecksTest(TestCase):
 
         self.logger = MagicMock()
         self.checks.logger = self.logger
-
-    def test_check_members_in_correct_iteration(self):
-        # Test when correct
-        self.assertIsNone(self.checks.check_members_in_correct_iteration(self.aws_tree1))
-
-        # Test when incorrect
-        self.assertRaises(Exception, self.checks.check_members_in_correct_iteration, self.aws_tree2)
 
     def test_check_double_iteration_names(self):
         # Test when correct

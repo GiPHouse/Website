@@ -4,6 +4,8 @@
 {% block object-tools-items %}
     <li>
         <a href="{% url 'admin:synchronise_to_github' %}">Synchronize projects of the current semester to GitHub</a>
+    </li>
+    <li>
         <a href="{% url 'admin:synchronise_to_aws' %}">Synchronize projects of the current semester to AWS</a>
     </li>
     {{ block.super }}
