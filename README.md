@@ -16,8 +16,9 @@ This is the code for the website of [GiPHouse](http://giphouse.nl/) powered by [
     - [Questionnaires](#questionnaires)
     - [Room Reservations](#room-reservations)
     - [Course, Project and Static Information](#course-project-and-static-information)
-    - [Projects and Repositories](#projects-and-repositories) 
+    - [Projects, Repositories and AWS](#projects-repositories-and-aws)
       - [GitHub Synchronization](#github-synchronization)
+      - [AWS Synchronization](#aws-synchronization)
     - [Mailing Lists](#mailing-lists)
     - [Tasks](#tasks)
   - [Development and Contributing](#development-and-contributing)
@@ -122,10 +123,10 @@ The room reservation is built using [FullCalendar](https://fullcalendar.io/), a 
 ### Course, Project and Static Information
 Admin users can add information about the course lectures and the projects in the backend. There are also a small amount of static HTML webpages with information about GiPHouse.
 
-### Projects and Repositories
+### Projects, Repositories and AWS
+#### GitHub Synchronization
 The projects module provides synchronisation functionality with a GitHub organization using the [GitHub API v3](https://developer.github.com/v3/). For this, a repository model is included in Django. Project(team)s can have one or multiple repositories, which are then synchronised with GitHub. For this functionality, a [GitHub App](https://developer.github.com/v3/apps/) must be registered and installed in the organization. Details on this are explained later.
 
-#### GitHub Synchronization
 Projects and repositories contain a field `github_team_id` and `github_repo_id` that corresponds to the respective `id` of the object on GitHub. These fields are automatically set and should not be touched under normal circumstances. Teams and repositories on GitHub that do not match one of these id's will not be touched by the GitHub synchronization. 
 If the `github_team_id` or `github_repo_id` are `None`, it is assumed the objects do not exist and new objects will be created on synchronization (except for archived projects and teams).
 
@@ -148,6 +149,66 @@ Repositories and project(team)s are synchronized with GitHub in the following ma
 Synchronization can only be initialized via actions on specific sets of objects in their changelists, or via the big 'synchronize to GitHub' button (to perform synchronization on all objects) in the admin. Synchronization is implemented in a [idempotent](https://en.wikipedia.org/wiki/Idempotence) manner. 
 
 Synchronization currently does not regard the role of directors of GipHouse. This needs to be configured manually. Note that it is however not possible to add directors manually to a team on GitHub, since they will be removed after each sync.
+
+#### AWS Synchronization
+The projects module provides synchronisation functionality with [AWS Organizations](https://aws.amazon.com/organizations/) using the official [boto3 Python AWS SDK](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html).
+The AWS synchronisation process only applies to the current semester and is one-directional (from GiPHouse to AWS, but not vice versa).
+
+Each project in the current semester with a team mailing list gets its own AWS member account that is part of GiPHouse's AWS organization.
+Since all AWS member accounts have isolated environments, each team is able to configure their own AWS environment as desired.
+The AWS member accounts are restricted in their abilities using a pre-configured [SCP policy](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html) that is applied to the course semester Organizational Unit (OU) where all team member accounts reside.
+For example, the SCP policy can be set such that only (certain types of) [EC2](https://aws.amazon.com/ec2/) instances may be launched.
+Such specific configuration details can be found under the [Deployment](#deployment) section.
+
+The entire AWS synchronization process, also referred to as the pipeline, can be initiated in the Django admin interface under Projects by pressing the large `SYNCHRONIZE PROJECTS OF THE CURRENT SEMESTER TO AWS` at the top-right and roughly goes through the following stages:
+
+1. Preliminary checks
+    - Pipeline preconditions
+        1. Locatable boto3 credentials and successful AWS API connection
+        2. Check allowed AWS API actions based on IAM policy of caller
+        3. Existing organization for AWS API caller
+        4. AWS API caller acts under same account ID as organization's management account ID
+        5. SCP policy type feature enabled for organization
+    - Edge case checks
+        1. No duplicate course semester OU names
+2. Create current course semester OU (if non-existent)
+3. Attach SCP policy to current course semester OU (if non-existent)
+4. Synchronization
+    - Determine new accounts to be invited based on AWS and GiPHouse data.
+5. Create new AWS member accounts in AWS organization
+6. Move new AWS member accounts to course semester OU
+
+![pipeline-flowchart](resources/pipeline-flowchart.drawio.png)
+
+After the synchronization process has finished, success or failure is indicated by a green or red response box respectively.
+Verbose details for each synchronization run is logged using the `logging` module and can be accessed in the backend, for example to inspect causes of failed runs.
+
+An example of a possible AWS environment in the form a tree is the following:
+```
+root
+│
+├── Fall 2022 (OU)
+│   ├── team-alice@giphouse.nl (member account)
+│   └── team-bob@giphouse.nl (member account)
+│
+├── Spring 2023 (OU)
+│   ├── team-charlie@giphouse.nl (member account)
+│   └── team-david@giphouse.nl (member account)
+│
+└── admin@giphouse.nl (management account)
+```
+
+When an AWS member account has been created for a team mailing list as part of an AWS Organization, an e-mail is sent by AWS.
+This process might take some time and is under AWS' control.
+It is important to be aware that gaining initial access to the member account is only possible by formally resetting the password; there is no other way.
+Also note well that each project team member will receive such mails because the team mailing list works as a one-to-many mail forwarder.
+
+By default, all newly created member accounts under an AWS organization are placed under root with no possible alternative.
+Once the member accounts have been created, they are moved to the current course semester OU.
+Unfortunately, AWS does not specify how long it at most takes to finalize the status of a new member account request.
+This introduces the possibility of there being a time period between having a newly created member account under root and moving it to its corresponding OU that is restricted with an attached SCP policy, possibly giving the member account excessive permissions.
+To mitigate this risk, every newly created account comes with a pre-defined [tag](https://docs.aws.amazon.com/tag-editor/latest/userguide/tagging.html) and the SCP policy attached to root should deny all permissions for accounts under root with the specific tag (see [Deployment](#deployment) section for more details on SCP policy configuration).
+The tag gets removed after the account has been moved to its destination OU.
 
 ### Mailing Lists
 Admin users can create mailing lists using the Django admin interface. A mailing list can be connected to projects, users and 'extra' email addresses that are not tied to a user. Relating a mailing list to a project implicitly makes the members of that project a member of the mailing list. Removing a mailing list in the Django admin will result in the corresponding mailing list to be archived or deleted in G suite during the next synchronization, respecting the 'archive instead of delete' property of the deleted mailing list. To sync a mailing list with G Suite, one can run the management command: `./manage.py sync_mailing_list` or use the button in the model admin. This will sync all mailing lists and the automatic lists into G Suite at the specified domain.
