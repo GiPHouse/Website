@@ -6,6 +6,7 @@ This is the code for the website of [GiPHouse](http://giphouse.nl/) powered by [
 
 ## Table of Contents
 - [GiPHouse website](#giphouse-website)
+  - [Table of Contents](#table-of-contents)
   - [Features](#features)
     - [Authentication and Users](#authentication-and-users)
     - [GitHub OAuth](#github-oauth)
@@ -21,11 +22,13 @@ This is the code for the website of [GiPHouse](http://giphouse.nl/) powered by [
       - [AWS Synchronization](#aws-synchronization)
     - [Mailing Lists](#mailing-lists)
     - [Tasks](#tasks)
+    - [Styling](#styling)
   - [Development and Contributing](#development-and-contributing)
     - [Getting Started](#getting-started)
       - [Logging into the Backend](#logging-into-the-backend)
       - [Registering a GitHub App for repository synchronisation](#registering-a-github-app-for-repository-synchronisation)
       - [Registering a G Suite service account for mailing list synchronisation](#registering-a-g-suite-service-account-for-mailing-list-synchronisation)
+      - [Registering an AWS environment for synchronisation](#registering-an-aws-environment-for-synchronisation)
     - [Dependency Management](#dependency-management)
     - [Fixtures](#fixtures)
     - [Tests](#tests)
@@ -45,7 +48,7 @@ This is the code for the website of [GiPHouse](http://giphouse.nl/) powered by [
         - [`build-docker` job](#build-docker-job)
         - [`deploy` job](#deploy-job)
       - [Secrets](#secrets)
-    - [Server](#server)
+    - [Server Configuration](#server-configuration)
     - [Keeping Everything Up to Date](#keeping-everything-up-to-date)
 
 ## Features
@@ -158,7 +161,7 @@ Each project in the current semester with a team mailing list gets its own AWS m
 Since all AWS member accounts have isolated environments, each team is able to configure their own AWS environment as desired.
 The AWS member accounts are restricted in their abilities using a pre-configured [SCP policy](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html) that is applied to the course semester Organizational Unit (OU) where all team member accounts reside.
 For example, the SCP policy can be set such that only (certain types of) [EC2](https://aws.amazon.com/ec2/) instances may be launched.
-Such specific configuration details can be found under the [Deployment](#deployment) section.
+Such specific configuration details can be found under the [Getting Started](#registering-an-aws-environment-for-synchronisation) section.
 
 The entire AWS synchronization process, also referred to as the pipeline, can be initiated in the Django admin interface under Projects by pressing the large `SYNCHRONIZE PROJECTS OF THE CURRENT SEMESTER TO AWS` at the top-right and roughly goes through the following stages:
 
@@ -180,12 +183,12 @@ The entire AWS synchronization process, also referred to as the pipeline, can be
 
 ![pipeline-flowchart](resources/pipeline-flowchart.drawio.png)
 
-After the synchronization process has finished, success or failure is indicated by a green or red response box respectively.
-Verbose details for each synchronization run is logged using the `logging` module and can be accessed in the backend, for example to inspect causes of failed runs.
+After the synchronization process has finished, a response box is returned indicating success (green), soft-fail (orange) or hard-fail (red).
+Verbose details for each synchronization run is logged using the `logging` module and can be accessed in the backend. for example to inspect causes of failed runs.
 
-An example of a possible AWS environment in the form a tree is the following:
+An example of a possible AWS Organizations environment in the form a tree is the following:
 ```
-root
+base (root/OU)
 │
 ├── Fall 2022 (OU)
 │   ├── team-alice@giphouse.nl (member account)
@@ -198,17 +201,23 @@ root
 └── admin@giphouse.nl (management account)
 ```
 
+The "base" (either root or OU), under which all relevant resources are created and operated on as part of the synchronization process, offers flexibility by being configurable in the Django admin panel.
+
 When an AWS member account has been created for a team mailing list as part of an AWS Organization, an e-mail is sent by AWS.
 This process might take some time and is under AWS' control.
 It is important to be aware that gaining initial access to the member account is only possible by formally resetting the password; there is no other way.
 Also note well that each project team member will receive such mails because the team mailing list works as a one-to-many mail forwarder.
 
-By default, all newly created member accounts under an AWS organization are placed under root with no possible alternative.
-Once the member accounts have been created, they are moved to the current course semester OU.
-Unfortunately, AWS does not specify how long it at most takes to finalize the status of a new member account request.
-This introduces the possibility of there being a time period between having a newly created member account under root and moving it to its corresponding OU that is restricted with an attached SCP policy, possibly giving the member account excessive permissions.
-To mitigate this risk, every newly created account comes with a pre-defined [tag](https://docs.aws.amazon.com/tag-editor/latest/userguide/tagging.html) and the SCP policy attached to root should deny all permissions for accounts under root with the specific tag (see [Deployment](#deployment) section for more details on SCP policy configuration).
-The tag gets removed after the account has been moved to its destination OU.
+By default, all newly created member accounts under an AWS organization are placed under root.
+Once the member accounts have been created under root, they are automatically moved to the current course semester OU.
+Note that: (1) it is not possible to create a new member account that gets placed in a specific OU and (2) new requested member accounts can not be moved unless the account creation has been finalized to `SUCCESS` and AWS does not specify an upper bound for the time it takes for a new member account creation to finalize.
+
+Due to point (2), the code contains the variables `ACCOUNT_REQUEST_MAX_ATTEMPTS` for the number of times to check the status of a new member account request, and `ACCOUNT_REQUEST_INTERVAL_SECONDS` for the time to wait in between attempts.
+These values are currently hard-coded and can be tweaked, should they cause problems with the synchronization process.
+
+Points (1) and (2) pose the possibility of there being a time period between having a newly created member account under root and moving it to its corresponding OU that is restricted with an attached SCP policy, possibly giving the member account excessive permissions.
+To mitigate this risk, every newly created account comes with a pre-defined [tag](https://docs.aws.amazon.com/tag-editor/latest/userguide/tagging.html) and the SCP policy attached to root should deny all permissions for accounts under root with the specific tag (see [Getting Started](#registering-an-aws-environment-for-synchronisation) section for more details on SCP policy and tag configuration).
+The tag then automatically gets removed after the account has been moved to its destination course semester OU.
 
 ### Mailing Lists
 Admin users can create mailing lists using the Django admin interface. A mailing list can be connected to projects, users and 'extra' email addresses that are not tied to a user. Relating a mailing list to a project implicitly makes the members of that project a member of the mailing list. Removing a mailing list in the Django admin will result in the corresponding mailing list to be archived or deleted in G suite during the next synchronization, respecting the 'archive instead of delete' property of the deleted mailing list. To sync a mailing list with G Suite, one can run the management command: `./manage.py sync_mailing_list` or use the button in the model admin. This will sync all mailing lists and the automatic lists into G Suite at the specified domain.
@@ -274,6 +283,35 @@ To enable the synchronisation feature of mailing lists to G Suite, a project and
 - If this is the first time using the Groups Settings API, [enable it for the project](https://developers.google.com/apps-script/guides/services/advanced#enabling_advanced_services).
 
 The credentials and admin user can then be setup in Github secrets. The email of the G Suite user used to manage to the G Suite domain has to be stored in the Github secret `DJANGO_GSUITE_ADMIN_USER`. The credentials json file has to be `base64` encoded and stored in the Github secret `DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64` (you can use the linux command `base64` for encoding the json file).
+
+#### Registering an AWS environment for synchronisation
+To enable the AWS synchronisation feature, the following points need to be configured only once in advance:
+
+- Create AWS Organizations with all features enabled.
+  - Ensure Service Control Policies (SCPs) feature is enabled.
+  - Enable AWS CloudTrail for logging account activity (optional, recommended).
+- Increase AWS Organizations quota for maximum number of member accounts to expected amount.
+  - Default quota is set to 10.
+  - Expected amount should be at least the number of unique projects in the current semester.
+- Set AWS API credentials for `boto3` as environment variables.
+  - `AWS_ACCESS_KEY_ID`: access key for AWS account.
+  - `AWS_SECRET_ACCESS_KEY`: secret key for AWS account.
+  - **(!)** Currently not automated using GitHub secrets.
+- AWS API caller has sufficient permissions for all synchronization actions.
+  - AWS API caller is IAM user acting on behalf of the management account of the AWS Organizations.
+    - Ensure you are logged in as the management account when creating the IAM user for API access.
+  - Pre-defined IAM policies `AWSOrganizationsFullAccess` and `IAMFullAccess` are more than sufficient.
+  - **(!)** Restrictive custom IAM policy adhering to the principle of least privilege is recommended.
+- Create SCP policies under AWS Organizations.
+  - SCP policy restricting member accounts under root with a custom key-value tag.
+    - Manually attach policy to root.
+  - SCP policy for course semester OUs (e.g. to only allow EC2 resources of a specific type).
+    - Automatically attached to course semester OUs.
+- Configure a current AWS Policy under `Projects/AWS Policies` in the Django admin panel.
+  - Set the base ID (root or OU) value.
+  - Set the SCP policy ID value for course semester OUs.
+  - Set the restricting custom key-value tag specified in the root SCP policy.
+  - Mark the `Is current policy` checkbox to make the configuration active.
 
 ### Dependency Management
 The Python dependencies are managed using a tool called [Poetry](https://python-poetry.org/), which automatically creates virtual environments that ease development and makes it easy to manage the dependencies. See the [Poetry documentation](https://python-poetry.org/docs/) for more information.
@@ -373,6 +411,7 @@ This repository is public and the GitHub Actions CI runner logs are also public,
 The current server is an Amazon Web Services Elastic Cloud Computing (AWS EC2) instance that runs Ubuntu 18.04. EC2 instances have a default `ubuntu` user, that is allowed to execute `sudo` without password. The `docker-compose.yaml` file includes all services that are necessary to run the website in a production environment. That is why Docker is the only dependency on the host.
 
 These steps are the necessary setup for a production server.
+
 1. Add the SSH public keys of engineers to the `authorized_keys` of the `ubuntu` user.
 2. Disable SSH password login.
 3. Install `docker` and `docker-compose`.
