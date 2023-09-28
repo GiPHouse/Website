@@ -5,7 +5,7 @@ from django.test import TestCase
 from courses.models import Course, Semester
 
 from projects import githubsync
-from projects.models import Project, ProjectToBeDeleted, Repository, RepositoryToBeDeleted
+from projects.models import AWSPolicy, Project, ProjectToBeDeleted, Repository, RepositoryToBeDeleted
 
 from registrations.models import Employee, Registration
 
@@ -112,3 +112,23 @@ class EmployeeQueryTest(TestCase):
         Repository.objects.create(name="testrepository1", project=project)
         Repository.objects.create(name="testrepository2", project=project)
         self.assertEqual(project.number_of_repos, 2)
+
+
+class AWSPolicySaveTest(TestCase):
+    def test_save_method_with_existing_current_policy(self):
+        existing_policy = AWSPolicy.objects.create(is_current_policy=True)
+        new_policy = AWSPolicy(is_current_policy=True)
+        new_policy.save()
+        existing_policy.refresh_from_db()
+        self.assertFalse(existing_policy.is_current_policy)
+        self.assertTrue(new_policy.is_current_policy)
+
+    def test_save_method_without_existing_current_policy_false(self):
+        policy = AWSPolicy(is_current_policy=False)
+        policy.save()
+        self.assertFalse(policy.is_current_policy)
+
+    def test_save_method_without_existing_current_policy_true(self):
+        policy = AWSPolicy(is_current_policy=True)
+        policy.save()
+        self.assertTrue(policy.is_current_policy)

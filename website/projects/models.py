@@ -10,6 +10,36 @@ from courses.models import Semester
 from registrations.models import Employee
 
 
+class AWSPolicy(models.Model):
+    """AWS global base OU id, policy id and tags submission fields."""
+
+    class Meta:
+        """Meta class for AWSPolicy model."""
+
+        verbose_name = "AWS Policy"
+        verbose_name_plural = "AWS Policies"
+
+    base_ou_id = models.CharField(max_length=50, unique=False, default="", null=False, blank=False)
+    policy_id = models.CharField(max_length=50, unique=False, null=False, blank=False)
+    tags_key = models.CharField(max_length=50, unique=False, default="", null=False, blank=False)
+    tags_value = models.CharField(max_length=50, unique=False, default="", null=False, blank=True)
+    is_current_policy = models.BooleanField(
+        default=False,
+        help_text="Attention: When saving this policy with 'is current policy' checked"
+        + ", all other policies will be set to 'not current'!",
+    )
+
+    def save(self, *args, **kwargs):
+        """Save method for AWSPolicy model."""
+        if self.is_current_policy:
+            AWSPolicy.objects.all().update(**{"is_current_policy": False})
+        super(AWSPolicy, self).save(*args, **kwargs)
+
+    def __str__(self):
+        """Return policy id."""
+        return f"{self.policy_id}"
+
+
 class Client(models.Model):
     """Project client with logo."""
 
