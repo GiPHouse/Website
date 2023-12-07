@@ -24,7 +24,7 @@ google-auth-httplib2 = "^0.1.0"
 google-auth-oauthlib = "^0.7.1"
 pygithub = "^1.57"
 cryptography = "^38.0.3"
-ortools = "^9.4.1874"
+ortools = "^9.8.3296"
 PyGithub = "^1.54.1"
 uWSGI = {version = "^2.0.19", optional = true}
 admin-totals = "^1.0.1"
