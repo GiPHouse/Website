@@ -108,9 +108,7 @@ class ShowCalendarView(TemplateView, BaseReservationView):
             semester=Semester.objects.get_or_create_current_semester()
         )
         team_name = reservee_registrations.first().project if reservee_registrations.exists() else None
-        reservee_display_name = (
-            reservation.reservee.first_name if reservation.reservee != self.request.user else "you"
-        )
+        reservee_display_name = reservation.reservee.first_name if reservation.reservee != self.request.user else "you"
         return (
             f"{room_name} {team_name} ({reservee_display_name})"
             if team_name
