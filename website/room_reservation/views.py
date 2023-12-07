@@ -109,11 +109,7 @@ class ShowCalendarView(TemplateView, BaseReservationView):
         )
         team_name = reservee_registrations.first().project if reservee_registrations.exists() else None
         reservee_display_name = reservation.reservee.first_name if reservation.reservee != self.request.user else "you"
-        return (
-            f"{room_name} {team_name} ({reservee_display_name})"
-            if team_name
-            else f"{room_name} ({reservee_display_name})"
-        )
+        return f"{room_name} {team_name}" if team_name else f"{room_name} ({reservee_display_name})"
 
     def get_context_data(self, **kwargs):
         """Load all information for the calendar."""
