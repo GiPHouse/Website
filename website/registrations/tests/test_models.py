@@ -52,7 +52,7 @@ class ModelsTest(TestCase):
             course=Course.objects.sdm(),
             semester=self.test_semester,
             preference1=self.test_project,
-            experience=Registration.EXPERIENCE_ADVANCED,
+            dev_experience=Registration.EXPERIENCE_ADVANCED,
             is_international=False,
         )
 
@@ -65,7 +65,7 @@ class ModelsTest(TestCase):
             course=Course.objects.sdm(),
             semester=self.test_semester,
             preference1=self.test_project,
-            experience=Registration.EXPERIENCE_ADVANCED,
+            dev_experience=Registration.EXPERIENCE_ADVANCED,
             is_international=False,
         )
 
@@ -77,7 +77,7 @@ class ModelsTest(TestCase):
             course=Course.objects.sde(),
             semester=self.test_semester,
             preference1=self.test_project,
-            experience=Registration.EXPERIENCE_ADVANCED,
+            dev_experience=Registration.EXPERIENCE_ADVANCED,
             is_international=False,
         )
 
@@ -90,7 +90,7 @@ class ModelsTest(TestCase):
             course=Course.objects.se(),
             semester=self.test_semester,
             preference1=self.test_project,
-            experience=Registration.EXPERIENCE_ADVANCED,
+            dev_experience=Registration.EXPERIENCE_ADVANCED,
             is_international=False,
         )
 
@@ -107,7 +107,7 @@ class ModelsTest(TestCase):
             user=u1,
             course=Course.objects.se(),
             semester=self.test_semester,
-            experience=Registration.EXPERIENCE_ADVANCED,
+            dev_experience=Registration.EXPERIENCE_ADVANCED,
             is_international=False,
         )
 
@@ -121,7 +121,7 @@ class ModelsTest(TestCase):
             user=u1,
             course=Course.objects.se(),
             semester=self.test_semester,
-            experience=Registration.EXPERIENCE_ADVANCED,
+            dev_experience=Registration.EXPERIENCE_ADVANCED,
             is_international=False,
         )
 
@@ -135,7 +135,7 @@ class ModelsTest(TestCase):
             user=u1,
             course=Course.objects.se(),
             semester=self.test_semester,
-            experience=Registration.EXPERIENCE_ADVANCED,
+            dev_experience=Registration.EXPERIENCE_ADVANCED,
             is_international=False,
         )
 

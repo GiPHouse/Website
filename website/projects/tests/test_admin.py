@@ -162,7 +162,7 @@ class GetProjectsTest(TestCase):
             project=test_project,
             course=course,
             preference1=test_project,
-            experience=1,
+            dev_experience=1,
             is_international=False,
         )
         Registration.objects.create(
@@ -171,7 +171,7 @@ class GetProjectsTest(TestCase):
             project=test_project,
             course=course,
             preference1=test_project,
-            experience=1,
+            dev_experience=1,
             is_international=False,
         )
         Registration.objects.create(
@@ -180,7 +180,7 @@ class GetProjectsTest(TestCase):
             project=test_project,
             course=course,
             preference1=test_project,
-            experience=1,
+            dev_experience=1,
             is_international=False,
         )
 

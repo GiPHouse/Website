@@ -64,7 +64,7 @@ class QuestionnaireTest(TestCase):
             project=cls.team,
             course=Course.objects.sdm(),
             preference1=cls.team,
-            experience=Registration.EXPERIENCE_ADVANCED,
+            dev_experience=Registration.EXPERIENCE_ADVANCED,
         )
 
         cls.active_questions = Questionnaire.objects.create(
