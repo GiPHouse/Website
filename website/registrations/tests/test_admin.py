@@ -161,7 +161,8 @@ class RegistrationAdminTest(TestCase):
                 '"First name","Last name","Student number","GitHub username",'
                 '"Course","1st project preference","2nd project preference","3rd project preference",'
                 '"1st partner preference","2nd partner preference","3rd partner preference",'
-                '"Experience","Git experience","Scrum experience","Management Interest",,"Non-dutch","Available during scheduled timeslot 1",'
+                '"Dev Experience","Git experience","Scrum experience","Management Interest",'
+                '"Non-dutch","Available during scheduled timeslot 1",'
                 '"Available during scheduled timeslot 2","Available during scheduled timeslot 3",'
                 '"Has problems with signing an NDA","Registration Comments"'
             ),
