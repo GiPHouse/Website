@@ -76,7 +76,7 @@ class Step2Form(forms.Form):
         "<strong>Advanced</strong>: I have a lot of experience with "
         "git(hub) working on a project with multiple programmers. <br>"
         "<strong>NOTE</strong>: You do not NEED any experience with git, "
-        "you are going to learn it in this course. But it is nice if you already know git."
+        "you are going to learn it in this course. But it is nice if you already know git.",
     )
 
     scrum_experience = forms.ChoiceField(
