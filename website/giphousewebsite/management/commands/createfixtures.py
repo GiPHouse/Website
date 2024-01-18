@@ -230,7 +230,7 @@ class Command(BaseCommand):
             partner_preference3=self.generate_partner_preference(project.semester),
             is_international=random.choice([True, False]),
             comments=random.choice([fake.sentence(), ""]),
-            experience=Registration.EXPERIENCE_INTERMEDIATE,
+            dev_experience=Registration.EXPERIENCE_INTERMEDIATE,
         )
 
     def create_questionnaire(self):
