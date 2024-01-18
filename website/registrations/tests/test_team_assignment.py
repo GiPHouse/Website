@@ -305,7 +305,7 @@ class TeamAssignmentTest(TestCase):
             '"First name","Last name","Student number","Course","Project name","Non Dutch",'
             '"Available during scheduled timeslot 1","Available during scheduled timeslot 2",'
             '"Available during scheduled timeslot 3","Remarks","Programming experience",'
-            '"Git Experience","Scrum Experience","Management Interest"'
+            '"Git Experience","Scrum Experience","Management Interest",'
             '"At least one preference fulfilled","Has preferred project","Project preference 1",'
             '"Project preference 2","Project preference 3","In project with preferred students",'
             '"Student preference 1","Student preference 2","Student preference 3"\r\n'
