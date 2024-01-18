@@ -85,6 +85,9 @@ class RegistrationAdminTest(TestCase):
             "registration_set-0-course": cls.course.id,
             "registration_set-0-project": cls.project.id,
             "registration_set-0-dev_experience": Registration.EXPERIENCE_BEGINNER,
+            "registration_set-0-git_experience": Registration.EXPERIENCE_BEGINNER,
+            "registration_set-0-scrum_experience": Registration.EXPERIENCE_BEGINNER,
+            "registration_set-0-management_interest": False,
             "_save": "Save",
         }
 
@@ -158,7 +161,7 @@ class RegistrationAdminTest(TestCase):
                 '"First name","Last name","Student number","GitHub username",'
                 '"Course","1st project preference","2nd project preference","3rd project preference",'
                 '"1st partner preference","2nd partner preference","3rd partner preference",'
-                '"Experience","Non-dutch","Available during scheduled timeslot 1",'
+                '"Experience","Git experience","Scrum experience","Management Interest",,"Non-dutch","Available during scheduled timeslot 1",'
                 '"Available during scheduled timeslot 2","Available during scheduled timeslot 3",'
                 '"Has problems with signing an NDA","Registration Comments"'
             ),
