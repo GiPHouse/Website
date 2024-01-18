@@ -154,14 +154,13 @@ class RegistrationAdminTest(TestCase):
             reverse("admin:registrations_employee_changelist"),
             {ACTION_CHECKBOX_NAME: [self.manager.pk], "action": "export_registrations", "index": 0},
         )
-
         self.assertContains(
             response,
             (
                 '"First name","Last name","Student number","GitHub username",'
                 '"Course","1st project preference","2nd project preference","3rd project preference",'
                 '"1st partner preference","2nd partner preference","3rd partner preference",'
-                '"Dev Experience","Git experience","Scrum experience","Management Interest",'
+                '"Dev Experience","Git Experience","Scrum Experience","Management Interest",'
                 '"Non-dutch","Available during scheduled timeslot 1",'
                 '"Available during scheduled timeslot 2","Available during scheduled timeslot 3",'
                 '"Has problems with signing an NDA","Registration Comments"'
