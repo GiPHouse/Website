@@ -15,6 +15,9 @@ User: Employee = get_user_model()
 
 
 class TeamAssignmentTest(TestCase):
+
+    maxDiff = None
+    
     @classmethod
     def setUpTestData(cls):
         cls.semester = Semester.objects.get_or_create_current_semester()
@@ -306,19 +309,24 @@ class TeamAssignmentTest(TestCase):
             '"At least one preference fulfilled","Has preferred project","Project preference 1",'
             '"Project preference 2","Project preference 3","In project with preferred students",'
             '"Student preference 1","Student preference 2","Student preference 3"\r\n'
-            '"User2","Test2","","Software Engineering","","","x","x","x","","1","1","1","","x","1","","","","0","","",""\r\n'
-            '"User4","Test4","","Software Engineering","","","x","x","x","","1","1","1","","x","1","","","","0","","",""\r\n'
-            '"User5","Test5","","Software Engineering","","","x","x","x","","1","1","1","","x","1","","","","0","","",""\r\n'
-            '"User7","Test7","","Software Engineering","","","x","x","x","","1","1","1","","x","1","","","","0","","",""\r\n'
-            '"User8","Test8","","Software Engineering","","","x","x","x","","1","1","1","","x","1","","","","0","","",""\r\n'
-            '"User3","Test3","","System Development Management","","","x","x","x","","1","1","1","","x","1","","","","0","","",""'
-            "\r\n"
-            '"User6","Test6","","System Development Management","","","x","x","x","","1","1","1","","x","1","","","","0","","",""'
-            "\r\n"
-            '"User9","Test9","","System Development Management","","","x","x","x","","1","1","1","","x","1","","","","0","","",""'
-            "\r\n"
-            '"User1","Test1","","Software Engineering","Project 1","","x","x","x","","1","1","1","","","","","","","0","","",""'
-            "\r\n"
+            '"User2","Test2","","Software Engineering","","","x","x","x","",'
+            '"1","1","1","","x","1","","","","0","","",""\r\n'
+            '"User4","Test4","","Software Engineering","","","x","x","x","",'
+            '"1","1","1","","x","1","","","","0","","",""\r\n'
+            '"User5","Test5","","Software Engineering","","","x","x","x","",'
+            '"1","1","1","","x","1","","","","0","","",""\r\n'
+            '"User7","Test7","","Software Engineering","","","x","x","x","",'
+            '"1","1","1","","x","1","","","","0","","",""\r\n'
+            '"User8","Test8","","Software Engineering","","","x","x","x","",'
+            '"1","1","1","","x","1","","","","0","","",""\r\n'
+            '"User3","Test3","","System Development Management","","","x","x","x","",'
+            '"1","1","1","","x","1","","","","0","","",""\r\n'
+            '"User6","Test6","","System Development Management","","","x","x","x","",'
+            '"1","1","1","","x","1","","","","0","","",""\r\n'
+            '"User9","Test9","","System Development Management","","","x","x","x","",'
+            '"1","1","1","","x","1","","","","0","","",""\r\n'
+            '"User1","Test1","","Software Engineering","Project 1","","x","x","x","",'
+            '"1","1","1","","","","","","","0","","",""\r\n'
         )
 
         self.assertEqual(assignment_generator.task.data, result)
