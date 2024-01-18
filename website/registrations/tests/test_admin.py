@@ -47,7 +47,7 @@ class RegistrationAdminTest(TestCase):
             user=cls.manager,
             project=cls.project,
             semester=cls.semester,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             preference1=cls.project,
             partner_preference1="Partner name",
             course=cls.course,

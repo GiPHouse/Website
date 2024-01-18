@@ -34,7 +34,7 @@ class ModelsTest(TestCase):
             course=Course.objects.sdm(),
             semester=cls.test_semester,
             preference1=cls.test_project,
-            experience=Registration.EXPERIENCE_ADVANCED,
+            dev_experience=Registration.EXPERIENCE_ADVANCED,
             partner_preference1="Test partner1",
             partner_preference2="Test partner2",
             partner_preference3="Test partner3",

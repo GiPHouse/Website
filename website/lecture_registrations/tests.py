@@ -112,7 +112,7 @@ class ViewTest(TestCase):
         )
         cls.registration = Registration.objects.create(
             user=cls.user,
-            experience=cls.experience,
+            dev_experience=cls.experience,
             course_id=cls.se.id,
             preference1_id=cls.project_preference1.id,
             preference2_id=cls.project_preference2.id,

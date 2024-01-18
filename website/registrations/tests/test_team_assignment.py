@@ -56,7 +56,7 @@ class TeamAssignmentTest(TestCase):
         cls.reg1 = Registration.objects.create(
             user=cls.user1,
             semester=cls.semester,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             course=cls.se,
             is_international=False,
         )

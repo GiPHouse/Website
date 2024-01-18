@@ -44,7 +44,7 @@ class GetProjectsTest(TestCase):
             project=cls.project,
             course=Course.objects.sdm(),
             preference1=cls.project,
-            experience=Registration.EXPERIENCE_ADVANCED,
+            dev_experience=Registration.EXPERIENCE_ADVANCED,
         )
 
         cls.repo1 = Repository.objects.create(name="testrepo1", project=cls.project)

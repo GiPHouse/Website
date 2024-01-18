@@ -129,7 +129,7 @@ class GitHubSyncTest(TestCase):
         Registration.objects.create(
             user=cls.employee1,
             project=cls.project1,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             course=Course.objects.se(),
             preference1=cls.project1,
             semester=cls.semester,
