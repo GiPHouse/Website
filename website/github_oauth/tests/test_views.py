@@ -122,7 +122,7 @@ class RegisterTest(TestCase):
         Registration.objects.create(
             user=cls.test_user,
             semester=Semester.objects.get_or_create_current_semester(),
-            experience=Registration.EXPERIENCE_ADVANCED,
+            dev_experience=Registration.EXPERIENCE_ADVANCED,
             course=Course.objects.se(),
             preference1=project,
         )

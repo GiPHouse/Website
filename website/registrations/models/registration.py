@@ -46,7 +46,12 @@ class Registration(models.Model):
     partner_preference2 = models.CharField(null=True, blank=True, max_length=50)
     partner_preference3 = models.CharField(null=True, blank=True, max_length=50)
 
-    experience = models.PositiveSmallIntegerField(choices=EXPERIENCE_CHOICES)
+    dev_experience = models.PositiveSmallIntegerField(choices=EXPERIENCE_CHOICES)
+    git_experience = models.PositiveSmallIntegerField(choices=EXPERIENCE_CHOICES, default=EXPERIENCE_BEGINNER)
+    scrum_experience = models.PositiveSmallIntegerField(choices=EXPERIENCE_CHOICES, default=EXPERIENCE_BEGINNER)
+
+    management_interest = models.BooleanField(default=False)
+
     is_international = models.BooleanField(default=False)
     available_during_scheduled_timeslot_1 = models.BooleanField(default=True)
     available_during_scheduled_timeslot_2 = models.BooleanField(default=True)

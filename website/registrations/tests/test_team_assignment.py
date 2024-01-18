@@ -15,6 +15,9 @@ User: Employee = get_user_model()
 
 
 class TeamAssignmentTest(TestCase):
+
+    maxDiff = None
+
     @classmethod
     def setUpTestData(cls):
         cls.semester = Semester.objects.get_or_create_current_semester()
@@ -56,63 +59,63 @@ class TeamAssignmentTest(TestCase):
         cls.reg1 = Registration.objects.create(
             user=cls.user1,
             semester=cls.semester,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             course=cls.se,
             is_international=False,
         )
         cls.reg2 = Registration.objects.create(
             user=cls.user2,
             semester=cls.semester,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             course=cls.se,
             is_international=False,
         )
         cls.reg3 = Registration.objects.create(
             user=cls.user3,
             semester=cls.semester,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             course=cls.sdm,
             is_international=False,
         )
         cls.reg4 = Registration.objects.create(
             user=cls.user4,
             semester=cls.semester,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             course=cls.se,
             is_international=False,
         )
         cls.reg5 = Registration.objects.create(
             user=cls.user5,
             semester=cls.semester,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             course=cls.se,
             is_international=False,
         )
         cls.reg6 = Registration.objects.create(
             user=cls.user6,
             semester=cls.semester,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             course=cls.sdm,
             is_international=False,
         )
         cls.reg7 = Registration.objects.create(
             user=cls.user7,
             semester=cls.semester,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             course=cls.se,
             is_international=False,
         )
         cls.reg8 = Registration.objects.create(
             user=cls.user8,
             semester=cls.semester,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             course=cls.se,
             is_international=False,
         )
         cls.reg9 = Registration.objects.create(
             user=cls.user9,
             semester=cls.semester,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             course=cls.sdm,
             is_international=False,
         )
@@ -240,17 +243,17 @@ class TeamAssignmentTest(TestCase):
         self.assertDictEqual(expected_assignment, actual_assignment)
 
     def test_solve_csp__mixed_programming_experience(self):
-        self.reg1.experience = Registration.EXPERIENCE_BEGINNER
+        self.reg1.dev_experience = Registration.EXPERIENCE_BEGINNER
         self.reg1.save()
-        self.reg2.experience = Registration.EXPERIENCE_BEGINNER
+        self.reg2.dev_experience = Registration.EXPERIENCE_BEGINNER
         self.reg2.save()
-        self.reg4.experience = Registration.EXPERIENCE_INTERMEDIATE
+        self.reg4.dev_experience = Registration.EXPERIENCE_INTERMEDIATE
         self.reg4.save()
-        self.reg5.experience = Registration.EXPERIENCE_INTERMEDIATE
+        self.reg5.dev_experience = Registration.EXPERIENCE_INTERMEDIATE
         self.reg5.save()
-        self.reg7.experience = Registration.EXPERIENCE_ADVANCED
+        self.reg7.dev_experience = Registration.EXPERIENCE_ADVANCED
         self.reg7.save()
-        self.reg8.experience = Registration.EXPERIENCE_ADVANCED
+        self.reg8.dev_experience = Registration.EXPERIENCE_ADVANCED
         self.reg8.save()
 
         actual_assignment = TeamAssignmentGenerator(Registration.objects.all()).generate_team_assignment()
@@ -302,6 +305,7 @@ class TeamAssignmentTest(TestCase):
             '"First name","Last name","Student number","Course","Project name","Non Dutch",'
             '"Available during scheduled timeslot 1","Available during scheduled timeslot 2",'
             '"Available during scheduled timeslot 3","Remarks","Programming experience",'
+            '"Git experience","Scrum experience","Management Interest",'
             '"At least one preference fulfilled","Has preferred project","Project preference 1",'
             '"Project preference 2","Project preference 3","In project with preferred students",'
             '"Student preference 1","Student preference 2","Student preference 3"\r\n'

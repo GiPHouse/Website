@@ -47,7 +47,7 @@ class RegistrationAdminTest(TestCase):
             user=cls.manager,
             project=cls.project,
             semester=cls.semester,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             preference1=cls.project,
             partner_preference1="Partner name",
             course=cls.course,
@@ -62,7 +62,7 @@ class RegistrationAdminTest(TestCase):
         cls.registration2 = Registration.objects.create(
             user=cls.user,
             semester=cls.semester,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             preference1=cls.project,
             course=cls.course,
             is_international=False,
@@ -84,7 +84,10 @@ class RegistrationAdminTest(TestCase):
             "registration_set-0-semester": cls.semester.id,
             "registration_set-0-course": cls.course.id,
             "registration_set-0-project": cls.project.id,
-            "registration_set-0-experience": Registration.EXPERIENCE_BEGINNER,
+            "registration_set-0-dev_experience": Registration.EXPERIENCE_BEGINNER,
+            "registration_set-0-git_experience": Registration.EXPERIENCE_BEGINNER,
+            "registration_set-0-scrum_experience": Registration.EXPERIENCE_BEGINNER,
+            "registration_set-0-management_interest": False,
             "_save": "Save",
         }
 
@@ -151,14 +154,14 @@ class RegistrationAdminTest(TestCase):
             reverse("admin:registrations_employee_changelist"),
             {ACTION_CHECKBOX_NAME: [self.manager.pk], "action": "export_registrations", "index": 0},
         )
-
         self.assertContains(
             response,
             (
                 '"First name","Last name","Student number","GitHub username",'
                 '"Course","1st project preference","2nd project preference","3rd project preference",'
                 '"1st partner preference","2nd partner preference","3rd partner preference",'
-                '"Experience","Non-dutch","Available during scheduled timeslot 1",'
+                '"Dev Experience","Git Experience","Scrum Experience","Management Interest",'
+                '"Non-dutch","Available during scheduled timeslot 1",'
                 '"Available during scheduled timeslot 2","Available during scheduled timeslot 3",'
                 '"Has problems with signing an NDA","Registration Comments"'
             ),
@@ -177,7 +180,10 @@ class RegistrationAdminTest(TestCase):
                 f'"{self.registration.partner_preference1}",'
                 f'"",'
                 f'"",'
-                f'"{self.registration.experience}",'
+                f'"{self.registration.dev_experience}",'
+                f'"{self.registration.dev_experience}",'
+                f'"{self.registration.dev_experience}",'
+                '"False",'
                 f'"{self.registration.is_international}",'
                 f'"{self.registration.available_during_scheduled_timeslot_1}",'
                 f'"{self.registration.available_during_scheduled_timeslot_2}",'
@@ -265,7 +271,7 @@ class RegistrationAdminTest(TestCase):
             user=user,
             project=None,
             semester=self.semester,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             preference1=self.project,
             course=self.course,
             is_international=False,
@@ -295,7 +301,7 @@ class RegistrationAdminTest(TestCase):
             user=user,
             project=self.project2,
             semester=self.semester,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             preference1=self.project,
             course=self.course,
             is_international=False,
@@ -322,7 +328,7 @@ class RegistrationAdminTest(TestCase):
             user=user,
             project=None,
             semester=self.semester,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             preference1=self.project,
             course=self.course,
             is_international=False,
@@ -352,7 +358,7 @@ class RegistrationAdminTest(TestCase):
             user=user,
             project=None,
             semester=self.semester,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             preference1=self.project,
             course=self.course,
             is_international=False,
@@ -382,7 +388,7 @@ class RegistrationAdminTest(TestCase):
             user=user,
             project=None,
             semester=self.semester,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             preference1=self.project,
             course=self.course,
             is_international=False,
@@ -412,7 +418,7 @@ class RegistrationAdminTest(TestCase):
             user=user,
             project=None,
             semester=self.semester,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             preference1=self.project,
             course=self.course,
             is_international=False,
@@ -469,7 +475,7 @@ class RegistrationAdminTest(TestCase):
             user=user_different_semester,
             project=self.project,
             semester=old_semester,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             preference1=self.project,
             course=self.course,
             comments="comment",

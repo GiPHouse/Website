@@ -27,6 +27,9 @@ CSV_STRUCTURE = [
     "Available during scheduled timeslot 3",
     "Remarks",
     "Programming experience",
+    "Git experience",
+    "Scrum experience",
+    "Management Interest",
     "At least one preference fulfilled",
     "Has preferred project",
     "Project preference 1",
@@ -151,7 +154,7 @@ class TeamAssignmentGenerator:
                     "x" if registration.available_during_scheduled_timeslot_2 else "",
                     "x" if registration.available_during_scheduled_timeslot_3 else "",
                     registration.comments,
-                    registration.experience,
+                    registration.dev_experience,
                     "x" if project in project_prefs or student_prefs.intersection(partners) else "",
                     project_prefs.index(project) + 1 if project in project_prefs else "",
                     registration.preference1,
@@ -332,7 +335,7 @@ class TeamAssignmentGenerator:
 
         for r in range(len(self.engineers)):
             programming_experience_for_engineer[r] = (
-                int(self.engineers[r].experience) if self.engineers[r].experience else 0
+                int(self.engineers[r].dev_experience) if self.engineers[r].dev_experience else 0
             )
 
         objectives = []

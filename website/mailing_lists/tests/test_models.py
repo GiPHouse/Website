@@ -68,7 +68,7 @@ class ModelTest(TestCase):
         Registration.objects.create(
             user=employee,
             project=project,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             course=course,
             preference1=project,
             semester=semester,
@@ -86,7 +86,7 @@ class ModelTest(TestCase):
         Registration.objects.create(
             user=employee,
             project=project,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             course=Course.objects.sdm(),
             preference1=project,
             semester=semester,

@@ -52,7 +52,7 @@ class QuestionnaireTest(TestCase):
             project=cls.team,
             course=Course.objects.sdm(),
             preference1=cls.team,
-            experience=Registration.EXPERIENCE_ADVANCED,
+            dev_experience=Registration.EXPERIENCE_ADVANCED,
         )
 
         cls.alone_user = User.objects.create_user(github_id=1, github_username="test1")
@@ -64,7 +64,7 @@ class QuestionnaireTest(TestCase):
             project=cls.team,
             course=Course.objects.sdm(),
             preference1=cls.team,
-            experience=Registration.EXPERIENCE_ADVANCED,
+            dev_experience=Registration.EXPERIENCE_ADVANCED,
         )
 
         cls.active_questions = Questionnaire.objects.create(

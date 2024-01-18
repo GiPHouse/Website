@@ -105,7 +105,7 @@ class Step2Test(TestCase):
         cls.github_username = "test"
         cls.github_id = 1
         cls.student_number = "s1234567"
-        cls.experience = Registration.EXPERIENCE_BEGINNER
+        cls.dev_experience = Registration.EXPERIENCE_BEGINNER
 
         cls.project_preference1 = Project.objects.create(
             semester=cls.semester, name="project1", slug="project1", description="Test Project 1"
@@ -174,7 +174,10 @@ class Step2Test(TestCase):
                 "semester": self.semester.id,
                 "course": self.se.id,
                 "email": self.email,
-                "experience": self.experience,
+                "dev_experience": self.dev_experience,
+                "git_experience": self.dev_experience,
+                "scrum_experience": self.dev_experience,
+                "management_interest": False,
                 "is_international": self.is_international,
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
@@ -203,7 +206,7 @@ class Step2Test(TestCase):
                 "github_username": self.github_username,
                 "course": self.se.id,
                 "email": self.email,
-                "experience": self.experience,
+                "dev_experience": self.dev_experience,
                 "is_international": self.is_international,
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
@@ -230,7 +233,7 @@ class Step2Test(TestCase):
                 "github_username": self.github_username,
                 "course": self.se.id,
                 "email": self.email,
-                "experience": self.experience,
+                "dev_experience": self.dev_experience,
                 "is_international": self.is_international,
                 "project1": self.project_preference1.id,
                 "project2": str(self.project_preference1.id),
@@ -243,7 +246,7 @@ class Step2Test(TestCase):
         existing_user = User.objects.create_user(github_id=self.github_id, student_number=self.student_number)
         Registration.objects.create(
             user=existing_user,
-            experience=self.experience,
+            dev_experience=self.dev_experience,
             course_id=self.se.id,
             preference1_id=self.project_preference1.id,
             preference2_id=self.project_preference2.id,
@@ -261,7 +264,7 @@ class Step2Test(TestCase):
                 "github_username": self.github_username,
                 "course": self.se.id,
                 "email": self.email,
-                "experience": self.experience,
+                "dev_experience": self.dev_experience,
                 "is_international": self.is_international,
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
@@ -283,7 +286,7 @@ class Step2Test(TestCase):
 
         Registration.objects.create(
             user=existing_user,
-            experience=self.experience,
+            dev_experience=self.dev_experience,
             course_id=self.se.id,
             preference1_id=self.project_preference1.id,
             preference2_id=self.project_preference2.id,
@@ -304,7 +307,10 @@ class Step2Test(TestCase):
                 "github_username": self.github_username,
                 "course": self.se.id,
                 "email": self.email,
-                "experience": self.experience,
+                "dev_experience": self.dev_experience,
+                "git_experience": self.dev_experience,
+                "scrum_experience": self.dev_experience,
+                "management_interest": False,
                 "is_international": self.is_international,
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
@@ -327,7 +333,7 @@ class Step2Test(TestCase):
         )
         Registration.objects.create(
             user=existing_user,
-            experience=self.experience,
+            dev_experience=self.dev_experience,
             course_id=self.se.id,
             preference1_id=self.project_preference1.id,
             preference2_id=self.project_preference2.id,
@@ -349,7 +355,7 @@ class Step2Test(TestCase):
                 "student_number": self.student_number,
                 "github_id": self.github_id + 1,
                 "github_username": self.github_username,
-                "experience": self.experience,
+                "dev_experience": self.dev_experience,
                 "is_international": self.is_international,
                 "course": self.se.id,
                 "email": self.email,
@@ -373,7 +379,7 @@ class Step2Test(TestCase):
         )
         Registration.objects.create(
             user=existing_user,
-            experience=self.experience,
+            dev_experience=self.dev_experience,
             course_id=self.se.id,
             preference1_id=self.project_preference1.id,
             preference2_id=self.project_preference2.id,
@@ -395,7 +401,10 @@ class Step2Test(TestCase):
                 "student_number": self.student_number,
                 "github_id": self.github_id + 1,
                 "github_username": self.github_username,
-                "experience": self.experience,
+                "dev_experience": self.dev_experience,
+                "git_experience": self.dev_experience,
+                "scrum_experience": self.dev_experience,
+                "management_interest": False,
                 "is_international": self.is_international,
                 "course": self.se.id,
                 "email": self.email,
@@ -427,7 +436,10 @@ class Step2Test(TestCase):
                 "semester": self.semester.id,
                 "course": self.se.id,
                 "email": self.email,
-                "experience": self.experience,
+                "dev_experience": self.dev_experience,
+                "git_experience": self.dev_experience,
+                "scrum_experience": self.dev_experience,
+                "management_interest": False,
                 "is_international": self.is_international,
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
@@ -455,7 +467,10 @@ class Step2Test(TestCase):
                 "github_username": self.github_username,
                 "course": self.se.id,
                 "email": f"{self.student_number}@student.ru.nl",
-                "experience": self.experience,
+                "dev_experience": self.dev_experience,
+                "git_experience": self.dev_experience,
+                "scrum_experience": self.dev_experience,
+                "management_interest": False,
                 "background": "background",
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
@@ -479,7 +494,10 @@ class Step2Test(TestCase):
                 "github_username": self.github_username,
                 "course": self.se.id,
                 "email": f"{self.student_number}@ru.nl",
-                "experience": self.experience,
+                "dev_experience": self.dev_experience,
+                "git_experience": self.dev_experience,
+                "scrum_experience": self.dev_experience,
+                "management_interest": False,
                 "background": "background",
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,

@@ -46,7 +46,7 @@ class EmployeeQueryTest(TestCase):
         Registration.objects.create(
             user=employee,
             project=project,
-            experience=Registration.EXPERIENCE_BEGINNER,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
             course=Course.objects.sde(),
             preference1=project,
             semester=cls.semester,
