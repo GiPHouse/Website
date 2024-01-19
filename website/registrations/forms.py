@@ -75,7 +75,7 @@ class Step2Form(forms.Form):
         "on small projects. With multiple branches and pull requests <br>"
         "<strong>Advanced</strong>: I have a lot of experience with "
         "git(hub) working on a project with multiple programmers. <br>"
-        "<strong>NOTE</strong>: You do not NEED any experience with git, "
+        "<strong>NOTE</strong>: You do not need any experience with git, "
         "you are going to learn it in this course. But it is nice if you already know git.",
     )
 
@@ -88,12 +88,12 @@ class Step2Form(forms.Form):
         " not really with scrum <br>"
         "<strong>Advanced</strong>: I have a lot of experience with "
         "scrum. (Work or committee)<br>"
-        "<strong>NOTE</strong>: You do not NEED any experience with scrum, "
+        "<strong>NOTE</strong>: You do not need any experience with scrum, "
         "you are going to learn it in this course. But it is nice if you already know scrum.",
     )
 
     management_interest = forms.BooleanField(
-        label="I am interested in a management role",
+        label="[Only relevant for bachelor students] I am interested in a management role",
         required=False,
         initial=False,
         help_text="If you check this box, you might get a more management oriented role.",
@@ -135,21 +135,21 @@ class Step2Form(forms.Form):
         label="I am available during scheduled timeslot 1 for the course",
         required=False,
         initial=True,
-        help_text="Timeslot 1: Monday 13:30 - 15:15",
+        help_text="Timeslot 1: Thursday 15:30 - 17:15",
     )
 
     available_during_scheduled_timeslot_2 = forms.BooleanField(
         label="I am available during scheduled timeslot 2 for the course",
         required=False,
         initial=True,
-        help_text="Timeslot 2: Monday 15:30 - 17:15",
+        help_text="Timeslot 2: Friday 13:30 - 15:15",
     )
 
     available_during_scheduled_timeslot_3 = forms.BooleanField(
         label="I am available during scheduled timeslot 3 for the course",
         required=False,
         initial=True,
-        help_text="Timeslot 3: Wednesday 15:30 - 17:15",
+        help_text="Timeslot 3: Friday 15:30 - 17:15",
     )
 
     has_problems_with_signing_an_nda = forms.BooleanField(
