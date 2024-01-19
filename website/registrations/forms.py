@@ -94,7 +94,6 @@ class Step2Form(forms.Form):
 
     management_interest = forms.BooleanField(
         label="[Only relevant for bachelor students] I am interested in a management role",
-
         required=False,
         initial=False,
         help_text="If you check this box, you might get a more management oriented role.",
