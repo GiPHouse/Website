@@ -42,7 +42,7 @@ function addNotification(textContent, undoCallback) {
     if (!mouseHovering) {
       notif.remove();
     }
-  }, 10000);
+  }, 20000);
 }
 
 async function addEvent(event) {
