@@ -277,7 +277,7 @@ class Command(BaseCommand):
             .first()
         )
         user_project = Project.objects.get(registration__user=user)
-        project_registrations = Registration.objects.filter(project=user_project)
+        project_registrations = Registration.objects.filter(projects=user_project)
         peers = User.objects.exclude(pk=user.pk).filter(registration__in=project_registrations)
 
         submission = QuestionnaireSubmission.objects.create(
