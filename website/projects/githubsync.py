@@ -225,8 +225,8 @@ class GitHubSync:
 
             if self.github.get_role_of_user(github_user) != "admin" and (
                 employee is None
-                or not employee.registration_set.exclude(project_id=project.id).filter(
-                    project__isnull=False, project__repository__is_archived=Repository.Archived.NOT_ARCHIVED
+                or not employee.registration_set.exclude(projects__id=project.id).filter(
+                    projects__isnull=False, projects__repository__is_archived=Repository.Archived.NOT_ARCHIVED
                 )
             ):  # Prevent removing organization owners and employees that are still active in a different team
                 try:

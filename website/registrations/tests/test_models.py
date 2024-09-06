@@ -61,13 +61,13 @@ class ModelsTest(TestCase):
     def test_registration_is_director_with_project(self):
         reg = Registration.objects.create(
             user=self.test_user,
-            project=self.test_project,
             course=Course.objects.sdm(),
             semester=self.test_semester,
             preference1=self.test_project,
             dev_experience=Registration.EXPERIENCE_ADVANCED,
             is_international=False,
         )
+        reg.projects.add(self.test_project)
 
         self.assertFalse(reg.is_director)
 
@@ -86,13 +86,13 @@ class ModelsTest(TestCase):
     def test_registration_is_director_with_se_and_project(self):
         reg = Registration.objects.create(
             user=self.test_user,
-            project=self.test_project,
             course=Course.objects.se(),
             semester=self.test_semester,
             preference1=self.test_project,
             dev_experience=Registration.EXPERIENCE_ADVANCED,
             is_international=False,
         )
+        reg.projects.add(self.test_project)
 
         self.assertFalse(reg.is_director)
 

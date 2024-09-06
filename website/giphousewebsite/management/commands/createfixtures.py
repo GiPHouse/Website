@@ -217,11 +217,10 @@ class Command(BaseCommand):
         )
         project = Project.objects.order_by("?").first()
 
-        Registration.objects.create(
+        reg = Registration.objects.create(
             user=user,
             course=Course.objects.order_by("?").first(),
             semester=project.semester,
-            project=project,
             preference1=Project.objects.order_by("?").first(),
             preference2=Project.objects.order_by("?").first(),
             preference3=Project.objects.order_by("?").first(),
@@ -232,6 +231,7 @@ class Command(BaseCommand):
             comments=random.choice([fake.sentence(), ""]),
             dev_experience=Registration.EXPERIENCE_INTERMEDIATE,
         )
+        reg.project = project
 
     def create_questionnaire(self):
         """Create one fake questionnaire."""

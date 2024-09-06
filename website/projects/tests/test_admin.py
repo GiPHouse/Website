@@ -38,14 +38,14 @@ class GetProjectsTest(TestCase):
         )
 
         cls.manager = User.objects.create(github_id=1, github_username="manager")
-        Registration.objects.create(
+        reg = Registration.objects.create(
             user=cls.manager,
             semester=cls.semester,
-            project=cls.project,
             course=Course.objects.sdm(),
             preference1=cls.project,
             dev_experience=Registration.EXPERIENCE_ADVANCED,
         )
+        reg.project = cls.project
 
         cls.repo1 = Repository.objects.create(name="testrepo1", project=cls.project)
         cls.repo2 = Repository.objects.create(name="testrepo2", project=cls.project)
@@ -156,33 +156,34 @@ class GetProjectsTest(TestCase):
         test_user2 = User.objects.create(github_id=1234, github_username="Nick")
         test_user3 = User.objects.create(github_id=1235, github_username="James")
 
-        Registration.objects.create(
+        reg1 = Registration.objects.create(
             user=test_user1,
             semester=sem1,
-            project=test_project,
             course=course,
             preference1=test_project,
             dev_experience=1,
             is_international=False,
         )
-        Registration.objects.create(
+        reg1.projects.add(test_project)
+        reg2 = Registration.objects.create(
             user=test_user2,
             semester=sem2,
-            project=test_project,
             course=course,
             preference1=test_project,
             dev_experience=1,
             is_international=False,
         )
-        Registration.objects.create(
+        reg2.projects.add(test_project)
+
+        reg3 = Registration.objects.create(
             user=test_user3,
             semester=sem1,
-            project=test_project,
             course=course,
             preference1=test_project,
             dev_experience=1,
             is_international=False,
         )
+        reg3.projects.add(test_project)
 
         pa.create_mailing_lists(self.request, [test_project, test_project2])
 

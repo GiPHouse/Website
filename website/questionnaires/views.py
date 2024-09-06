@@ -67,13 +67,13 @@ class QuestionnaireView(LoginRequiredMessageMixin, FormView):
         kwargs["questionnaire"] = questionnaire
 
         try:
-            participant_project = Project.objects.get(
+            participant_projects = Project.objects.filter(
                 registration__user=participant, semester=Semester.objects.get_or_create_current_semester()
             )
         except Project.DoesNotExist:
             kwargs["peers"] = []
         else:
-            project_registrations = Registration.objects.filter(project=participant_project)
+            project_registrations = Registration.objects.filter(projects__in=participant_projects)
             kwargs["peers"] = User.objects.exclude(pk=participant.pk).filter(registration__in=project_registrations)
 
         kwargs["no_peers_warning"] = (

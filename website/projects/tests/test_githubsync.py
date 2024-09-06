@@ -126,14 +126,14 @@ class GitHubSyncTest(TestCase):
         )
         cls.repo2 = Repository(name="test-repo2", github_repo_id="999999999", project=cls.project1, private=False)
         cls.employee1 = Employee.objects.create(github_username="testgithubuser", github_id=123456)
-        Registration.objects.create(
+        reg = Registration.objects.create(
             user=cls.employee1,
-            project=cls.project1,
             dev_experience=Registration.EXPERIENCE_BEGINNER,
             course=Course.objects.se(),
             preference1=cls.project1,
             semester=cls.semester,
         )
+        reg.projects.add(cls.project1)
         cls.exception = GithubException(status=MagicMock(status=404), data="abc", headers={})
         cls.repoToBeDeleted1 = RepositoryToBeDeleted.objects.create(github_repo_id=1122334455)
         cls.repoToBeDeleted2 = RepositoryToBeDeleted.objects.create(github_repo_id=5544332211)

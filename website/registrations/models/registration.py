@@ -34,7 +34,7 @@ class Registration(models.Model):
 
     user = models.ForeignKey(Employee, on_delete=models.CASCADE)
 
-    project = models.ForeignKey(Project, null=True, blank=True, on_delete=models.SET_NULL)
+    projects = models.ManyToManyField(Project)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
 
@@ -58,6 +58,16 @@ class Registration(models.Model):
     available_during_scheduled_timeslot_3 = models.BooleanField(default=True)
     has_problems_with_signing_an_nda = models.BooleanField(default=False)
     comments = models.TextField(null=True, blank=True)
+
+    @property
+    def project(self):
+        """Get the project of a registration."""
+        return self.projects.first()
+
+    @project.setter
+    def project(self, value):
+        """Set the project of a registration."""
+        self.projects.set([value])
 
     @property
     def is_director(self):

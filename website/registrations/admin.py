@@ -40,13 +40,13 @@ class UserAdminProjectFilter(AutocompleteFilter):
     """Filter class to filter current Project objects."""
 
     title = "Projects"
-    field_name = "project"
+    field_name = "projects"
     rel_model = Registration
 
     def queryset(self, request, queryset):
         """Filter out participants in the specified Project."""
         if self.value():
-            return queryset.filter(registration__project=self.value())
+            return queryset.filter(registration__projects=self.value())
         return queryset
 
 
@@ -55,6 +55,7 @@ class RegistrationInline(admin.StackedInline):
 
     model = Registration
     extra = 0
+    filter_horizontal = ("projects",)
 
 
 @admin.register(User)
