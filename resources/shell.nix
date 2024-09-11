@@ -1,3 +1,8 @@
+# for local development on NiXOS/any system with nix installed.
+# enable environtment by running `nix-shell resources/shell.nix`
+
+{ pkgs ? import <nixpkgs> {} }:
+
 with import <nixpkgs> {}; 
 
 mkShell {
