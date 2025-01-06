@@ -1,5 +1,6 @@
 [tool.poetry]
 name = "giphousewebsite"
+package-mode = false
 description = "GiPHouse website based on Django Framework"
 version = "1.0.0"
 authors = [
