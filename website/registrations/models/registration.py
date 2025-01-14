@@ -69,7 +69,6 @@ class Registration(models.Model):
         """Set the project of a registration."""
         self.projects.set([value])
 
-    @project.setter
     def add_project(self, value):
         """Set the projects of a registration."""
         if not self.projects.filter(pk=value.pk).exists():
