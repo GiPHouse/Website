@@ -45,7 +45,6 @@ class RegistrationAdminTest(TestCase):
 
         cls.registration = Registration.objects.create(
             user=cls.manager,
-            project=cls.project,
             semester=cls.semester,
             dev_experience=Registration.EXPERIENCE_BEGINNER,
             preference1=cls.project,
@@ -54,6 +53,7 @@ class RegistrationAdminTest(TestCase):
             comments="comment",
             is_international=False,
         )
+        cls.registration.project = cls.project
 
         cls.user = User.objects.create(
             github_id=2, github_username="lol", first_name="First", last_name="Last", student_number="s1234568"
@@ -83,7 +83,7 @@ class RegistrationAdminTest(TestCase):
             "registration_set-0-preference1": cls.project.id,
             "registration_set-0-semester": cls.semester.id,
             "registration_set-0-course": cls.course.id,
-            "registration_set-0-project": cls.project.id,
+            "registration_set-0-projects": [cls.project.id],
             "registration_set-0-dev_experience": Registration.EXPERIENCE_BEGINNER,
             "registration_set-0-git_experience": Registration.EXPERIENCE_BEGINNER,
             "registration_set-0-scrum_experience": Registration.EXPERIENCE_BEGINNER,
@@ -269,7 +269,6 @@ class RegistrationAdminTest(TestCase):
         )
         registration = Registration.objects.create(
             user=user,
-            project=None,
             semester=self.semester,
             dev_experience=Registration.EXPERIENCE_BEGINNER,
             preference1=self.project,
@@ -299,13 +298,13 @@ class RegistrationAdminTest(TestCase):
         )
         registration = Registration.objects.create(
             user=user,
-            project=self.project2,
             semester=self.semester,
             dev_experience=Registration.EXPERIENCE_BEGINNER,
             preference1=self.project,
             course=self.course,
             is_international=False,
         )
+        registration.project = self.project2
 
         test_csv_file = SimpleUploadedFile("csv_file.csv", file_content, content_type="text/csv")
         response = self.client.post(
@@ -326,7 +325,6 @@ class RegistrationAdminTest(TestCase):
         )
         registration = Registration.objects.create(
             user=user,
-            project=None,
             semester=self.semester,
             dev_experience=Registration.EXPERIENCE_BEGINNER,
             preference1=self.project,
@@ -356,7 +354,6 @@ class RegistrationAdminTest(TestCase):
         )
         registration = Registration.objects.create(
             user=user,
-            project=None,
             semester=self.semester,
             dev_experience=Registration.EXPERIENCE_BEGINNER,
             preference1=self.project,
@@ -386,7 +383,6 @@ class RegistrationAdminTest(TestCase):
         )
         registration = Registration.objects.create(
             user=user,
-            project=None,
             semester=self.semester,
             dev_experience=Registration.EXPERIENCE_BEGINNER,
             preference1=self.project,
@@ -416,7 +412,6 @@ class RegistrationAdminTest(TestCase):
         )
         registration = Registration.objects.create(
             user=user,
-            project=None,
             semester=self.semester,
             dev_experience=Registration.EXPERIENCE_BEGINNER,
             preference1=self.project,
@@ -471,9 +466,8 @@ class RegistrationAdminTest(TestCase):
 
         old_semester = Semester.objects.create(year=2000, season=Semester.SPRING)
 
-        Registration.objects.create(
+        reg = Registration.objects.create(
             user=user_different_semester,
-            project=self.project,
             semester=old_semester,
             dev_experience=Registration.EXPERIENCE_BEGINNER,
             preference1=self.project,
@@ -481,6 +475,7 @@ class RegistrationAdminTest(TestCase):
             comments="comment",
             is_international=False,
         )
+        reg.project = self.project
 
         response = self.client.post(
             reverse("admin:registrations_employee_changelist"),

@@ -46,26 +46,26 @@ class QuestionnaireTest(TestCase):
 
         cls.team = Project.objects.create(semester=semester, name="Test Project", description="Description")
         cls.user = User.objects.create_user(github_id=0, github_username="test")
-        Registration.objects.create(
+        reg = Registration.objects.create(
             user=cls.user,
             semester=semester,
-            project=cls.team,
             course=Course.objects.sdm(),
             preference1=cls.team,
             dev_experience=Registration.EXPERIENCE_ADVANCED,
         )
+        reg.project = cls.team
 
         cls.alone_user = User.objects.create_user(github_id=1, github_username="test1")
 
         cls.peer = User.objects.create_user(github_id=2, github_username="test2")
-        Registration.objects.create(
+        reg = Registration.objects.create(
             user=cls.peer,
             semester=semester,
-            project=cls.team,
             course=Course.objects.sdm(),
             preference1=cls.team,
             dev_experience=Registration.EXPERIENCE_ADVANCED,
         )
+        reg.project = cls.team
 
         cls.active_questions = Questionnaire.objects.create(
             semester=semester,

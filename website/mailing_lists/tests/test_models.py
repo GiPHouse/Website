@@ -65,14 +65,14 @@ class ModelTest(TestCase):
         project = Project.objects.create(name="test project", semester=semester)
 
         employee = Employee.objects.create(github_id=0, github_username="user1", email="e@test.nl")
-        Registration.objects.create(
+        reg = Registration.objects.create(
             user=employee,
-            project=project,
             dev_experience=Registration.EXPERIENCE_BEGINNER,
             course=course,
             preference1=project,
             semester=semester,
         )
+        reg.project = project
 
         MailingListCourseSemesterLink.objects.create(mailing_list=self.existing_list, course=course, semester=semester)
 
@@ -83,14 +83,14 @@ class ModelTest(TestCase):
         project = Project.objects.create(name="test project", semester=semester)
 
         employee = Employee.objects.create(github_id=0, github_username="user1", email="e@test.nl")
-        Registration.objects.create(
+        reg = Registration.objects.create(
             user=employee,
-            project=project,
             dev_experience=Registration.EXPERIENCE_BEGINNER,
             course=Course.objects.sdm(),
             preference1=project,
             semester=semester,
         )
+        reg.project = project
 
         self.existing_list.projects.add(project)
         self.existing_list.save()

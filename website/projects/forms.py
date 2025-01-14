@@ -37,12 +37,12 @@ class ProjectAdminForm(forms.ModelForm):
 
         if self.instance.pk:
             self.fields["managers"].initial = User.objects.filter(
-                registration__course=Course.objects.sdm(), registration__project=self.instance
+                registration__course=Course.objects.sdm(), registration__projects=self.instance
             )
 
             self.fields["engineers"].initial = User.objects.filter(
                 Q(registration__course=Course.objects.se()) | Q(registration__course=Course.objects.sde()),
-                registration__project=self.instance,
+                registration__projects=self.instance,
             )
 
     managers = forms.ModelMultipleChoiceField(
@@ -56,10 +56,10 @@ class ProjectAdminForm(forms.ModelForm):
     def save_m2m(self):
         """Add the users to the Project and remove other users from the Project."""
         new_users = [*self.cleaned_data["managers"], *self.cleaned_data["engineers"]]
-        Registration.objects.filter(semester=self.instance.semester, user_id__in=new_users).update(
-            project=self.instance
-        )
-        Registration.objects.filter(project=self.instance).exclude(user_id__in=new_users).update(project=None)
+        for reg in Registration.objects.filter(semester=self.instance.semester, user_id__in=new_users):
+            reg.projects.add(self.instance)
+        for reg in Registration.objects.filter(semester=self.instance.semester, user_id__in=new_users):
+            reg.projects.set([])
 
     def save(self, *args, **kwargs):
         """Save the form data, including many-to-many data."""

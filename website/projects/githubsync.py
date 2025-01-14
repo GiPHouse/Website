@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from django.conf import settings
 from django.urls import reverse
 
-from github import Github, GithubException, GithubIntegration, UnknownObjectException
+from github import Auth, Github, GithubException, GithubIntegration, UnknownObjectException
 
 from projects.models import ProjectToBeDeleted, Repository, RepositoryToBeDeleted
 
@@ -17,14 +17,25 @@ from tasks.models import Task
 class GitHubAPITalker:
     """Communicate with GitHub API v3."""
 
-    _access_token = None  # token to use when talking to github
-    _github = Github()  # used to talk to GitHub as our own app
-    _organization = None  # the organization to sync with
+    def __init__(self):
+        """Initialize the GitHub API talker."""
+        self._access_token = None  # token to use when talking to github
+        self._organization = None  # the organization to sync with
+        self.installation_id = settings.DJANGO_GITHUB_SYNC_APP_INSTALLATION_ID
+        self.organization_name = settings.DJANGO_GITHUB_SYNC_ORGANIZATION_NAME
 
-    _gi = GithubIntegration(settings.DJANGO_GITHUB_SYNC_APP_ID, settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY)
-    _logger = logging.getLogger("django.github")
-    installation_id = settings.DJANGO_GITHUB_SYNC_APP_INSTALLATION_ID
-    organization_name = settings.DJANGO_GITHUB_SYNC_ORGANIZATION_NAME
+        self._github = Github()  # used to talk to GitHub as our own app
+
+        if (
+            settings.DJANGO_GITHUB_SYNC_APP_ID != "" and settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY != ""
+        ):  # pragma: no cover
+            self._gi = GithubIntegration(
+                auth=Auth.AppAuth(settings.DJANGO_GITHUB_SYNC_APP_ID, settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY)
+            )
+        else:
+            self._gi = None
+
+        self._logger = logging.getLogger("django.github")
 
     @property
     def github_service(self):
@@ -225,8 +236,8 @@ class GitHubSync:
 
             if self.github.get_role_of_user(github_user) != "admin" and (
                 employee is None
-                or not employee.registration_set.exclude(project_id=project.id).filter(
-                    project__isnull=False, project__repository__is_archived=Repository.Archived.NOT_ARCHIVED
+                or not employee.registration_set.exclude(projects__id=project.id).filter(
+                    projects__isnull=False, projects__repository__is_archived=Repository.Archived.NOT_ARCHIVED
                 )
             ):  # Prevent removing organization owners and employees that are still active in a different team
                 try:

@@ -27,7 +27,12 @@ class ModelsTest(TestCase):
 
         cls.test_semester = Semester.objects.get_or_create_current_semester()
 
-        cls.test_project = Project.objects.create(name=cls.project_name, semester=cls.test_semester)
+        cls.test_project = Project.objects.create(
+            name=cls.project_name, slug=cls.project_name, semester=cls.test_semester
+        )
+        cls.test_project2 = Project.objects.create(
+            name=f"{cls.project_name}2", slug=f"{cls.project_name}2", semester=cls.test_semester
+        )
 
         cls.test_registration = Registration.objects.create(
             user=cls.test_user_2,
@@ -46,6 +51,16 @@ class ModelsTest(TestCase):
             f"{self.test_semester.get_season_display()} {self.test_semester.year}", str(self.test_semester)
         )
 
+    def test_add_project(self):
+        self.test_registration.add_project(self.test_project)
+        self.assertEqual(self.test_registration.projects.count(), 1)
+        self.test_registration.add_project(self.test_project2)
+        self.assertEqual(self.test_registration.projects.count(), 2)
+
+    def test_add_duplicate_project(self):
+        self.test_registration.add_project(self.test_project)
+        self.assertEqual(self.test_registration.projects.count(), 1)
+
     def test_registration_is_director_correct(self):
         reg = Registration.objects.create(
             user=self.test_user,
@@ -61,13 +76,13 @@ class ModelsTest(TestCase):
     def test_registration_is_director_with_project(self):
         reg = Registration.objects.create(
             user=self.test_user,
-            project=self.test_project,
             course=Course.objects.sdm(),
             semester=self.test_semester,
             preference1=self.test_project,
             dev_experience=Registration.EXPERIENCE_ADVANCED,
             is_international=False,
         )
+        reg.projects.add(self.test_project)
 
         self.assertFalse(reg.is_director)
 
@@ -86,13 +101,13 @@ class ModelsTest(TestCase):
     def test_registration_is_director_with_se_and_project(self):
         reg = Registration.objects.create(
             user=self.test_user,
-            project=self.test_project,
             course=Course.objects.se(),
             semester=self.test_semester,
             preference1=self.test_project,
             dev_experience=Registration.EXPERIENCE_ADVANCED,
             is_international=False,
         )
+        reg.projects.add(self.test_project)
 
         self.assertFalse(reg.is_director)
 

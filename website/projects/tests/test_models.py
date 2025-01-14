@@ -43,14 +43,14 @@ class EmployeeQueryTest(TestCase):
     @classmethod
     def addEngineerToProject(cls, employee, project):
         """Adds employee to a project as an engineer"""
-        Registration.objects.create(
+        reg = Registration.objects.create(
             user=employee,
-            project=project,
             dev_experience=Registration.EXPERIENCE_BEGINNER,
             course=Course.objects.sde(),
             preference1=project,
             semester=cls.semester,
         )
+        reg.projects.add(project)
 
     def test_generate_team_description(self):
         """Tests a correct team description for a project."""

@@ -28,9 +28,11 @@ class GitHubAPITalkerTest(TestCase):
 
     def setUp(self):
         """Create a mock pygithub object to talk with."""
+        githubsync.talker._gi = MagicMock()
         githubsync.talker._gi.get_access_token = MagicMock()
         githubsync.talker._github = MagicMock()
         self.talker = githubsync.GitHubAPITalker()
+        self.talker._gi = MagicMock()
         self.talker._access_token = MagicMock()
         self.talker._access_token.expires_at = datetime.now() + timedelta(hours=1)
         self.talker._organization = MagicMock()
@@ -126,14 +128,14 @@ class GitHubSyncTest(TestCase):
         )
         cls.repo2 = Repository(name="test-repo2", github_repo_id="999999999", project=cls.project1, private=False)
         cls.employee1 = Employee.objects.create(github_username="testgithubuser", github_id=123456)
-        Registration.objects.create(
+        reg = Registration.objects.create(
             user=cls.employee1,
-            project=cls.project1,
             dev_experience=Registration.EXPERIENCE_BEGINNER,
             course=Course.objects.se(),
             preference1=cls.project1,
             semester=cls.semester,
         )
+        reg.projects.add(cls.project1)
         cls.exception = GithubException(status=MagicMock(status=404), data="abc", headers={})
         cls.repoToBeDeleted1 = RepositoryToBeDeleted.objects.create(github_repo_id=1122334455)
         cls.repoToBeDeleted2 = RepositoryToBeDeleted.objects.create(github_repo_id=5544332211)
