@@ -27,8 +27,12 @@ class ModelsTest(TestCase):
 
         cls.test_semester = Semester.objects.get_or_create_current_semester()
 
-        cls.test_project = Project.objects.create(name=cls.project_name, slug=cls.project_name, semester=cls.test_semester)
-        cls.test_project2 = Project.objects.create(name=f"{cls.project_name}2", slug=f"{cls.project_name}2", semester=cls.test_semester)
+        cls.test_project = Project.objects.create(
+            name=cls.project_name, slug=cls.project_name, semester=cls.test_semester
+        )
+        cls.test_project2 = Project.objects.create(
+            name=f"{cls.project_name}2", slug=f"{cls.project_name}2", semester=cls.test_semester
+        )
 
         cls.test_registration = Registration.objects.create(
             user=cls.test_user_2,

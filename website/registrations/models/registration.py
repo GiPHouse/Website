@@ -71,8 +71,7 @@ class Registration(models.Model):
 
     def add_project(self, value):
         """Set the projects of a registration."""
-        if not self.projects.filter(pk=value.pk).exists():
-            self.projects.add(value)
+        self.projects.add(value)
 
     @property
     def is_director(self):
