@@ -39,14 +39,16 @@ services:
             DEFAULT_EMAIL: 'directors@giphouse.nl'
 
     postgres:
-        image: 'postgres:11.5'
+        image: 'postgres:15'
         restart: 'always'
         volumes:
             - '${DEPLOY_DIRECTORY}/database/:/var/lib/postgresql/data/'
-            - '${DEPLOY_DIRECTORY}/database_init/:/docker-entrypoint-initdb.d/'
         environment:
             PGDATA: '/var/lib/postgresql/data/pgdata'
-    
+            POSTGRES_DB: '${POSTGRES_NAME}'
+            POSTGRES_USER: '${POSTGRES_USER}'
+            POSTGRES_PASSWORD: '${POSTGRES_PASSWORD}'
+
     web:
         image: '${DOCKER_IMAGE}'
         restart: 'always'

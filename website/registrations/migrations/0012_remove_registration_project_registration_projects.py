@@ -7,7 +7,8 @@ def migrate_projects(apps, schema_editor):
     Registration = apps.get_model("registrations", "Registration")
 
     for registration in Registration.objects.all():
-        registration.projects.add(registration.project)
+        if registration.project is not None:
+            registration.projects.add(registration.project)
 
 class Migration(migrations.Migration):
 
