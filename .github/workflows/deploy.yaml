@@ -49,11 +49,6 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > "${HOME}/.ssh/id_ed25519"
           chmod 600 "${HOME}/.ssh/id_ed25519"
 
-      - name: "Set SQL setup template variables"
-        run: |
-          envsubst < resources/setup.sql.template > /tmp/out.tmp
-          mv /tmp/out.tmp resources/setup.sql
-
       - name: "Set docker-compose template variables"
         run: |
           envsubst < resources/docker-compose.yaml.template > /tmp/out.tmp
@@ -92,9 +87,6 @@ jobs:
           ssh -o StrictHostKeyChecking=no "${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}" /bin/bash << EOF
             echo "return 301 https://${DEPLOYMENT_HOST}/;" > "${DEPLOY_DIRECTORY}/nginx/vhost.d/www.${DEPLOYMENT_HOST}_location"
           EOF
-
-      - name: "Upload setup.sql"
-        run: "scp -o StrictHostKeyChecking=no resources/setup.sql \"${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}:${DEPLOY_DIRECTORY}/database_init/setup.sql\""
 
       - name: "Upload docker-compose.yaml"
         run: "scp -o StrictHostKeyChecking=no resources/docker-compose.yaml \"${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}:${DEPLOY_DIRECTORY}/docker-compose.yaml\""
