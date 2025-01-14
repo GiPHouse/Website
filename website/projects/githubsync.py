@@ -27,10 +27,12 @@ class GitHubAPITalker:
         self._github = Github()  # used to talk to GitHub as our own app
 
         if (
-            settings.DJANGO_GITHUB_SYNC_APP_ID != "" and settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY != ""
+            settings.DJANGO_GITHUB_SYNC_APP_ID != "" and settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64 != ""
         ):  # pragma: no cover
             self._gi = GithubIntegration(
-                auth=Auth.AppAuth(settings.DJANGO_GITHUB_SYNC_APP_ID, settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY)
+                auth=Auth.AppAuth(
+                    settings.DJANGO_GITHUB_SYNC_APP_ID, settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64
+                )
             )
         else:
             self._gi = None
