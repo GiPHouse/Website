@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from django.conf import settings
 from django.urls import reverse
 
-from github import Github, GithubException, GithubIntegration, UnknownObjectException, Auth
+from github import Auth, Github, GithubException, GithubIntegration, UnknownObjectException
 
 from projects.models import ProjectToBeDeleted, Repository, RepositoryToBeDeleted
 
@@ -26,7 +26,9 @@ class GitHubAPITalker:
 
         self._github = Github()  # used to talk to GitHub as our own app
 
-        if settings.DJANGO_GITHUB_SYNC_APP_ID != "" and settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY != "":
+        if (
+            settings.DJANGO_GITHUB_SYNC_APP_ID != "" and settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY != ""
+        ):  # pragma: no cover
             self._gi = GithubIntegration(
                 auth=Auth.AppAuth(settings.DJANGO_GITHUB_SYNC_APP_ID, settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY)
             )
