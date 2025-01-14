@@ -28,9 +28,11 @@ class GitHubAPITalkerTest(TestCase):
 
     def setUp(self):
         """Create a mock pygithub object to talk with."""
+        githubsync.talker._gi = MagicMock()
         githubsync.talker._gi.get_access_token = MagicMock()
         githubsync.talker._github = MagicMock()
         self.talker = githubsync.GitHubAPITalker()
+        self.talker._gi = MagicMock()
         self.talker._access_token = MagicMock()
         self.talker._access_token.expires_at = datetime.now() + timedelta(hours=1)
         self.talker._organization = MagicMock()
