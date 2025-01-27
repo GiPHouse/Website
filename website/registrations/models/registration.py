@@ -34,7 +34,7 @@ class Registration(models.Model):
 
     user = models.ForeignKey(Employee, on_delete=models.CASCADE)
 
-    projects = models.ManyToManyField(Project)
+    projects = models.ManyToManyField(Project, blank=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
 
