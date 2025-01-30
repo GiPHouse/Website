@@ -27,11 +27,11 @@ class GitHubAPITalker:
         self._github = Github()  # used to talk to GitHub as our own app
 
         if (
-            settings.DJANGO_GITHUB_SYNC_APP_ID != "" and settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64 != ""
+            settings.DJANGO_GITHUB_SYNC_APP_ID != "" and settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY != ""
         ):  # pragma: no cover
             self._gi = GithubIntegration(
                 auth=Auth.AppAuth(
-                    settings.DJANGO_GITHUB_SYNC_APP_ID, settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64
+                    settings.DJANGO_GITHUB_SYNC_APP_ID, settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY
                 )
             )
         else:
@@ -63,7 +63,7 @@ class GitHubAPITalker:
 
         :except: GithubException when requesting a new access token fails
         """
-        if self._access_token is None or self._access_token.expires_at < datetime.utcnow() + timedelta(seconds=60):
+        if self._access_token is None or self._access_token.expires_at < datetime.now() + timedelta(seconds=60):
             self._access_token = self._gi.get_access_token(self.installation_id)
             self._github = Github(self._access_token.token)
             self._organization = self._github.get_organization(self.organization_name)
