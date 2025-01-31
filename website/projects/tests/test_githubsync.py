@@ -311,35 +311,35 @@ class GitHubSyncTest(TestCase):
         self.remove_users_not_in_team(self.employee1.github_username, "member")
         self.github_team.remove_membership.assert_not_called()
         self.talker.remove_user.assert_not_called()
-        self.assertEquals(self.sync.users_removed, 0)
+        self.assertEqual(self.sync.users_removed, 0)
         self.assert_no_log()
 
     def test_remove_users_not_in_team__no_employee(self):
         self.remove_users_not_in_team("anunwanteduser", "member")
         self.github_team.remove_membership.assert_not_called()
         self.talker.remove_user.assert_called_once_with(self.github_user)
-        self.assertEquals(self.sync.users_removed, 1)
+        self.assertEqual(self.sync.users_removed, 1)
         self.assert_info()
 
     def test_remove_users_not_in_team__owner(self):
         self.remove_users_not_in_team("anunwanteduser", "admin")
         self.github_team.remove_membership.assert_called_once_with(self.github_user)
         self.talker.remove_user.assert_not_called()
-        self.assertEquals(self.sync.users_removed, 1)
+        self.assertEqual(self.sync.users_removed, 1)
         self.assert_info()
 
     def test_remove_users_not_in_team__exception_employee(self):
         self.remove_users_not_in_team("anunwanteduser", "member", self.exception, None)
         self.github_team.remove_membership.assert_not_called()
         self.talker.remove_user.assert_called_once_with(self.github_user)
-        self.assertEquals(self.sync.users_removed, 0)
+        self.assertEqual(self.sync.users_removed, 0)
         self.assert_error()
 
     def test_remove_users_not_in_team__exception_owner(self):
         self.remove_users_not_in_team("anunwanteduser", "admin", None, self.exception)
         self.github_team.remove_membership.assert_called_once_with(self.github_user)
         self.talker.remove_user.assert_not_called()
-        self.assertEquals(self.sync.users_removed, 0)
+        self.assertEqual(self.sync.users_removed, 0)
         self.assert_error()
 
     def test_remove_team__user_in_employees(self):
@@ -527,7 +527,7 @@ class GitHubSyncTest(TestCase):
         self.talker.create_repo.return_value = "ThisShouldBeAPyGithubRepo"
         returned_repo = self.sync.create_repo(self.repo1)
         self.talker.create_repo.assert_called_once_with(self.repo1)
-        self.assertEquals(returned_repo, "ThisShouldBeAPyGithubRepo")
+        self.assertEqual(returned_repo, "ThisShouldBeAPyGithubRepo")
         self.github_team.add_to_repos.assert_called_once_with(returned_repo)
         self.github_team.set_repo_permission.assert_called_once_with(returned_repo, "admin")
 
