@@ -19,7 +19,7 @@ class BaseReservationView(View):
     time_window_future = timezone.timedelta(days=14)
     time_window_past = timezone.timedelta(days=30)
 
-    def validate(self, user, room, start_time, end_time, pk=None):
+    def validate(self, room, start_time, end_time, pk=None):
         """
         Validate the input for the reservation.
 
