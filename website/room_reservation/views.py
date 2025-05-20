@@ -19,7 +19,7 @@ class BaseReservationView(View):
     time_window_future = timezone.timedelta(days=14)
     time_window_past = timezone.timedelta(days=30)
 
-    def validate(self, room, start_time, end_time, pk=None):
+    def validate(self, user, room, start_time, end_time, pk=None):
         """
         Validate the input for the reservation.
 
@@ -84,10 +84,17 @@ class BaseReservationView(View):
     def can_edit(self, reservation):
         """Return true if the reservation can be edited by the logged in user."""
         return (
-            self.request.user.has_perms(
-                ["room_reservation.change_reservation", "room_reservation.delete_reservation"], reservation
-            )
-            or self.request.user == reservation.reservee
+            self.request.user == reservation.reservee
+            or self.request.user.is_superuser
+        )
+    
+    def can_create(self):
+        """Return true if the reservation can be created by the logged in user."""
+        current_semester = Semester.objects.get_or_create_current_semester()
+
+        return (
+            self.request.user.registration_set.filter(projects_set__semester=current_semester).exists()
+            or self.request.user.is_superuser
         )
 
 
@@ -147,6 +154,9 @@ class CreateReservationView(LoginRequiredMixin, BaseReservationView):
             room, start_time, end_time = self.load_json()
         except (KeyError, JSONDecodeError):
             return HttpResponseBadRequest(json.dumps({"ok": "False", "message": "Bad request"}))
+        
+        if not self.can_create():
+            return JsonResponse({"ok": False, "message": "You are not allowed to make reservations."})
 
         ok, message = self.validate(room, start_time, end_time)
         if not ok:
