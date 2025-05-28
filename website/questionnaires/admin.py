@@ -340,7 +340,9 @@ class AnswerAdmin(ModelAdminTotals):
                     answer.submission.late,
                     answer.question.question,
                     answer.peer,
-                    " - ".join((answer.answer.get_value_display(), answer.answer.comments)) if answer.question.is_closed else answer.answer.value,
+                    " - ".join((answer.answer.get_value_display(), answer.answer.comments))
+                    if answer.question.is_closed
+                    else answer.answer.value,
                     answer.answer.value if answer.question.is_closed else "",
                 ]
             )
