@@ -1,3 +1,6 @@
+import csv
+from io import StringIO
+
 from admin_auto_filters.filters import AutocompleteFilter
 
 from django.conf import settings
@@ -5,6 +8,7 @@ from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
+from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import path
 
@@ -95,7 +99,7 @@ class ProjectAdmin(admin.ModelAdmin):
     list_filter = [ProjectAdminClientFilter, ProjectAdminSemesterFilter, ProjectAdminArchivedFilter]
     list_display = ["name", "client", "is_archived", "number_of_repos"]
 
-    actions = ["create_mailing_lists", "synchronise_to_GitHub", "archive_all_repositories"]
+    actions = ["create_mailing_lists", "synchronise_to_GitHub", "archive_all_repositories", "export_project_members"]
     inlines = [RepositoryInline, MailinglistInline]
 
     search_fields = ("name",)
@@ -159,6 +163,39 @@ class ProjectAdmin(admin.ModelAdmin):
         return redirect("admin:progress_bar", task=task)
 
     synchronise_to_GitHub.short_description = "Synchronise selected projects to GitHub"
+
+    def export_project_members(self, request, queryset):
+        content = StringIO()
+        writer = csv.writer(content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
+        writer.writerow(
+            [
+                "Project" "First name",
+                "Last name",
+                "Student number",
+                "GitHub username",
+                "Role",
+            ]
+        )
+
+        for project in queryset:
+            for registration in project.registration_set.all():
+                user = registration.user
+                writer.writerow(
+                    [
+                        project.name,
+                        user.first_name,
+                        user.last_name,
+                        user.student_number,
+                        user.github_username,
+                        registration.course,
+                    ]
+                )
+
+        response = HttpResponse(content.getvalue(), content_type="application/x-zip-compressed")
+        response["Content-Disposition"] = "attachment; filename=project-members.csv"
+        return response
+
+    export_project_members.short_description = "Export project members to CSV"
 
     def synchronise_current_projects_to_GitHub(self, request):
         """Synchronise project(teams) of the current semester to GitHub."""
