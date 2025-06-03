@@ -169,7 +169,8 @@ class ProjectAdmin(admin.ModelAdmin):
         writer = csv.writer(content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
         writer.writerow(
             [
-                "Project" "First name",
+                "Project",
+                "First name",
                 "Last name",
                 "Student number",
                 "GitHub username",
