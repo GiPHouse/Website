@@ -157,9 +157,9 @@ class Step2Form(forms.Form):
         required=False,
         initial=True,
         help_text="Timeslot 4: Tuesday 13:30 - 17:30",
-    )   
+    )
 
-    available_during_scheduled_timeslot_5 = forms.BooleanField(                 
+    available_during_scheduled_timeslot_5 = forms.BooleanField(
         label="I am available during scheduled timeslot 5 for the course",
         required=False,
         initial=True,

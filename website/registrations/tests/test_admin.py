@@ -163,6 +163,10 @@ class RegistrationAdminTest(TestCase):
                 '"Dev Experience","Git Experience","Scrum Experience","Management Interest",'
                 '"Non-dutch","Available during scheduled timeslot 1",'
                 '"Available during scheduled timeslot 2","Available during scheduled timeslot 3",'
+                '"Available during scheduled timeslot 4","Available during scheduled timeslot 5",'
+                '"Available during scheduled timeslot 6","Available during scheduled timeslot 7",'
+                '"Available during scheduled timeslot 8","Available during scheduled timeslot 9",'
+                '"Available during scheduled timeslot 10",'
                 '"Has problems with signing an NDA","Registration Comments"'
             ),
         )
@@ -188,6 +192,13 @@ class RegistrationAdminTest(TestCase):
                 f'"{self.registration.available_during_scheduled_timeslot_1}",'
                 f'"{self.registration.available_during_scheduled_timeslot_2}",'
                 f'"{self.registration.available_during_scheduled_timeslot_3}",'
+                f'"{self.registration.available_during_scheduled_timeslot_4}",'
+                f'"{self.registration.available_during_scheduled_timeslot_5}",'
+                f'"{self.registration.available_during_scheduled_timeslot_6}",'
+                f'"{self.registration.available_during_scheduled_timeslot_7}",'
+                f'"{self.registration.available_during_scheduled_timeslot_8}",'
+                f'"{self.registration.available_during_scheduled_timeslot_9}",'
+                f'"{self.registration.available_during_scheduled_timeslot_10}",'
                 f'"{self.registration.has_problems_with_signing_an_nda}",'
                 f'"{self.registration.comments}"'
             ),
