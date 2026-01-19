@@ -10,7 +10,7 @@ jobs:
     steps:
 
     - name: "Checkout the repository"
-      uses: "actions/checkout@3"
+      uses: "actions/checkout@V4"
 
     - name: "Setup Python"
       uses: "actions/setup-python@v3"
@@ -55,7 +55,7 @@ jobs:
     steps:
 
     - name: "Checkout the repository"
-      uses: "actions/checkout@v3"
+      uses: "actions/checkout@v4"
 
     - name: "Setup Python"
       uses: "actions/setup-python@v3"
