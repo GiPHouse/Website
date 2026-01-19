@@ -10,10 +10,10 @@ jobs:
     steps:
 
     - name: "Checkout the repository"
-      uses: "actions/checkout@v1"
+      uses: "actions/checkout@3"
 
     - name: "Setup Python"
-      uses: "actions/setup-python@v1"
+      uses: "actions/setup-python@v3"
       with:
         python-version: '3.10'
 
@@ -23,7 +23,7 @@ jobs:
         python -m pip install poetry
 
     - name: "Restore any cached Poetry dependencies"
-      uses: actions/cache@v1
+      uses: actions/cache@v3
       with:
         path: ~/.cache/pypoetry/virtualenvs
         key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
@@ -55,10 +55,10 @@ jobs:
     steps:
 
     - name: "Checkout the repository"
-      uses: "actions/checkout@v1"
+      uses: "actions/checkout@v3"
 
     - name: "Setup Python"
-      uses: "actions/setup-python@v1"
+      uses: "actions/setup-python@v3"
       with:
         python-version: '3.10'
 
@@ -68,7 +68,7 @@ jobs:
         python -m pip install poetry
 
     - name: "Restore any cached Poetry dependencies"
-      uses: actions/cache@v1
+      uses: actions/cache@v3
       with:
         path: ~/.cache/pypoetry/virtualenvs
         key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
