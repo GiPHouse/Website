@@ -56,6 +56,13 @@ class Registration(models.Model):
     available_during_scheduled_timeslot_1 = models.BooleanField(default=True)
     available_during_scheduled_timeslot_2 = models.BooleanField(default=True)
     available_during_scheduled_timeslot_3 = models.BooleanField(default=True)
+    available_during_scheduled_timeslot_4 = models.BooleanField(default=True)
+    available_during_scheduled_timeslot_5 = models.BooleanField(default=True)
+    available_during_scheduled_timeslot_6 = models.BooleanField(default=True)
+    available_during_scheduled_timeslot_7 = models.BooleanField(default=True)
+    available_during_scheduled_timeslot_8 = models.BooleanField(default=True)
+    available_during_scheduled_timeslot_9 = models.BooleanField(default=True)
+    available_during_scheduled_timeslot_10 = models.BooleanField(default=True)
     has_problems_with_signing_an_nda = models.BooleanField(default=False)
     comments = models.TextField(null=True, blank=True)
 

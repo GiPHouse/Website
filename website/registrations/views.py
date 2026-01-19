@@ -111,6 +111,13 @@ class Step2View(FormView):
                 available_during_scheduled_timeslot_1=form.cleaned_data["available_during_scheduled_timeslot_1"],
                 available_during_scheduled_timeslot_2=form.cleaned_data["available_during_scheduled_timeslot_2"],
                 available_during_scheduled_timeslot_3=form.cleaned_data["available_during_scheduled_timeslot_3"],
+                available_during_scheduled_timeslot_4=form.cleaned_data["available_during_scheduled_timeslot_4"],
+                available_during_scheduled_timeslot_5=form.cleaned_data["available_during_scheduled_timeslot_5"],
+                available_during_scheduled_timeslot_6=form.cleaned_data["available_during_scheduled_timeslot_6"],
+                available_during_scheduled_timeslot_7=form.cleaned_data["available_during_scheduled_timeslot_7"],
+                available_during_scheduled_timeslot_8=form.cleaned_data["available_during_scheduled_timeslot_8"],
+                available_during_scheduled_timeslot_9=form.cleaned_data["available_during_scheduled_timeslot_9"],
+                available_during_scheduled_timeslot_10=form.cleaned_data["available_during_scheduled_timeslot_10"],
                 has_problems_with_signing_an_nda=form.cleaned_data["has_problems_with_signing_an_nda"],
             )
 

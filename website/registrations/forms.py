@@ -135,21 +135,70 @@ class Step2Form(forms.Form):
         label="I am available during scheduled timeslot 1 for the course",
         required=False,
         initial=True,
-        help_text="Timeslot 1: Thursday 15:30 - 17:15",
+        help_text="Timeslot 1: Monday 8:30 - 12:30",
     )
 
     available_during_scheduled_timeslot_2 = forms.BooleanField(
         label="I am available during scheduled timeslot 2 for the course",
         required=False,
         initial=True,
-        help_text="Timeslot 2: Friday 13:30 - 15:15",
+        help_text="Timeslot 2: Monday 13:30 - 17:30",
     )
 
     available_during_scheduled_timeslot_3 = forms.BooleanField(
         label="I am available during scheduled timeslot 3 for the course",
         required=False,
         initial=True,
-        help_text="Timeslot 3: Friday 15:30 - 17:15",
+        help_text="Timeslot 3: Tuesday 8:30 - 12:30",
+    )
+
+    available_during_scheduled_timeslot_4 = forms.BooleanField(
+        label="I am available during scheduled timeslot 4 for the course",
+        required=False,
+        initial=True,
+        help_text="Timeslot 4: Tuesday 13:30 - 17:30",
+    )   
+
+    available_during_scheduled_timeslot_5 = forms.BooleanField(                 
+        label="I am available during scheduled timeslot 5 for the course",
+        required=False,
+        initial=True,
+        help_text="Timeslot 5: Wednesday 8:30 - 12:30",
+    )
+
+    available_during_scheduled_timeslot_6 = forms.BooleanField(
+        label="I am available during scheduled timeslot 6 for the course",
+        required=False,
+        initial=True,
+        help_text="Timeslot 6: Wednesday 13:30 - 17:30",
+    )
+
+    available_during_scheduled_timeslot_7 = forms.BooleanField(
+        label="I am available during scheduled timeslot 7 for the course",
+        required=False,
+        initial=True,
+        help_text="Timeslot 7: Thursday 8:30 - 12:30",
+    )
+
+    available_during_scheduled_timeslot_8 = forms.BooleanField(
+        label="I am available during scheduled timeslot 8 for the course",
+        required=False,
+        initial=True,
+        help_text="Timeslot 8: Thursday 13:30 - 17:30",
+    )
+
+    available_during_scheduled_timeslot_9 = forms.BooleanField(
+        label="I am available during scheduled timeslot 9 for the course",
+        required=False,
+        initial=True,
+        help_text="Timeslot 9: Friday 8:30 - 12:30",
+    )
+
+    available_during_scheduled_timeslot_10 = forms.BooleanField(
+        label="I am available during scheduled timeslot 10 for the course",
+        required=False,
+        initial=True,
+        help_text="Timeslot 10: Friday 13:30 - 17:30",
     )
 
     has_problems_with_signing_an_nda = forms.BooleanField(
