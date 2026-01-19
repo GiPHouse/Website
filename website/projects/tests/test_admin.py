@@ -37,7 +37,13 @@ class GetProjectsTest(TestCase):
             name="test-archived", slug="test-archived", semester=cls.semester
         )
 
-        cls.manager = User.objects.create(github_id=1, github_username="manager")
+        cls.manager = User.objects.create(
+            github_id=1,
+            github_username="manager",
+            first_name="John",
+            last_name="Doe",
+            student_number="s1234567",
+        )
         reg = Registration.objects.create(
             user=cls.manager,
             semester=cls.semester,
@@ -46,6 +52,7 @@ class GetProjectsTest(TestCase):
             dev_experience=Registration.EXPERIENCE_ADVANCED,
         )
         reg.project = cls.project
+        reg.projects.add(cls.project)
 
         cls.repo1 = Repository.objects.create(name="testrepo1", project=cls.project)
         cls.repo2 = Repository.objects.create(name="testrepo2", project=cls.project)
@@ -291,3 +298,16 @@ class GetProjectsTest(TestCase):
         self.assertEqual(result.count(), 2)
         self.assertIn(self.project, result)
         self.assertIn(self.project_archived, result)
+
+    def test_export_project_members(self):
+        response = self.client.post(
+            reverse("admin:projects_project_changelist"),
+            {ACTION_CHECKBOX_NAME: [self.project.pk], "action": "export_project_members", "index": 0},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '"Project","First name","Last name","Student number","GitHub username","Role"')
+        self.assertContains(
+            response,
+            f'"{self.project.name}","{self.manager.first_name}","{self.manager.last_name}",'
+            f'"{self.manager.student_number}","{self.manager.github_username}"',
+        )

@@ -165,6 +165,7 @@ class ProjectAdmin(admin.ModelAdmin):
     synchronise_to_GitHub.short_description = "Synchronise selected projects to GitHub"
 
     def export_project_members(self, request, queryset):
+        """Export project members to a CSV file."""
         content = StringIO()
         writer = csv.writer(content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
         writer.writerow(
