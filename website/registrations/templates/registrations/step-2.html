@@ -14,6 +14,16 @@
         <hr>
         <form method="post" class="form">
             {% csrf_token %}
+
+            {% if form.warnings %}
+     
+                <p><small>Please check the box below to continue with registration</small></p>
+            {% else %}
+                <style>
+                    #id_ignore_warnings { display: none; }
+                    label[for="id_ignore_warnings"] { display: none; }
+                </style>
+            {% endif %}
             {% bootstrap_form form %}
             {% bootstrap_button "Submit" name="submit" value="submit" button_type="submit" button_class="btn-secondary" %}
         </form>

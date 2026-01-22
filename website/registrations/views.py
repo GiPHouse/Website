@@ -81,6 +81,11 @@ class Step2View(FormView):
         return initial
 
     def form_valid(self, form):
+        """Check for warnings before registering."""
+        if form.warnings and not form.cleaned_data.get("ignore_warnings"):
+            form.add_error(None, form.warnings[0])
+            return self.form_invalid(form)
+        
         """Register new user if the form is valid."""
         with transaction.atomic():
             user, _ = User.objects.get_or_create(github_id=self.request.session["github_id"])
@@ -91,7 +96,6 @@ class Step2View(FormView):
             user.github_username = form.cleaned_data["github_username"]
             user.student_number = form.cleaned_data["student_number"]
             user.save()
-
             Registration.objects.create(
                 user=user,
                 semester=Semester.objects.get_first_semester_with_open_registration(),
