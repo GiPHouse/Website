@@ -223,7 +223,7 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
                         answer.submission.late,
                         answer.question.question,
                         answer.peer,
-                        answer.answer.get_value_display() if answer.question.is_closed else answer.answer.value,
+                        answer.answer.comments if answer.question.is_closed else answer.answer.value,
                         answer.answer.value if answer.question.is_closed else "",
                     ]
                 )
@@ -340,7 +340,7 @@ class AnswerAdmin(ModelAdminTotals):
                     answer.submission.late,
                     answer.question.question,
                     answer.peer,
-                    answer.answer.get_value_display() if answer.question.is_closed else answer.answer.value,
+                    answer.answer.comments if answer.question.is_closed else answer.answer.value,
                     answer.answer.value if answer.question.is_closed else "",
                 ]
             )

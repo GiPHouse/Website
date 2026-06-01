@@ -186,7 +186,7 @@ class QuestionnaireTest(TestCase):
             response,
             f'"{self.closed_answer.submission.questionnaire}","{self.closed_answer.submission.participant}",'
             f'"{self.closed_answer.submission.late}","{self.closed_answer.question.question}",'
-            f'"{self.closed_answer.peer}","{self.closed_answer.answer.get_value_display()}",'
+            f'"{self.closed_answer.peer}","{self.closed_answer.answer.comments or ""}",'
             f'"{self.closed_answer.answer.value}"',
         )
         self.assertEqual(response.status_code, 200)
@@ -215,7 +215,7 @@ class QuestionnaireTest(TestCase):
             response,
             f'"{self.closed_answer.submission.questionnaire}","{self.closed_answer.submission.participant}",'
             f'"{self.closed_answer.submission.late}","{self.closed_answer.question.question}",'
-            f'"{self.closed_answer.peer}","{self.closed_answer.answer.get_value_display()}",'
+            f'"{self.closed_answer.peer}","{self.closed_answer.answer.comments or ""}",'
             f'"{self.closed_answer.answer.value}"',
         )
         self.assertEqual(response.status_code, 200)
