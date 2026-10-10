@@ -31,10 +31,11 @@ Users log in with GitHub only; there are no passwords. To log in locally you nee
    - **Application name**: anything, e.g. `GiPHouse local`.
    - **Homepage URL**: `http://localhost:8000`
    - **Authorization callback URL**: `http://localhost:8000/oauth/`
+   - **Allow wildcard matching**: tick this. It is required, see below.
 
    Register the app, then click **Generate a new client secret**. Copy the **Client ID** and the client secret.
 
-   The website sends GitHub a callback URL that is a subpath of this one, such as `http://localhost:8000/oauth/login/?next=/admin/` for logging in and `http://localhost:8000/oauth/register/?next=...` for registering. If GitHub answers with a `redirect_uri` mismatch error, turn on wildcard (subdirectory) matching of the callback URL in the app's settings.
+   The website sends GitHub a callback URL that is a subpath of this one, such as `http://localhost:8000/oauth/login/?next=/admin/` for logging in and `http://localhost:8000/oauth/register/?next=...` for registering. GitHub only accepts these subpaths when **Allow wildcard matching** is ticked; without it GitHub refuses the redirect and login fails. You can also tick it later in the app's settings.
 
    An OAuth App is enough for logging in. You only need a GitHub App ([GitHub App and G Suite setup](integrations.md)) if you also want to test repository synchronisation; a GitHub App's own client ID and secret can be used here instead of an OAuth App's.
 
