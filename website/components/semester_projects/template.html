@@ -1,0 +1,12 @@
+{% load component_tags %}
+
+<button class="accordion">{{ semester }}</button>
+<div class="panel">
+    <div class="container-fluid">
+        <div class="row">
+            {% for project in projects %}
+                {% component "project_card" project=project %} {% endcomponent %}
+            {% endfor %}
+        </div>
+    </div>
+</div>

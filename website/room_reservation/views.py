@@ -39,12 +39,20 @@ class BaseReservationView(View):
             return False, "Reservation too far in the future."
 
         if end_time.date() - start_time.date() >= timezone.timedelta(days=1):
-            return False, "Reservation too long. Please shorten your reservation"
+            return (
+                False,
+                "Reservation too long. Please shorten your reservation",
+            )
 
         if start_time >= end_time:
             return False, "Start time needs to be before end time"
 
-        if start_time.hour < 8 or start_time.hour >= 18 or end_time.hour < 8 or end_time.hour > 18:
+        if (
+            start_time.hour < 8
+            or start_time.hour >= 18
+            or end_time.hour < 8
+            or end_time.hour > 18
+        ):
             return False, "Please enter times between 8:00 and 18:00"
 
         if start_time.weekday() in (5, 6):
@@ -54,7 +62,9 @@ class BaseReservationView(View):
         if (
             room.special_availability is not None
             and room.special_availability != []
-            and not in_special_availability(room.special_availability, start_time, end_time)
+            and not in_special_availability(
+                room.special_availability, start_time, end_time
+            )
         ):
             return False, "Rooms is not available at this time"
 
@@ -85,7 +95,11 @@ class BaseReservationView(View):
         """Return true if the reservation can be edited by the logged in user."""
         return (
             self.request.user.has_perms(
-                ["room_reservation.change_reservation", "room_reservation.delete_reservation"], reservation
+                [
+                    "room_reservation.change_reservation",
+                    "room_reservation.delete_reservation",
+                ],
+                reservation,
             )
             or self.request.user == reservation.reservee
         )
@@ -107,9 +121,21 @@ class ShowCalendarView(TemplateView, BaseReservationView):
         reservee_registrations = reservation.reservee.registration_set.filter(
             semester=Semester.objects.get_or_create_current_semester()
         )
-        team_name = reservee_registrations.first().project if reservee_registrations.exists() else None
-        reservee_display_name = reservation.reservee.first_name if reservation.reservee != self.request.user else "you"
-        return f"{room_name} {team_name}" if team_name else f"{room_name} ({reservee_display_name})"
+        team_name = (
+            reservee_registrations.first().project
+            if reservee_registrations.exists()
+            else None
+        )
+        reservee_display_name = (
+            reservation.reservee.first_name
+            if reservation.reservee != self.request.user
+            else "you"
+        )
+        return (
+            f"{room_name} {team_name}"
+            if team_name
+            else f"{room_name} ({reservee_display_name})"
+        )
 
     def get_context_data(self, **kwargs):
         """Load all information for the calendar."""
@@ -127,8 +153,10 @@ class ShowCalendarView(TemplateView, BaseReservationView):
                     "editable": self.can_edit(reservation),
                 }
                 for reservation in Reservation.objects.filter(
-                    start_time__date__gte=timezone.now() - self.time_window_past,
-                    start_time__date__lte=timezone.now() + self.time_window_future,
+                    start_time__date__gte=timezone.now()
+                    - self.time_window_past,
+                    start_time__date__lte=timezone.now()
+                    + self.time_window_future,
                 )
             ]
         )
@@ -145,15 +173,20 @@ class CreateReservationView(LoginRequiredMixin, BaseReservationView):
         """Handle the POST method for this view."""
         try:
             room, start_time, end_time = self.load_json()
-        except (KeyError, JSONDecodeError):
-            return HttpResponseBadRequest(json.dumps({"ok": "False", "message": "Bad request"}))
+        except KeyError, JSONDecodeError:
+            return HttpResponseBadRequest(
+                json.dumps({"ok": "False", "message": "Bad request"})
+            )
 
         ok, message = self.validate(room, start_time, end_time)
         if not ok:
             return JsonResponse({"ok": False, "message": message})
 
         reservation = Reservation.objects.create(
-            reservee=request.user, room_id=room, start_time=start_time, end_time=end_time
+            reservee=request.user,
+            room_id=room,
+            start_time=start_time,
+            end_time=end_time,
         )
         return JsonResponse({"ok": True, "pk": reservation.pk})
 
@@ -167,16 +200,22 @@ class UpdateReservationView(LoginRequiredMixin, BaseReservationView):
         """Handle the POST method for this view."""
         try:
             room, start_time, end_time = self.load_json()
-        except (KeyError, JSONDecodeError):
-            return HttpResponseBadRequest(json.dumps({"ok": "False", "message": "Bad request"}))
+        except KeyError, JSONDecodeError:
+            return HttpResponseBadRequest(
+                json.dumps({"ok": "False", "message": "Bad request"})
+            )
 
         try:
             reservation = Reservation.objects.get(pk=pk)
         except Reservation.DoesNotExist:
-            return JsonResponse({"ok": False, "message": "This reservation does not exist"})
+            return JsonResponse(
+                {"ok": False, "message": "This reservation does not exist"}
+            )
 
         if not self.can_edit(reservation):
-            return JsonResponse({"ok": False, "message": "You can only update your own events"})
+            return JsonResponse(
+                {"ok": False, "message": "You can only update your own events"}
+            )
 
         ok, message = self.validate(room, start_time, end_time, pk=pk)
         if not ok:
@@ -198,10 +237,14 @@ class DeleteReservationView(LoginRequiredMixin, BaseReservationView):
         try:
             reservation = Reservation.objects.get(pk=pk)
         except Reservation.DoesNotExist:
-            return JsonResponse({"ok": False, "message": "This reservation does not exist"})
+            return JsonResponse(
+                {"ok": False, "message": "This reservation does not exist"}
+            )
 
         if not self.can_edit(reservation):
-            return JsonResponse({"ok": False, "message": "You can only delete your own events"})
+            return JsonResponse(
+                {"ok": False, "message": "You can only delete your own events"}
+            )
 
         reservation.delete()
         return JsonResponse({"ok": True})

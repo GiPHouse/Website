@@ -3,12 +3,14 @@ __pycache__/
 .idea/
 .vscode/
 *.css
+!/website/room_reservation/static/scss/fullcalendar/main.min.css
 *.map
 db.sqlite3
 .envrc
 .env
+.venv/
 *.DS_Store
 .coverage
-website/media/
-website/static/
 *.pem
+*.ps1
+test_output.txt
