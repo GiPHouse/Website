@@ -197,41 +197,56 @@ The website (and Django) have features to make developing and testing changes to
 The website has multiple settings. By default, the development settings are used.
 
 ### Getting Started
-Follow the following steps to setup your own personal development environment.
-1. Install Python 3.14.
-2. Install [uv](https://docs.astral.sh/uv/#installation), make sure it uses the intended python version for installation.
-3. Add `uv` to PATH as an environment variable.
-4. Clone this repository.
-	1. Open a terminal in the project root.
-5. Run `uv venv --clear` to create and enter a virtual environment.
-6. Run `.venv/Scripts\activate` to activate the virtual environment.
-7. Run `uv sync` to install all dependencies into virtual environment.
-**All commands from this point on must be ran inside the virtual environment**.
-8. Run `python website/manage.py migrate` to initialize the database.
-9. Run `python website/manage.py runserver` to start the local testing server.
-10. Run `python website/manage.py runserver` again, to make sure the server discovers the just created `/static/` files.
+Follow these steps to set up your own development environment. Commands are run from the repository root unless stated otherwise.
 
-Command 8. will create a database file which is configured to be not commited via .gitignore. Hence, the changes you make to a database are local, and will persist after you pull.
+1. Install [uv](https://docs.astral.sh/uv/getting-started/installation/). uv installs Python 3.14 for you if it is missing.
+2. Clone this repository and open a terminal in its root.
+3. Run `uv sync`. This creates the virtual environment in `.venv/` and installs all dependencies into it.
+4. Run `uv run python website/manage.py migrate` to create the local SQLite database (`website/db.sqlite3`).
+5. Run `uv run python website/manage.py runserver` and open [http://localhost:8000](http://localhost:8000).
+
+`uv run` runs a command inside the virtual environment, so you do not have to activate it. If you prefer to activate it, use `source .venv/bin/activate` (Linux/macOS) or `.venv\Scripts\activate` (Windows) and drop the `uv run` prefix.
+
+The database file is ignored by git, so the data in it (including any users you create) stays on your machine.
+
+The site runs without any GitHub credentials, but logging in (including into the admin) does not work until you finish the next section.
 
 #### Logging into the Backend
-Because the authentication is based on Github OAuth authentication, some setup is required for users to be able to login in their own development environment.
+Users log in with GitHub only; there are no passwords. To log in locally you need your own GitHub OAuth credentials and a user in your local database with your GitHub ID.
 
-You will need to set up [your own GitHub App](https://developer.github.com/apps/building-github-apps/creating-a-github-app/)
-that we will use for OAuth (and for repository synchronisation as well, as explained in the next step) and 
-set your client ID and client secret key as environment variables (`DJANGO_GITHUB_CLIENT_ID` and `DJANGO_GITHUB_CLIENT_SECRET` respectively). 
-[direnv](https://direnv.net/) is a tool that allows Linux users to do this automatically.
+1. **Create a GitHub OAuth App.** On GitHub, go to *Settings → Developer settings → OAuth Apps → New OAuth App* ([direct link](https://github.com/settings/applications/new)) and fill in:
+   - **Application name**: anything, e.g. `GiPHouse local`.
+   - **Homepage URL**: `http://localhost:8000`
+   - **Authorization callback URL**: `http://localhost:8000/oauth/`
 
-When the `createsuperuser` management command is ran:
-```Bash
-$ python website/manage.py createsuperuser --github_id=<your_github_id> --github_username=<your_github_username> --no-input
-```
-, the added superuser will be added as an entry to the database file. Hence, the created superusers are local.  
-One's GitHub account will be used for login; you can find your GitHub id by changing your username in the link and following it: https://api.github.com/users/yourusername.
+   Register the app, then click **Generate a new client secret**. Copy the **Client ID** and the client secret.
 
-To make the backend (`localhost:8000/admin/`) work, an existing GitHub App must be present and Django must have access to it. 
-To make Django see them, one must set them as environment variables. For now, they can be added as temporary (**after the shell is closed, they disappear**) shell environment variables. As an example, in PowerShell (but still inside the virtual environment!) it can be done via `$env:NAME="val"`. Do so for the provided credentials.
+   The website sends GitHub a callback URL that is a subpath of this one, such as `http://localhost:8000/oauth/login/?next=/admin/` for logging in and `http://localhost:8000/oauth/register/?next=...` for registering. If GitHub answers with a `redirect_uri` mismatch error, turn on wildcard (subdirectory) matching of the callback URL in the app's settings.
 
-After server restart (command 10.), one should be able to log into the [backend](http://127.0.0.1:8000/admin/) (using their GitHub account).
+   An OAuth App is enough for logging in. You only need a GitHub App (next section) if you also want to test repository synchronisation; a GitHub App's own client ID and secret can be used here instead of an OAuth App's.
+
+2. **Set the credentials as environment variables.** The settings read `DJANGO_GITHUB_CLIENT_ID` and `DJANGO_GITHUB_CLIENT_SECRET` (see `website/giphousewebsite/settings/development.py`). The easiest way is a `.env` file in the repository root (it is ignored by git):
+   ```
+   DJANGO_GITHUB_CLIENT_ID=<your client id>
+   DJANGO_GITHUB_CLIENT_SECRET=<your client secret>
+   ```
+   and pass it to every `uv run` command with `--env-file .env`. Alternatively export them in your shell (`export NAME=value` in bash/zsh, `$env:NAME="value"` in PowerShell) or use [direnv](https://direnv.net/).
+
+3. **Create a superuser for your GitHub account.** Look up your numeric GitHub ID at `https://api.github.com/users/<your_github_username>` (the `id` field), then run:
+   ```bash
+   uv run python website/manage.py createsuperuser --github_id=<your_github_id> --github_username=<your_github_username> --no-input
+   ```
+
+4. **Start the server with the credentials loaded.** The client ID is read when the server starts, so restart it after changing the variables:
+   ```bash
+   uv run --env-file .env python website/manage.py runserver
+   ```
+
+5. **Log in.** Open [http://localhost:8000/admin/](http://localhost:8000/admin/). You are sent to GitHub, asked to authorize your app, and sent back logged in.
+
+Use the same host name in the browser as in the callback URL. GitHub treats `localhost` and `127.0.0.1` as different hosts, so if you browse to `http://127.0.0.1:8000`, register `http://127.0.0.1:8000/oauth/` as the callback URL instead (or add both; an OAuth App accepts several callback URLs).
+
+Logging in only works for GitHub accounts that already exist as a user in your local database. Any other account is sent to the registration page if a semester has open registrations, and otherwise sees "Login Failed".
 
 #### Registering a GitHub App for repository synchronisation
 To enable the synchronisation functionality of repositories and project(team)s, a GitHub App must be registered and installed in an organization. This GitHub App needs the following permissions:
@@ -279,7 +294,7 @@ Use the `--help` argument to get more information.
 ### Tests
 To make sure everything functions correctly, the website has tests (using [Djangos built-in test framework](https://docs.djangoproject.com/en/dev/topics/testing/)). To run these manually use
 ```Bash
-$ python website/manage.py test website/
+$ uv run python website/manage.py test website/
 ```
 
 ### Code quality
