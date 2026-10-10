@@ -121,9 +121,9 @@ class ViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         """Set up test data."""
-        Course.objects.create(name="Software Engineering")
-        Course.objects.create(name="System Development Management")
-        Course.objects.create(name="Software Development Entrepreneurship")
+        Course.objects.get_or_create(name="Software Engineering")
+        Course.objects.get_or_create(name="System Development Management")
+        Course.objects.get_or_create(name="Software Development Entrepreneurship")
 
         cls.user = Employee.objects.create_user(
             github_id=0, github_username="test"

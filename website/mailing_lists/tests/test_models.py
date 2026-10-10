@@ -32,9 +32,9 @@ class ModelTest(TestCase):
             address=cls.existing_alias_address, mailing_list=cls.existing_list
         )
 
-        Course.objects.create(name="Software Engineering")
-        Course.objects.create(name="System Development Management")
-        Course.objects.create(name="Software Development Entrepreneurship")
+        Course.objects.get_or_create(name="Software Engineering")
+        Course.objects.get_or_create(name="System Development Management")
+        Course.objects.get_or_create(name="Software Development Entrepreneurship")
 
     def test_mailininglistalias_str_method(self):
         self.assertEqual(self.existing_alias_address, str(self.existing_alias))

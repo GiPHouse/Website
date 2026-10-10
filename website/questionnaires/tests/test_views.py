@@ -43,9 +43,9 @@ def generate_post_data(questionnaire_id, peers, submit=True):
 class QuestionnaireTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        Course.objects.create(name="Software Engineering")
-        Course.objects.create(name="System Development Management")
-        Course.objects.create(name="Software Development Entrepreneurship")
+        Course.objects.get_or_create(name="Software Engineering")
+        Course.objects.get_or_create(name="System Development Management")
+        Course.objects.get_or_create(name="Software Development Entrepreneurship")
 
         semester = Semester.objects.get_or_create_current_semester()
 

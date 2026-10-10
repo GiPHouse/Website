@@ -30,9 +30,9 @@ User: Employee = get_user_model()
 class RegistrationAdminTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        Course.objects.create(name="Software Engineering")
-        Course.objects.create(name="System Development Management")
-        Course.objects.create(name="Software Development Entrepreneurship")
+        Course.objects.get_or_create(name="Software Engineering")
+        Course.objects.get_or_create(name="System Development Management")
+        Course.objects.get_or_create(name="Software Development Entrepreneurship")
 
         cls.admin_password = "hunter2"
         cls.admin = User.objects.create_superuser(

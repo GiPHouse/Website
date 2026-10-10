@@ -44,9 +44,9 @@ class EmployeeQueryTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         """Sets up one semester, four projects and three employees"""
-        Course.objects.create(name="Software Engineering")
-        Course.objects.create(name="System Development Management")
-        Course.objects.create(name="Software Development Entrepreneurship")
+        Course.objects.get_or_create(name="Software Engineering")
+        Course.objects.get_or_create(name="System Development Management")
+        Course.objects.get_or_create(name="Software Development Entrepreneurship")
 
         cls.semester = Semester.objects.create(
             year=2020, season=Semester.SPRING

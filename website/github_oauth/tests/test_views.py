@@ -118,7 +118,7 @@ class LoginTest(TestCase):
 class RegisterTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        Course.objects.create(name="Software Engineering")
+        Course.objects.get_or_create(name="Software Engineering")
 
         cls.test_user = User.objects.create_user(github_id=0)
 

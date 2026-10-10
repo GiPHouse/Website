@@ -19,9 +19,9 @@ class TeamAssignmentTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        Course.objects.create(name="Software Engineering")
-        Course.objects.create(name="System Development Management")
-        Course.objects.create(name="Software Development Entrepreneurship")
+        Course.objects.get_or_create(name="Software Engineering")
+        Course.objects.get_or_create(name="System Development Management")
+        Course.objects.get_or_create(name="Software Development Entrepreneurship")
 
         cls.semester = Semester.objects.get_or_create_current_semester()
         cls.sdm = Course.objects.sdm()
