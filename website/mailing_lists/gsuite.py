@@ -17,6 +17,7 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+
 import logging
 import threading
 from random import random
@@ -113,9 +114,12 @@ class GSuiteSyncService:
         super().__init__()
 
         if groups_settings_api is None or directory_api is None:
-            credentials = service_account.Credentials.from_service_account_info(
-                settings.GSUITE_ADMIN_CREDENTIALS, scopes=settings.GSUITE_SCOPES
-            ).with_subject(settings.GSUITE_ADMIN_USER)
+            credentials = (
+                service_account.Credentials.from_service_account_info(
+                    settings.GSUITE_ADMIN_CREDENTIALS,
+                    scopes=settings.GSUITE_SCOPES,
+                ).with_subject(settings.GSUITE_ADMIN_USER)
+            )
 
             if groups_settings_api is None:
                 groups_settings_api = build(
@@ -234,7 +238,9 @@ class GSuiteSyncService:
                     else:
                         n += 1
         except HttpError:
-            logger.exception(f"Could not successfully finish creating the list {group.name}:")
+            logger.exception(
+                f"Could not successfully finish creating the list {group.name}:"
+            )
             return False
 
         self._update_group_members(group)
@@ -289,36 +295,54 @@ class GSuiteSyncService:
                 .execute()
             )
         except HttpError:
-            logger.exception(f"Could not obtain existing aliases for list {group.name}:")
+            logger.exception(
+                f"Could not obtain existing aliases for list {group.name}:"
+            )
             return
 
-        existing_aliases = [a["alias"] for a in aliases_response.get("aliases", [])]
+        existing_aliases = [
+            a["alias"] for a in aliases_response.get("aliases", [])
+        ]
         new_aliases = [f"{a}@{settings.GSUITE_DOMAIN}" for a in group.aliases]
 
-        remove_list = list(filter(lambda x: x not in new_aliases, existing_aliases))
-        insert_list = list(filter(lambda x: x not in existing_aliases, new_aliases))
+        remove_list = list(
+            filter(lambda x: x not in new_aliases, existing_aliases)
+        )
+        insert_list = list(
+            filter(lambda x: x not in existing_aliases, new_aliases)
+        )
 
         for chunk in chunks(remove_list, 50):
             batch = self.directory_api.new_batch_http_request()
             for remove_alias in chunk:
-                batch.add(self.directory_api.groups().aliases().delete(groupKey=group_key, alias=remove_alias))
-
-            try:
-                batch.execute()
-            except HttpError:
-                logger.exception(f"Could not remove an alias for list {group.name}")
-
-        for chunk in chunks(insert_list, 50):
-            batch = self.directory_api.new_batch_http_request()
-            for insert_alias in chunk:
                 batch.add(
-                    self.directory_api.groups().aliases().insert(groupKey=group_key, body={"alias": insert_alias})
+                    self.directory_api.groups()
+                    .aliases()
+                    .delete(groupKey=group_key, alias=remove_alias)
                 )
 
             try:
                 batch.execute()
             except HttpError:
-                logger.exception(f"Could not insert an alias for list {group.name}")
+                logger.exception(
+                    f"Could not remove an alias for list {group.name}"
+                )
+
+        for chunk in chunks(insert_list, 50):
+            batch = self.directory_api.new_batch_http_request()
+            for insert_alias in chunk:
+                batch.add(
+                    self.directory_api.groups()
+                    .aliases()
+                    .insert(groupKey=group_key, body={"alias": insert_alias})
+                )
+
+            try:
+                batch.execute()
+            except HttpError:
+                logger.exception(
+                    f"Could not insert an alias for list {group.name}"
+                )
 
         logger.info(f"List {group.name} aliases updated")
 
@@ -333,10 +357,17 @@ class GSuiteSyncService:
         try:
             self.groups_settings_api.groups().patch(
                 groupUniqueId=f"{name}@{settings.GSUITE_DOMAIN}",
-                body={"archiveOnly": "true", "whoCanPostMessage": "NONE_CAN_POST"},
+                body={
+                    "archiveOnly": "true",
+                    "whoCanPostMessage": "NONE_CAN_POST",
+                },
             ).execute()
-            self._update_group_members(GSuiteSyncService.GroupData(name, addresses=[]))
-            self._update_group_aliases(GSuiteSyncService.GroupData(name, aliases=[]))
+            self._update_group_members(
+                GSuiteSyncService.GroupData(name, addresses=[])
+            )
+            self._update_group_aliases(
+                GSuiteSyncService.GroupData(name, aliases=[])
+            )
             logger.info(f"List {name} archived")
             return True
         except HttpError:
@@ -388,39 +419,63 @@ class GSuiteSyncService:
                 )
                 members_list += members_response.get("members", [])
 
-            existing_members = [m["email"] for m in members_list if m["role"] == "MEMBER"]
-            existing_managers = [m["email"] for m in members_list if m["role"] == "MANAGER"]
+            existing_members = [
+                m["email"] for m in members_list if m["role"] == "MEMBER"
+            ]
+            existing_managers = [
+                m["email"] for m in members_list if m["role"] == "MANAGER"
+            ]
         except HttpError:
-            logger.exception(f"Could not obtain list member data for {group.name}")
+            logger.exception(
+                f"Could not obtain list member data for {group.name}"
+            )
             return  # the list does not exist or something else is wrong
         new_members = group.addresses
 
-        remove_list = list(filter(lambda x: x not in new_members, existing_members))
-        insert_list = list(filter(lambda x: x not in existing_members and x not in existing_managers, new_members))
+        remove_list = list(
+            filter(lambda x: x not in new_members, existing_members)
+        )
+        insert_list = list(
+            filter(
+                lambda x: (
+                    x not in existing_members and x not in existing_managers
+                ),
+                new_members,
+            )
+        )
 
         for chunk in chunks(remove_list, 50):
             batch = self.directory_api.new_batch_http_request()
             for remove_member in chunk:
-                batch.add(self.directory_api.members().delete(groupKey=group_key, memberKey=remove_member))
-
-            try:
-                batch.execute()
-            except HttpError:
-                logger.exception(f"Could not remove a list member from {group.name}")
-
-        for chunk in chunks(insert_list, 50):
-            batch = self.directory_api.new_batch_http_request()
-            for insert_member in chunk:
                 batch.add(
-                    self.directory_api.members().insert(
-                        groupKey=group_key, body={"email": insert_member, "role": "MEMBER"}
+                    self.directory_api.members().delete(
+                        groupKey=group_key, memberKey=remove_member
                     )
                 )
 
             try:
                 batch.execute()
             except HttpError:
-                logger.exception(f"Could not insert a list member in {group.name}")
+                logger.exception(
+                    f"Could not remove a list member from {group.name}"
+                )
+
+        for chunk in chunks(insert_list, 50):
+            batch = self.directory_api.new_batch_http_request()
+            for insert_member in chunk:
+                batch.add(
+                    self.directory_api.members().insert(
+                        groupKey=group_key,
+                        body={"email": insert_member, "role": "MEMBER"},
+                    )
+                )
+
+            try:
+                batch.execute()
+            except HttpError:
+                logger.exception(
+                    f"Could not insert a list member in {group.name}"
+                )
 
         logger.info(f"List {group.name} members updated")
 
@@ -432,9 +487,15 @@ class GSuiteSyncService:
             gsuite_group_name=mailing_list.gsuite_group_name,
             description=mailing_list.description,
             aliases=(
-                [x.address for x in mailing_list.mailinglistalias_set.all()] if mailing_list.pk is not None else []
+                [x.address for x in mailing_list.mailinglistalias_set.all()]
+                if mailing_list.pk is not None
+                else []
             ),
-            addresses=(list(mailing_list.all_addresses) if mailing_list.pk is not None else []),
+            addresses=(
+                list(mailing_list.all_addresses)
+                if mailing_list.pk is not None
+                else []
+            ),
         )
 
     def _get_all_lists(self):
@@ -443,7 +504,10 @@ class GSuiteSyncService:
 
         :return: List of all mailing lists as GroupData
         """
-        return [self.mailing_list_to_group(mailinglist) for mailinglist in MailingList.objects.all()]
+        return [
+            self.mailing_list_to_group(mailinglist)
+            for mailinglist in MailingList.objects.all()
+        ]
 
     def _get_list_names_to_delete(self):
         """
@@ -453,7 +517,9 @@ class GSuiteSyncService:
         """
         return [
             mailinglist.address
-            for mailinglist in MailingListToBeDeleted.objects.filter(archive_instead_of_delete=False)
+            for mailinglist in MailingListToBeDeleted.objects.filter(
+                archive_instead_of_delete=False
+            )
         ]
 
     def _get_list_names_to_archive(self):
@@ -464,7 +530,9 @@ class GSuiteSyncService:
         """
         return [
             mailinglist.address
-            for mailinglist in MailingListToBeDeleted.objects.filter(archive_instead_of_delete=True)
+            for mailinglist in MailingListToBeDeleted.objects.filter(
+                archive_instead_of_delete=True
+            )
         ]
 
     def next_task(self):
@@ -494,7 +562,11 @@ class GSuiteSyncService:
             lists = self._get_all_lists()
 
         try:
-            groups_response = self.directory_api.groups().list(domain=settings.GSUITE_DOMAIN).execute()
+            groups_response = (
+                self.directory_api.groups()
+                .list(domain=settings.GSUITE_DOMAIN)
+                .execute()
+            )
             groups_list = groups_response.get("groups", [])
             while "nextPageToken" in groups_response:
                 groups_response = (
@@ -506,13 +578,25 @@ class GSuiteSyncService:
                     .execute()
                 )
                 groups_list += groups_response.get("groups", [])
-            existing_groups = [g["name"] for g in groups_list if int(g["directMembersCount"]) > 0]
-            archived_groups = [g["name"] for g in groups_list if g["directMembersCount"] == "0"]
+            existing_groups = [
+                g["name"]
+                for g in groups_list
+                if int(g["directMembersCount"]) > 0
+            ]
+            archived_groups = [
+                g["name"]
+                for g in groups_list
+                if g["directMembersCount"] == "0"
+            ]
         except HttpError:
             logger.exception("Could not get the existing groups")
             return  # there are no groups or something went wrong
 
-        new_groups = [g.gsuite_group_name if g.gsuite_group_name else g.name for g in lists if len(g.addresses) > 0]
+        new_groups = [
+            g.gsuite_group_name if g.gsuite_group_name else g.name
+            for g in lists
+            if len(g.addresses) > 0
+        ]
 
         list_names_to_remove = self._get_list_names_to_delete()
         list_names_to_archive = self._get_list_names_to_archive()
@@ -536,17 +620,32 @@ class GSuiteSyncService:
 
         for mailinglist in lists:
             try:
-                if mailinglist.name in insert_list and mailinglist.name not in archived_groups:
-                    logger.debug(f"Starting create group of {mailinglist.name}")
+                if (
+                    mailinglist.name in insert_list
+                    and mailinglist.name not in archived_groups
+                ):
+                    logger.debug(
+                        f"Starting create group of {mailinglist.name}"
+                    )
                     if self.create_group(mailinglist):
-                        MailingList.objects.filter(address=mailinglist.name).update(gsuite_group_name=mailinglist.name)
+                        MailingList.objects.filter(
+                            address=mailinglist.name
+                        ).update(gsuite_group_name=mailinglist.name)
                 elif len(mailinglist.addresses) > 0:
-                    logger.debug(f"Starting update group of {mailinglist.name}")
+                    logger.debug(
+                        f"Starting update group of {mailinglist.name}"
+                    )
                     if self.update_group(
-                        mailinglist.gsuite_group_name if mailinglist.gsuite_group_name else mailinglist.name,
+                        (
+                            mailinglist.gsuite_group_name
+                            if mailinglist.gsuite_group_name
+                            else mailinglist.name
+                        ),
                         mailinglist,
                     ):
-                        MailingList.objects.filter(address=mailinglist.name).update(gsuite_group_name=mailinglist.name)
+                        MailingList.objects.filter(
+                            address=mailinglist.name
+                        ).update(gsuite_group_name=mailinglist.name)
             except Exception as e:
                 self.task_failed(e)
             self.next_task()
@@ -555,11 +654,16 @@ class GSuiteSyncService:
             for list_name in list_names_to_remove:
                 success = True
                 try:
-                    if list_name in existing_groups or list_name in archived_groups:
+                    if (
+                        list_name in existing_groups
+                        or list_name in archived_groups
+                    ):
                         logger.debug(f"Starting delete group of {list_name}")
                         success = self.delete_group(list_name)
                     if success:
-                        MailingListToBeDeleted.objects.filter(address=list_name).delete()
+                        MailingListToBeDeleted.objects.filter(
+                            address=list_name
+                        ).delete()
                     else:
                         self.task.fail = True
                 except Exception as e:
@@ -573,7 +677,9 @@ class GSuiteSyncService:
                         logger.debug(f"Starting archive group of {list_name}")
                         success = self.archive_group(list_name)
                     if success:
-                        MailingListToBeDeleted.objects.filter(address=list_name).delete()
+                        MailingListToBeDeleted.objects.filter(
+                            address=list_name
+                        ).delete()
                     else:
                         self.task.fail = True
                 except Exception as e:
@@ -584,7 +690,11 @@ class GSuiteSyncService:
 
     def sync_mailing_lists_as_task(self, lists=None):
         """Sync all selected mailing lists to GSuite as a Task."""
-        self.task = Task.objects.create(redirect_url=reverse("admin:mailing_lists_mailinglist_changelist"))
-        thread = threading.Thread(target=self.sync_mailing_lists, args=(lists,))
+        self.task = Task.objects.create(
+            redirect_url=reverse("admin:mailing_lists_mailinglist_changelist")
+        )
+        thread = threading.Thread(
+            target=self.sync_mailing_lists, args=(lists,)
+        )
         thread.start()
         return self.task.id

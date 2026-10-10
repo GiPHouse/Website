@@ -12,7 +12,9 @@ def year_choices():
 class AdminSemesterForm(forms.ModelForm):
     """Semester Object form with typed choices for the year."""
 
-    year = forms.TypedChoiceField(coerce=int, choices=year_choices, initial=timezone.now().year)
+    year = forms.TypedChoiceField(
+        coerce=int, choices=year_choices, initial=timezone.now().year
+    )
 
     class Meta:
         """Link SemesterForm to Semester model."""

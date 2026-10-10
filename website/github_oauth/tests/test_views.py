@@ -1,6 +1,6 @@
 from unittest import mock
 
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model  # noqa: F401
 from django.contrib.auth.models import AnonymousUser
 from django.shortcuts import reverse
 from django.test import Client, RequestFactory, TestCase
@@ -32,7 +32,11 @@ class LoginTest(TestCase):
         request.user = AnonymousUser()
 
         response = BaseGithubView.as_view()(request)
-        self.assertRedirects(response, BaseGithubView.redirect_url_success, fetch_redirect_response=False)
+        self.assertRedirects(
+            response,
+            BaseGithubView.redirect_url_success,
+            fetch_redirect_response=False,
+        )
 
     @mock.patch("github_oauth.views.authenticate")
     def test_login_get_success(self, mock_auth):
@@ -48,7 +52,9 @@ class LoginTest(TestCase):
         redirect_view = "contact"
         redirect_path = reverse(redirect_view)
 
-        response = self.client.get(f"/oauth/login/?code=fakecode&next={redirect_path}")
+        response = self.client.get(
+            f"/oauth/login/?code=fakecode&next={redirect_path}"
+        )
 
         self.assertRedirects(response, redirect_path)
 
@@ -66,7 +72,9 @@ class LoginTest(TestCase):
         redirect_view = "contact"
         redirect_path = reverse(redirect_view)
 
-        response = self.client.get(f"/oauth/login/?code=fakecode&next={redirect_path}")
+        response = self.client.get(
+            f"/oauth/login/?code=fakecode&next={redirect_path}"
+        )
 
         self.assertRedirects(response, redirect_path)
 
@@ -91,7 +99,7 @@ class LoginTest(TestCase):
 
         self.client.force_login(self.test_user)
 
-        response = self.client.get("/logout/")
+        response = self.client.post("/logout/")
 
         self.assertNotIn("_auth_user_id", self.client.session)
         self.assertRedirects(response, reverse("home"))
@@ -102,8 +110,7 @@ class LoginTest(TestCase):
 
         self.client.force_login(self.test_user)
 
-        response = self.client.get(f"/logout/?next={redirect_path}")
-
+        response = self.client.post(f"/logout/?next={redirect_path}")
         self.assertNotIn("_auth_user_id", self.client.session)
         self.assertRedirects(response, redirect_path)
 
@@ -111,6 +118,7 @@ class LoginTest(TestCase):
 class RegisterTest(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Course.objects.create(name="Software Engineering")
 
         cls.test_user = User.objects.create_user(github_id=0)
 
@@ -135,9 +143,16 @@ class RegisterTest(TestCase):
         mock_get_github_info.return_value = {
             "id": self.test_user.github_id + 1,
             "email": None,
-            "login": None,
+            "login": "None",
             "name": None,
         }
+
+        from registrations.models import Registrations
+
+        Registrations.objects.create(
+            title="testreg",
+            semester=Semester.objects.get_or_create_current_semester(),
+        )
 
         response = self.client.get("/oauth/register/?code=fakecode")
 
@@ -167,18 +182,28 @@ class RegisterTest(TestCase):
 
         self.assertRedirects(response, reverse("home"))
 
-    @mock.patch("github_oauth.backends.GithubOAuthBackend.get_github_info", side_effect=GithubOAuthError)
+    @mock.patch(
+        "github_oauth.backends.GithubOAuthBackend.get_github_info",
+        side_effect=GithubOAuthError,
+    )
     def test_register_github_fail(self, mock_get_github_info):
 
-        response = self.client.get("/oauth/register/?code=fakecode", follow=True)
+        response = self.client.get(
+            "/oauth/register/?code=fakecode", follow=True
+        )
 
         self.assertContains(response, GithubOAuthError.__doc__)
         self.assertRedirects(response, GithubRegisterView.redirect_url_failure)
 
-    @mock.patch("github_oauth.backends.GithubOAuthBackend.get_github_info", side_effect=GithubOAuthError("Error!"))
+    @mock.patch(
+        "github_oauth.backends.GithubOAuthBackend.get_github_info",
+        side_effect=GithubOAuthError("Error!"),
+    )
     def test_register_github_fail_custom_message(self, mock_get_github_info):
 
-        response = self.client.get("/oauth/register/?code=fakecode", follow=True)
+        response = self.client.get(
+            "/oauth/register/?code=fakecode", follow=True
+        )
 
         self.assertContains(response, "Error!")
         self.assertRedirects(response, GithubRegisterView.redirect_url_failure)

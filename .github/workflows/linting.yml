@@ -1,0 +1,22 @@
+name: "Linting"
+on: "push"
+
+jobs:
+  lint:
+    name: "Linting"
+    runs-on: "ubuntu-latest"
+    steps:
+
+    - name: "Checkout the repository"
+      uses: "actions/checkout@v6"
+
+    - name: "Setup Python"
+      uses: "actions/setup-python@v6"
+      with:
+        python-version: '3.14'
+
+    - name: "Install uv"
+      uses: astral-sh/setup-uv@v7
+
+    - name: ruff-action
+      uses: astral-sh/ruff-action@v3

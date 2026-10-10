@@ -27,7 +27,9 @@ def generate_post_data(questionnaire_id, peers, submit=True):
             if question.is_closed:
                 post_data[field_name] = 1
                 if question.with_comments:
-                    comments_field = QuestionnaireForm.get_field_name(question, peer, comments=True)
+                    comments_field = QuestionnaireForm.get_field_name(
+                        question, peer, comments=True
+                    )
                     post_data[comments_field] = "comments"
             else:
                 post_data[field_name] = "Something"
@@ -41,11 +43,18 @@ def generate_post_data(questionnaire_id, peers, submit=True):
 class QuestionnaireTest(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Course.objects.create(name="Software Engineering")
+        Course.objects.create(name="System Development Management")
+        Course.objects.create(name="Software Development Entrepreneurship")
 
         semester = Semester.objects.get_or_create_current_semester()
 
-        cls.team = Project.objects.create(semester=semester, name="Test Project", description="Description")
-        cls.user = User.objects.create_user(github_id=0, github_username="test")
+        cls.team = Project.objects.create(
+            semester=semester, name="Test Project", description="Description"
+        )
+        cls.user = User.objects.create_user(
+            github_id=0, github_username="test"
+        )
         reg = Registration.objects.create(
             user=cls.user,
             semester=semester,
@@ -53,11 +62,15 @@ class QuestionnaireTest(TestCase):
             preference1=cls.team,
             dev_experience=Registration.EXPERIENCE_ADVANCED,
         )
-        reg.project = cls.team
+        reg.add_project(cls.team)
 
-        cls.alone_user = User.objects.create_user(github_id=1, github_username="test1")
+        cls.alone_user = User.objects.create_user(
+            github_id=1, github_username="test1"
+        )
 
-        cls.peer = User.objects.create_user(github_id=2, github_username="test2")
+        cls.peer = User.objects.create_user(
+            github_id=2, github_username="test2"
+        )
         reg = Registration.objects.create(
             user=cls.peer,
             semester=semester,
@@ -65,7 +78,7 @@ class QuestionnaireTest(TestCase):
             preference1=cls.team,
             dev_experience=Registration.EXPERIENCE_ADVANCED,
         )
-        reg.project = cls.team
+        reg.add_project(cls.team)
 
         cls.active_questions = Questionnaire.objects.create(
             semester=semester,
@@ -145,7 +158,10 @@ class QuestionnaireTest(TestCase):
 
     def test_get_questionnaire(self):
         response = self.client.get(
-            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id})
+            reverse(
+                "questionnaires:questionnaire",
+                kwargs={"questionnaire": self.active_questions.id},
+            )
         )
         self.assertEqual(response.status_code, 200)
 
@@ -154,7 +170,10 @@ class QuestionnaireTest(TestCase):
         post_data = generate_post_data(self.active_questions.id, current_peers)
 
         response = self.client.post(
-            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id}),
+            reverse(
+                "questionnaires:questionnaire",
+                kwargs={"questionnaire": self.active_questions.id},
+            ),
             post_data,
             follow=True,
         )
@@ -162,10 +181,15 @@ class QuestionnaireTest(TestCase):
 
     def test_save_questionnaire(self):
         current_peers = User.objects.exclude(pk=self.user.pk)
-        post_data = generate_post_data(self.active_questions.id, current_peers, submit=False)
+        post_data = generate_post_data(
+            self.active_questions.id, current_peers, submit=False
+        )
 
         response = self.client.post(
-            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id}),
+            reverse(
+                "questionnaires:questionnaire",
+                kwargs={"questionnaire": self.active_questions.id},
+            ),
             post_data,
             follow=True,
         )
@@ -177,7 +201,10 @@ class QuestionnaireTest(TestCase):
         post_data = generate_post_data(self.active_questions.id, current_peers)
 
         response = self.client.post(
-            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id}),
+            reverse(
+                "questionnaires:questionnaire",
+                kwargs={"questionnaire": self.active_questions.id},
+            ),
             post_data,
             follow=True,
         )
@@ -185,7 +212,10 @@ class QuestionnaireTest(TestCase):
         self.assertRedirects(response, reverse("home"))
 
         response = self.client.post(
-            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id}),
+            reverse(
+                "questionnaires:questionnaire",
+                kwargs={"questionnaire": self.active_questions.id},
+            ),
             post_data,
             follow=True,
         )
@@ -196,7 +226,10 @@ class QuestionnaireTest(TestCase):
         post_data = {"submit": "submit"}
 
         response = self.client.post(
-            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id}),
+            reverse(
+                "questionnaires:questionnaire",
+                kwargs={"questionnaire": self.active_questions.id},
+            ),
             post_data,
             follow=True,
         )
@@ -206,7 +239,10 @@ class QuestionnaireTest(TestCase):
         post_data = {"save": "save"}
 
         response = self.client.post(
-            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id}),
+            reverse(
+                "questionnaires:questionnaire",
+                kwargs={"questionnaire": self.active_questions.id},
+            ),
             post_data,
             follow=True,
         )
@@ -215,7 +251,10 @@ class QuestionnaireTest(TestCase):
     def test_post_closed(self):
 
         response = self.client.post(
-            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.closed_questions.id}),
+            reverse(
+                "questionnaires:questionnaire",
+                kwargs={"questionnaire": self.closed_questions.id},
+            ),
             {},
             follow=True,
         )
@@ -223,7 +262,10 @@ class QuestionnaireTest(TestCase):
 
     def test_get_closed_questionnaire(self):
         response = self.client.get(
-            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.closed_questions.id})
+            reverse(
+                "questionnaires:questionnaire",
+                kwargs={"questionnaire": self.closed_questions.id},
+            )
         )
         self.assertEqual(response.status_code, 404)
 
@@ -235,7 +277,10 @@ class QuestionnaireTest(TestCase):
 
     def test_warning_message_not_shown_when_user_is_in_team(self):
         response = self.client.get(
-            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id})
+            reverse(
+                "questionnaires:questionnaire",
+                kwargs={"questionnaire": self.active_questions.id},
+            )
         )
         self.assertNotContains(
             response,
@@ -246,7 +291,10 @@ class QuestionnaireTest(TestCase):
     def test_warning_message_shown_when_user_is_alone(self):
         self.client.force_login(self.alone_user)
         response = self.client.get(
-            reverse("questionnaires:questionnaire", kwargs={"questionnaire": self.active_questions.id})
+            reverse(
+                "questionnaires:questionnaire",
+                kwargs={"questionnaire": self.active_questions.id},
+            )
         )
         self.assertContains(
             response,

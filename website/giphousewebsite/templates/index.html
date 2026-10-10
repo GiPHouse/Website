@@ -13,7 +13,7 @@
             {% for project in current_projects %}
                 <div class="col-12 col-md-6 col-lg-4">
                     <a class="no-underline"
-                       href="{% url 'projects:projects' current_semester.year current_semester.get_season_display|lower %}#{{ project.id }}">
+                       href="{% url 'projects:overview' %}#{{ project.id }}">
                         <div class="card my-2">
                             {% if project.client.logo %}
                                 <div class="client-logo">

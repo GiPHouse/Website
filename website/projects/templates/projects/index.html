@@ -1,25 +1,16 @@
 {% extends 'base.html' %}
-{% load bleach_tags %}
+{% load static component_tags bleach_tags %}
 
 {% block title %}Projects - {{ block.super }}{% endblock %}
 
 {% block content %}
-    <h2>Projects from {{ projects_semester }}</h2>
-    {% if not projects %}
+    <h2>Project Overview</h2>
+    {% if not grouped_projects %}
         <h5>No projects found.</h5>
     {% else %}
-        <div class="row">
-            {% for project in projects %}
-            <div class="col-12 col-md-6" id={{ project.id }}>
-                <div class="card my-4">
-                    {% if project.client.logo %}<img class="project-logo mt-2 mx-2" src="{{ project.client.logo.url }}" alt="logo {{ project.client.name }}">{% endif %}
-                    <div class="card-body">
-                        <h4 class="card-title">{{ project.name }}</h4>
-                        {% if project.client %}<h6 class="card-subtitle text-muted mb-2">By {{ project.client.name }}</h6>{% endif %}
-                        <p class="card-text">{{ project.description | bleach }}</p>
-                    </div>
-                </div>
-            </div>
+        {% for semester, projects in grouped_projects.items %}
+            {% component "semester_projects" semester=semester projects=projects %} {% endcomponent %}
         {% endfor %}
+        <!-- <script src="{% static 'js/scroll.js' %}"></script> -->
     {% endif %}
 {% endblock %}

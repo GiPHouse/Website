@@ -1,8 +1,27 @@
-# GiPHouse website
+<div align="center">
 
-![](https://github.com/giphouse/Website/workflows/Linting%20and%20Testing/badge.svg) ![](https://github.com/giphouse/Website/workflows/Deploy%20to%20production/badge.svg) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) ![](https://img.shields.io/badge/coverage-100%25-brightgreen)
+<a href="https://giphouse.nl/">
+<img src="website/giphousewebsite/static/img/favicon/android-chrome-512x512.png" height=150>
+</a>
 
-This is the code for the website of [GiPHouse](http://giphouse.nl/) powered by [Django](https://www.djangoproject.com/).
+# __GiPHouse website__
+
+[![License](https://img.shields.io/badge/License-AGPL--3.0-742e68?style=flat)](https://www.gnu.org/licenses/agpl-3.0)
+[![Python](https://img.shields.io/badge/Python-3.14-ffdd54?logo=python&logoColor=ffdd54&labelColor=3776AB)](https://docs.python.org/3.14/)
+[![Ruff](https://img.shields.io/badge/Ruff-0.15-D7FF64?logo=Ruff&logoColor=D7FF64&labelColor=261230)](https://docs.astral.sh/ruff/)
+[![uv](https://img.shields.io/badge/uv-0.11-DE5FE9?logo=uv&logoColor=DE5FE9&labelColor=261230)](https://docs.astral.sh/uv/)
+[![Code style: Black](https://img.shields.io/badge/Code%20style-Black-000000.svg)](https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html)\
+[![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-e5e1ea?logo=bootstrap&logoColor=e5e1ea&labelColor=7952B3)](https://getbootstrap.com/docs/5.3)
+[![Font_Awesome](https://img.shields.io/badge/Font_Awesome-5.13-f0f1f3?logo=fontawesome&logoColor=f0f1f3&labelColor=538DD7)](https://docs-v5.fontawesome.com/)
+[![Django](https://img.shields.io/badge/Django-6.0-44B78B?logo=django&logoColor=white&labelColor=092E20)](https://docs.djangoproject.com/en/6.0/)\
+[![Linting](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/linting.yml/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/linting.yml)
+[![Testing](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/testing.yml/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/testing.yml)
+[![Coverage](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/coverage.yml/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/coverage.yml)
+[![Deployment](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/deployment.yml/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/deployment.yml)
+[![Dependabot Updates](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/dependabot/dependabot-updates)
+
+This is the code for the website of [GiPHouse](https://giphouse.nl/) powered by [Django](https://www.djangoproject.com/).
+</div>
 
 ## Table of Contents
 - [GiPHouse website](#giphouse-website)
@@ -82,7 +101,11 @@ The registration process consists of two steps:
 1. Authorizing the GiPHouse GitHub (OAuth) App.
 2. A form that asks question about the registration (e.g. email, student number and project preferences).
 
-The project preference is required to fill in during the registration, but registrations can be deleted later if necessary if for instance a project which people gave as preference is being discontinued. 
+The questions for the registration can be dynamically generated and any new questions will appear on the form in the front end. We do make use of "labels" for every question so they can be accounted for in the back end. Questions should thus be properly labeled whenever possible. Non-labeled questions will be added as an additional column in the csv export but will not be considered for the SAT solver.
+
+There is an option to create a sample registration with the most important questions listed and labeled. The labels here should be appropriate already but the wording of the questions and the choices for the questions can be changed.
+
+The project and partner preference is not required. They can be left open if people do not have any preferences. The amount of possible partner and project preferences can be adjusted by using the CHOICELIST and TEXTLIST and then adjusting the amount of max_choices in the admin. 
 
 If multiple semesters have open registrations at one moment, the chronologically newest semester is picked. For example, if the fall 2019 and spring 2020 semester both allow registrations at one moment, users will register for the spring 2020 semester (even if at the moment of registration it is officially fall 2019).
 
@@ -126,7 +149,14 @@ Admin users can add information about the course lectures and the projects in th
 The projects module provides synchronisation functionality with a GitHub organization using the [GitHub API v3](https://developer.github.com/v3/). For this, a repository model is included in Django. Project(team)s can have one or multiple repositories, which are then synchronised with GitHub. For this functionality, a [GitHub App](https://developer.github.com/v3/apps/) must be registered and installed in the organization. Details on this are explained later.
 
 #### GitHub Synchronization
-Projects and repositories contain a field `github_team_id` and `github_repo_id` that corresponds to the respective `id` of the object on GitHub. These fields are automatically set and should not be touched under normal circumstances. Teams and repositories on GitHub that do not match one of these id's will not be touched by the GitHub synchronization. 
+Projects and repositories contain a field `github_team_id` and `github_repo_id` that corresponds to the respective `id` of the object on GitHub. The `github_team_id` field is automatically set and should not be touched under normal circumstances. For repositories, one can choose to:
+
+- To create a new repository, which can be done in two ways:
+	- Automatically, by selecting "Create default repository" which will fill the details for the user,
+	- Manually, where the user can specify the name and privacy settings;
+- To link an existing repository by selecting the respective option and specifying its `id`, which will again fetch details and fill them for the user.
+
+Teams and repositories on GitHub that do not match these id's will not be touched by the GitHub synchronization. 
 If the `github_team_id` or `github_repo_id` are `None`, it is assumed the objects do not exist and new objects will be created on synchronization (except for archived projects and teams).
 
 Repositories and project(team)s are synchronized with GitHub in the following manner:
@@ -145,7 +175,8 @@ Repositories and project(team)s are synchronized with GitHub in the following ma
     - A project is considered archived if all of its repositories are archived.
     - If a project is archived, the associated GitHub Team will be removed and consequently, all employees will be removed from the organization (again, organization owners are ignored).    
 
-Synchronization can only be initialized via actions on specific sets of objects in their changelists, or via the big 'synchronize to GitHub' button (to perform synchronization on all objects) in the admin. Synchronization is implemented in a [idempotent](https://en.wikipedia.org/wiki/Idempotence) manner. 
+Synchronization is automatically triggered by every meaningful change done to a project (for changes in repositories, in employees, etc). 
+Superusers can manually initialize the synchronization for either a number of specific projects or for every project of the current semester. This is done via actions on specific sets of objects in their changelists, or via the big 'synchronize to GitHub' button (to perform synchronization on all objects) in the admin. Synchronization is implemented in a [idempotent](https://en.wikipedia.org/wiki/Idempotence) manner. 
 
 Synchronization currently does not regard the role of directors of GipHouse. This needs to be configured manually. Note that it is however not possible to add directors manually to a team on GitHub, since they will be removed after each sync.
 
@@ -155,7 +186,7 @@ Admin users can create mailing lists using the Django admin interface. A mailing
 This sync starts by creating groups in G Suite for all mailing lists currently not in there, after they are created a request is done per member of that group to add them to the group. For the already existing groups a list is made of existing members in the group and the needed inserts or deletes are done to update the group.
 
 ### Tasks
-A task is a process that takes more time than can fit in a request. The process is run in a separate thread and the status is synced to the task. The task is then used to show the user the progress and redirect them when it is finished.
+A task is a process that takes more time than can fit in a request. The process is run in a separate thread and the status is synced to the task. The task is then used to show the user the progress and whether something has gone wrong in form of an error log.
 
 ### Styling
 [Bootstrap](https://getbootstrap.com/) and [Font Awesome](https://fontawesome.com/) are used to style the website. Their respective SCSS versions are used.
@@ -167,22 +198,40 @@ The website has multiple settings. By default, the development settings are used
 
 ### Getting Started
 Follow the following steps to setup your own personal development environment.
-1. Install Python 3.8+ and [poetry](https://poetry.eustace.io/).
-2. Clone this repository.
-3. Run `poetry install` to install all dependencies into virtual environment.
-4. Run `poetry shell` to enter the virtual environment.
-5. Run `python website/manage.py migrate` to initialize the database.
-6. Run `python website/manage.py runserver` to start the local testing server.
-7. Run `python website/manage.py runserver` again, to make sure the server discovers the just created `/static/` files.
+1. Install Python 3.14.
+2. Install [uv](https://docs.astral.sh/uv/#installation), make sure it uses the intended python version for installation.
+3. Add `uv` to PATH as an environment variable.
+4. Clone this repository.
+	1. Open a terminal in the project root.
+5. Run `uv venv --clear` to create and enter a virtual environment.
+6. Run `.venv/Scripts\activate` to activate the virtual environment.
+7. Run `uv sync` to install all dependencies into virtual environment.
+**All commands from this point on must be ran inside the virtual environment**.
+8. Run `python website/manage.py migrate` to initialize the database.
+9. Run `python website/manage.py runserver` to start the local testing server.
+10. Run `python website/manage.py runserver` again, to make sure the server discovers the just created `/static/` files.
+
+Command 8. will create a database file which is configured to be not commited via .gitignore. Hence, the changes you make to a database are local, and will persist after you pull.
 
 #### Logging into the Backend
 Because the authentication is based on Github OAuth authentication, some setup is required for users to be able to login in their own development environment.
-You will need to set up [your own GitHub App](https://developer.github.com/apps/building-github-apps/creating-a-github-app/) that we will use for OAuth (and for repository synchronisation as well, as explained in the next step) and set your client ID and client secret key as environment variables (`DJANGO_GITHUB_CLIENT_ID` and `DJANGO_GITHUB_CLIENT_SECRET` respectively). [direnv](https://direnv.net/) is a tool that allows Linux users to do this automatically.
 
-You will then be able to create a new superuser with the `createsuperuser` management command.
+You will need to set up [your own GitHub App](https://developer.github.com/apps/building-github-apps/creating-a-github-app/)
+that we will use for OAuth (and for repository synchronisation as well, as explained in the next step) and 
+set your client ID and client secret key as environment variables (`DJANGO_GITHUB_CLIENT_ID` and `DJANGO_GITHUB_CLIENT_SECRET` respectively). 
+[direnv](https://direnv.net/) is a tool that allows Linux users to do this automatically.
+
+When the `createsuperuser` management command is ran:
 ```Bash
 $ python website/manage.py createsuperuser --github_id=<your_github_id> --github_username=<your_github_username> --no-input
 ```
+, the added superuser will be added as an entry to the database file. Hence, the created superusers are local.  
+One's GitHub account will be used for login; you can find your GitHub id by changing your username in the link and following it: https://api.github.com/users/yourusername.
+
+To make the backend (`localhost:8000/admin/`) work, an existing GitHub App must be present and Django must have access to it. 
+To make Django see them, one must set them as environment variables. For now, they can be added as temporary (**after the shell is closed, they disappear**) shell environment variables. As an example, in PowerShell (but still inside the virtual environment!) it can be done via `$env:NAME="val"`. Do so for the provided credentials.
+
+After server restart (command 10.), one should be able to log into the [backend](http://127.0.0.1:8000/admin/) (using their GitHub account).
 
 #### Registering a GitHub App for repository synchronisation
 To enable the synchronisation functionality of repositories and project(team)s, a GitHub App must be registered and installed in an organization. This GitHub App needs the following permissions:
@@ -196,7 +245,7 @@ We assume you already have a [GitHub organization](https://help.github.com/en/gi
 
 - As an organization, you can develop a GitHub app and register this app at GitHub. People can then install that app in their own account or organization, giving your app access to that account or organization.
 For this project, you will need to first [create your own GitHub app](https://developer.github.com/apps/building-github-apps/creating-a-github-app/) and then install it in your organization. 
-After this, you can find a `DJANGO_GITHUB_SYNC_APP_ID`, and download the RSA `DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY`. To use this key, encode it `base64` to `DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64`. These will be used as environment variables in this project and need to be set as GitHub Actions secrets in the repository (which will be explained later). 
+After this, you can find a `DJANGO_GITHUB_SYNC_APP_ID`, and download the RSA, base64 encode it, and set it in `DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64`. These will be used as environment variables in this project and need to be set as GitHub Actions secrets in the repository (which will be explained later). 
 
 - After the app is created, it needs to be [installed in your own organization](https://developer.github.com/apps/installing-github-apps/) (although technically speaking, it is also possible to publish the app in the previous step and install the app in a different organization!).
 On installation, you can find the `DJANGO_GITHUB_SYNC_APP_INSTALLATION_ID` which we also need to set in this project. This installation id is hidden in the overview of installed GitHub Apps in your organization.
@@ -215,15 +264,17 @@ To enable the synchronisation feature of mailing lists to G Suite, a project and
 The credentials and admin user can then be setup in Github secrets. The email of the G Suite user used to manage to the G Suite domain has to be stored in the Github secret `DJANGO_GSUITE_ADMIN_USER`. The credentials json file has to be `base64` encoded and stored in the Github secret `DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64` (you can use the linux command `base64` for encoding the json file).
 
 ### Dependency Management
-The Python dependencies are managed using a tool called [Poetry](https://python-poetry.org/), which automatically creates virtual environments that ease development and makes it easy to manage the dependencies. See the [Poetry documentation](https://python-poetry.org/docs/) for more information.
+The Python dependencies are managed using a tool called [uv](https://docs.astral.sh/uv/), which automatically creates virtual environments that ease development and makes it easy to manage the dependencies.
 
 ### Fixtures
-To make testing in your development environment easier, the management command `createfixtures` exists. This management command creates dummy data in your local database.
+To make testing in your development environment easier, the management command `createfixtures` exists. This management command is supposed to create dummy data in your local database, but it does not work at the moment.
+<!---
 ```Bash
 $ python website/manage.py createfixtures
 ```
 
 Use the `--help` argument to get more information.
+--->
 
 ### Tests
 To make sure everything functions correctly, the website has tests (using [Djangos built-in test framework](https://docs.djangoproject.com/en/dev/topics/testing/)). To run these manually use
@@ -234,11 +285,11 @@ $ python website/manage.py test website/
 ### Code quality
 The code of this project has high standards. This is enforced by continuous integration ([GitHub Actions](https://help.github.com/en/actions/automating-your-workflow-with-github-actions)).
 
-- [PEP 8](https://www.python.org/dev/peps/pep-0008/) (Python styling) is enforced by using [Black](https://github.com/psf/black) and [flake8](https://gitlab.com/pycqa/flake8).
-  - `black` is a tool that formats Python code. It is meant to be run on Python code and always return the same well-formatted code. This removes the need of manually formatting Python code, because if a formatting mistake is made, running `black` on the project will fix the mistake.
+- [PEP 8](https://www.python.org/dev/peps/pep-0008/) (Python styling) is enforced by using `ruff`.
+  - Run `ruff format . ` to format the codebase.
 - Test coverage (both statement and branch coverage) is enforced by using [Coverage.py](https://coverage.readthedocs.io/en/coverage-5.0.3/).
-  - The website has 100% test coverage.
-- [PEP 257](https://www.python.org/dev/peps/pep-0257/) (Python docstring conventions) is enforced by [`pydocstyle`](https://github.com/PyCQA/pydocstyle).
+  - The website has at least 95% test coverage.
+- [PEP 257](https://www.python.org/dev/peps/pep-0257/) (Python docstring conventions) is enforced by [`ruff`](https://github.com/PyCQA/pydocstyle).
   - PEP 257 forces every function, method and class to have documentation.
 
 ## Deployment
@@ -271,7 +322,7 @@ The following services are created by `docker-compose`.
 Runs a Postgres Database.
 
 ##### `web`
-[`giphouse/giphousewebsite`](https://hub.docker.com/r/giphouse/giphousewebsite) is the Docker image that runs the actual website using `uWSGI` as server.
+[`giphouse/giphousewebsite`](https://hub.docker.com/r/giphouse/giphousewebsite) is the Docker image that runs the actual website using `gunicorn` as server.
 
 ### Deployment Pipeline
 #### `deploy.yaml` workflow
@@ -321,8 +372,8 @@ These steps are the necessary setup for a production server.
 
 ### Keeping Everything Up to Date
 All moving parts should be regularly updated to make sure all code is up to date and secure. There is no process in place to automate updates, because that may break something.
-The following 
+The following items should be taken into account:
 
 1. The Ubuntu server should be updated.
-2. The Python dependencies should be updated (through `poetry`).
+2. The Python dependencies should be updated (through `uv`).
 3. The JavaScript, font and [S]CSS files should be updated by replacing the current files with new ones.

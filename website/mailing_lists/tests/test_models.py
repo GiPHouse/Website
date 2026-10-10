@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.test import TestCase
+from django.db import models
 
 from courses.models import Course, Semester
 
@@ -24,10 +25,19 @@ class ModelTest(TestCase):
         cls.existing_alias_address = "alias"
         cls.unused_address = "unused"
 
-        cls.existing_list = MailingList.objects.create(address=cls.existing_list_address)
+        cls.existing_list = MailingList.objects.create(
+            address=cls.existing_list_address
+        )
         cls.existing_alias = MailingListAlias.objects.create(
             address=cls.existing_alias_address, mailing_list=cls.existing_list
         )
+
+        Course.objects.create(name="Software Engineering")
+        Course.objects.create(name="System Development Management")
+        Course.objects.create(name="Software Development Entrepreneurship")
+
+    def test_mailininglistalias_str_method(self):
+        self.assertEqual(self.existing_alias_address, str(self.existing_alias))
 
     def test_list_validate_unique_is_valid(self):
         self.existing_list.validate_unique()
@@ -38,33 +48,47 @@ class ModelTest(TestCase):
             new_mailing_list.validate_unique()
 
     def test_list_email_address(self):
-        self.assertEqual(self.existing_list.email_address, self.existing_list_address + "@" + settings.GSUITE_DOMAIN)
+        self.assertEqual(
+            self.existing_list.email_address,
+            self.existing_list_address + "@" + settings.GSUITE_DOMAIN,
+        )
 
     def test_alias_validate_unique_is_valid(self):
         self.existing_alias.validate_unique()
 
     def test_alias_validate_unique_list_exists(self):
         new_mailing_list = MailingList(address=self.unused_address)
-        new_alias = MailingListAlias(address=self.existing_list_address, mailing_list=new_mailing_list)
+        new_alias = MailingListAlias(
+            address=self.existing_list_address, mailing_list=new_mailing_list
+        )
         with self.assertRaises(ValidationError):
             new_alias.validate_unique()
 
     def test_alias_validate_unique_parent_list_has_same_email(self):
         shared_email_address = f"collision@{settings.GSUITE_DOMAIN}"
         new_mailing_list = MailingList(address=shared_email_address)
-        new_alias = MailingListAlias(address=shared_email_address, mailing_list=new_mailing_list)
+        new_alias = MailingListAlias(
+            address=shared_email_address, mailing_list=new_mailing_list
+        )
         with self.assertRaises(ValidationError):
             new_alias.validate_unique()
 
     def test_alias_email_address(self):
-        self.assertEqual(self.existing_alias.email_address, self.existing_alias_address + "@" + settings.GSUITE_DOMAIN)
+        self.assertEqual(
+            self.existing_alias.email_address,
+            self.existing_alias_address + "@" + settings.GSUITE_DOMAIN,
+        )
 
     def test_all_addresses_course_semester(self):
         semester = Semester.objects.create(year=2000, season=Semester.FALL)
         course = Course.objects.create(name="Test course")
-        project = Project.objects.create(name="test project", semester=semester)
+        project = Project.objects.create(
+            name="test project", semester=semester
+        )
 
-        employee = Employee.objects.create(github_id=0, github_username="user1", email="e@test.nl")
+        employee = Employee.objects.create(
+            github_id=0, github_username="user1", email="e@test.nl"
+        )
         reg = Registration.objects.create(
             user=employee,
             dev_experience=Registration.EXPERIENCE_BEGINNER,
@@ -72,17 +96,36 @@ class ModelTest(TestCase):
             preference1=project,
             semester=semester,
         )
-        reg.project = project
+        reg.add_project(project)
 
-        MailingListCourseSemesterLink.objects.create(mailing_list=self.existing_list, course=course, semester=semester)
+        mail_list_course_sem_link = (
+            MailingListCourseSemesterLink.objects.create(
+                mailing_list=self.existing_list,
+                course=course,
+                semester=semester,
+            )
+        )
 
         self.assertCountEqual(self.existing_list.all_addresses, ["e@test.nl"])
 
+        # the implemented __str__ method should be different from the __str__ function in the
+        # parent class (Model)
+        self.assertNotEqual(
+            str(mail_list_course_sem_link),
+            models.Model.__str__(mail_list_course_sem_link),
+        )
+        self.assertIs(type(str(mail_list_course_sem_link)), str)
+
     def test_all_addresses_projects(self):
         semester = Semester.objects.create(year=2000, season=Semester.FALL)
-        project = Project.objects.create(name="test project", semester=semester)
+        project = Project.objects.create(
+            name="test project", semester=semester
+        )
 
-        employee = Employee.objects.create(github_id=0, github_username="user1", email="e@test.nl")
+        employee = Employee.objects.create(
+            github_id=0, github_username="user1", email="e@test.nl"
+        )
+
         reg = Registration.objects.create(
             user=employee,
             dev_experience=Registration.EXPERIENCE_BEGINNER,
@@ -90,7 +133,7 @@ class ModelTest(TestCase):
             preference1=project,
             semester=semester,
         )
-        reg.project = project
+        reg.add_project(project)
 
         self.existing_list.projects.add(project)
         self.existing_list.save()
@@ -98,16 +141,27 @@ class ModelTest(TestCase):
         self.assertCountEqual(self.existing_list.all_addresses, ["e@test.nl"])
 
     def test_all_addresses_users(self):
-        employee = Employee.objects.create(github_id=0, github_username="user1", email="e@test.nl")
+        employee = Employee.objects.create(
+            github_id=0, github_username="user1", email="e@test.nl"
+        )
         self.existing_list.users.add(employee)
         self.existing_list.save()
 
         self.assertCountEqual(self.existing_list.all_addresses, ["e@test.nl"])
 
     def test_all_addresses_extras(self):
-        extra = ExtraEmailAddress.objects.create(address="e@test.nl", name="test", mailing_list=self.existing_list)
+        extra = ExtraEmailAddress.objects.create(
+            address="e@test.nl", name="test", mailing_list=self.existing_list
+        )
 
-        self.assertCountEqual(self.existing_list.all_addresses, [extra.address])
+        self.assertCountEqual(
+            self.existing_list.all_addresses, [extra.address]
+        )
+
+        # the implemented __str__ method should be different from the __str__ function in the
+        # parent class (Model)
+        self.assertNotEqual(str(extra), models.Model.__str__(extra))
+        self.assertIs(type(str(extra)), str)
 
     def test_email_validator_does_block_reserved_address(self):
         try:
@@ -121,17 +175,34 @@ class ModelTest(TestCase):
             mailinglist = MailingList(address="admini")
             mailinglist.full_clean()
         except ValidationError:
-            self.fail("Mailinglist object raised ValidationError unexpectedly!")
+            self.fail(
+                "Mailinglist object raised ValidationError unexpectedly!"
+            )
 
     def test_handle_mailing_list_delete_with_gsuite_group_name(self):
-        mailinglist = MailingList.objects.create(address="signal_list", gsuite_group_name="gsuite_key")
+        mailinglist = MailingList.objects.create(
+            address="signal_list", gsuite_group_name="gsuite_key"
+        )
         mailinglist.delete()
-        self.assertTrue(MailingListToBeDeleted.objects.filter(address="gsuite_key").exists())
+        self.assertTrue(
+            MailingListToBeDeleted.objects.filter(
+                address="gsuite_key"
+            ).exists()
+        )
 
     def test_handle_mailing_list_delete_without_gsuite_group_name(self):
-        mailinglist = MailingList.objects.create(address="signal_list")
+        address = "signal_list"
+        mailinglist = MailingList.objects.create(address=address)
         mailinglist.delete()
-        self.assertTrue(MailingListToBeDeleted.objects.filter(address="signal_list").exists())
+        self.assertTrue(
+            MailingListToBeDeleted.objects.filter(address=address).exists()
+        )
+
+        # test the __str__ method
+        mailinglist_to_be_del = MailingListToBeDeleted.objects.filter(
+            address=address
+        )[0]
+        self.assertEqual(address, str(mailinglist_to_be_del))
 
     def test_mailinglist_aliases_empty(self):
         mailing_list = MailingList.objects.create(address="signal_list")
@@ -140,6 +211,8 @@ class ModelTest(TestCase):
     def test_mailinglist_aliases(self):
         mailing_list = MailingList.objects.create(address="signal_list")
         mailing_list.save()
-        new_alias = MailingListAlias(address="test_alias", mailing_list=mailing_list)
+        new_alias = MailingListAlias(
+            address="test_alias", mailing_list=mailing_list
+        )
         new_alias.save()
         self.assertEqual("test_alias", mailing_list.mailinglist_aliases)

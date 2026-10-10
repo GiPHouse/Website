@@ -9,8 +9,15 @@ class LoginRequiredMessageMixinTest(TestCase):
         self.client = Client()
 
     def test_handle_no_permission(self):
-        response = self.client.get(reverse("questionnaires:overview"), follow=True)
+        response = self.client.get(
+            reverse("questionnaires:overview"), follow=True
+        )
 
         mixin = LoginRequiredMessageMixin()
-        self.assertRedirects(response, f"{mixin.get_login_url()}?next={reverse('questionnaires:overview')}")
-        self.assertEqual(list(map(str, response.context["messages"])), [mixin.message])
+        self.assertRedirects(
+            response,
+            f"{mixin.get_login_url()}?next={reverse('questionnaires:overview')}",
+        )
+        self.assertEqual(
+            list(map(str, response.context["messages"])), [mixin.message]
+        )

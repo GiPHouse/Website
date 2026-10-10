@@ -15,46 +15,82 @@ User: Employee = get_user_model()
 
 
 class TeamAssignmentTest(TestCase):
-
     maxDiff = None
 
     @classmethod
     def setUpTestData(cls):
+        Course.objects.create(name="Software Engineering")
+        Course.objects.create(name="System Development Management")
+        Course.objects.create(name="Software Development Entrepreneurship")
+
         cls.semester = Semester.objects.get_or_create_current_semester()
         cls.sdm = Course.objects.sdm()
         cls.se = Course.objects.se()
 
         cls.user1 = User.objects.create_user(
-            first_name="User1", last_name="Test1", github_id=1, github_username="user1"
+            first_name="User1",
+            last_name="Test1",
+            github_id=1,
+            github_username="user1",
         )
         cls.user2 = User.objects.create_user(
-            first_name="User2", last_name="Test2", github_id=2, github_username="user2"
+            first_name="User2",
+            last_name="Test2",
+            github_id=2,
+            github_username="user2",
         )
         cls.user3 = User.objects.create_user(
-            first_name="User3", last_name="Test3", github_id=3, github_username="user3"
+            first_name="User3",
+            last_name="Test3",
+            github_id=3,
+            github_username="user3",
         )
         cls.user4 = User.objects.create_user(
-            first_name="User4", last_name="Test4", github_id=4, github_username="user4"
+            first_name="User4",
+            last_name="Test4",
+            github_id=4,
+            github_username="user4",
         )
         cls.user5 = User.objects.create_user(
-            first_name="User5", last_name="Test5", github_id=5, github_username="user5"
+            first_name="User5",
+            last_name="Test5",
+            github_id=5,
+            github_username="user5",
         )
         cls.user6 = User.objects.create_user(
-            first_name="User6", last_name="Test6", github_id=6, github_username="user6"
+            first_name="User6",
+            last_name="Test6",
+            github_id=6,
+            github_username="user6",
         )
         cls.user7 = User.objects.create_user(
-            first_name="User7", last_name="Test7", github_id=7, github_username="user7"
+            first_name="User7",
+            last_name="Test7",
+            github_id=7,
+            github_username="user7",
         )
         cls.user8 = User.objects.create_user(
-            first_name="User8", last_name="Test8", github_id=8, github_username="user8"
+            first_name="User8",
+            last_name="Test8",
+            github_id=8,
+            github_username="user8",
         )
         cls.user9 = User.objects.create_user(
-            first_name="User9", last_name="Test9", github_id=9, github_username="user9"
+            first_name="User9",
+            last_name="Test9",
+            github_id=9,
+            github_username="user9",
         )
 
-        cls.project1 = Project.objects.create(name="Project 1", slug="project1", semester=cls.semester)
-        cls.project2 = Project.objects.create(name="Project 2", slug="project2", semester=cls.semester)
-        cls.project3 = Project.objects.create(name="Project 3", slug="project3", semester=cls.semester)
+        cls.project1 = Project.objects.create(
+            name="Project 1", slug="project1", semester=cls.semester
+        )
+        cls.project2 = Project.objects.create(
+            name="Project 2", slug="project2", semester=cls.semester
+        )
+        cls.project3 = Project.objects.create(
+            name="Project 3", slug="project3", semester=cls.semester
+        )
 
         cls.reg1 = Registration.objects.create(
             user=cls.user1,
@@ -129,10 +165,18 @@ class TeamAssignmentTest(TestCase):
         Project.objects.filter(semester=self.semester).delete()
         Registration.objects.filter(semester=self.semester).delete()
 
-    def test_solve_csp__normal_no_partner_preferences_no_project_preference(self):
-        self.assertIsNotNone(TeamAssignmentGenerator(Registration.objects.all()).generate_team_assignment())
+    def test_solve_csp__normal_no_partner_preferences_no_project_preference(
+        self,
+    ):
+        self.assertIsNotNone(
+            TeamAssignmentGenerator(
+                Registration.objects.all()
+            ).generate_team_assignment()
+        )
 
-    def test_solve_csp__normal_no_partner_preferences_with_project_preference(self):
+    def test_solve_csp__normal_no_partner_preferences_with_project_preference(
+        self,
+    ):
         self.reg9.preference1 = self.project1
         self.reg9.preference2 = self.project2
         self.reg9.preference3 = self.project3
@@ -181,11 +225,15 @@ class TeamAssignmentTest(TestCase):
             self.reg9.pk: self.project1,
         }
 
-        actual_assignment = TeamAssignmentGenerator(Registration.objects.all()).generate_team_assignment()
+        actual_assignment = TeamAssignmentGenerator(
+            Registration.objects.all()
+        ).generate_team_assignment()
 
         self.assertDictEqual(expected_assignment, actual_assignment)
 
-    def test_solve_csp__normal_with_partner_preferences_no_project_preference(self):
+    def test_solve_csp__normal_with_partner_preferences_no_project_preference(
+        self,
+    ):
         self.reg9.partner_preference1 = str(self.user8)
         self.reg9.partner_preference2 = str(self.user7)
         self.reg9.partner_preference3 = None
@@ -223,7 +271,9 @@ class TeamAssignmentTest(TestCase):
         self.reg1.partner_preference3 = None
         self.reg1.save()
 
-        actual_assignment = TeamAssignmentGenerator(Registration.objects.all()).generate_team_assignment()
+        actual_assignment = TeamAssignmentGenerator(
+            Registration.objects.all()
+        ).generate_team_assignment()
 
         group1 = actual_assignment[self.reg1.pk]
         group2 = actual_assignment[self.reg4.pk]
@@ -256,49 +306,80 @@ class TeamAssignmentTest(TestCase):
         self.reg8.dev_experience = Registration.EXPERIENCE_ADVANCED
         self.reg8.save()
 
-        actual_assignment = TeamAssignmentGenerator(Registration.objects.all()).generate_team_assignment()
+        actual_assignment = TeamAssignmentGenerator(
+            Registration.objects.all()
+        ).generate_team_assignment()
 
-        self.assertNotEqual(actual_assignment[self.reg1.pk], actual_assignment[self.reg2.pk])
-        self.assertNotEqual(actual_assignment[self.reg4.pk], actual_assignment[self.reg5.pk])
-        self.assertNotEqual(actual_assignment[self.reg7.pk], actual_assignment[self.reg8.pk])
+        self.assertNotEqual(
+            actual_assignment[self.reg1.pk], actual_assignment[self.reg2.pk]
+        )
+        self.assertNotEqual(
+            actual_assignment[self.reg4.pk], actual_assignment[self.reg5.pk]
+        )
+        self.assertNotEqual(
+            actual_assignment[self.reg7.pk], actual_assignment[self.reg8.pk]
+        )
 
     def test_solve_csp__too_many_internationals(self):
         Registration.objects.update(is_international=True)
 
-        with patch("registrations.team_assignment.TeamAssignmentGenerator._add_constraints") as _:
+        with patch(
+            "registrations.team_assignment.TeamAssignmentGenerator._add_constraints"
+        ) as _:
             with patch(
                 "registrations.team_assignment.TeamAssignmentGenerator._mixed_programming_experience_objective",
                 return_value=0,
             ) as _:
-                assignment_generator = TeamAssignmentGenerator(Registration.objects.all())
-                with patch.object(assignment_generator.model, "Add") as mock_add:
+                assignment_generator = TeamAssignmentGenerator(
+                    Registration.objects.all()
+                )
+                with patch.object(
+                    assignment_generator.model, "Add"
+                ) as mock_add:
                     assignment_generator._1_not_international_per_project_constraint()
-                    self.assertIsNotNone(assignment_generator.generate_team_assignment())
+                    self.assertIsNotNone(
+                        assignment_generator.generate_team_assignment()
+                    )
                     mock_add.assert_not_called()
 
     def test_solve_csp__not_too_many_internationals(self):
         Registration.objects.update(is_international=False)
 
-        with patch("registrations.team_assignment.TeamAssignmentGenerator._add_constraints") as _:
-            assignment_generator = TeamAssignmentGenerator(Registration.objects.all())
+        with patch(
+            "registrations.team_assignment.TeamAssignmentGenerator._add_constraints"
+        ) as _:
+            assignment_generator = TeamAssignmentGenerator(
+                Registration.objects.all()
+            )
             with patch.object(assignment_generator.model, "Add") as mock_add:
                 assignment_generator._1_not_international_per_project_constraint()
-                self.assertIsNotNone(assignment_generator.generate_team_assignment())
+                self.assertIsNotNone(
+                    assignment_generator.generate_team_assignment()
+                )
                 mock_add.assert_called()
 
-    @patch("registrations.team_assignment.TeamAssignmentGenerator.generate_team_assignment", return_value=[])
+    @patch(
+        "registrations.team_assignment.TeamAssignmentGenerator.generate_team_assignment",
+        return_value=[],
+    )
     def test_solve_task_no_solution(self, generate_mock):
         logging.disable(logging.CRITICAL)
-        assignment_generator = TeamAssignmentGenerator(Registration.objects.all())
+        assignment_generator = TeamAssignmentGenerator(
+            Registration.objects.all()
+        )
         assignment_generator.execute_solve_task()
         generate_mock.assert_called_once()
         self.assertEqual(assignment_generator.task.completed, 1)
         self.assertTrue(assignment_generator.task.fail)
 
-    @patch("registrations.team_assignment.TeamAssignmentGenerator.generate_team_assignment")
+    @patch(
+        "registrations.team_assignment.TeamAssignmentGenerator.generate_team_assignment"
+    )
     def test_solve_task_solution(self, generate_mock):
         generate_mock.return_value = {self.reg1.pk: self.project1}
-        assignment_generator = TeamAssignmentGenerator(Registration.objects.all())
+        assignment_generator = TeamAssignmentGenerator(
+            Registration.objects.all()
+        )
         assignment_generator.execute_solve_task()
         generate_mock.assert_called_once()
         result = (
