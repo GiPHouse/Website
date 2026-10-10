@@ -33,7 +33,7 @@ uv run python website/manage.py migrate
 uv run python website/manage.py runserver
 ```
 
-Then open [http://localhost:8000](http://localhost:8000). To log in (including into `/admin/`), you need a GitHub OAuth App and a local superuser; follow [Logging into the Backend](docs/development.md#logging-into-the-backend).
+Then open [http://localhost:8000](http://localhost:8000). To log in (including into `/admin/`), you need a GitHub **OAuth App** (not a GitHub App) with **Allow wildcard matching** ticked, and a local superuser; follow [Logging into the Backend](docs/development.md#logging-into-the-backend).
 
 ## Documentation
 
