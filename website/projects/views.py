@@ -1,14 +1,11 @@
-from django.shortcuts import get_object_or_404
-from django.views.generic import TemplateView
-
-from courses.models import Semester
+from collections import defaultdict
 
 from projects.models import Project
 
+from django.views.generic import TemplateView
 
-class ProjectsView(TemplateView):
-    """View to display the projects for a year."""
 
+class OverviewView(TemplateView):
     template_name = "projects/index.html"
 
     def get_context_data(self, **kwargs):
@@ -17,12 +14,16 @@ class ProjectsView(TemplateView):
 
         :return: New context.
         """
-        context = super(ProjectsView, self).get_context_data(**kwargs)
+        context = super(OverviewView, self).get_context_data(**kwargs)
 
-        context["projects_semester"] = get_object_or_404(
-            Semester, year=self.kwargs["year"], season=Semester.slug_to_season(self.kwargs["season_slug"])
-        )
-        context["projects"] = Project.objects.filter(
-            semester__year=self.kwargs["year"], semester__season=Semester.slug_to_season(self.kwargs["season_slug"])
-        )
+        # list is the type of the value here
+        grouped = defaultdict(list)
+
+        # select_related will load the needed classes right away,
+        # no need to query for them when actually needing the data in the template
+        for project in Project.objects.select_related("semester", "client"):
+            grouped[project.semester.__str__()].append(project)
+
+        context["grouped_projects"] = dict(grouped)
+
         return context

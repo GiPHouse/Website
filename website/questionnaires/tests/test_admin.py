@@ -17,7 +17,12 @@ from questionnaires.filters import (
     SubmissionAdminProjectFilter,
     SubmissionAdminSemesterFilter,
 )
-from questionnaires.models import Answer, Question, Questionnaire, QuestionnaireSubmission
+from questionnaires.models import (
+    Answer,
+    Question,
+    Questionnaire,
+    QuestionnaireSubmission,
+)
 
 from registrations.models import Employee
 
@@ -28,13 +33,19 @@ class QuestionnaireTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.admin_password = "hunter2"
-        cls.admin = User.objects.create_superuser(github_id=0, github_username="test")
+        cls.admin = User.objects.create_superuser(
+            github_id=0, github_username="test"
+        )
 
         cls.semester = Semester.objects.get_or_create_current_semester()
 
-        cls.user = User.objects.create_user(github_id=1, github_username="test2")
+        cls.user = User.objects.create_user(
+            github_id=1, github_username="test2"
+        )
 
-        cls.project = Project.objects.create(semester=cls.semester, name="Project")
+        cls.project = Project.objects.create(
+            semester=cls.semester, name="Project"
+        )
 
         peer = User.objects.create_user(github_id=2, github_username="test3")
 
@@ -47,28 +58,45 @@ class QuestionnaireTest(TestCase):
         )
 
         open_question = Question.objects.create(
-            questionnaire=cls.active_questions, question="OQ", question_type=Question.OPEN, about_team_member=True
+            questionnaire=cls.active_questions,
+            question="OQ",
+            question_type=Question.OPEN,
+            about_team_member=True,
         )
 
         closed_question = Question.objects.create(
-            questionnaire=cls.active_questions, question="CQ", question_type=Question.QUALITY, about_team_member=True
+            questionnaire=cls.active_questions,
+            question="CQ",
+            question_type=Question.QUALITY,
+            about_team_member=True,
         )
 
         Question.objects.create(
-            questionnaire=cls.active_questions, question="CQ2", question_type=Question.QUALITY, about_team_member=False
+            questionnaire=cls.active_questions,
+            question="CQ2",
+            question_type=Question.QUALITY,
+            about_team_member=False,
         )
 
         cls.submission = QuestionnaireSubmission.objects.create(
             questionnaire=cls.active_questions, participant=cls.user
         )
 
-        cls.open_answer = Answer.objects.create(question=open_question, submission=cls.submission, peer=peer)
-        cls.open_answer.answer = "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+        cls.open_answer = Answer.objects.create(
+            question=open_question, submission=cls.submission, peer=peer
+        )
+        cls.open_answer.answer = (
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+        )
 
-        cls.closed_answer = Answer.objects.create(question=closed_question, submission=cls.submission, peer=peer)
+        cls.closed_answer = Answer.objects.create(
+            question=closed_question, submission=cls.submission, peer=peer
+        )
         cls.closed_answer.answer = 1
 
-        cls.closed_answer2 = Answer.objects.create(question=closed_question, submission=cls.submission)
+        cls.closed_answer2 = Answer.objects.create(
+            question=closed_question, submission=cls.submission
+        )
         cls.closed_answer2.answer = 5
 
     def setUp(self):
@@ -76,7 +104,10 @@ class QuestionnaireTest(TestCase):
         self.client.force_login(self.admin)
 
     def test_get_submission_changelist(self):
-        response = self.client.get(reverse("admin:questionnaires_questionnairesubmission_changelist"), follow=True)
+        response = self.client.get(
+            reverse("admin:questionnaires_questionnairesubmission_changelist"),
+            follow=True,
+        )
         self.assertEqual(response.status_code, 200)
 
     def test_get_submission_changelist_semesterfilter(self):
@@ -113,13 +144,18 @@ class QuestionnaireTest(TestCase):
 
     def test_view_submission_object(self):
         response = self.client.get(
-            reverse("admin:questionnaires_questionnairesubmission_change", kwargs={"object_id": self.submission.id}),
+            reverse(
+                "admin:questionnaires_questionnairesubmission_change",
+                kwargs={"object_id": self.submission.id},
+            ),
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
 
     def test_get_answer_changelist(self):
-        response = self.client.get(reverse("admin:questionnaires_answer_changelist"), follow=True)
+        response = self.client.get(
+            reverse("admin:questionnaires_answer_changelist"), follow=True
+        )
         self.assertEqual(response.status_code, 200)
 
     def test_get_answer_changelist_questionnairefilter(self):
@@ -169,11 +205,16 @@ class QuestionnaireTest(TestCase):
     def test_submission_csv_export(self):
         response = self.client.post(
             reverse("admin:questionnaires_questionnairesubmission_changelist"),
-            {ACTION_CHECKBOX_NAME: [self.submission.pk], "action": "export_submissions", "index": 0},
+            {
+                ACTION_CHECKBOX_NAME: [self.submission.pk],
+                "action": "export_submissions",
+                "index": 0,
+            },
         )
 
         self.assertContains(
-            response, '"Questionnaire","Participant","Late","Question","Peer","Answer (as text)","Answer (as number)"'
+            response,
+            '"Questionnaire","Participant","Late","Question","Peer","Answer (as text)","Answer (as number)"',
         )
 
         self.assertContains(
@@ -186,7 +227,7 @@ class QuestionnaireTest(TestCase):
             response,
             f'"{self.closed_answer.submission.questionnaire}","{self.closed_answer.submission.participant}",'
             f'"{self.closed_answer.submission.late}","{self.closed_answer.question.question}",'
-            f'"{self.closed_answer.peer}","{self.closed_answer.answer.comments or ""}",'
+            f'"{self.closed_answer.peer}","{self.closed_answer.answer.get_value_display()}",'
             f'"{self.closed_answer.answer.value}"',
         )
         self.assertEqual(response.status_code, 200)
@@ -195,14 +236,18 @@ class QuestionnaireTest(TestCase):
         response = self.client.post(
             reverse("admin:questionnaires_answer_changelist"),
             {
-                ACTION_CHECKBOX_NAME: [self.open_answer.pk, self.closed_answer.pk],
+                ACTION_CHECKBOX_NAME: [
+                    self.open_answer.pk,
+                    self.closed_answer.pk,
+                ],
                 "action": "export_answers",
                 "index": 0,
             },
         )
 
         self.assertContains(
-            response, '"Questionnaire","Participant","Late","Question","Peer","Answer (as text)","Answer (as number)"'
+            response,
+            '"Questionnaire","Participant","Late","Question","Peer","Answer (as text)","Answer (as number)"',
         )
 
         self.assertContains(
@@ -215,14 +260,17 @@ class QuestionnaireTest(TestCase):
             response,
             f'"{self.closed_answer.submission.questionnaire}","{self.closed_answer.submission.participant}",'
             f'"{self.closed_answer.submission.late}","{self.closed_answer.question.question}",'
-            f'"{self.closed_answer.peer}","{self.closed_answer.answer.comments or ""}",'
+            f'"{self.closed_answer.peer}","{self.closed_answer.answer.get_value_display()}",'
             f'"{self.closed_answer.answer.value}"',
         )
         self.assertEqual(response.status_code, 200)
 
     def test_duplicate_questionnaires(self):
         response = self.client.post(
-            reverse("admin:questionnaires_questionnaire_change", kwargs={"object_id": self.active_questions.id}),
+            reverse(
+                "admin:questionnaires_questionnaire_change",
+                kwargs={"object_id": self.active_questions.id},
+            ),
             {"_duplicate": True},
             follow=True,
         )
@@ -233,15 +281,27 @@ class QuestionnaireTest(TestCase):
         new_questionnaire = Questionnaire.objects.last()
 
         self.assertEqual(new_questionnaire.title, self.active_questions.title)
-        self.assertEqual(new_questionnaire.semester, Semester.objects.get_or_create_current_semester())
-        self.assertEqual(new_questionnaire.question_set.count(), self.active_questions.question_set.count())
+        self.assertEqual(
+            new_questionnaire.semester,
+            Semester.objects.get_or_create_current_semester(),
+        )
+        self.assertEqual(
+            new_questionnaire.question_set.count(),
+            self.active_questions.question_set.count(),
+        )
 
-        for q1, q2 in zip(new_questionnaire.question_set.all(), self.active_questions.question_set.all()):
+        for q1, q2 in zip(
+            new_questionnaire.question_set.all(),
+            self.active_questions.question_set.all(),
+        ):
             self.assertEqual(q1, q2)
 
     def test_download_emails(self):
         response = self.client.post(
-            reverse("admin:questionnaires_questionnaire_change", kwargs={"object_id": self.active_questions.id}),
+            reverse(
+                "admin:questionnaires_questionnaire_change",
+                kwargs={"object_id": self.active_questions.id},
+            ),
             {"_download_emails_for_employees_without_submission": True},
             follow=True,
         )

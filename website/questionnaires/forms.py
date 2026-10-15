@@ -8,7 +8,16 @@ from questionnaires.widgets import ButtonGroupWidget
 class QuestionnaireForm(forms.Form):
     """Dynamic form generating a questionnaires form."""
 
-    def __init__(self, participant, questionnaire, peers, no_peers_warning, check_required=False, *args, **kwargs):
+    def __init__(
+        self,
+        participant,
+        questionnaire,
+        peers,
+        no_peers_warning,
+        check_required=False,
+        *args,
+        **kwargs,
+    ):
         """Dynamically setup form."""
         super().__init__(*args, **kwargs)
 
@@ -16,7 +25,9 @@ class QuestionnaireForm(forms.Form):
 
         try:
             self.submission = QuestionnaireSubmission.objects.get(
-                participant=participant, questionnaire=questionnaire, submitted=False
+                participant=participant,
+                questionnaire=questionnaire,
+                submitted=False,
             )
         except QuestionnaireSubmission.DoesNotExist:
             self.submission = None
@@ -34,24 +45,35 @@ class QuestionnaireForm(forms.Form):
                 peers_question = (None,)
 
             for peer in peers_question:
-                self._build_form_field(self.get_field_name(question, peer), question, peer)
+                self._build_form_field(
+                    self.get_field_name(question, peer), question, peer
+                )
                 if question.is_closed and question.with_comments:
                     self._build_form_field(
-                        self.get_field_name(question, peer, comments=True), question, peer, is_comments=True
+                        self.get_field_name(question, peer, comments=True),
+                        question,
+                        peer,
+                        is_comments=True,
                     )
 
     def clean(self):
         """Validate that the questionnaire is not yet answered."""
         try:
             QuestionnaireSubmission.objects.get(
-                participant_id=self.participant.id, questionnaire_id=self.questionnaire.id, submitted=True
+                participant_id=self.participant.id,
+                questionnaire_id=self.questionnaire.id,
+                submitted=True,
             )
         except QuestionnaireSubmission.DoesNotExist:
             pass
         else:
-            raise ValidationError("Questionnaire already submitted.", code="invalid")
+            raise ValidationError(
+                "Questionnaire already submitted.", code="invalid"
+            )
 
-    def _build_form_field(self, field_name, question, peer=None, is_comments=False):
+    def _build_form_field(
+        self, field_name, question, peer=None, is_comments=False
+    ):
         if question.is_closed and not is_comments:
             self.fields[field_name] = forms.TypedChoiceField(
                 label=question.question,
@@ -78,11 +100,17 @@ class QuestionnaireForm(forms.Form):
 
         if self.submission:
             # Set the initial value for a field if a submission already exists
-            answer = self.submission.answer_set.filter(question=question, peer=peer).first()
+            answer = self.submission.answer_set.filter(
+                question=question, peer=peer
+            ).first()
             if is_comments:
-                self.fields[field_name].initial = answer.answer.comments if answer else None
+                self.fields[field_name].initial = (
+                    answer.answer.comments if answer else None
+                )
             else:
-                self.fields[field_name].initial = answer.answer.value if answer else None
+                self.fields[field_name].initial = (
+                    answer.answer.value if answer else None
+                )
 
         if peer is not None:
             self.fields[field_name].peer = f"{peer.get_full_name()}"

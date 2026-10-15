@@ -36,7 +36,9 @@ class BaseGithubView(View):
             return HttpResponseBadRequest()
 
         if request.user.is_authenticated:
-            messages.warning(request, "You are already logged in", extra_tags="success")
+            messages.warning(
+                request, "You are already logged in", extra_tags="success"
+            )
             return redirect(self._get_redirect_url(request))
 
         return self.get(request, code)
@@ -53,7 +55,7 @@ class BaseGithubView(View):
             redirect_path = request.GET["next"]
             resolve(redirect_path)
             return redirect_path
-        except (Resolver404, KeyError):
+        except Resolver404, KeyError:
             return default_url
 
 
@@ -67,13 +69,27 @@ class GithubLoginView(BaseGithubView):
         if user is not None:
             login(request, user)
             messages.success(request, "Login Successful", extra_tags="success")
-            return redirect(self._get_redirect_url(request, default_url=self.redirect_url_failure))
-        elif Semester.objects.get_first_semester_with_open_registration():  # pragma: no cover
-            messages.warning(request, "Redirecting to course registration", extra_tags="danger")
+            return redirect(
+                self._get_redirect_url(
+                    request, default_url=self.redirect_url_failure
+                )
+            )
+        elif (
+            Semester.objects.get_first_semester_with_open_registration()
+        ):  # pragma: no cover
+            messages.warning(
+                request,
+                "Redirecting to course registration",
+                extra_tags="danger",
+            )
             return redirect(reverse_lazy("registrations:step1"))
 
         messages.warning(request, "Login Failed", extra_tags="danger")
-        return redirect(self._get_redirect_url(request, default_url=self.redirect_url_failure))
+        return redirect(
+            self._get_redirect_url(
+                request, default_url=self.redirect_url_failure
+            )
+        )
 
 
 class GithubRegisterView(BaseGithubView):
@@ -89,18 +105,33 @@ class GithubRegisterView(BaseGithubView):
             github_info = backend.get_github_info(code)
         except GithubOAuthError as error_message:
             messages.warning(request, str(error_message), extra_tags="danger")
-            return redirect(self._get_redirect_url(request, default_url=self.redirect_url_failure))
+            return redirect(
+                self._get_redirect_url(
+                    request, default_url=self.redirect_url_failure
+                )
+            )
 
         try:
             user = User.objects.get(
-                github_id=github_info["id"], registration__semester=Semester.objects.get_or_create_current_semester()
+                github_id=github_info["id"],
+                registration__semester=Semester.objects.get_or_create_current_semester(),
             )
         except User.DoesNotExist:
             pass
         else:
-            login(request, user, backend="github_oauth.backends.GithubOAuthBackend")
-            messages.success(request, "You already have an account.", extra_tags="success")
-            return redirect(self._get_redirect_url(request, default_url=self.redirect_url_failure))
+            login(
+                request,
+                user,
+                backend="github_oauth.backends.GithubOAuthBackend",
+            )
+            messages.success(
+                request, "You already have an account.", extra_tags="success"
+            )
+            return redirect(
+                self._get_redirect_url(
+                    request, default_url=self.redirect_url_failure
+                )
+            )
 
         request.session.update(
             {

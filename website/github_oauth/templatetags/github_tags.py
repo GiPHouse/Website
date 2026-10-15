@@ -5,7 +5,6 @@ from django.shortcuts import reverse
 
 from github_oauth.links import URL_GITHUB_LOGIN
 
-
 register = template.Library()
 
 
@@ -26,6 +25,12 @@ def url_github_callback(context, callback_action, next_url=None):
         return ""  # pragma: no cover
 
     request = context["request"]
-    callback = request.build_absolute_uri(reverse(f"github_oauth:{callback_action}"))
-    callback = f"{callback}?next={next_url or request.path}" if next_url or request.path else callback
+    callback = request.build_absolute_uri(
+        reverse(f"github_oauth:{callback_action}")
+    )
+    callback = (
+        f"{callback}?next={next_url or request.path}"
+        if next_url or request.path
+        else callback
+    )
     return f"{URL_GITHUB_LOGIN}&redirect_uri={quote(callback)}"

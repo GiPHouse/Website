@@ -17,6 +17,7 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+
 from unittest.mock import MagicMock, patch
 
 from django.conf import settings
@@ -29,7 +30,11 @@ from httplib2 import Response
 
 from mailing_lists import gsuite
 from mailing_lists.gsuite import GSuiteSyncService, MemoryCache
-from mailing_lists.models import ExtraEmailAddress, MailingList, MailingListAlias
+from mailing_lists.models import (
+    ExtraEmailAddress,
+    MailingList,
+    MailingListAlias,
+)
 
 from tasks.models import Task
 
@@ -51,41 +56,67 @@ class GSuiteMethodsTestCase(TestCase):
         cls.logger_mock = MagicMock()
         gsuite.logger = cls.logger_mock
 
-        cls.sync_service = GSuiteSyncService(groups_settings_api=cls.settings_api, directory_api=cls.directory_api)
-        cls.mailing_list = MailingList.objects.create(address="new_group", description="some description")
-        MailingList.objects.create(address="archive", archive_instead_of_delete=True).delete()
-        MailingList.objects.create(address="delete", archive_instead_of_delete=False).delete()
-        MailingListAlias.objects.create(mailing_list=cls.mailing_list, address="alias2")
-        ExtraEmailAddress.objects.create(mailing_list=cls.mailing_list, address=f"test2@{settings.GSUITE_DOMAIN}")
+        cls.sync_service = GSuiteSyncService(
+            groups_settings_api=cls.settings_api,
+            directory_api=cls.directory_api,
+        )
+        cls.mailing_list = MailingList.objects.create(
+            address="new_group", description="some description"
+        )
+        MailingList.objects.create(
+            address="archive", archive_instead_of_delete=True
+        ).delete()
+        MailingList.objects.create(
+            address="delete", archive_instead_of_delete=False
+        ).delete()
+        MailingListAlias.objects.create(
+            mailing_list=cls.mailing_list, address="alias2"
+        )
+        ExtraEmailAddress.objects.create(
+            mailing_list=cls.mailing_list,
+            address=f"test2@{settings.GSUITE_DOMAIN}",
+        )
 
     def setUp(self):
         self.settings_api.reset_mock()
         self.directory_api.reset_mock()
 
-    @patch("google.oauth2.service_account.Credentials.from_service_account_info")
+    @patch(
+        "google.oauth2.service_account.Credentials.from_service_account_info"
+    )
     @patch("mailing_lists.gsuite.build")
     def test_gsuite_init(self, build, from_service_account_info):
-        from_service_account_info.return_value = MagicMock(return_value="creds")
+        from_service_account_info.return_value = MagicMock(
+            return_value="creds"
+        )
 
         GSuiteSyncService()
 
         build.assert_called()
         from_service_account_info.assert_called()
 
-    @patch("google.oauth2.service_account.Credentials.from_service_account_info")
+    @patch(
+        "google.oauth2.service_account.Credentials.from_service_account_info"
+    )
     @patch("mailing_lists.gsuite.build")
     def test_gsuite_init_groupsettings(self, build, from_service_account_info):
-        from_service_account_info.return_value = MagicMock(return_value="creds")
+        from_service_account_info.return_value = MagicMock(
+            return_value="creds"
+        )
 
         GSuiteSyncService(groups_settings_api=MagicMock())
 
         build.assert_called()
         from_service_account_info.assert_called()
 
-    @patch("google.oauth2.service_account.Credentials.from_service_account_info")
+    @patch(
+        "google.oauth2.service_account.Credentials.from_service_account_info"
+    )
     @patch("mailing_lists.gsuite.build")
     def test_gsuite_init_directory(self, build, from_service_account_info):
-        from_service_account_info.return_value = MagicMock(return_value="creds")
+        from_service_account_info.return_value = MagicMock(
+            return_value="creds"
+        )
 
         GSuiteSyncService(directory_api=MagicMock())
 
@@ -137,10 +168,14 @@ class GSuiteMethodsTestCase(TestCase):
         self.assertEqual(len(self.sync_service._get_all_lists()), 1)
 
     def test_get_lists_to_delete(self):
-        self.assertEqual(self.sync_service._get_list_names_to_delete(), ["delete"])
+        self.assertEqual(
+            self.sync_service._get_list_names_to_delete(), ["delete"]
+        )
 
     def test_get_lists_to_archive(self):
-        self.assertEqual(self.sync_service._get_list_names_to_archive(), ["archive"])
+        self.assertEqual(
+            self.sync_service._get_list_names_to_archive(), ["archive"]
+        )
 
     def test_mailing_list_to_group(self):
         group = GSuiteSyncService.mailing_list_to_group(self.mailing_list)
@@ -249,7 +284,9 @@ class GSuiteMethodsTestCase(TestCase):
         self.directory_api.reset_mock()
 
         with self.subTest("Failure"):
-            self.directory_api.groups().insert().execute.side_effect = HttpError(Response({"status": 500}), bytes())
+            self.directory_api.groups().insert().execute.side_effect = (
+                HttpError(Response({"status": 500}), bytes())
+            )
 
             self.sync_service.create_group(
                 GSuiteSyncService.GroupData(
@@ -265,10 +302,14 @@ class GSuiteMethodsTestCase(TestCase):
 
         self.settings_api.reset_mock()
         self.directory_api.reset_mock()
-        self.directory_api.groups().insert().execute.reset_mock(side_effect=True)
+        self.directory_api.groups().insert().execute.reset_mock(
+            side_effect=True
+        )
 
         with self.subTest("> 64 second wait for insert"):
-            self.settings_api.groups().update().execute.side_effect = HttpError(Response({"status": 500}), bytes())
+            self.settings_api.groups().update().execute.side_effect = (
+                HttpError(Response({"status": 500}), bytes())
+            )
 
             self.sync_service.create_group(
                 GSuiteSyncService.GroupData(
@@ -284,7 +325,9 @@ class GSuiteMethodsTestCase(TestCase):
             self.directory_api.groups().aliases().list.assert_not_called()
 
         self.settings_api.reset_mock()
-        self.settings_api.groups().update().execute.reset_mock(side_effect=True)
+        self.settings_api.groups().update().execute.reset_mock(
+            side_effect=True
+        )
         self.directory_api.reset_mock()
 
     def test_update_group(self):
@@ -309,7 +352,8 @@ class GSuiteMethodsTestCase(TestCase):
             )
 
             self.settings_api.groups().update.assert_called_once_with(
-                groupUniqueId=f"new_group@{settings.GSUITE_DOMAIN}", body=self.sync_service._group_settings()
+                groupUniqueId=f"new_group@{settings.GSUITE_DOMAIN}",
+                body=self.sync_service._group_settings(),
             )
 
             self.directory_api.members().list.assert_called()
@@ -319,7 +363,9 @@ class GSuiteMethodsTestCase(TestCase):
         self.directory_api.reset_mock()
 
         with self.subTest("Failure"):
-            self.directory_api.groups().update().execute.side_effect = HttpError(Response({"status": 500}), bytes())
+            self.directory_api.groups().update().execute.side_effect = (
+                HttpError(Response({"status": 500}), bytes())
+            )
 
             self.sync_service.update_group(
                 "new_group",
@@ -340,7 +386,10 @@ class GSuiteMethodsTestCase(TestCase):
             self.assertTrue(success)
 
             self.settings_api.groups().patch.assert_called_once_with(
-                body={"archiveOnly": "true", "whoCanPostMessage": "NONE_CAN_POST"},
+                body={
+                    "archiveOnly": "true",
+                    "whoCanPostMessage": "NONE_CAN_POST",
+                },
                 groupUniqueId=f"new_group@{settings.GSUITE_DOMAIN}",
             )
 
@@ -351,7 +400,9 @@ class GSuiteMethodsTestCase(TestCase):
         self.directory_api.reset_mock()
 
         with self.subTest("Failure"):
-            self.settings_api.groups().patch().execute.side_effect = HttpError(Response({"status": 500}), bytes())
+            self.settings_api.groups().patch().execute.side_effect = HttpError(
+                Response({"status": 500}), bytes()
+            )
 
             success = self.sync_service.archive_group("new_group")
             self.assertFalse(success)
@@ -368,7 +419,9 @@ class GSuiteMethodsTestCase(TestCase):
         self.directory_api.reset_mock()
 
         with self.subTest("Failure"):
-            self.directory_api.groups().delete().execute.side_effect = HttpError(Response({"status": 500}), bytes())
+            self.directory_api.groups().delete().execute.side_effect = (
+                HttpError(Response({"status": 500}), bytes())
+            )
 
             success = self.sync_service.delete_group("new_group")
             self.assertFalse(success)
@@ -378,7 +431,9 @@ class GSuiteMethodsTestCase(TestCase):
             self.directory_api.groups().aliases().list().execute.side_effect = HttpError(
                 Response({"status": 500}), bytes()
             )
-            self.sync_service._update_group_aliases(GSuiteSyncService.GroupData(name="update_group"))
+            self.sync_service._update_group_aliases(
+                GSuiteSyncService.GroupData(name="update_group")
+            )
 
         self.directory_api.reset_mock()
 
@@ -394,26 +449,36 @@ class GSuiteMethodsTestCase(TestCase):
                 {"alias": f"already_synced@{settings.GSUITE_DOMAIN}"},
             ]
 
-            self.directory_api.groups().aliases().list().execute.side_effect = [{"aliases": existing_aliases}]
+            self.directory_api.groups().aliases().list().execute.side_effect = [
+                {"aliases": existing_aliases}
+            ]
 
             self.directory_api.new_batch_http_request = MagicMock()
-            self.directory_api.new_batch_http_request().execute.side_effect = HttpError(
-                Response({"status": 500}), bytes()
+            self.directory_api.new_batch_http_request().execute.side_effect = (
+                HttpError(Response({"status": 500}), bytes())
             )
 
             self.sync_service._update_group_aliases(group_data)
 
     def test_update_group_members(self):
         with self.subTest("Error getting existing list"):
-            self.directory_api.members().list().execute.side_effect = HttpError(Response({"status": 500}), bytes())
-            self.sync_service._update_group_members(GSuiteSyncService.GroupData(name="update_group"))
+            self.directory_api.members().list().execute.side_effect = (
+                HttpError(Response({"status": 500}), bytes())
+            )
+            self.sync_service._update_group_members(
+                GSuiteSyncService.GroupData(name="update_group")
+            )
 
         self.directory_api.reset_mock()
 
         with self.subTest("Successful with some errors"):
             group_data = GSuiteSyncService.GroupData(
                 name="update_group",
-                addresses=["not_synced@example.com", "not_synced_error@example.com", "already_synced@example.com"],
+                addresses=[
+                    "not_synced@example.com",
+                    "not_synced_error@example.com",
+                    "already_synced@example.com",
+                ],
             )
 
             existing_aliases = [
@@ -424,13 +489,16 @@ class GSuiteMethodsTestCase(TestCase):
             ]
 
             self.directory_api.members().list().execute.side_effect = [
-                {"members": existing_aliases[:1], "nextPageToken": "some_token"},
+                {
+                    "members": existing_aliases[:1],
+                    "nextPageToken": "some_token",
+                },
                 {"members": existing_aliases[1:]},
             ]
 
             self.directory_api.new_batch_http_request = MagicMock()
-            self.directory_api.new_batch_http_request().execute.side_effect = HttpError(
-                Response({"status": 500}), bytes()
+            self.directory_api.new_batch_http_request().execute.side_effect = (
+                HttpError(Response({"status": 500}), bytes())
             )
 
             self.sync_service._update_group_members(group_data)
@@ -444,7 +512,10 @@ class GsuiteSyncTestCase(TestCase):
         cls.logger_mock = MagicMock()
         gsuite.logger = cls.logger_mock
 
-        cls.sync_service = GSuiteSyncService(groups_settings_api=cls.settings_api, directory_api=cls.directory_api)
+        cls.sync_service = GSuiteSyncService(
+            groups_settings_api=cls.settings_api,
+            directory_api=cls.directory_api,
+        )
         cls.existing_groups = [
             {"name": "delete_me", "directMembersCount": "3"},
             {"name": "archive_me", "directMembersCount": "3"},
@@ -462,26 +533,39 @@ class GsuiteSyncTestCase(TestCase):
         self.sync_service._get_all_lists = MagicMock()
         self.sync_service._get_all_lists.return_value = [
             GSuiteSyncService.GroupData(name="sync_me", addresses=["someone"]),
-            GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
+            GSuiteSyncService.GroupData(
+                name="already_synced", addresses=["someone"]
+            ),
             GSuiteSyncService.GroupData(name="ignore2", addresses=[]),
         ]
         self.sync_service._get_list_names_to_archive = MagicMock()
         self.sync_service._get_list_names_to_delete = MagicMock()
         self.directory_api.groups().list().execute.side_effect = [
-            {"groups": self.existing_groups[:1], "nextPageToken": "some_token"},
+            {
+                "groups": self.existing_groups[:1],
+                "nextPageToken": "some_token",
+            },
             {"groups": self.existing_groups[1:]},
         ]
 
     def test_error_getting_existing_list(self):
-        self.directory_api.groups().list().execute.side_effect = HttpError(Response({"status": 500}), bytes())
+        self.directory_api.groups().list().execute.side_effect = HttpError(
+            Response({"status": 500}), bytes()
+        )
         self.sync_service.sync_mailing_lists()
 
     def test_successful_full_sync(self):
         self.sync_service.task = None
 
-        self.sync_service._get_list_names_to_archive.return_value = ["archive_me", "already_archived"]
+        self.sync_service._get_list_names_to_archive.return_value = [
+            "archive_me",
+            "already_archived",
+        ]
 
-        self.sync_service._get_list_names_to_delete.return_value = ["delete_me", "already_deleted"]
+        self.sync_service._get_list_names_to_delete.return_value = [
+            "delete_me",
+            "already_deleted",
+        ]
 
         self.sync_service.create_group.return_value = True
         self.sync_service.update_group.return_value = True
@@ -494,19 +578,29 @@ class GsuiteSyncTestCase(TestCase):
 
         self.sync_service.update_group.assert_called_with(
             "already_synced",
-            GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
+            GSuiteSyncService.GroupData(
+                name="already_synced", addresses=["someone"]
+            ),
         )
 
         self.sync_service.delete_group.assert_called_with("delete_me")
 
     def test_successful_full_sync_with_task(self):
         self.sync_service.task = self.task = Task.objects.create(
-            total=0, completed=0, redirect_url=reverse("admin:mailing_lists_mailinglist_changelist")
+            total=0,
+            completed=0,
+            redirect_url=reverse("admin:mailing_lists_mailinglist_changelist"),
         )
 
-        self.sync_service._get_list_names_to_archive.return_value = ["archive_me", "already_archived"]
+        self.sync_service._get_list_names_to_archive.return_value = [
+            "archive_me",
+            "already_archived",
+        ]
 
-        self.sync_service._get_list_names_to_delete.return_value = ["delete_me", "already_deleted"]
+        self.sync_service._get_list_names_to_delete.return_value = [
+            "delete_me",
+            "already_deleted",
+        ]
 
         self.sync_service.create_group.return_value = False
         self.sync_service.update_group.return_value = False
@@ -519,7 +613,9 @@ class GsuiteSyncTestCase(TestCase):
 
         self.sync_service.update_group.assert_called_with(
             "already_synced",
-            GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
+            GSuiteSyncService.GroupData(
+                name="already_synced", addresses=["someone"]
+            ),
         )
 
         self.sync_service.archive_group.assert_called_once_with("archive_me")
@@ -529,9 +625,15 @@ class GsuiteSyncTestCase(TestCase):
     def test_full_sync_failure(self):
         self.sync_service.task = None
 
-        self.sync_service._get_list_names_to_archive.return_value = ["archive_me", "already_archived"]
+        self.sync_service._get_list_names_to_archive.return_value = [
+            "archive_me",
+            "already_archived",
+        ]
 
-        self.sync_service._get_list_names_to_delete.return_value = ["delete_me", "already_deleted"]
+        self.sync_service._get_list_names_to_delete.return_value = [
+            "delete_me",
+            "already_deleted",
+        ]
 
         self.sync_service.delete_group.side_effect = Exception("Oh no!")
         self.sync_service.sync_mailing_lists()
@@ -539,14 +641,24 @@ class GsuiteSyncTestCase(TestCase):
     def test_partial_sync(self):
         self.sync_service.task = None
 
-        self.sync_service._get_list_names_to_archive.return_value = ["archive_me", "already_archived"]
+        self.sync_service._get_list_names_to_archive.return_value = [
+            "archive_me",
+            "already_archived",
+        ]
 
-        self.sync_service._get_list_names_to_delete.return_value = ["delete_me", "already_deleted"]
+        self.sync_service._get_list_names_to_delete.return_value = [
+            "delete_me",
+            "already_deleted",
+        ]
 
         self.sync_service.sync_mailing_lists(
             [
-                GSuiteSyncService.GroupData(name="sync_me", addresses=["someone"]),
-                GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
+                GSuiteSyncService.GroupData(
+                    name="sync_me", addresses=["someone"]
+                ),
+                GSuiteSyncService.GroupData(
+                    name="already_synced", addresses=["someone"]
+                ),
                 GSuiteSyncService.GroupData(name="ignore2", addresses=[]),
             ]
         )
@@ -557,7 +669,9 @@ class GsuiteSyncTestCase(TestCase):
 
         self.sync_service.update_group.assert_called_with(
             "already_synced",
-            GSuiteSyncService.GroupData(name="already_synced", addresses=["someone"]),
+            GSuiteSyncService.GroupData(
+                name="already_synced", addresses=["someone"]
+            ),
         )
 
         self.sync_service.archive_group.assert_not_called()
@@ -565,12 +679,20 @@ class GsuiteSyncTestCase(TestCase):
 
     def test_archive_delete_with_task_failure(self):
         self.sync_service.task = self.task = Task.objects.create(
-            total=0, completed=0, redirect_url=reverse("admin:mailing_lists_mailinglist_changelist")
+            total=0,
+            completed=0,
+            redirect_url=reverse("admin:mailing_lists_mailinglist_changelist"),
         )
 
-        self.sync_service._get_list_names_to_archive.return_value = ["archive_me", "already_archived"]
+        self.sync_service._get_list_names_to_archive.return_value = [
+            "archive_me",
+            "already_archived",
+        ]
 
-        self.sync_service._get_list_names_to_delete.return_value = ["delete_me", "already_deleted"]
+        self.sync_service._get_list_names_to_delete.return_value = [
+            "delete_me",
+            "already_deleted",
+        ]
 
         self.sync_service.archive_group.return_value = False
         self.sync_service.delete_group.return_value = False
@@ -583,12 +705,20 @@ class GsuiteSyncTestCase(TestCase):
 
     def test_archive_archive_with_task_failure(self):
         self.sync_service.task = self.task = Task.objects.create(
-            total=0, completed=0, redirect_url=reverse("admin:mailing_lists_mailinglist_changelist")
+            total=0,
+            completed=0,
+            redirect_url=reverse("admin:mailing_lists_mailinglist_changelist"),
         )
 
-        self.sync_service._get_list_names_to_archive.return_value = ["archive_me", "already_archived"]
+        self.sync_service._get_list_names_to_archive.return_value = [
+            "archive_me",
+            "already_archived",
+        ]
 
-        self.sync_service._get_list_names_to_delete.return_value = ["delete_me", "already_deleted"]
+        self.sync_service._get_list_names_to_delete.return_value = [
+            "delete_me",
+            "already_deleted",
+        ]
 
         self.sync_service.archive_group.return_value = False
         self.sync_service.delete_group.return_value = False
@@ -609,12 +739,20 @@ class GsuiteSyncTestCase(TestCase):
 
     def test_sync_mailing_lists_with_task_failure(self):
         self.sync_service.task = self.task = Task.objects.create(
-            total=0, completed=0, redirect_url=reverse("admin:mailing_lists_mailinglist_changelist")
+            total=0,
+            completed=0,
+            redirect_url=reverse("admin:mailing_lists_mailinglist_changelist"),
         )
 
-        self.sync_service._get_list_names_to_archive.return_value = ["archive_me", "already_archived"]
+        self.sync_service._get_list_names_to_archive.return_value = [
+            "archive_me",
+            "already_archived",
+        ]
 
-        self.sync_service._get_list_names_to_delete.return_value = ["delete_me", "already_deleted"]
+        self.sync_service._get_list_names_to_delete.return_value = [
+            "delete_me",
+            "already_deleted",
+        ]
 
         self.sync_service.create_group.side_effect = Exception("Oh no!")
 

@@ -18,16 +18,24 @@ User: Employee = get_user_model()
 class ReservationTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(github_id=0, github_username="test")
-        cls.other_user = User.objects.create_user(github_id=1, github_username="test2")
+        cls.user = User.objects.create_user(
+            github_id=0, github_username="test"
+        )
+        cls.other_user = User.objects.create_user(
+            github_id=1, github_username="test2"
+        )
 
         cls.room = Room.objects.create(name="New York", location="Merc 0.1337")
+        cls.time1_start, cls.time1_end = (
+            timezone.now(),
+            timezone.now() + timezone.timedelta(hours=1),
+        )
 
         cls.user_reservation = Reservation.objects.create(
             reservee=cls.user,
             room=cls.room,
-            start_time=timezone.now(),
-            end_time=timezone.now() + timezone.timedelta(hours=1),
+            start_time=cls.time1_start,
+            end_time=cls.time1_end,
         )
 
         cls.other_reservation = Reservation.objects.create(
@@ -41,6 +49,12 @@ class ReservationTest(TestCase):
         self.client = Client()
         self.client.force_login(self.user)
 
+    def test_reservation_model_str_method(self):
+        self.assertEqual(
+            str(self.user_reservation),
+            f"{self.user} has {self.room} reserved at {self.time1_start} until {self.time1_end}",
+        )
+
     def test_get_calendar(self):
         response = self.client.get(reverse("room_reservation:calendar"))
         self.assertEqual(response.status_code, 200)
@@ -50,32 +64,86 @@ class ReservationTest(TestCase):
             reverse("room_reservation:create_reservation"),
             {
                 "room": self.room.pk,
-                "start_time": timezone.datetime(2019, 3, 4, 14, 0, 0, tzinfo=timezone.get_current_timezone()),
-                "end_time": timezone.datetime(2019, 3, 4, 16, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "start_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    14,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
+                "end_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    16,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
             },
             content_type="application/json",
         )
-        self.assertIsNotNone(Reservation.objects.filter(pk=json.loads(response.content)["pk"]).first())
+        self.assertIsNotNone(
+            Reservation.objects.filter(
+                pk=json.loads(response.content)["pk"]
+            ).first()
+        )
 
     def test_reservation_too_long(self):
         response = self.client.post(
             reverse("room_reservation:create_reservation"),
             {
                 "room": self.room.pk,
-                "start_time": timezone.datetime(2019, 3, 4, 14, 0, 0, tzinfo=timezone.get_current_timezone()),
-                "end_time": timezone.datetime(2019, 3, 5, 16, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "start_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    14,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
+                "end_time": timezone.datetime(
+                    2019,
+                    3,
+                    5,
+                    16,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
             },
             content_type="application/json",
         )
-        self.assertContains(response, "Reservation too long. Please shorten your reservation")
+        self.assertContains(
+            response, "Reservation too long. Please shorten your reservation"
+        )
 
     def test_end_before_start(self):
         response = self.client.post(
             reverse("room_reservation:create_reservation"),
             {
                 "room": self.room.pk,
-                "start_time": timezone.datetime(2019, 3, 4, 14, 0, 0, tzinfo=timezone.get_current_timezone()),
-                "end_time": timezone.datetime(2019, 3, 4, 14, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "start_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    14,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
+                "end_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    14,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
             },
             content_type="application/json",
         )
@@ -86,56 +154,126 @@ class ReservationTest(TestCase):
             reverse("room_reservation:create_reservation"),
             {
                 "room": self.room.pk,
-                "start_time": timezone.datetime(2019, 3, 4, 6, 0, 0, tzinfo=timezone.get_current_timezone()),
-                "end_time": timezone.datetime(2019, 3, 4, 7, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "start_time": timezone.datetime(
+                    2019, 3, 4, 6, 0, 0, tzinfo=timezone.get_current_timezone()
+                ),
+                "end_time": timezone.datetime(
+                    2019, 3, 4, 7, 0, 0, tzinfo=timezone.get_current_timezone()
+                ),
             },
             content_type="application/json",
         )
-        self.assertContains(response, "Please enter times between 8:00 and 18:00")
+        self.assertContains(
+            response, "Please enter times between 8:00 and 18:00"
+        )
 
     def test_start_outside_office_hours(self):
         response = self.client.post(
             reverse("room_reservation:create_reservation"),
             {
                 "room": self.room.pk,
-                "start_time": timezone.datetime(2019, 3, 4, 3, 0, 0, tzinfo=timezone.get_current_timezone()),
-                "end_time": timezone.datetime(2019, 3, 4, 13, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "start_time": timezone.datetime(
+                    2019, 3, 4, 3, 0, 0, tzinfo=timezone.get_current_timezone()
+                ),
+                "end_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    13,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
             },
             content_type="application/json",
         )
-        self.assertContains(response, "Please enter times between 8:00 and 18:00")
+        self.assertContains(
+            response, "Please enter times between 8:00 and 18:00"
+        )
 
     def test_end_outside_office_hours(self):
         response = self.client.post(
             reverse("room_reservation:create_reservation"),
             {
                 "room": self.room.pk,
-                "start_time": timezone.datetime(2019, 3, 4, 13, 0, 0, tzinfo=timezone.get_current_timezone()),
-                "end_time": timezone.datetime(2019, 3, 4, 20, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "start_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    13,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
+                "end_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    20,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
             },
             content_type="application/json",
         )
-        self.assertContains(response, "Please enter times between 8:00 and 18:00")
+        self.assertContains(
+            response, "Please enter times between 8:00 and 18:00"
+        )
 
     def test_in_weekend(self):
         response = self.client.post(
             reverse("room_reservation:create_reservation"),
             {
                 "room": self.room.pk,
-                "start_time": timezone.datetime(2019, 3, 3, 13, 0, 0, tzinfo=timezone.get_current_timezone()),
-                "end_time": timezone.datetime(2019, 3, 3, 14, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "start_time": timezone.datetime(
+                    2019,
+                    3,
+                    3,
+                    13,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
+                "end_time": timezone.datetime(
+                    2019,
+                    3,
+                    3,
+                    14,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
             },
             content_type="application/json",
         )
-        self.assertContains(response, "Rooms cannot be reserved in the weekends")
+        self.assertContains(
+            response, "Rooms cannot be reserved in the weekends"
+        )
 
     def test_too_far_in_future(self):
         response = self.client.post(
             reverse("room_reservation:create_reservation"),
             {
                 "room": self.room.pk,
-                "start_time": timezone.datetime(2020, 3, 3, 13, 0, 0, tzinfo=timezone.get_current_timezone()),
-                "end_time": timezone.datetime(2020, 3, 3, 14, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "start_time": timezone.datetime(
+                    2020,
+                    3,
+                    3,
+                    13,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
+                "end_time": timezone.datetime(
+                    2020,
+                    3,
+                    3,
+                    14,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
             },
             content_type="application/json",
         )
@@ -146,8 +284,24 @@ class ReservationTest(TestCase):
             reverse("room_reservation:create_reservation"),
             {
                 "room": self.room.pk,
-                "start_time": timezone.datetime(2019, 2, 3, 13, 0, 0, tzinfo=timezone.get_current_timezone()),
-                "end_time": timezone.datetime(2019, 2, 3, 14, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "start_time": timezone.datetime(
+                    2019,
+                    2,
+                    3,
+                    13,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
+                "end_time": timezone.datetime(
+                    2019,
+                    2,
+                    3,
+                    14,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
             },
             content_type="application/json",
         )
@@ -158,8 +312,24 @@ class ReservationTest(TestCase):
             reverse("room_reservation:create_reservation"),
             {
                 "room": self.room.pk,
-                "start_time": timezone.datetime(2019, 3, 4, 14, 0, 0, tzinfo=timezone.get_current_timezone()),
-                "end_time": timezone.datetime(2019, 3, 4, 16, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "start_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    14,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
+                "end_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    16,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
             },
             content_type="application/json",
         )
@@ -167,24 +337,61 @@ class ReservationTest(TestCase):
             reverse("room_reservation:create_reservation"),
             {
                 "room": self.room.pk,
-                "start_time": timezone.datetime(2019, 3, 4, 14, 0, 0, tzinfo=timezone.get_current_timezone()),
-                "end_time": timezone.datetime(2019, 3, 4, 16, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "start_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    14,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
+                "end_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    16,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
             },
             content_type="application/json",
         )
         self.assertContains(response, "Room already reserved in this timeslot")
 
     def test_bad_request(self):
-        response = self.client.post(reverse("room_reservation:create_reservation"), {"test": "hai"})
+        response = self.client.post(
+            reverse("room_reservation:create_reservation"), {"test": "hai"}
+        )
         self.assertEqual(response.status_code, 400)
 
     def test_update_reservation(self):
         response = self.client.post(
-            reverse("room_reservation:update_reservation", kwargs={"pk": self.user_reservation.pk}),
+            reverse(
+                "room_reservation:update_reservation",
+                kwargs={"pk": self.user_reservation.pk},
+            ),
             {
                 "room": self.user_reservation.room_id,
-                "start_time": timezone.datetime(2019, 3, 4, 14, 0, 0, tzinfo=timezone.get_current_timezone()),
-                "end_time": timezone.datetime(2019, 3, 4, 16, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "start_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    14,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
+                "end_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    16,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
             },
             content_type="application/json",
         )
@@ -192,10 +399,29 @@ class ReservationTest(TestCase):
 
     def test_update_reservation_malformed(self):
         response = self.client.post(
-            reverse("room_reservation:update_reservation", kwargs={"pk": self.user_reservation.pk}),
+            reverse(
+                "room_reservation:update_reservation",
+                kwargs={"pk": self.user_reservation.pk},
+            ),
             {
-                "start_time": timezone.datetime(2019, 3, 4, 14, 0, 0, tzinfo=timezone.get_current_timezone()),
-                "end_time": timezone.datetime(2019, 3, 4, 16, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "start_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    14,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
+                "end_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    16,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
             },
             content_type="application/json",
         )
@@ -203,23 +429,48 @@ class ReservationTest(TestCase):
 
     def test_update_reservation_outside_hours(self):
         response = self.client.post(
-            reverse("room_reservation:update_reservation", kwargs={"pk": self.user_reservation.pk}),
+            reverse(
+                "room_reservation:update_reservation",
+                kwargs={"pk": self.user_reservation.pk},
+            ),
             {
                 "room": self.user_reservation.room_id,
-                "start_time": timezone.datetime(2019, 3, 4, 5, 0, 0, tzinfo=timezone.get_current_timezone()),
-                "end_time": timezone.datetime(2019, 3, 4, 16, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "start_time": timezone.datetime(
+                    2019, 3, 4, 5, 0, 0, tzinfo=timezone.get_current_timezone()
+                ),
+                "end_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    16,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
             },
             content_type="application/json",
         )
-        self.assertContains(response, "Please enter times between 8:00 and 18:00")
+        self.assertContains(
+            response, "Please enter times between 8:00 and 18:00"
+        )
 
     def test_update_nonexisting(self):
         response = self.client.post(
             reverse("room_reservation:update_reservation", kwargs={"pk": 100}),
             {
                 "room": self.user_reservation.room_id,
-                "start_time": timezone.datetime(2019, 3, 4, 8, 0, 0, tzinfo=timezone.get_current_timezone()),
-                "end_time": timezone.datetime(2019, 3, 4, 16, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "start_time": timezone.datetime(
+                    2019, 3, 4, 8, 0, 0, tzinfo=timezone.get_current_timezone()
+                ),
+                "end_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    16,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
             },
             content_type="application/json",
         )
@@ -227,11 +478,24 @@ class ReservationTest(TestCase):
 
     def test_update_other_user(self):
         response = self.client.post(
-            reverse("room_reservation:update_reservation", kwargs={"pk": self.other_reservation.pk}),
+            reverse(
+                "room_reservation:update_reservation",
+                kwargs={"pk": self.other_reservation.pk},
+            ),
             {
                 "room": self.user_reservation.room_id,
-                "start_time": timezone.datetime(2019, 3, 4, 8, 0, 0, tzinfo=timezone.get_current_timezone()),
-                "end_time": timezone.datetime(2019, 3, 4, 16, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "start_time": timezone.datetime(
+                    2019, 3, 4, 8, 0, 0, tzinfo=timezone.get_current_timezone()
+                ),
+                "end_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    16,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
             },
             content_type="application/json",
         )
@@ -239,17 +503,25 @@ class ReservationTest(TestCase):
 
     def test_delete_reservation(self):
         response = self.client.post(
-            reverse("room_reservation:delete_reservation", kwargs={"pk": self.user_reservation.pk})
+            reverse(
+                "room_reservation:delete_reservation",
+                kwargs={"pk": self.user_reservation.pk},
+            )
         )
         self.assertContains(response, '"ok": true')
 
     def test_delete_nonexisting(self):
-        response = self.client.post(reverse("room_reservation:delete_reservation", kwargs={"pk": 100}))
+        response = self.client.post(
+            reverse("room_reservation:delete_reservation", kwargs={"pk": 100})
+        )
         self.assertContains(response, "This reservation does not exist")
 
     def test_delete_other_user(self):
         response = self.client.post(
-            reverse("room_reservation:delete_reservation", kwargs={"pk": self.other_reservation.pk})
+            reverse(
+                "room_reservation:delete_reservation",
+                kwargs={"pk": self.other_reservation.pk},
+            )
         )
         self.assertContains(response, "You can only delete your own events")
 
@@ -263,8 +535,24 @@ class ReservationTest(TestCase):
             reverse("room_reservation:create_reservation"),
             {
                 "room": self.room.pk,
-                "start_time": timezone.datetime(2019, 3, 4, 12, 0, 0, tzinfo=timezone.get_current_timezone()),
-                "end_time": timezone.datetime(2019, 3, 4, 16, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "start_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    12,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
+                "end_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    16,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
             },
             content_type="application/json",
         )
@@ -280,9 +568,29 @@ class ReservationTest(TestCase):
             reverse("room_reservation:create_reservation"),
             {
                 "room": self.room.pk,
-                "start_time": timezone.datetime(2019, 3, 4, 12, 0, 0, tzinfo=timezone.get_current_timezone()),
-                "end_time": timezone.datetime(2019, 3, 4, 14, 0, 0, tzinfo=timezone.get_current_timezone()),
+                "start_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    12,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
+                "end_time": timezone.datetime(
+                    2019,
+                    3,
+                    4,
+                    14,
+                    0,
+                    0,
+                    tzinfo=timezone.get_current_timezone(),
+                ),
             },
             content_type="application/json",
         )
-        self.assertIsNotNone(Reservation.objects.filter(pk=json.loads(response.content)["pk"]).first())
+        self.assertIsNotNone(
+            Reservation.objects.filter(
+                pk=json.loads(response.content)["pk"]
+            ).first()
+        )

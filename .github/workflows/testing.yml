@@ -1,0 +1,36 @@
+name: "Testing"
+on: "push"
+
+jobs:
+  test:
+    name: "Testing"
+    runs-on: "ubuntu-latest"
+    steps:
+
+    - name: "Checkout the repository"
+      uses: "actions/checkout@v6"
+
+    - name: "Setup Python"
+      uses: "actions/setup-python@v6"
+      with:
+        python-version: '3.14'
+
+    - name: "Install uv"
+      uses: astral-sh/setup-uv@v7
+
+    - name: "Run Django checks"
+      run: "uv run python website/manage.py check --no-color"
+
+    - name: "Test migrations"
+      run: |
+        uv run python website/manage.py makemigrations --no-input --check --dry-run
+        uv run python website/manage.py migrate
+
+    - name: "Run Django tests using Coverage"
+      run: "uv run coverage run website/manage.py test website/"
+
+    - name: "Check Coverage report"
+      run: "uv run coverage report"
+
+    - name: "Test createfixtures command"
+      run: "uv run python website/manage.py createfixtures"
