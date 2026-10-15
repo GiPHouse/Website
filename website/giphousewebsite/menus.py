@@ -41,6 +41,7 @@ MAIN_MENU = [
     },
     {
         "title": "Room Reservations",
+        "visible": lambda request: request.user.is_authenticated,
         "url": reverse("room_reservation:calendar"),
     },
     {

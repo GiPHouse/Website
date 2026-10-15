@@ -105,7 +105,7 @@ class BaseReservationView(View):
         )
 
 
-class ShowCalendarView(TemplateView, BaseReservationView):
+class ShowCalendarView(LoginRequiredMixin, TemplateView, BaseReservationView):
     """
     Show a week-calendar and showing the current reservations.
 
@@ -118,14 +118,10 @@ class ShowCalendarView(TemplateView, BaseReservationView):
     def _reservation_title(self, reservation):
         """Return the title of the reservation."""
         room_name = reservation.room.name
-        reservee_registrations = reservation.reservee.registration_set.filter(
+        registration = reservation.reservee.registration_set.filter(
             semester=Semester.objects.get_or_create_current_semester()
-        )
-        team_name = (
-            reservee_registrations.first().project
-            if reservee_registrations.exists()
-            else None
-        )
+        ).first()
+        team_name = registration.projects.first() if registration else None
         reservee_display_name = (
             reservation.reservee.first_name
             if reservation.reservee != self.request.user
