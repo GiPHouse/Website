@@ -39,6 +39,8 @@ Then open [http://localhost:8000](http://localhost:8000). To log in (including i
 
 | Document | What it covers |
 | --- | --- |
+| [Glossary](GLOSSARY.md) | The domain language: courses, people, applications and registrations, teams and projects |
+| [Domain](docs/domain.md) | How GiPHouse and its courses are organised, how the website is used, and current inconsistencies between the code and the courses |
 | [Features](docs/features.md) | Authentication, semesters, registrations and automatic teams, questionnaires, room reservations, GitHub and mailing list synchronisation, tasks |
 | [Development](docs/development.md) | Local setup, GitHub OAuth login, dependencies, fixtures, tests and code quality |
 | [GitHub App and G Suite setup](docs/integrations.md) | Registering the GitHub App for repository sync and the G Suite service account for mailing lists |
