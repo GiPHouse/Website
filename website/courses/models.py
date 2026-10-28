@@ -1,4 +1,6 @@
-from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
+from django.core.validators import FileExtensionValidator
+from django.core.validators import MaxValueValidator
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
 
@@ -9,7 +11,8 @@ def current_year():
 
 
 def max_value_current_year(value):
-    """Validate value, limit modelinput to current_year, call current_year to keep validator from changing per year."""
+    """Validate value, limit modelinput to current_year,
+    call current_year to keep validator from changing per year."""
     return MaxValueValidator(current_year() + 1)(value)
 
 
@@ -17,16 +20,18 @@ class CourseManager(models.Manager):
     """Manager for the Course model."""
 
     def se(self):
-        """Create Software Engineering course."""
-        return self.get(name="Software Engineering")
+        """Get or create Software Engineering course."""
+        return self.get_or_create(name="Software Engineering")[0]
 
     def sdm(self):
-        """Create System Development Management course."""
-        return self.get(name="System Development Management")
+        """Get or create System Development Management course."""
+        return self.get_or_create(name="System Development Management")[0]
 
     def sde(self):
-        """Create Software Development Entrepreneurship course."""
-        return self.get(name="Software Development Entrepreneurship")
+        """Get or create Software Development Entrepreneurship course."""
+        return self.get_or_create(
+            name="Software Development Entrepreneurship"
+        )[0]
 
 
 class Course(models.Model):
@@ -46,35 +51,61 @@ class SemesterManager(models.Manager):
 
     def get_first_semester_with_open_registration(self):
         """Get the first semester with an open registration."""
-        return self.filter(registration_start__lte=timezone.now(), registration_end__gte=timezone.now()).first()
+        return self.filter(
+            registration_start__lte=timezone.now(),
+            registration_end__gte=timezone.now(),
+        ).first()
 
     def get_or_create_current_semester(self):
         """
         Return the current semester based on the current time.
 
-        Given that there is no deterministic way to determine the start of the semesters,
-        we start the semesters at reasonable dates that are close to the actual start dates.
+        Given that there is no deterministic way
+        to determine the start of the semesters,
+        we start the semesters at reasonable dates
+        that are close to the actual start dates.
 
-        The spring semester starts on the 14 days before the monday in the last week of january.
+        The spring semester starts on the 14 days
+        before the monday in the last week of january.
         The fall semester starts on september 1st.
 
         August is considered spring semester for simplicity.
         """
         jan31 = timezone.now().replace(
-            year=timezone.now().year, month=1, day=31, hour=0, minute=0, second=0, microsecond=0
+            year=timezone.now().year,
+            month=1,
+            day=31,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
         )
 
-        spring_semester_start = jan31 - timezone.timedelta(days=jan31.weekday()) - timezone.timedelta(days=14)
+        spring_semester_start = (
+            jan31
+            - timezone.timedelta(days=jan31.weekday())
+            - timezone.timedelta(days=14)
+        )
 
         fall_semester_start = timezone.now().replace(
-            year=timezone.now().year, month=9, day=1, hour=0, minute=0, second=0, microsecond=0
+            year=timezone.now().year,
+            month=9,
+            day=1,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
         )
 
         if timezone.now() < spring_semester_start:
-            return self.get_or_create(year=timezone.now().year - 1, season=Semester.FALL)[0]
+            return self.get_or_create(
+                year=timezone.now().year - 1, season=Semester.FALL
+            )[0]
 
         elif spring_semester_start <= timezone.now() < fall_semester_start:
-            return self.get_or_create(year=timezone.now().year, season=Semester.SPRING)[0]
+            return self.get_or_create(
+                year=timezone.now().year, season=Semester.SPRING
+            )[0]
 
         # In the case fall_semester_start <= timezone.now()
         # In other words, if the start of the fall semester has passed.
@@ -100,14 +131,20 @@ class Semester(models.Model):
     FALL = 1
     CHOICES = ((SPRING, "Spring"), (FALL, "Fall"))
 
-    year = models.IntegerField(validators=[MinValueValidator(2008), max_value_current_year])
+    year = models.IntegerField(
+        validators=[MinValueValidator(2008), max_value_current_year]
+    )
     season = models.PositiveSmallIntegerField(choices=CHOICES, default=SPRING)
 
     registration_start = models.DateTimeField(
-        blank=True, null=True, help_text="This must be filled in to open the registration."
+        blank=True,
+        null=True,
+        help_text="This must be filled in to open the registration.",
     )
     registration_end = models.DateTimeField(
-        blank=True, null=True, help_text="This must be filled in to open the registration."
+        blank=True,
+        null=True,
+        help_text="This must be filled in to open the registration.",
     )
 
     objects = SemesterManager()
@@ -136,9 +173,9 @@ def get_slides_filename(instance, filename):
     """
     return (
         f"courses/slides/"
-        f"{ instance.course }-"
-        f"{ instance.title }-"
-        f'{ instance.date.strftime("%d-%b-%Y") }'
+        f"{instance.course}-"
+        f"{instance.title}-"
+        f"{instance.date.strftime('%d-%b-%Y')}"
         f".pdf"
     )
 
@@ -170,7 +207,10 @@ class Lecture(models.Model):
     location = models.CharField(max_length=50, blank=True, null=True)
 
     slides = models.FileField(
-        upload_to=get_slides_filename, validators=[FileExtensionValidator(["pdf"])], blank=True, null=True
+        upload_to=get_slides_filename,
+        validators=[FileExtensionValidator(["pdf"])],
+        blank=True,
+        null=True,
     )
 
     capacity = models.PositiveSmallIntegerField(null=True, blank=True)
@@ -179,8 +219,13 @@ class Lecture(models.Model):
 
     @property
     def can_register(self):
-        """Return True if users should be able to (un)register for this lecture at this point in time."""
-        return not (self.registration_required and self.register_until and timezone.now() > self.register_until)
+        """Return True if users should be able to (un)register
+        for this lecture at this point in time."""
+        return not (
+            self.registration_required
+            and self.register_until
+            and timezone.now() > self.register_until
+        )
 
     @property
     def registration_required(self):
@@ -190,7 +235,10 @@ class Lecture(models.Model):
     @property
     def capacity_reached(self):
         """Is the registration capacity for this lecture reached."""
-        return self.capacity is not None and self.lectureregistration_set.count() >= self.capacity
+        return (
+            self.capacity is not None
+            and self.lectureregistration_set.count() >= self.capacity
+        )
 
     @property
     def registered_users(self):
@@ -199,4 +247,4 @@ class Lecture(models.Model):
 
     def __str__(self):
         """Return value of Lecture and date object."""
-        return f"{ self.course } ({ self.date })"
+        return f"{self.course} ({self.date})"

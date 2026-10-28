@@ -19,5 +19,7 @@ def add_menu_objects_to_context(request):
     """
     return {
         "current_semester": Semester.objects.get_or_create_current_semester(),
-        "current_projects": Project.objects.filter(semester=Semester.objects.get_or_create_current_semester()),
+        "current_projects": Project.objects.filter(
+            semester=Semester.objects.get_or_create_current_semester()
+        ),
     }

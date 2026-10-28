@@ -69,7 +69,11 @@ class GithubOAuthBackend(ModelBackend):
 
         try:
             response = requests.get(
-                URL_GITHUB_USER_INFO, headers={"Accept": "application/json", "Authorization": f"token {access_token}"}
+                URL_GITHUB_USER_INFO,
+                headers={
+                    "Accept": "application/json",
+                    "Authorization": f"token {access_token}",
+                },
             )
         except RequestException:
             raise GithubOAuthConnectionError

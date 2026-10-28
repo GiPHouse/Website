@@ -5,5 +5,12 @@
     <li>
         <a class="import" href="{% url 'admin:import' %}">Import group assignment</a>
     </li>
+
+    <li>
+        <a class="addlink" href="{% url 'admin:create-sample-registration' %}">
+            Create sample registration
+        </a>
+    </li>
+
     {{ block.super }}
 {% endblock %}

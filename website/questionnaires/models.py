@@ -15,7 +15,9 @@ class QuestionnaireManager(models.Manager):
 
     def current_questionnaires(self):
         """Get all questionnaires of the current semester."""
-        return self.filter(semester=Semester.objects.get_or_create_current_semester())
+        return self.filter(
+            semester=Semester.objects.get_or_create_current_semester()
+        )
 
 
 class Questionnaire(models.Model):
@@ -24,12 +26,17 @@ class Questionnaire(models.Model):
     class Meta:
         """Meta class describing the order of the Questionnaire model."""
 
-        ordering = ["-available_until_hard", "-available_until_soft", "-available_from"]
+        ordering = [
+            "-available_until_hard",
+            "-available_until_soft",
+            "-available_from",
+        ]
 
     title = models.CharField(max_length=200)
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
     available_from = models.DateTimeField(
-        default=timezone.now, help_text="The moment from which the questionnaire is available."
+        default=timezone.now,
+        help_text="The moment from which the questionnaire is available.",
     )
     available_until_soft = models.DateTimeField(
         help_text="Soft deadline to submit the questionnaire, after this the submission is marked as late."
@@ -130,7 +137,9 @@ class Question(models.Model):
         """Clean the model."""
         super(Question, self).clean()
         if self.with_comments and self.question_type == self.OPEN:
-            raise ValidationError("Only closed questions can have a comments field.")
+            raise ValidationError(
+                "Only closed questions can have a comments field."
+            )
 
     def get_likert_choices(self):
         """Get the appropriate choices for the question."""
@@ -151,9 +160,17 @@ class Answer(models.Model):
     """Answer to a question."""
 
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    submission = models.ForeignKey(QuestionnaireSubmission, on_delete=models.CASCADE)
+    submission = models.ForeignKey(
+        QuestionnaireSubmission, on_delete=models.CASCADE
+    )
 
-    peer = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="+", blank=True, null=True)
+    peer = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name="+",
+        blank=True,
+        null=True,
+    )
 
     @property
     def answer(self):
@@ -190,14 +207,18 @@ class Answer(models.Model):
             try:
                 self.agreementanswerdata.value = value
             except AgreementAnswerData.DoesNotExist:
-                self.agreementanswerdata = AgreementAnswerData(answer=self, value=value)
+                self.agreementanswerdata = AgreementAnswerData(
+                    answer=self, value=value
+                )
             self.agreementanswerdata.save()
 
         else:
             try:
                 self.qualityanswerdata.value = value
             except QualityAnswerData.DoesNotExist:
-                self.qualityanswerdata = QualityAnswerData(answer=self, value=value)
+                self.qualityanswerdata = QualityAnswerData(
+                    answer=self, value=value
+                )
             self.qualityanswerdata.save()
 
     @property
@@ -228,14 +249,18 @@ class Answer(models.Model):
             try:
                 self.agreementanswerdata.comments = value
             except AgreementAnswerData.DoesNotExist:
-                self.agreementanswerdata = AgreementAnswerData(answer=self, comments=value)
+                self.agreementanswerdata = AgreementAnswerData(
+                    answer=self, comments=value
+                )
             self.agreementanswerdata.save()
 
         else:
             try:
                 self.qualityanswerdata.comments = value
             except QualityAnswerData.DoesNotExist:
-                self.qualityanswerdata = QualityAnswerData(answer=self, comments=value)
+                self.qualityanswerdata = QualityAnswerData(
+                    answer=self, comments=value
+                )
             self.qualityanswerdata.save()
 
     def __str__(self):
@@ -257,7 +282,9 @@ class OpenAnswerData(models.Model):
 class AbstractLikertData(models.Model):
     """Abstract class describing Likert answer."""
 
-    answer = models.OneToOneField(Answer, on_delete=models.CASCADE, related_name="%(class)s")
+    answer = models.OneToOneField(
+        Answer, on_delete=models.CASCADE, related_name="%(class)s"
+    )
     comments = models.TextField(blank=True, null=True)
 
     class Meta:
@@ -288,7 +315,9 @@ class AgreementAnswerData(AbstractLikertData):
         (STRONGLY_AGREE, "Strongly Agree"),
     )
 
-    value = models.PositiveSmallIntegerField(choices=CHOICES, blank=True, null=True)
+    value = models.PositiveSmallIntegerField(
+        choices=CHOICES, blank=True, null=True
+    )
 
 
 class QualityAnswerData(AbstractLikertData):
@@ -308,4 +337,6 @@ class QualityAnswerData(AbstractLikertData):
         (VERY_GOOD, "Very Good"),
     )
 
-    value = models.PositiveSmallIntegerField(choices=CHOICES, blank=True, null=True)
+    value = models.PositiveSmallIntegerField(
+        choices=CHOICES, blank=True, null=True
+    )

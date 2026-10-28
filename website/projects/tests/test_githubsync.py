@@ -1,15 +1,20 @@
 from datetime import datetime, timedelta
 from unittest import mock
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, PropertyMock
 
 from django.test import TestCase
 
-from github import GithubException, MainClass, UnknownObjectException
+from github import GithubException, MainClass, UnknownObjectException, Auth
 
 from courses.models import Course, Semester
 
 from projects import githubsync
-from projects.models import Project, ProjectToBeDeleted, Repository, RepositoryToBeDeleted
+from projects.models import (
+    Project,
+    ProjectToBeDeleted,
+    Repository,
+    RepositoryToBeDeleted,
+)
 
 from registrations.models import Employee, Registration
 
@@ -22,9 +27,15 @@ class GitHubAPITalkerTest(TestCase):
         cls.app_id = 12345
         cls.installation_id = 1234567
         cls.semester = Semester(year=2020, season=Semester.FALL)
-        cls.project1 = Project(name="test1", github_team_id="87654321", semester=cls.semester)
-        cls.repo1 = Repository(name="test-repo1", github_repo_id="987654321", project=cls.project1)
-        cls.employee1 = Employee(github_username="testgithubuser", github_id=123456)
+        cls.project1 = Project(
+            name="test1", github_team_id="87654321", semester=cls.semester
+        )
+        cls.repo1 = Repository(
+            name="test-repo1", github_repo_id="987654321", project=cls.project1
+        )
+        cls.employee1 = Employee(
+            github_username="testgithubuser", github_id=123456
+        )
 
     def setUp(self):
         """Create a mock pygithub object to talk with."""
@@ -34,19 +45,34 @@ class GitHubAPITalkerTest(TestCase):
         self.talker = githubsync.GitHubAPITalker()
         self.talker._gi = MagicMock()
         self.talker._access_token = MagicMock()
-        self.talker._access_token.expires_at = datetime.now() + timedelta(hours=1)
+        self.talker._access_token.expires_at = datetime.now() + timedelta(
+            hours=1
+        )
         self.talker._organization = MagicMock()
         self.talker._github = MagicMock()
+
+        patcher = patch.object(
+            type(self.talker),
+            "github_service",  # the name of the property
+            new_callable=PropertyMock,  # it's a property
+        )
+        self.addCleanup(patcher.stop)
+        mock_property = patcher.start()
+        mock_property.return_value = self.talker._github
 
         self.old_github_init = MainClass.Github.__init__
         self.old_github_get_org = MainClass.Github.get_organization
         MainClass.Github.__init__ = MagicMock(return_value=None)
         MainClass.Github.get_organization = MagicMock()
 
+        self.old_github_auth_token_init = Auth.Token.__init__
+        Auth.Token.__init__ = MagicMock(return_value=None)
+
     def tearDown(self):
         """Remove objects after a test is performed."""
         MainClass.Github.__init__ = self.old_github_init
         MainClass.Github.get_organization = self.old_github_get_org
+        Auth.Token.__init__ = self.old_github_auth_token_init
         del self.talker
 
     def test_singleton(self):
@@ -58,30 +84,40 @@ class GitHubAPITalkerTest(TestCase):
     def test_renew_access_token_if_required__unexpired(self):
         """Test if when requesting an unexpired token, nothing happens."""
         self.talker._gi.get_access_token = MagicMock()
-        self.talker._github = MagicMock()
+        # self.talker._github = MagicMock()
         self.talker.renew_access_token_if_required()
         self.talker._gi.get_access_token.assert_not_called()
         self.talker._github.get_organization.assert_not_called()
 
     def test_renew_access_token_if_required__expired(self):
         """Test if when requesting an expired token, a new token is requested."""
-        self.talker._access_token.expires_at = datetime.utcnow() - timedelta(hours=1)
+        self.talker._access_token.expires_at = datetime.utcnow() - timedelta(
+            hours=1
+        )
         self.talker.renew_access_token_if_required()
-        self.talker._gi.get_access_token.assert_called_once_with(self.talker.installation_id)
+        self.talker._gi.get_access_token.assert_called_once_with(
+            self.talker.installation_id
+        )
         self.assertIsNotNone(self.talker._organization)
 
     def test_renew_access_token_if_required__almost_expired(self):
         """Test if when requesting an almost expiring token, a new token is requested."""
-        self.talker._access_token.expires_at = datetime.utcnow() + timedelta(seconds=30)
+        self.talker._access_token.expires_at = datetime.utcnow() + timedelta(
+            seconds=30
+        )
         self.talker.renew_access_token_if_required()
-        self.talker._gi.get_access_token.assert_called_once_with(self.talker.installation_id)
+        self.talker._gi.get_access_token.assert_called_once_with(
+            self.talker.installation_id
+        )
         self.assertIsNotNone(self.talker._organization)
 
     def test_renew_access_token_if_required__no_token(self):
         """Test if when requesting a token when no token exists yet, a new token is requested."""
         self.talker._access_token = None
         self.talker.renew_access_token_if_required()
-        self.talker._gi.get_access_token.assert_called_once_with(self.talker.installation_id)
+        self.talker._gi.get_access_token.assert_called_once_with(
+            self.talker.installation_id
+        )
         self.assertIsNotNone(self.talker._organization)
 
     def test_create_team(self):
@@ -94,40 +130,64 @@ class GitHubAPITalkerTest(TestCase):
 
     def test_create_repo(self):
         self.talker.create_repo(self.repo1)
-        self.talker._organization.create_repo.assert_called_once_with(name="test-repo1", private=self.repo1.private)
+        self.talker._organization.create_repo.assert_called_once_with(
+            name="test-repo1", private=self.repo1.private
+        )
 
     def test_get_team(self):
         self.talker.get_team(self.project1.github_team_id)
-        self.talker._organization.get_team.assert_called_once_with(self.project1.github_team_id)
+        self.talker._organization.get_team.assert_called_once_with(
+            self.project1.github_team_id
+        )
 
     def test_get_user(self):
         self.talker.get_user(self.employee1.github_id)
-        self.talker._github.get_user_by_id.assert_called_once_with(self.employee1.github_id)
+        self.talker._github.get_user_by_id.assert_called_once_with(
+            self.employee1.github_id
+        )
 
     def test_get_repo(self):
         self.talker.get_repo(self.repo1.github_repo_id)
-        self.talker._github.get_repo.assert_called_once_with(self.repo1.github_repo_id)
+        self.talker._github.get_repo.assert_called_once_with(
+            self.repo1.github_repo_id
+        )
 
     def test_remove_user(self):
         self.talker.remove_user(self.employee1.github_username)
-        self.talker._organization.remove_from_members.assert_called_once_with(self.employee1.github_username)
+        self.talker._organization.remove_from_members.assert_called_once_with(
+            self.employee1.github_username
+        )
 
     def test_get_role_of_user(self):
         user = MagicMock()
         self.talker.get_role_of_user(user)
-        user.get_organization_membership.assert_called_once_with(self.talker._organization)
+        user.get_organization_membership.assert_called_once_with(
+            self.talker._organization
+        )
 
 
 class GitHubSyncTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.semester = Semester.objects.create(year=2020, season=Semester.FALL)
-        cls.project1 = Project.objects.create(name="test1", github_team_id="87654321", semester=cls.semester)
-        cls.repo1 = Repository.objects.create(
-            name="test-repo1", github_repo_id="987654321", project=cls.project1, private=True
+        cls.project1 = Project.objects.create(
+            name="test1", github_team_id="87654321", semester=cls.semester
         )
-        cls.repo2 = Repository(name="test-repo2", github_repo_id="999999999", project=cls.project1, private=False)
-        cls.employee1 = Employee.objects.create(github_username="testgithubuser", github_id=123456)
+        cls.repo1 = Repository.objects.create(
+            name="test-repo1",
+            github_repo_id="987654321",
+            project=cls.project1,
+            private=True,
+        )
+        cls.repo2 = Repository(
+            name="test-repo2",
+            github_repo_id="999999999",
+            project=cls.project1,
+            private=False,
+        )
+        cls.employee1 = Employee.objects.create(
+            github_username="testgithubuser", github_id=123456
+        )
         reg = Registration.objects.create(
             user=cls.employee1,
             dev_experience=Registration.EXPERIENCE_BEGINNER,
@@ -135,12 +195,22 @@ class GitHubSyncTest(TestCase):
             preference1=cls.project1,
             semester=cls.semester,
         )
-        reg.projects.add(cls.project1)
-        cls.exception = GithubException(status=MagicMock(status=404), data="abc", headers={})
-        cls.repoToBeDeleted1 = RepositoryToBeDeleted.objects.create(github_repo_id=1122334455)
-        cls.repoToBeDeleted2 = RepositoryToBeDeleted.objects.create(github_repo_id=5544332211)
-        cls.projectToBeDeleted1 = ProjectToBeDeleted.objects.create(github_team_id=5566778899)
-        cls.projectToBeDeleted2 = ProjectToBeDeleted.objects.create(github_team_id=9988776655)
+        reg.add_project(cls.project1)
+        cls.exception = GithubException(
+            status=MagicMock(status=404), data="abc", headers={}, message=""
+        )
+        cls.repoToBeDeleted1 = RepositoryToBeDeleted.objects.create(
+            github_repo_id=1122334455
+        )
+        cls.repoToBeDeleted2 = RepositoryToBeDeleted.objects.create(
+            github_repo_id=5544332211
+        )
+        cls.projectToBeDeleted1 = ProjectToBeDeleted.objects.create(
+            github_team_id=5566778899
+        )
+        cls.projectToBeDeleted2 = ProjectToBeDeleted.objects.create(
+            github_team_id=9988776655
+        )
 
     def setUp(self):
         self.project1.github_team_id = "87654321"
@@ -157,9 +227,13 @@ class GitHubSyncTest(TestCase):
         self.github_user.id = self.employee1.github_id
         self.github_team = MagicMock()
         self.github_team.name = self.project1.name
-        self.github_team.description = self.project1.generate_team_description()
+        self.github_team.description = (
+            self.project1.generate_team_description()
+        )
         self.github_team.get_members.return_value = [self.github_user]
-        self.github_team.get_repo_permission.return_value = MagicMock(admin=True)
+        self.github_team.get_repo_permission.return_value = MagicMock(
+            admin=True
+        )
         self.github_team.has_in_repos.return_value = True
         self.github_repo = MagicMock()
         self.github_repo.name = "test-repo1"
@@ -211,24 +285,34 @@ class GitHubSyncTest(TestCase):
 
     def test_sync_team_member__not_in_team(self):
         self.github_team.has_in_members.return_value = False
-        return_value = self.sync.sync_team_member(self.employee1, self.project1)
+        return_value = self.sync.sync_team_member(
+            self.employee1, self.project1
+        )
         self.talker.get_user.assert_called_once_with(self.employee1.github_id)
-        self.github_team.add_membership.assert_called_once_with(self.github_user, role="member")
+        self.github_team.add_membership.assert_called_once_with(
+            self.github_user, role="member"
+        )
         self.assert_info()
         self.assertTrue(return_value)
 
     def test_sync_team_member__not_in_project(self):
         reg = Registration.objects.get(user=self.employee1)
-        reg.project = None
+        reg.projects.clear()
         reg.save()
-        return_value = self.sync.sync_team_member(self.employee1, self.project1)
+
+        return_value = self.sync.sync_team_member(
+            self.employee1, self.project1
+        )
+
         self.talker.get_user.assert_not_called()
         self.github_team.add_membership.assert_not_called()
         self.assertFalse(return_value)
 
     def test_sync_team_member__already_in_team(self):
         self.github_team.has_in_members.return_value = True
-        return_value = self.sync.sync_team_member(self.employee1, self.project1)
+        return_value = self.sync.sync_team_member(
+            self.employee1, self.project1
+        )
         self.talker.get_user.assert_called_once_with(self.employee1.github_id)
         self.github_team.add_membership.assert_not_called()
         self.assert_no_log()
@@ -272,7 +356,9 @@ class GitHubSyncTest(TestCase):
         self.mockSyncMembers()
         self.sync.sync_team_member.side_effect = side_effect
         self.sync.create_or_update_team(self.project1)
-        self.sync.sync_team_member.assert_called_once_with(self.employee1, self.project1)
+        self.sync.sync_team_member.assert_called_once_with(
+            self.employee1, self.project1
+        )
         self.sync.update_team.assert_called_once_with(self.project1)
         self.talker.create_team.assert_not_called()
 
@@ -289,7 +375,9 @@ class GitHubSyncTest(TestCase):
         self.sync.remove_users_not_in_team.side_effect = side_effect
         self.sync.create_or_update_team(self.project1)
         self.sync.sync_team_member(self.project1)
-        self.sync.remove_users_not_in_team.assert_called_once_with(self.project1)
+        self.sync.remove_users_not_in_team.assert_called_once_with(
+            self.project1
+        )
         self.sync.update_team.assert_called_once_with(self.project1)
         self.talker.create_team.assert_not_called()
 
@@ -301,7 +389,9 @@ class GitHubSyncTest(TestCase):
         self.create_or_update_team__remove_users(self.exception)
         self.assert_error()
 
-    def remove_users_not_in_team(self, login, role, side_effect1=None, side_effect2=None):
+    def remove_users_not_in_team(
+        self, login, role, side_effect1=None, side_effect2=None
+    ):
         self.setUpUser(login, role)
         self.talker.remove_user.side_effect = side_effect1
         self.github_team.remove_membership.side_effect = side_effect2
@@ -323,21 +413,29 @@ class GitHubSyncTest(TestCase):
 
     def test_remove_users_not_in_team__owner(self):
         self.remove_users_not_in_team("anunwanteduser", "admin")
-        self.github_team.remove_membership.assert_called_once_with(self.github_user)
+        self.github_team.remove_membership.assert_called_once_with(
+            self.github_user
+        )
         self.talker.remove_user.assert_not_called()
         self.assertEqual(self.sync.users_removed, 1)
         self.assert_info()
 
     def test_remove_users_not_in_team__exception_employee(self):
-        self.remove_users_not_in_team("anunwanteduser", "member", self.exception, None)
+        self.remove_users_not_in_team(
+            "anunwanteduser", "member", self.exception, None
+        )
         self.github_team.remove_membership.assert_not_called()
         self.talker.remove_user.assert_called_once_with(self.github_user)
         self.assertEqual(self.sync.users_removed, 0)
         self.assert_error()
 
     def test_remove_users_not_in_team__exception_owner(self):
-        self.remove_users_not_in_team("anunwanteduser", "admin", None, self.exception)
-        self.github_team.remove_membership.assert_called_once_with(self.github_user)
+        self.remove_users_not_in_team(
+            "anunwanteduser", "admin", None, self.exception
+        )
+        self.github_team.remove_membership.assert_called_once_with(
+            self.github_user
+        )
         self.talker.remove_user.assert_not_called()
         self.assertEqual(self.sync.users_removed, 0)
         self.assert_error()
@@ -366,7 +464,9 @@ class GitHubSyncTest(TestCase):
         self.assert_error()
 
     def test_remove_team__user_not_in_employees(self):
-        self.setUpUser("thisuserisownerandshouldnotberemovedfromtheorganization", "admin")
+        self.setUpUser(
+            "thisuserisownerandshouldnotberemovedfromtheorganization", "admin"
+        )
         self.sync.remove_team(self.project1)
 
         self.talker.remove_userremove_from_members.assert_not_called()
@@ -375,7 +475,9 @@ class GitHubSyncTest(TestCase):
         self.assert_info()
 
     def test_remove_team__user_not_in_employees__exception(self):
-        self.setUpUser("thisuserisownerandshouldnotberemovedfromtheorganization", "admin")
+        self.setUpUser(
+            "thisuserisownerandshouldnotberemovedfromtheorganization", "admin"
+        )
         self.github_team.delete.side_effect = self.exception
         self.sync.remove_team(self.project1)
 
@@ -431,23 +533,29 @@ class GitHubSyncTest(TestCase):
         self.sync.update_repo(self.repo1)
         self.github_team.add_to_repos.assert_not_called()
         self.github_repo.edit.assert_called_once_with(name=self.repo1.name)
-        self.github_team.set_repo_permission.assert_not_called()
+        self.github_team.update_team_repository.assert_not_called()
         self.assert_info()
 
     def test_update_repo__incorrect_permissions(self):
-        self.github_team.get_repo_permission.return_value = MagicMock(admin=False)
+        self.github_team.get_repo_permission.return_value = MagicMock(
+            admin=False
+        )
         self.sync.update_repo(self.repo1)
         self.github_team.add_to_repos.assert_not_called()
         self.github_repo.edit.assert_not_called()
-        self.github_team.set_repo_permission.assert_called_once_with(self.github_repo, "admin")
+        self.github_team.update_team_repository.assert_called_once_with(
+            self.github_repo, "admin"
+        )
         self.assert_info()
 
     def test_update_repo__incorrect_privacy(self):
         self.github_repo.private = False
         self.sync.update_repo(self.repo1)
         self.github_team.add_to_repos.assert_not_called()
-        self.github_repo.edit.assert_called_once_with(private=self.repo1.private)
-        self.github_team.set_repo_permission.assert_not_called()
+        self.github_repo.edit.assert_called_once_with(
+            private=self.repo1.private
+        )
+        self.github_team.update_team_repository.assert_not_called()
         self.assert_info()
 
     def test_update_repo__not_in_repos(self):
@@ -455,14 +563,14 @@ class GitHubSyncTest(TestCase):
         self.sync.update_repo(self.repo1)
         self.github_team.add_to_repos.assert_called_once_with(self.github_repo)
         self.github_repo.edit.assert_not_called()
-        self.github_team.set_repo_permission.assert_not_called()
+        self.github_team.update_team_repository.assert_not_called()
         self.assert_info()
 
     def test_update_repo__all_correct(self):
         self.sync.update_repo(self.repo1)
         self.github_team.add_to_repos.assert_not_called()
         self.github_repo.edit.assert_not_called()
-        self.github_team.set_repo_permission.assert_not_called()
+        self.github_team.update_team_repository.assert_not_called()
         self.assert_no_log()
 
     def create_or_update_repo__create(self, side_effect=None):
@@ -480,7 +588,10 @@ class GitHubSyncTest(TestCase):
         self.create_or_update_repo__create()
         self.assertEqual(self.repo1.github_repo_id, 25)
         self.assertEqual(self.sync.repos_created, 1)
-        self.assert_info()
+
+        self.logger.warning.assert_not_called()
+        self.logger.error.assert_not_called()
+        self.assertFalse(self.sync.fail)
 
     def test_create_or_update_repo__create_exception(self):
         self.create_or_update_repo__create(self.exception)
@@ -511,7 +622,8 @@ class GitHubSyncTest(TestCase):
         self.github_team.description = "Wrong description"
         self.assertTrue(self.sync.update_team(self.project1))
         self.github_team.edit.assert_called_with(
-            name=self.project1.name, description=self.project1.generate_team_description()
+            name=self.project1.name,
+            description=self.project1.generate_team_description(),
         )
         self.assert_info()
 
@@ -519,7 +631,8 @@ class GitHubSyncTest(TestCase):
         self.github_team.name = "The wrong name"
         self.assertTrue(self.sync.update_team(self.project1))
         self.github_team.edit.assert_called_with(
-            name=self.project1.name, description=self.project1.generate_team_description()
+            name=self.project1.name,
+            description=self.project1.generate_team_description(),
         )
         self.assert_info()
 
@@ -529,7 +642,9 @@ class GitHubSyncTest(TestCase):
         self.talker.create_repo.assert_called_once_with(self.repo1)
         self.assertEqual(returned_repo, "ThisShouldBeAPyGithubRepo")
         self.github_team.add_to_repos.assert_called_once_with(returned_repo)
-        self.github_team.set_repo_permission.assert_called_once_with(returned_repo, "admin")
+        self.github_team.update_team_repository.assert_called_once_with(
+            returned_repo, "admin"
+        )
 
     def test_sync_project__not_archived(self):
         self.mockSyncMembers()
@@ -649,7 +764,9 @@ class GitHubSyncTest(TestCase):
 
     def test_delete_teams_and_repos_to_be_deleted__exception_repo(self):
         self.sync.archive_repo = MagicMock(
-            side_effect=GithubException(status=mock.Mock(status=500), data="abc", headers={})
+            side_effect=GithubException(
+                status=mock.Mock(status=500), data="abc", headers={}
+            )
         )
         self.sync.remove_team = MagicMock()
         self.sync.delete_teams_and_repos_to_be_deleted()
@@ -658,22 +775,32 @@ class GitHubSyncTest(TestCase):
     def test_delete_teams_and_repos_to_be_deleted__exception_team(self):
         self.sync.archive_repo = MagicMock()
         self.sync.remove_team = MagicMock(
-            side_effect=GithubException(status=mock.Mock(status=500), data="abc", headers={})
+            side_effect=GithubException(
+                status=mock.Mock(status=500), data="abc", headers={}
+            )
         )
         self.sync.delete_teams_and_repos_to_be_deleted()
         self.logger.error.assert_called()
 
-    def test_delete_teams_and_repos_to_be_deleted__unknown_object_exception_team(self):
+    def test_delete_teams_and_repos_to_be_deleted__unknown_object_exception_team(
+        self,
+    ):
         self.sync.archive_repo = MagicMock()
         self.sync.remove_team = MagicMock(
-            side_effect=UnknownObjectException(status=mock.Mock(status=404), data="abc", headers={})
+            side_effect=UnknownObjectException(
+                status=mock.Mock(status=404), data="abc", headers={}
+            )
         )
         self.sync.delete_teams_and_repos_to_be_deleted()
         self.logger.error.assert_called()
 
-    def test_delete_teams_and_repos_to_be_deleted__unknown_object_exception_repo(self):
+    def test_delete_teams_and_repos_to_be_deleted__unknown_object_exception_repo(
+        self,
+    ):
         self.sync.archive_repo = MagicMock(
-            side_effect=UnknownObjectException(status=mock.Mock(status=404), data="abc", headers={})
+            side_effect=UnknownObjectException(
+                status=mock.Mock(status=404), data="abc", headers={}
+            )
         )
         self.sync.remove_team = MagicMock()
         self.sync.delete_teams_and_repos_to_be_deleted()
@@ -688,7 +815,9 @@ class GitHubSyncTest(TestCase):
 
     def test_perform_sync__errors(self):
         self.sync.sync_project = MagicMock(side_effect=self.exception)
-        self.sync.delete_teams_and_repos_to_be_deleted = MagicMock(side_effect=self.exception)
+        self.sync.delete_teams_and_repos_to_be_deleted = MagicMock(
+            side_effect=self.exception
+        )
         self.sync.perform_sync()
         self.sync.delete_teams_and_repos_to_be_deleted.assert_called_once()
         self.sync.sync_project.assert_called_once_with(self.project1)
