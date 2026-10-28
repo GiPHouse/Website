@@ -63,6 +63,9 @@ Use the same host name in the browser as in the callback URL. GitHub treats `loc
 
 Logging in only works for GitHub accounts that already exist as a user in your local database. Any other account is sent to the registration page if a semester has open registrations, and otherwise sees "Login Failed".
 
+### Logging in as any user (development only)
+
+With `DEBUG = True` (the development setting), the menu shows a DEV item linking to `/dev_login/`, where you can log in as any user in your local database without GitHub. This is useful to test the workflow as users with varying kinds of permissions or registrations. You still need at least one OAuth login (or `createsuperuser`) to create users, or load the fixtures. Logins are only accepted from `127.0.0.1`/`::1`. If the DEV menu item ever appears on the live site, DEBUG is on in production: treat that as an urgent incident.
 
 ## Dependency Management
 The Python dependencies are managed using a tool called [uv](https://docs.astral.sh/uv/), which automatically creates virtual environments that ease development and makes it easy to manage the dependencies.

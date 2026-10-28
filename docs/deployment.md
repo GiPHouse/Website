@@ -39,6 +39,8 @@ The following services are created by `docker-compose`.
 #### `nginx`
 [`nginx-proxy`](https://github.com/jwilder/nginx-proxy) is a Docker image containing that automatically generates correct `NGINX` configuration for other Docker Images. It listens on port 80 (HTTP) and 443 (HTTPS) and acts as the main access point for all web traffic to the website.
 
+`nginx-proxy` forwards requests to the `web` container over the uwsgi protocol (`VIRTUAL_PROTO: 'uwsgi'`), which passes the client's IP address to Django as `REMOTE_ADDR`. Some code relies on this. In particular, the development-only "log in as any user" page (`giphousewebsite/dev_login.py`) refuses logins unless `REMOTE_ADDR` is `127.0.0.1` or `::1`. If you ever put a proxy in front of the website on the same host that forwards plain HTTP, or add middleware that rewrites `REMOTE_ADDR` from `X-Forwarded-For`, every request may appear to come from localhost, and that safeguard stops working.
+
 #### `letsencrypt`
 [`letsencrypt-nginx-proxy-companion`](https://github.com/JrCs/docker-letsencrypt-nginx-proxy-companion) is a Docker image that uses Let's Encrypt to request a TLS certificate to make the website available over HTTPS.`
 

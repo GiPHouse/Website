@@ -11,27 +11,6 @@ from registrations.forms import Step2Form
 from registrations.models import Employee, registration
 
 
-# Only for testing
-def dev_login(request):
-    employee, _ = Employee.objects.get_or_create(
-        github_username="devuser",
-        defaults={
-            "github_id": 123456,
-            "first_name": "Dev",
-            "last_name": "User",
-            "email": "devuser@example.com",
-        },
-    )
-    login(request, employee)
-
-    request.session["github_id"] = 123456
-    request.session["github_username"] = "devuser"
-    request.session["github_name"] = "Dev User"
-    request.session["github_email"] = "devuser@example.com"
-    # Redirect to Step2View where the form is return redirect("registrations:step2")
-    return redirect("registrations:step2")
-
-
 User: Employee = get_user_model()
 
 

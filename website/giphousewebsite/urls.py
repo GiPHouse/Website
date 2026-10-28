@@ -6,6 +6,7 @@ from django.urls import include, path, reverse_lazy
 from django.views.generic import RedirectView, TemplateView
 
 from github_oauth.templatetags.github_tags import url_github_callback
+from giphousewebsite.dev_login import DevLoginView, DevLoginAsView
 
 
 class GitHubLoginRedirectView(RedirectView):
@@ -31,6 +32,8 @@ urlpatterns = [
         GitHubLoginRedirectView.as_view(),
         name="login-redirect",
     ),
+    path("dev_login/", DevLoginView.as_view(), name="dev-login"),
+    path("dev_login/<int:pk>/", DevLoginAsView.as_view(), name="dev-login-as"),
     path("admin/", admin.site.urls),
     path("logout/", LogoutView.as_view(), name="logout"),
     path("oauth/", include("github_oauth.urls")),
