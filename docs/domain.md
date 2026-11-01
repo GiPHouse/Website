@@ -28,11 +28,11 @@ GiPHouse simulates a company:
 
 ## Applying and registering
 
-A student who wants to follow a course in a semester submits an **application**. The application carries the information the teachers need to place the student in a team, such as experience, preferences and availability. Which questions are asked differs per semester and course. The application exists to inform team assignment and has no purpose after that.
+A student who wants to follow a course in a semester submits an **application**. The application carries the information the teachers need to place the student in a team, such as experience, preferences and availability. Each semester has one **application form**, which states the courses that can be applied for that semester. The student chooses their course before filling in the form, and questions that only apply to some courses are only shown to students applying for one of those. The application exists to inform team assignment. After that it is no longer used in running the course, but like other data about students it must be kept for several years after they finish, in case questions arise about their grade.
 
 When the teachers and teaching assistants accept an application, which in practice happens at team assignment, a **registration** is created. It links the student to the semester, their course and their team(s). Rejecting an application is rare: the student is simply not placed in a team, and their account may be deleted. Students who withdraw keep a registration but no team, and no separate concept is needed for them.
 
-A student can be in more than one team in a semester. In practice this means managers who lead several teams. A student could also switch teams mid-semester; their questionnaire peer questions should then cover the members of both teams. Whether such a student has one registration with several teams or a separate registration per team is an open design question.
+A student can be in more than one team in a semester. In practice this means managers who lead several teams. A student could also switch teams mid-semester; their questionnaire peer questions should then cover the members of both teams. For now, such a student has one registration with several teams. A separate registration per team may be preferable in the long run.
 
 ## Team assignment
 

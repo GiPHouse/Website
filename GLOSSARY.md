@@ -51,6 +51,10 @@ A lecturer responsible for the course material and grading; together the teacher
 A student's indication that they want to join a course in a given semester, together with the information the teachers need to place them in a team. An application can be rejected, which in practice means the student is not placed in a team.
 _Avoid_: Registration, sign-up
 
+**Application form**:
+The set of questions students answer when applying for a semester. Each semester has one application form, which states the courses that can be applied for. A student chooses their course before filling in the form; questions that only apply to some courses are only shown to students applying for one of those.
+_Avoid_: Registration form
+
 **Registration**:
 The link between a student and a semester: the course they follow that semester and their team(s). A registration is created when the teachers accept an application, which in practice happens at team assignment. A student has at most one registration per semester, but may register for the same course again in a later year (for example to retake it).
 _Avoid_: Application, sign-up
