@@ -80,7 +80,7 @@ class Registrations(models.Model):
         return self.projects.set([])
 
     def add_project(self, value):
-        """Set the projects of a registration."""
+        """Add a single project to a registration."""
         self.projects.add(value)
 
     def sync_project_choices(self):
@@ -565,8 +565,12 @@ class Registration(models.Model):
         return self.projects.set([])
 
     def add_project(self, value):
-        """Set the projects of a registration."""
+        """Add a single project into a registration."""
         self.projects.add(value)
+
+    def remove_project(self, value):
+        """Remove a single project from a registration."""
+        self.projects.remove(value)
 
     @property
     def is_director(self):

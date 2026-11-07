@@ -329,6 +329,166 @@ class FetchRepoTest(TestCase):
         )
 
 
+class TeamMembersTest(TestCase):
+    def _create_registration(self, gid, name, course):
+        user = User.objects.create(
+            github_id=gid,
+            github_username=name,
+            first_name=name.capitalize(),
+        )
+        return Registration.objects.create(
+            user=user,
+            semester=self.semester,
+            course=course,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
+        )
+
+    def setUp(self):
+        self.admin = User.objects.create_superuser(
+            github_id=0, github_username="admin"
+        )
+        self.client.force_login(self.admin)
+        self.semester = Semester.objects.get_or_create_current_semester()
+        self.alice = self._create_registration(
+            17, "alice", Course.objects.se()
+        )
+        self.bob = self._create_registration(12, "bob", Course.objects.se())
+        self.carol = self._create_registration(
+            39, "carol", Course.objects.sdm()
+        )
+        self.derek = self._create_registration(
+            555, "derek", Course.objects.se()
+        )
+        self.team = Project.objects.create(
+            name="test1",
+            slug="test1",
+            semester=self.semester,
+            description="Test 1",
+        )
+        self.otherteam = Project.objects.create(
+            name="test2",
+            slug="test2",
+            semester=self.semester,
+            description="Test 2",
+        )
+        self.alice.add_project(self.team)
+        self.bob.add_project(self.team)
+        self.carol.add_project(self.team)
+        self.carol.add_project(self.otherteam)
+        patcher = patch.object(ProjectAdmin, "synchronise_to_GitHub")
+        self.mock_sync = patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_team_members_listed(self):
+        url = reverse("admin:projects_project_change", args=[self.team.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        form = response.context["adminform"]
+        managers = form.fields["managers"].initial.all()
+        engineers = form.fields["engineers"].initial.all()
+        self.assertQuerySetEqual(managers, [self.carol.user])
+        self.assertQuerySetEqual(
+            engineers,
+            [self.alice.user, self.bob.user],
+            ordered=False,
+        )
+        self.assertContains(
+            response,
+            '<option value="'
+            + str(self.alice.user.pk)
+            + '" selected>Alice</option>',
+        )
+
+    def _create_post_data(self, team):
+        return {
+            "name": team.name,
+            "description": team.description,
+            "semester": team.semester.pk,
+            "newrepository_set-TOTAL_FORMS": 0,
+            "newrepository_set-INITIAL_FORMS": 0,
+            "existingrepository_set-TOTAL_FORMS": 0,
+            "existingrepository_set-INITIAL_FORMS": 0,
+            "MailingList_projects-TOTAL_FORMS": 0,
+            "MailingList_projects-INITIAL_FORMS": 0,
+        }
+
+    def test_changing_members_works(self):
+        url = reverse("admin:projects_project_change", args=[self.team.pk])
+        data = self._create_post_data(self.team)
+        data["managers"] = [self.carol.user.pk]
+        data["engineers"] = [self.alice.user.pk, self.derek.user.pk]
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 302)
+        resulting_registrations = Registration.objects.filter(
+            projects=self.team
+        )
+        self.assertQuerySetEqual(
+            resulting_registrations,
+            [self.alice, self.derek, self.carol],
+            ordered=False,
+        )
+        self.mock_sync.assert_called_once()
+
+    def test_saving_without_changes_does_not_affect_other_teams(self):
+        self.derek.add_project(self.otherteam)
+        url = reverse("admin:projects_project_change", args=[self.team.pk])
+        data = self._create_post_data(self.team)
+        data["managers"] = [self.carol.user.pk]
+        data["engineers"] = [self.alice.user.pk, self.bob.user.pk]
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 302)
+        resulting_registrations = Registration.objects.filter(
+            projects=self.otherteam
+        )
+        self.assertQuerySetEqual(
+            resulting_registrations,
+            [self.carol, self.derek],
+            ordered=False,
+        )
+
+    def test_changing_members_does_not_affect_other_teams(self):
+        url = reverse(
+            "admin:projects_project_change", args=[self.otherteam.pk]
+        )
+        data = self._create_post_data(self.otherteam)
+        erika = self._create_registration(9716, "erika", Course.objects.sdm())
+        data["managers"] = [erika.user.pk]  # remove Carol
+        data["engineers"] = [self.alice.user.pk]  # add Alice
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 302)
+        # team 1 should not change!
+        team_registrations = Registration.objects.filter(projects=self.team)
+        self.assertQuerySetEqual(
+            team_registrations,
+            [self.alice, self.bob, self.carol],
+            ordered=False,
+        )
+
+    def test_other_registrations_unaffected(self):
+        longago = Semester.objects.create(year=2015, season=Semester.SPRING)
+        otherderek = Registration.objects.create(
+            user=self.derek.user,
+            semester=longago,
+            course=Course.objects.se(),
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
+        )
+        oldteam = Project.objects.create(
+            name="test3",
+            slug="test3",
+            semester=longago,
+            description="Test 3",
+        )
+        otherderek.add_project(oldteam)
+        url = reverse(
+            "admin:projects_project_change", args=[self.otherteam.pk]
+        )
+        data = self._create_post_data(self.otherteam)
+        data["engineers"] = [self.derek.user.pk]
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 302)
+        self.assertQuerySetEqual(otherderek.projects.all(), [oldteam])
+
+
 class GetProjectsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
