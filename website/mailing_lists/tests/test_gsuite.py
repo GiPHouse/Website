@@ -53,8 +53,6 @@ class GSuiteMethodsTestCase(TestCase):
     def setUpTestData(cls):
         cls.settings_api = MagicMock()
         cls.directory_api = MagicMock()
-        cls.logger_mock = MagicMock()
-        gsuite.logger = cls.logger_mock
 
         cls.sync_service = GSuiteSyncService(
             groups_settings_api=cls.settings_api,
@@ -80,6 +78,11 @@ class GSuiteMethodsTestCase(TestCase):
     def setUp(self):
         self.settings_api.reset_mock()
         self.directory_api.reset_mock()
+        self.backup_logger = gsuite.logger
+        gsuite.logger = MagicMock()
+
+    def tearDown(self):
+        gsuite.logger = self.backup_logger
 
     @patch(
         "google.oauth2.service_account.Credentials.from_service_account_info"
@@ -509,8 +512,6 @@ class GsuiteSyncTestCase(TestCase):
     def setUpTestData(cls):
         cls.settings_api = MagicMock()
         cls.directory_api = MagicMock()
-        cls.logger_mock = MagicMock()
-        gsuite.logger = cls.logger_mock
 
         cls.sync_service = GSuiteSyncService(
             groups_settings_api=cls.settings_api,
@@ -547,6 +548,11 @@ class GsuiteSyncTestCase(TestCase):
             },
             {"groups": self.existing_groups[1:]},
         ]
+        self.backup_logger = gsuite.logger
+        gsuite.logger = MagicMock()
+
+    def tearDown(self):
+        gsuite.logger = self.backup_logger
 
     def test_error_getting_existing_list(self):
         self.directory_api.groups().list().execute.side_effect = HttpError(

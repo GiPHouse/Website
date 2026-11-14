@@ -1,5 +1,5 @@
 # import logging
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from django.contrib import messages
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
@@ -32,7 +32,9 @@ class RegistrationAdminTest(TestCase):
     def setUpTestData(cls):
         Course.objects.get_or_create(name="Software Engineering")
         Course.objects.get_or_create(name="System Development Management")
-        Course.objects.get_or_create(name="Software Development Entrepreneurship")
+        Course.objects.get_or_create(
+            name="Software Development Entrepreneurship"
+        )
 
         cls.admin_password = "hunter2"
         cls.admin = User.objects.create_superuser(
@@ -404,52 +406,56 @@ class RegistrationAdminTest(TestCase):
 
     @patch("registrations.admin.ImportAssignmentAdminView.handle_csv")
     def test_import_csv__post_no_csv_file(self, mock_handle_csv):
-        messages.error = MagicMock()
-        test_csv_file = SimpleUploadedFile(
-            "csv_file.png", b"123456,test,abcdef", content_type="text/csv"
-        )
-        response = self.client.post(
-            reverse("admin:import"),
-            {"csv_file": test_csv_file, "semester": self.semester.pk},
-            follow=True,
-        )
-        self.assertEqual(response.status_code, 200)
-        messages.error.assert_called_once()
-        mock_handle_csv.assert_not_called()
+        with patch.object(messages, "error") as mock_error:
+            test_csv_file = SimpleUploadedFile(
+                "csv_file.png", b"123456,test,abcdef", content_type="text/csv"
+            )
+            response = self.client.post(
+                reverse("admin:import"),
+                {"csv_file": test_csv_file, "semester": self.semester.pk},
+                follow=True,
+            )
+            self.assertEqual(response.status_code, 200)
+            mock_error.assert_called_once()
+            mock_handle_csv.assert_not_called()
 
     @patch("registrations.admin.ImportAssignmentAdminView.handle_csv")
     def test_import_csv__post_file_too_big(self, mock_handle_csv):
-        messages.error = MagicMock()
-        file_content = 20000000 * b"test"
-        test_csv_file = SimpleUploadedFile(
-            "csv_file.csv", file_content, content_type="text/csv"
-        )
-        response = self.client.post(
-            reverse("admin:import"),
-            {"csv_file": test_csv_file, "semester": self.semester.pk},
-            follow=True,
-        )
-        self.assertEqual(response.status_code, 200)
-        messages.error.assert_called_once()
-        mock_handle_csv.assert_not_called()
+        with patch.object(messages, "error") as mock_error:
+            file_content = 20000000 * b"test"
+            test_csv_file = SimpleUploadedFile(
+                "csv_file.csv", file_content, content_type="text/csv"
+            )
+            response = self.client.post(
+                reverse("admin:import"),
+                {"csv_file": test_csv_file, "semester": self.semester.pk},
+                follow=True,
+            )
+            self.assertEqual(response.status_code, 200)
+            mock_error.assert_called_once()
+            mock_handle_csv.assert_not_called()
 
     @patch(
         "registrations.admin.ImportAssignmentAdminView.handle_csv",
-        **{"return_value.raiseError.side_effect": ValueError()},
+        side_effect=ValueError("test_import_csv__post_file_error_handling"),
     )
     def test_import_csv__post_file_error_handling(self, mock_handle_csv):
-        messages.error = MagicMock()
-        test_csv_file = SimpleUploadedFile(
-            "csv_file.csv", b"123456,test,abcdef", content_type="text/csv"
-        )
-        response = self.client.post(
-            reverse("admin:import"),
-            {"csv_file": test_csv_file, "semester": self.semester.pk},
-            follow=True,
-        )
-        self.assertEqual(response.status_code, 200)
-        mock_handle_csv.assert_called_once()
-        messages.error.assert_called_once()
+        with patch.object(messages, "error") as mock_error:
+            test_csv_file = SimpleUploadedFile(
+                "csv_file.csv", b"123456,test,abcdef", content_type="text/csv"
+            )
+            response = self.client.post(
+                reverse("admin:import"),
+                {"csv_file": test_csv_file, "semester": self.semester.pk},
+                follow=True,
+            )
+            self.assertEqual(response.status_code, 200)
+            mock_handle_csv.assert_called_once()
+            mock_error.assert_called_once()
+            self.assertEqual(
+                str(mock_error.call_args.args[1]),
+                "test_import_csv__post_file_error_handling",
+            )
 
     def test_handle_csv(self):
         file_content = (

@@ -158,6 +158,7 @@ class TeamAssignmentTest(TestCase):
 
     def setUp(self):
         logging.disable(logging.WARNING)
+        self.addCleanup(logging.disable, logging.NOTSET)
         for i in range(1, 10):
             self.__getattribute__(f"reg{i}").refresh_from_db()
 
