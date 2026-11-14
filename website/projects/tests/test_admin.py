@@ -5,6 +5,7 @@ from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
+from django.http import HttpResponse
 from django.shortcuts import reverse
 from django.test import Client, RequestFactory, TestCase
 
@@ -56,9 +57,6 @@ class GetProjectsStaffStatusTest(TestCase):
         )
 
     def setUp(self):
-        site = AdminSite
-        self.project_admin = ProjectAdmin(Project, site)
-        self.client = Client()
         self.client.force_login(self.staff)
 
     def test_github_sync_all_button_hidden_without_permission(self):
@@ -70,20 +68,17 @@ class GetProjectsStaffStatusTest(TestCase):
             response, "Synchronize projects of the current semester to GitHub"
         )
 
-    def test_sync_all_link_denied_without_permission(self):
+    @patch.object(ProjectAdmin, "synchronise_to_GitHub")
+    def test_sync_all_link_denied_without_permission(self, mock_sync):
         """
         A staff user can still try and sync using the link,
         but that is prevented in the backend. This is tested here.
         """
-        backup = self.project_admin.synchronise_to_GitHub
-        self.project_admin.synchronise_to_GitHub = MagicMock()
-
+        mock_sync.return_value = HttpResponse()
         response = self.client.get("/admin/projects/project/sync-to-github/")
         # expect Permission Denied
+        mock_sync.assert_not_called()
         self.assertEqual(response.status_code, 403)
-        self.project_admin.synchronise_to_GitHub.assert_not_called()
-
-        self.project_admin.synchronise_to_GitHub = backup
 
     def test_github_sync_action_hidden_in_ui(self):
         response = self.client.get(
@@ -101,6 +96,7 @@ class GetProjectsStaffStatusTest(TestCase):
         mock_sync = MagicMock()
 
         mock_sync_class.return_value = mock_sync
+        mock_sync.perform_asynchronous_sync.return_value = 2
 
         response = self.client.post(
             reverse("admin:projects_project_changelist"),
@@ -116,6 +112,11 @@ class GetProjectsStaffStatusTest(TestCase):
         # we are instead redirected back to changelist in case
         # of failure. We are redirected to the task bar if we
         # succeed, so we check that it did not happen.
+        self.assertRedirects(
+            response,
+            reverse("admin:projects_project_changelist"),
+            status_code=302,
+        )
         self.assertNotIn("task", response.url)
 
 
@@ -199,9 +200,6 @@ class FetchRepoTest(TestCase):
         cls.url = "/admin/projects/project/fetch-repo/?github_repo_id="
 
     def setUp(self):
-        site = AdminSite
-        self.project_admin = ProjectAdmin(Project, site)
-        self.client = Client()
         self.client.force_login(self.admin)
 
     def test_missing_github_repo_id(self):
@@ -261,9 +259,11 @@ class FetchRepoTest(TestCase):
 
         mock_talker_class.return_value = mock_talker
 
-        response = self.client.get(
-            "/admin/projects/project/fetch-repo/?github_repo_id=1703"
-        )
+        with self.assertLogs("django.request", level="ERROR") as log:
+            response = self.client.get(
+                "/admin/projects/project/fetch-repo/?github_repo_id=1703"
+            )
+        self.assertEqual(len(log.records), 1)
 
         self.assertEqual(response.status_code, status)
 
@@ -751,9 +751,11 @@ class GetProjectsTest(TestCase):
         )
         reg3.add_project(test_project)
 
+        messages.success.assert_not_called()
+
         pa.create_mailing_lists(self.request, [test_project, test_project2])
 
-        messages.success.assert_called()
+        self.assertEqual(messages.success.call_count, 2)
 
         lists = MailingList.objects.all()
         user_list = []
@@ -781,7 +783,8 @@ class GetProjectsTest(TestCase):
         pa.create_mailing_lists(self.request, [test_project])
         pa.create_mailing_lists(self.request, [test_project])
 
-        messages.error.assert_called()
+        messages.success.assert_called_once()
+        messages.error.assert_called_once()
 
     def test_synchronise_projects_to_GitHub(self):
         all_projects = Project.objects.all()
@@ -797,28 +800,28 @@ class GetProjectsTest(TestCase):
         )
         self.sync_mock.perform_asynchronous_sync.assert_called_once()
 
-    def test_sync_button_has_effect(self):
-        backup = self.project_admin.synchronise_to_GitHub
-        self.project_admin.synchronise_to_GitHub = MagicMock()
-
+    @patch.object(ProjectAdmin, "synchronise_to_GitHub")
+    def test_sync_button_has_effect(self, mock_sync):
+        mock_sync.return_value = HttpResponse()
         response = self.client.get("/admin/projects/project/sync-to-github/")
         # expect no exception thrown
         self.assertNotEqual(response.status_code, 403)
-
-        self.project_admin.synchronise_to_GitHub = backup
+        mock_sync.assert_called_once()
 
     @freeze_time("2020-06-01")
     def test_synchronise_current_projects_to_GitHub(self):
-        original_sync_action = self.project_admin.synchronise_to_GitHub
-        self.project_admin.synchronise_to_GitHub = MagicMock()
-        self.project_admin.synchronise_current_projects_to_GitHub(self.request)
-        self.project_admin.synchronise_to_GitHub.assert_called_once()
-        args = self.project_admin.synchronise_to_GitHub.call_args.args
-        self.assertEqual(args[0], self.request)
-        self.assertEqual(len(args[1]), 1)
-        self.assertIn(self.project, args[1])
-        self.assertNotIn(self.project_archived, args[1])
-        self.project_admin.synchronise_to_GitHub = original_sync_action
+        with patch.object(
+            self.project_admin, "synchronise_to_GitHub"
+        ) as mock_sync:
+            self.project_admin.synchronise_current_projects_to_GitHub(
+                self.request
+            )
+            mock_sync.assert_called_once()
+            args = mock_sync.call_args.args
+            self.assertEqual(args[0], self.request)
+            self.assertEqual(len(args[1]), 1)
+            self.assertIn(self.project, args[1])
+            self.assertNotIn(self.project_archived, args[1])
 
     def test_archive_all_repositories(self):
         self.project_admin.archive_all_repositories(
@@ -922,7 +925,6 @@ class GetProjectsTest(TestCase):
         self.project_admin.save_model(
             self.request, project, form, change=False
         )
-
         project.refresh_from_db()
         self.assertEqual(project.slug, "test-project-2020")
 
