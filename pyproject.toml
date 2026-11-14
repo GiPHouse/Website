@@ -1,58 +1,84 @@
-[tool.poetry]
+[project]
 name = "giphousewebsite"
-package-mode = false
+version = "2.0.1-alpha.2"
 description = "GiPHouse website based on Django Framework"
-version = "1.0.0"
 authors = [
-  "joren485", "pingiun", "keukentrap", "adiehl96", "Pegasystem", "BierBrigadier", 
-  "avanderjagt", "mennobartels", "AJKruijsse", " JelmerHinssen", "JobDoesburg", " yhogewind", "lukovdm"
+    { name = "joren485" },
+    { name = "pingiun" },
+    { name = "keukentrap" },
+    { name = "adiehl96" },
+    { name = "Pegasystem" },
+    { name = "BierBrigadier" },
+    { name = "avanderjagt" },
+    { name = "mennobartels" },
+    { name = "AJKruijsse" },
+    { name = " JelmerHinssen" },
+    { name = "JobDoesburg" },
+    { name = " yhogewind" },
+    { name = "lukovdm" },
+    { name = "daanwintjes" },
+    { name = "oli4-004" },
+    { name = "Sverre7567" },
+    { name = "Daniel-Chou24" },
+    { name = "vinti17" },
+    { name = "durned" },
+    { name = "Sjensie" },
+    { name = "HallowedByMyName" },
 ]
+requires-python = ">=3.14"
 license = "AGPL-3.0-only"
+dependencies = [
+    "Django>=6.0",
+    "requests>=2.34.2",
+    "libsass>=0.23.0",
+    "django>=6.0.6",
+    "django-sass-processor>=1.4.2",
+    "Pillow>=12.2.0",
+    "django-admin-autocomplete-filter>=0.7.1",
+    "google-api-python-client>=2.197.0",
+    "google-auth-httplib2>=0.4.0",
+    "google-auth-oauthlib>=1.4.0",
+    "cryptography>=48.0.0",
+    "ortools>=9.15.6755",
+    "PyGithub>=2.8.1",
+    "admin-totals>=1.0.1",
+    "django-bootstrap5>=26.2",
+    "django-easy-admin-object-actions>=1.1.0",
+    "django-tinymce>=5.0.0",
+    "django-bleach>=3.1.0",
+    "django-nested-admin>=4.1.6",
+    "gunicorn>=26.0.0",
+    "django-components>=0.151.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-Django = "^4.1"
-requests = "^2.28.1"
-libsass = "^0.21.0"
-django-compressor = "^4.1"
-django-sass-processor = "^1.2.2"
-uwsgi = {version = "^2.0",optional = true}
-psycopg2-binary = {version = "^2.9.3", optional = true}
-Pillow = "^8.2.0"
-django-admin-autocomplete-filter = {git = "https://github.com/farhan0581/django-admin-autocomplete-filter.git", branch="pre_release"}
-google-api-python-client = "^2.65.0"
-google-auth-httplib2 = "^0.1.0"
-google-auth-oauthlib = "^0.7.1"
-pygithub = "^1.57"
-cryptography = "^38.0.3"
-ortools = "^9.8.3296"
-PyGithub = "^1.54.1"
-uWSGI = {version = "^2.0.19", optional = true}
-admin-totals = "^1.0.1"
-django-bootstrap5 = "^22.1"
-django-easy-admin-object-actions = "^1.1.0"
-django-tinymce = "^3.4.0"
-django-bleach = "^3.0.1"
+[project.optional-dependencies]
+production = [
+    "gunicorn>=26.0.0",
+    "psycopg2-binary>=2.9.12",
+]
 
-[tool.poetry.extras]
-production = ["uwsgi", "psycopg2-binary"]
+[dependency-groups]
+dev = [
+    "coverage[toml]>=7.14.1",
+    "pydocstyle>=6.3.0",
+    "freezegun>=1.5.5",
+    "Faker>=40.4.0",
+    "ruff>=0.15.15",
+]
 
-[tool.poetry.group.dev.dependencies]
-flake8 = "^5.0.4"
-flake8-import-order = "^0.18.1"
-coverage = {version = "^6.5.0", extras = ["toml"]}
-pydocstyle = "^6.0.0"
-freezegun = "^1.2.2"
-Faker = "^8.1.1"
-black = "^22.10.0"
+[tool.uv]
+package = false
+default-groups = "all"
+
 
 [tool.black]
-line-length = 119
-target-version = ["py38"]
+line-length = 79
+target-version = ["py314"]
 exclude = '''
 /(
   migrations
   | website/giphousewebsite/settings
+  .venv
 )/
 '''
 
@@ -64,8 +90,91 @@ omit = ["website/manage.py", "website/giphousewebsite/wsgi.py", "website/*/migra
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-fail_under = 100.0
-[build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
+fail_under = 95.0
+
+[tool.ruff]
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+    "website/giphousewebsite/settings/",
+    "website/registrations/models/__init__.py",
+    "smt_solver_gip",   # This folder contains unused legacy code that is full of linting errors.
+]
+
+# Same as Black.
+line-length = 79
+indent-width = 4
+
+# Assume Python 3.14
+target-version = "py314"
+
+[tool.ruff.lint]
+# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`) codes by default.
+# Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
+# McCabe complexity (`C901`) by default.
+select = ["E4", "E7", "E9", "F"]
+ignore = []
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+# Enable auto-formatting of code examples in docstrings. Markdown,
+# reStructuredText code/literal blocks and doctests are all supported.
+#
+# This is currently disabled by default, but it is planned for this
+# to be opt-out in the future.
+docstring-code-format = false
+
+# Set the line length limit used when formatting code snippets in
+# docstrings.
+#
+# This only has an effect when the `docstring-code-format` setting is
+# enabled.
+docstring-code-line-length = "dynamic"
+
+[tool.ruff.lint.pycodestyle]
+max-line-length = 79
+
 

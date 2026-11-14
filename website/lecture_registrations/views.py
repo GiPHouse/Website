@@ -28,7 +28,11 @@ class LectureRegistrationView(LoginRequiredMixin, View):
             )
             return redirect(
                 reverse(
-                    "courses:lectures", args=[lecture.semester.year, lecture.semester.get_season_display().lower()]
+                    "courses:lectures",
+                    args=[
+                        lecture.semester.year,
+                        lecture.semester.get_season_display().lower(),
+                    ],
                 )
             )
 
@@ -39,20 +43,30 @@ class LectureRegistrationView(LoginRequiredMixin, View):
             )
             return redirect(
                 reverse(
-                    "courses:lectures", args=[lecture.semester.year, lecture.semester.get_season_display().lower()]
+                    "courses:lectures",
+                    args=[
+                        lecture.semester.year,
+                        lecture.semester.get_season_display().lower(),
+                    ],
                 )
             )
 
         user = request.user
 
-        if not user.registration_set.filter(semester=lecture.semester).exists():
+        if not user.registration_set.filter(
+            semester=lecture.semester
+        ).exists():
             messages.error(
                 request,
                 "You are not registered for this semester.",
             )
             return redirect(
                 reverse(
-                    "courses:lectures", args=[lecture.semester.year, lecture.semester.get_season_display().lower()]
+                    "courses:lectures",
+                    args=[
+                        lecture.semester.year,
+                        lecture.semester.get_season_display().lower(),
+                    ],
                 )
             )
 
@@ -63,11 +77,17 @@ class LectureRegistrationView(LoginRequiredMixin, View):
             )
             return redirect(
                 reverse(
-                    "courses:lectures", args=[lecture.semester.year, lecture.semester.get_season_display().lower()]
+                    "courses:lectures",
+                    args=[
+                        lecture.semester.year,
+                        lecture.semester.get_season_display().lower(),
+                    ],
                 )
             )
 
-        registration, created = LectureRegistration.objects.get_or_create(employee=user, lecture=lecture)
+        registration, created = LectureRegistration.objects.get_or_create(
+            employee=user, lecture=lecture
+        )
         if created:
             messages.success(
                 request,
@@ -80,7 +100,13 @@ class LectureRegistrationView(LoginRequiredMixin, View):
             )
 
         return redirect(
-            reverse("courses:lectures", args=[lecture.semester.year, lecture.semester.get_season_display().lower()])
+            reverse(
+                "courses:lectures",
+                args=[
+                    lecture.semester.year,
+                    lecture.semester.get_season_display().lower(),
+                ],
+            )
         )
 
 
@@ -101,14 +127,20 @@ class LectureUnregistrationView(LoginRequiredMixin, View):
             )
             return redirect(
                 reverse(
-                    "courses:lectures", args=[lecture.semester.year, lecture.semester.get_season_display().lower()]
+                    "courses:lectures",
+                    args=[
+                        lecture.semester.year,
+                        lecture.semester.get_season_display().lower(),
+                    ],
                 )
             )
 
         user = request.user
 
         try:
-            registration = LectureRegistration.objects.get(employee=user, lecture=lecture)
+            registration = LectureRegistration.objects.get(
+                employee=user, lecture=lecture
+            )
         except LectureRegistration.DoesNotExist:
             messages.error(
                 request,
@@ -116,7 +148,11 @@ class LectureUnregistrationView(LoginRequiredMixin, View):
             )
             return redirect(
                 reverse(
-                    "courses:lectures", args=[lecture.semester.year, lecture.semester.get_season_display().lower()]
+                    "courses:lectures",
+                    args=[
+                        lecture.semester.year,
+                        lecture.semester.get_season_display().lower(),
+                    ],
                 )
             )
         else:
@@ -128,5 +164,11 @@ class LectureUnregistrationView(LoginRequiredMixin, View):
         )
 
         return redirect(
-            reverse("courses:lectures", args=[lecture.semester.year, lecture.semester.get_season_display().lower()])
+            reverse(
+                "courses:lectures",
+                args=[
+                    lecture.semester.year,
+                    lecture.semester.get_season_display().lower(),
+                ],
+            )
         )

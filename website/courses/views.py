@@ -18,7 +18,9 @@ class CoursesView(TemplateView):
         context = super(CoursesView, self).get_context_data(**kwargs)
 
         context["lecture_semester"] = get_object_or_404(
-            Semester, year=self.kwargs["year"], season=Semester.slug_to_season(self.kwargs["season_slug"])
+            Semester,
+            year=self.kwargs["year"],
+            season=Semester.slug_to_season(self.kwargs["season_slug"]),
         )
 
         courses = {}
@@ -26,7 +28,9 @@ class CoursesView(TemplateView):
             courses[course_name] = Lecture.objects.filter(
                 course__name=course_name,
                 semester__year=self.kwargs["year"],
-                semester__season=Semester.slug_to_season(self.kwargs["season_slug"]),
+                semester__season=Semester.slug_to_season(
+                    self.kwargs["season_slug"]
+                ),
             ).order_by("date")
 
         context["courses"] = courses.items()

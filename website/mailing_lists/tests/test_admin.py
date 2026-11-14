@@ -49,18 +49,28 @@ class MailingListAdminTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.admin_password = "hunter2"
-        cls.admin = User.objects.create_superuser(github_id=0, github_username="admin")
+        cls.admin = User.objects.create_superuser(
+            github_id=0, github_username="admin"
+        )
 
-        cls.mailinglist = MailingList.objects.create(address="testmail", description="foo")
+        cls.mailinglist = MailingList.objects.create(
+            address="testmail", description="foo"
+        )
         cls.user = User.objects.create(github_id=2, github_username="BobJones")
 
-        cls.semester = Semester.objects.create(year=2020, season=Semester.SPRING)
+        cls.semester = Semester.objects.create(
+            year=2020, season=Semester.SPRING
+        )
 
-        cls.project = Project.objects.create(name="test", semester=cls.semester)
+        cls.project = Project.objects.create(
+            name="test", semester=cls.semester
+        )
 
     def setUp(self):
         request_factory = RequestFactory()
-        self.request = request_factory.get(reverse("admin:mailing_lists_mailinglist_changelist"))
+        self.request = request_factory.get(
+            reverse("admin:mailing_lists_mailinglist_changelist")
+        )
         self.request.user = self.admin
         self.client = Client()
         self.client.force_login(self.admin)
@@ -75,7 +85,9 @@ class MailingListAdminTest(TestCase):
         sync.sync_mailing_lists_as_task.assert_called_once()
 
     @patch("mailing_lists.admin.GSuiteSyncService")
-    def test_synchronize_selected_mailing_lists_calls_ok(self, gsuite_sync_service):
+    def test_synchronize_selected_mailing_lists_calls_ok(
+        self, gsuite_sync_service
+    ):
         mock_instance = MagicMock()
         gsuite_sync_service.return_value = mock_instance
         mailing_list_admin = MailingListAdmin(MailingList, AdminSite)
@@ -85,11 +97,18 @@ class MailingListAdminTest(TestCase):
         mock_instance.sync_mailing_lists.assert_called_once()
 
     def test_get_form(self):
-        response = self.client.get(reverse("admin:mailing_lists_mailinglist_change", args=(self.mailinglist.id,)))
+        response = self.client.get(
+            reverse(
+                "admin:mailing_lists_mailinglist_change",
+                args=(self.mailinglist.id,),
+            )
+        )
         self.assertEqual(response.status_code, 200)
 
     def test_get_add(self):
-        response = self.client.get(reverse("admin:mailing_lists_mailinglist_add"))
+        response = self.client.get(
+            reverse("admin:mailing_lists_mailinglist_add")
+        )
         self.assertEqual(response.status_code, 200)
 
     def test_form_new(self):
@@ -119,6 +138,8 @@ class MailingListAdminTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_save(self):
-        admin = MailingListAdminForm(instance=self.mailinglist, data={"address": "abc"})
+        admin = MailingListAdminForm(
+            instance=self.mailinglist, data={"address": "abc"}
+        )
         admin.save()
         self.assertIsNotNone(MailingList.objects.get(address="abc"))

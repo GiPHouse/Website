@@ -11,7 +11,9 @@ from projects.models import Project
 
 from registrations.models import Employee, Registration
 
-email_local_part_validator = RegexValidator(regex=r"^[a-zA-Z0-9-]+$", message="Enter a simpler name")
+email_local_part_validator = RegexValidator(
+    regex=r"^[a-zA-Z0-9-]+$", message="Enter a simpler name"
+)
 
 reserved_addresses_validator = RegexValidator(
     regex=r"^(?!(abuse|admin|administrator|hostmaster|majordomo|postmaster|root|ssl-admin|webmaster)$)",
@@ -23,10 +25,15 @@ class MailingList(models.Model):
     """Mailing list with recipients."""
 
     address = models.CharField(
-        max_length=60, validators=[email_local_part_validator, reserved_addresses_validator], unique=True
+        max_length=60,
+        validators=[email_local_part_validator, reserved_addresses_validator],
+        unique=True,
     )
     gsuite_group_name = models.CharField(
-        max_length=60, validators=[email_local_part_validator, reserved_addresses_validator], blank=True, null=True
+        max_length=60,
+        validators=[email_local_part_validator, reserved_addresses_validator],
+        blank=True,
+        null=True,
     )
     description = models.CharField(blank=True, max_length=150, null=True)
     projects = models.ManyToManyField(Project, blank=True)
@@ -38,7 +45,9 @@ class MailingList(models.Model):
     def validate_unique(self, exclude=None):
         """Validate uniqueness of the mailing list email address."""
         if len(MailingListAlias.objects.filter(address=self.address)):
-            raise ValidationError("This email address is already in use as an alias.")
+            raise ValidationError(
+                "This email address is already in use as an alias."
+            )
         super(MailingList, self).validate_unique(exclude)
 
     def save(self, *args, **kwargs):
@@ -59,7 +68,9 @@ class MailingList(models.Model):
     def all_addresses(self):
         """Return all email addresses that are in the mailing list."""
         course_emails = []
-        for course_semester_link in self.mailinglistcoursesemesterlink_set.all():
+        for (
+            course_semester_link
+        ) in self.mailinglistcoursesemesterlink_set.all():
             course_emails += course_semester_link.email_addresses
 
         project_emails = []
@@ -81,7 +92,10 @@ class MailingList(models.Model):
     def mailinglist_aliases(self):
         """Return the alias of a mailinglist."""
         aliaslist = [
-            str(i) for i in MailingListAlias.objects.filter(mailing_list=self).values_list("address", flat=True)
+            str(i)
+            for i in MailingListAlias.objects.filter(
+                mailing_list=self
+            ).values_list("address", flat=True)
         ]
         if aliaslist:
             return ", ".join(aliaslist)
@@ -109,11 +123,13 @@ def handle_mailing_list_delete(instance, **kwargs):
     """
     if instance.gsuite_group_name:
         MailingListToBeDeleted.objects.update_or_create(
-            address=instance.gsuite_group_name, archive_instead_of_delete=instance.archive_instead_of_delete
+            address=instance.gsuite_group_name,
+            archive_instead_of_delete=instance.archive_instead_of_delete,
         )
     else:
         MailingListToBeDeleted.objects.update_or_create(
-            address=instance.address, archive_instead_of_delete=instance.archive_instead_of_delete
+            address=instance.address,
+            archive_instead_of_delete=instance.archive_instead_of_delete,
         )
 
 
@@ -143,16 +159,22 @@ class MailingListAlias(models.Model):
         verbose_name_plural = "mailing list aliases"
 
     address = models.CharField(
-        max_length=60, validators=[email_local_part_validator, reserved_addresses_validator], unique=True
+        max_length=60,
+        validators=[email_local_part_validator, reserved_addresses_validator],
+        unique=True,
     )
     mailing_list = models.ForeignKey(MailingList, on_delete=models.CASCADE)
 
     def validate_unique(self, exclude=None):
         """Validate uniqueness of mailing list alias email address."""
         if self.mailing_list.address == self.address:
-            raise ValidationError("Alias address cannot be the same as the mailing list address.")
+            raise ValidationError(
+                "Alias address cannot be the same as the mailing list address."
+            )
         if len(MailingList.objects.filter(address=self.address)):
-            raise ValidationError("Email address is already in use as a mailing list.")
+            raise ValidationError(
+                "Email address is already in use as a mailing list."
+            )
         super(MailingListAlias, self).validate_unique(exclude)
 
     def save(self, *args, **kwargs):
@@ -182,7 +204,8 @@ class MailingListCourseSemesterLink(models.Model):
 
         constraints = [
             models.UniqueConstraint(
-                fields=["mailing_list", "course", "semester"], name="one_course_semester_per_mailing_list"
+                fields=["mailing_list", "course", "semester"],
+                name="one_course_semester_per_mailing_list",
             )
         ]
 
@@ -190,11 +213,15 @@ class MailingListCourseSemesterLink(models.Model):
     def email_addresses(self):
         """Get all email adresses of people in the Course in the Semester."""
         return (
-            Registration.objects.filter(course=self.course, semester=self.semester)
+            Registration.objects.filter(
+                course=self.course, semester=self.semester
+            )
             .select_related("user")
             .values_list("user__email", flat=True)
         )
 
     def __str__(self):
         """Show mailing list link to course and semester."""
-        return f"connect {self.mailing_list} to {self.course} in {self.semester}"
+        return (
+            f"connect {self.mailing_list} to {self.course} in {self.semester}"
+        )

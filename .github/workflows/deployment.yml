@@ -1,0 +1,110 @@
+---
+
+name: "Deploy to production"
+on:
+  push:
+    branches:
+      - "main"
+      - "deployment-workflow"
+
+env:
+  DOCKER_IMAGE: "docker.pkg.github.com/giphouse/website/production:latest"
+
+jobs:
+  build-docker:
+    name: "Build Docker image"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Checkout the repository"
+        uses: "actions/checkout@v1"
+
+      - name: "Login to GitHub Packages"
+        run: "echo \"${{ secrets.GITHUB_TOKEN }}\" | docker login https://docker.pkg.github.com --username giphouse --password-stdin"
+
+      - name: "Build Docker image"
+        run: "docker build --build-arg commit_hash=\"${{ github.sha }}\" --tag \"${DOCKER_IMAGE}\" ."
+
+      - name: "Push Docker image"
+        run: "docker push ${DOCKER_IMAGE}"
+
+  deploy:
+    name: "Deploy to production"
+    runs-on: "ubuntu-latest"
+    needs: "build-docker"
+
+    env:
+      DEPLOY_DIRECTORY: "/usr/local/giphouse"
+      DEPLOYMENT_HOST: "giphouse.nl"
+      POSTGRES_NAME: "${{ secrets.POSTGRES_NAME }}"
+      POSTGRES_USER: "${{ secrets.POSTGRES_USER }}"
+      POSTGRES_PASSWORD: "${{ secrets.POSTGRES_PASSWORD }}"
+
+    steps:
+      - name: "Checkout the repository"
+        uses: "actions/checkout@v1"
+
+      - name: "Setup SSH key"
+        run: |
+          mkdir "${HOME}/.ssh/"
+          chmod 700 "${HOME}/.ssh/"
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > "${HOME}/.ssh/id_ed25519"
+          chmod 600 "${HOME}/.ssh/id_ed25519"
+
+      - name: "Set docker-compose template variables"
+        run: |
+          envsubst < resources/docker-compose.yaml.template > /tmp/out.tmp
+          mv /tmp/out.tmp resources/docker-compose.yaml
+        env:
+          DJANGO_SECRET_KEY: "${{ secrets.DJANGO_SECRET_KEY }}"
+          DJANGO_GITHUB_CLIENT_ID: "${{ secrets.DJANGO_GITHUB_CLIENT_ID }}"
+          DJANGO_GITHUB_CLIENT_SECRET: "${{ secrets.DJANGO_GITHUB_CLIENT_SECRET }}"
+          DJANGO_GITHUB_SYNC_SUPERUSER_ID: "${{ secrets.DJANGO_GITHUB_SYNC_SUPERUSER_ID }}"
+          DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64: "${{ secrets.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64 }}"
+          DJANGO_GSUITE_ADMIN_USER: "${{ secrets.DJANGO_GSUITE_ADMIN_USER }}"
+          DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64: "${{ secrets.DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64 }}"
+
+      - name: "Create necessary directories"
+        run: |
+          ssh -o StrictHostKeyChecking=no "${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}" /bin/bash << EOF
+            sudo mkdir --parents "${DEPLOY_DIRECTORY}"
+            sudo chown "${{ secrets.SSH_USER }}":"${{ secrets.SSH_USER }}" "${DEPLOY_DIRECTORY}"
+            mkdir --parents "${DEPLOY_DIRECTORY}/database_init/"
+            mkdir --parents "${DEPLOY_DIRECTORY}/nginx/vhost.d/"
+          EOF
+
+      - name: "Set nginx template variables"
+        run: |
+            envsubst < resources/giphouse.nginx.conf > /tmp/out.tmp
+            mv /tmp/out.tmp resources/giphouse.nginx.conf
+
+      - name: "Copy security.txt file"
+        run: "scp -o StrictHostKeyChecking=no resources/security.txt \"${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}:${DEPLOY_DIRECTORY}/security.txt\""
+
+      - name: "Upload main nginx config"
+        run: "scp -o StrictHostKeyChecking=no resources/giphouse.nginx.conf \"${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}:${DEPLOY_DIRECTORY}/nginx/vhost.d/${DEPLOYMENT_HOST}\""
+
+      - name: "Set www nginx config"
+        run: |
+          ssh -o StrictHostKeyChecking=no "${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}" /bin/bash << EOF
+            echo "return 301 https://${DEPLOYMENT_HOST}/;" > "${DEPLOY_DIRECTORY}/nginx/vhost.d/www.${DEPLOYMENT_HOST}_location"
+          EOF
+
+      - name: "Upload docker-compose.yaml"
+        run: "scp -o StrictHostKeyChecking=no resources/docker-compose.yaml \"${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}:${DEPLOY_DIRECTORY}/docker-compose.yaml\""
+
+      - name: "Deploy new Docker image"
+        run: |
+          ssh -o StrictHostKeyChecking=no "${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}" /bin/bash << EOF
+            docker-compose --file "${DEPLOY_DIRECTORY}/docker-compose.yaml" config --quiet
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login https://docker.pkg.github.com --username giphouse --password-stdin
+            docker-compose --file "${DEPLOY_DIRECTORY}/docker-compose.yaml" pull --quiet
+            docker logout docker.pkg.github.com
+            docker-compose --file "${DEPLOY_DIRECTORY}/docker-compose.yaml" down
+            docker-compose --file "${DEPLOY_DIRECTORY}/docker-compose.yaml" up -d --remove-orphans
+          EOF
+
+      - name: "Prune old Docker images"
+        run: |
+          ssh -o StrictHostKeyChecking=no "${{ secrets.SSH_USER }}@${DEPLOYMENT_HOST}" /bin/bash << EOF
+            docker system prune --all --force
+          EOF

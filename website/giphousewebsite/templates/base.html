@@ -1,8 +1,7 @@
-{% load static sass_tags django_bootstrap5 menu %}
+{% load static sass_tags django_bootstrap5 menu component_tags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
     <title>
         {% block title %}GiPHouse{% endblock %}
     </title>
@@ -18,6 +17,9 @@
     <link rel="icon" type="image/png" sizes="192x192" href="{% static 'img/favicon/android-chrome-192x192.png' %}">
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon/favicon-32x32.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon/favicon-16x16.png' %}">
+
+    {% component_css_dependencies %}
+
     <!-- build commit: {{ COMMIT_HASH }} -->
 </head>
 <body>
@@ -38,5 +40,6 @@
 <script src="{% static 'js/popper.min.js' %}"></script>
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 {% block js %}{% endblock %}
+{% component_js_dependencies %}
 </body>
 </html>

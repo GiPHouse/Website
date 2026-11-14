@@ -1,13 +1,15 @@
 import logging
 import threading
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from django.conf import settings
 from django.urls import reverse
 
-from github import Auth, Github, GithubException, GithubIntegration, UnknownObjectException
+from github import Auth, Github, GithubException, GithubIntegration
+from github import UnknownObjectException
 
-from projects.models import ProjectToBeDeleted, Repository, RepositoryToBeDeleted
+from projects.models import ProjectToBeDeleted, Repository
+from projects.models import RepositoryToBeDeleted
 
 from registrations.models import Employee
 
@@ -16,6 +18,28 @@ from tasks.models import Task
 
 class GitHubAPITalker:
     """Communicate with GitHub API v3."""
+
+    @staticmethod
+    def helper():
+        """With development settings, there is no attribute
+        settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY,
+        nor the _BASE64 is checked.
+        This method sets the missing attribute based on the present and
+        more convenient _BASE64 encoded one,
+        preventing further code from crashing in development mode."""
+        import os
+        import base64
+
+        if "dev" in os.environ.get("DJANGO_SETTINGS_MODULE", ""):
+            # the second argument here is fallback to not crash
+            setattr(settings, "DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY", b"")
+            if settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64 == "":
+                return
+
+            # pragma: no cover
+            settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY = base64.b64decode(
+                settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64
+            )
 
     def __init__(self):
         """Initialize the GitHub API talker."""
@@ -26,13 +50,16 @@ class GitHubAPITalker:
 
         self._github = Github()  # used to talk to GitHub as our own app
 
-        if (
-            settings.DJANGO_GITHUB_SYNC_APP_ID != ""
-            and settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY.decode("utf_8") != ""
+        GitHubAPITalker.helper()
+        if settings.DJANGO_GITHUB_SYNC_APP_ID != "" and (
+            settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY.decode("utf_8") != ""
         ):  # pragma: no cover
             self._gi = GithubIntegration(
                 auth=Auth.AppAuth(
-                    settings.DJANGO_GITHUB_SYNC_APP_ID, settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY.decode("utf_8")
+                    settings.DJANGO_GITHUB_SYNC_APP_ID,
+                    settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY.decode(
+                        "utf_8"
+                    ),
                 )
             )
         else:
@@ -42,7 +69,8 @@ class GitHubAPITalker:
 
     @property
     def github_service(self):
-        """Get a valid Github service instance (API endpoint) to make calls to."""
+        """Get a valid Github service instance (API endpoint)
+        to make calls to."""
         self.renew_access_token_if_required()
         return self._github
 
@@ -57,17 +85,28 @@ class GitHubAPITalker:
         Renew an access token if expired or not present.
 
         An access token must be created for all requests to authenticate.
-        Access tokens are valid for only 10 minutes and must be recreated afterwards. A timedelta of 60 seconds is used
-        to renew access tokens that are not longer than 60 seconds valid. Hence, all methods that require the access
+        Access tokens are valid for only 10 minutes
+        and must be recreated afterward.
+         A timedelta of 60 seconds is used
+        to renew access tokens that are not longer than 60 seconds valid.
+        Hence, all methods that require the access
         token are assumed to not take longer than 60 seconds.
         Also set the organization to use while syncing.
 
         :except: GithubException when requesting a new access token fails
         """
-        if self._access_token is None or self._access_token.expires_at < datetime.now() + timedelta(seconds=60):
-            self._access_token = self._gi.get_access_token(self.installation_id)
-            self._github = Github(self._access_token.token)
-            self._organization = self._github.get_organization(self.organization_name)
+        if self._access_token is None or (
+            self._access_token.expires_at.replace(tzinfo=timezone.utc)
+            - datetime.now(timezone.utc)
+            < timedelta(seconds=60)
+        ):
+            self._access_token = self._gi.get_access_token(
+                self.installation_id
+            )
+            self._github = Github(auth=Auth.Token(self._access_token.token))
+            self._organization = self._github.get_organization(
+                self.organization_name
+            )
 
     def create_team(self, project):
         """
@@ -77,7 +116,9 @@ class GitHubAPITalker:
         :return: the GitHub team that is created
         """
         github_team = self.github_organization.create_team(
-            project.name, description=project.generate_team_description(), privacy="closed"
+            project.name,
+            description=project.generate_team_description(),
+            privacy="closed",
         )
         return github_team
 
@@ -85,10 +126,13 @@ class GitHubAPITalker:
         """
         Create a repository in GitHub for a project.
 
-        :param repo: the repository object for which a GitHub repository must be created
+        :param repo: the repository object for which
+        a GitHub repository must be created
         :return: the GitHub repository that is created
         """
-        return self.github_organization.create_repo(name=repo.name, private=repo.private)
+        return self.github_organization.create_repo(
+            name=repo.name, private=repo.private
+        )
 
     def get_team(self, team_id):
         """Get a team from the GiPHouse GitHub organization."""
@@ -111,6 +155,11 @@ class GitHubAPITalker:
         self.github_organization.remove_from_members(user)
 
 
+class PlainGitHubException(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 class GitHubSync:
     """Sync with GitHub."""
 
@@ -130,39 +179,63 @@ class GitHubSync:
         self.users_removed = 0
         self.github = talker
         self.task = Task.objects.create(
-            total=len(self.projects), completed=0, redirect_url=reverse("admin:projects_project_changelist")
+            total=len(self.projects),
+            completed=0,
+            logs="["
+            + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            + "] INFO: START OF LOGS\n",
+            redirect_url=reverse("admin:projects_project_changelist"),
         )
+
+    def log(self, message, level="INFO"):
+        """Store the logs on the task."""
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        message = message.replace("\n", "")
+        log_entry = f"[{timestamp}] {level}: {message}\n"
+
+        self.task.logs += log_entry
+        self.task.save(update_fields=["logs"])
 
     def error(self, msg):
         """Log an error message and set the fail state to True."""
+        self.log(msg, "ERROR")
         self.logger.error(msg)
         self.fail = True
 
     def warning(self, msg):
         """Log a warning message."""
+        self.log(msg, "WARNING")
         self.logger.warning(msg)
 
     def info(self, msg):
         """Log an info message."""
+        self.log(msg, "INFO")
         self.logger.info(msg)
+
+    def exception(self, msg):
+        """Log an exception message."""
+        self.log(msg, "EXCEPTION")
+        self.logger.exception(msg)
+        self.fail = True
 
     def sync_team_member(self, employee, project):
         """
-        Add a employee to a GitHub team for a project, if not already in the team.
+        Add a employee to a GitHub team for a project,
+        if not already in the team.
 
         :param employee: The employee to add
         :param project: The project to add the employee to
         :return: True if a the employee is newly invited
         """
         if employee in project.get_employees():
-
             github_team = self.github.get_team(project.github_team_id)
 
             github_employee = self.github.get_user(employee.github_id)
             if not github_team.has_in_members(github_employee):
                 github_team.add_membership(github_employee, role="member")
                 self.users_invited += 1
-                self.info(f"Invited {employee.get_full_name()} to team {github_team.name}")
+                self.info(f"""Invited {employee.get_full_name()}
+                           to team {github_team.name}""")
                 return True
         return False
 
@@ -170,93 +243,128 @@ class GitHubSync:
         """
         Create a GitHub team for a project, or update it if already existing.
 
-        If a github_team_id is None, a new team is created and saved, otherwise the team is updated.
+        If a github_team_id is None, a new team is created and saved,
+        otherwise the team is updated.
 
         :param project_team: The team to create or update the team for
         """
         if project_team.github_team_id is None:
             try:
-                project_team.github_team_id = self.github.create_team(project_team).id
+                project_team.github_team_id = self.github.create_team(
+                    project_team
+                ).id
                 self.info(f"Created team {project_team.name}")
                 self.teams_created += 1
                 project_team.save()
-            except (GithubException, AssertionError):
-                self.error(f"Something went wrong creating the project team for '{project_team}'.")
+            except GithubException, AssertionError:
+                self.error(f"""Something went wrong creating
+                            the project team for '{project_team}'.""")
         else:
             try:
-                self.update_team(project_team)  # if this fails, we might have a problem with the github_team_id
-            except (GithubException, AssertionError):
+                self.update_team(project_team)
+                # if this fails, we might have a problem
+                #  with the github_team_id
+            except GithubException, AssertionError:
                 self.error(
-                    f"Something went wrong syncing the project team for '{project_team}'. Does the "
+                    f"""Something went wrong syncing the project team for
+                     '{project_team}'. Does the """
                     f"github_team_id still belong to a valid team on GitHub?"
                 )
 
         for employee in project_team.get_employees():
             try:
                 self.sync_team_member(employee, project_team)
-            except (GithubException, AssertionError):
-                self.error(f"Something went wrong syncing {employee} with the GitHub team for '{project_team}'.")
+            except GithubException, AssertionError:
+                self.error(f"""Something went wrong syncing {employee}
+                            with the GitHub team for '{project_team}'.""")
 
         try:
             self.remove_users_not_in_team(project_team)
-        except (GithubException, AssertionError):
-            self.error(f"Something went wrong while removing unwanted users from GitHub team for '{project_team}'.")
+        except GithubException, AssertionError:
+            self.error(f"""Something went wrong while removing unwanted
+                        users from GitHub team for '{project_team}'.""")
 
     def remove_users_not_in_team(self, project):
         """
-        Remove all GitHub users from a GitHub team that are not employees of a project.
+        Remove all GitHub users from a GitHub team
+          that are not employees of a project.
 
         :param project: The project to use
         """
         github_team = self.github.get_team(project.github_team_id)
-        employee_list = [r[0] for r in project.get_employees().values_list("github_username")]
+        employee_list = [
+            r[0]
+            for r in project.get_employees().values_list("github_username")
+        ]
 
         for github_user in github_team.get_members():
             if github_user.login not in employee_list:
                 try:
-                    if self.github.get_role_of_user(github_user) != "admin":  # Prevent removing organization owners
+                    # Prevent removing organization owners
+                    if self.github.get_role_of_user(github_user) != "admin":
                         self.github.remove_user(github_user)
-                        self.info(f"Removed {github_user.name} from team {github_team.name} and the organization.")
+                        self.info(f"""Removed {github_user.name} from team
+                                   {github_team.name} and the organization.""")
                     else:
                         github_team.remove_membership(github_user)
                         self.info(
-                            f"Removed {github_user.name} from team {github_team.name} but not from the organization, "
+                            f"""Removed {github_user.name} from team
+                             {github_team.name} but not from
+                             the organization, """
                             f"because {github_user.name} is an admin"
                         )
                     self.users_removed += 1
                 except GithubException:
-                    self.error(f"Something went wrong while removing {github_user.name} from team {github_team.name}")
+                    self.error(f"""Something went wrong while removing
+                                {github_user.name} from team
+                                  {github_team.name}""")
 
     def remove_team(self, project):
-        """Remove a team for a project from GitHub and remove all employees of the project from the organization."""
+        """Remove a team for a project from GitHub and
+        remove all employees of the project from the organization."""
         github_team = self.github.get_team(project.github_team_id)
 
         for github_user in github_team.get_members():
             try:
-                employee = Employee.objects.get(github_username=github_user.login, github_id=github_user.id)
+                employee = Employee.objects.get(
+                    github_username=github_user.login, github_id=github_user.id
+                )
             except Employee.DoesNotExist:
                 employee = None
 
             if self.github.get_role_of_user(github_user) != "admin" and (
                 employee is None
-                or not employee.registration_set.exclude(projects__id=project.id).filter(
-                    projects__isnull=False, projects__repository__is_archived=Repository.Archived.NOT_ARCHIVED
+                or not employee.registration_set.exclude(
+                    projects__id=project.id
+                ).filter(
+                    projects__isnull=False,
+                    projects__repository__is_archived=(
+                        Repository.Archived.NOT_ARCHIVED
+                    ),
                 )
-            ):  # Prevent removing organization owners and employees that are still active in a different team
+            ):  # Prevent removing organization owners and employees.
+                # that are still active in a different team
                 try:
                     self.github.remove_user(github_user)
                     self.users_removed += 1
-                    self.info(f"Removed {github_user.name} from the organization")
+                    self.info(
+                        f"Removed {github_user.name} from the organization"
+                    )
                 except GithubException:
-                    self.error(f"Something went wrong while removing {github_user.name} from team {github_team.name}")
+                    self.error(f"""Something went wrong while removing
+                                {github_user.name} from team
+                                  {github_team.name}""")
         try:
             github_team.delete()
             self.info(f"Removed team {github_team.name}")
         except GithubException:
-            self.error(f"Something went wrong while removing team {github_team.name}")
+            self.error(
+                f"Something went wrong while removing team {github_team.name}"
+            )
 
     def archive_repo(self, repo):
-        """Archive a repository and return whether it is archived (True) or was already archived (False)."""
+        """Archive a repository and return whether it is archived (True)
+        or was already archived (False)."""
         github_repo = self.github.get_repo(repo.github_repo_id)
         if not github_repo.archived:
             github_repo.edit(archived=True)
@@ -276,10 +384,12 @@ class GitHubSync:
                 self.remove_team(project_team)
                 project_team.github_team_id = None
                 project_team.save()
-            except (GithubException, AssertionError):
-                self.error(f"Something went wrong removing the GitHub team for '{project_team}'.")
+            except GithubException, AssertionError:
+                self.error(f"""Something went wrong removing
+                            the GitHub team for '{project_team}'.""")
         else:
-            self.warning(f"Project team {project_team} was not archived, because it does not exist on GitHub either.")
+            self.warning(f"""Project team {project_team} was not archived,
+                          because it does not exist on GitHub either.""")
 
     def update_repo(self, repo):
         """
@@ -292,43 +402,60 @@ class GitHubSync:
 
         if not github_team.has_in_repos(github_repo):
             github_team.add_to_repos(github_repo)
-            self.info(f"Added team {github_team.name} to repository {github_repo.name}")
+            self.info(f"""Added team {github_team.name}
+                       to repository {github_repo.name}""")
 
         if not github_team.get_repo_permission(github_repo).admin:
-            github_team.set_repo_permission(github_repo, "admin")
-            self.info(f"Gave admin permissions to team {github_team.name} for repository {github_repo.name}")
+            success = github_team.update_team_repository(github_repo, "admin")
+            if not success:
+                raise PlainGitHubException(
+                    "update_team_repository() returned an unsuccessful status code"
+                )
+
+            self.info(f"""Gave admin permissions to team {github_team.name}
+                       for repository {github_repo.name}""")
 
         if github_repo.name != repo.name:
             old_name = github_repo.name
             github_repo.edit(name=repo.name)
-            self.info(f"Changed name of repository {old_name} to {github_repo.name}")
+            self.info(f"""Changed name of repository {old_name} to
+                       {github_repo.name}""")
 
         if github_repo.private != repo.private:
             github_repo.edit(private=repo.private)
-            self.info(f"Changed privacy of repository {github_repo.name} to {'private' if repo.private else 'public'}")
+            self.info(f"""Changed privacy of repository {github_repo.name} to
+                       {"private" if repo.private else "public"}""")
 
     def create_or_update_repos(self, project_team):
         """
-        Create GitHub repositories for a project, or update the repository if already existing.
+        Create GitHub repositories for a project,
+          or update the repository if already existing.
 
-        If a github_repo_id is None, a new repo is created and saved, otherwise the repo is updated.
+        If a github_repo_id is None, a new repo is created and saved,
+          otherwise the repo is updated.
 
         :param project_team: The team to create or update the repos for
         """
         for project_repo in Repository.objects.filter(project=project_team):
             if project_repo.github_repo_id is None:
                 try:
-                    project_repo.github_repo_id = self.github.create_repo(project_repo).id
+                    project_repo.github_repo_id = self.create_repo(
+                        project_repo
+                    ).id
                     project_repo.save()
                     self.info(f"Created repository {project_repo}")
                     self.repos_created += 1
-                except (GithubException, AssertionError):
-                    self.error(f"Something went wrong creating repository '{project_repo}' for '{project_team}'.")
+                except GithubException, AssertionError:
+                    self.error(f"""Something went wrong creating repository
+                                '{project_repo}' for '{project_team}'.""")
             else:
                 try:
-                    self.update_repo(project_repo)  # if this fails, we might have a problem with the github_repo_id
-                except (GithubException, AssertionError):
-                    self.error(f"Something went wrong syncing the repository '{project_repo}' for '{project_team}'.")
+                    # if this fails, we might have a problem
+                    #  with the github_repo_id
+                    self.update_repo(project_repo)
+                except GithubException, AssertionError, PlainGitHubException:
+                    self.error(f"""Something went wrong syncing the repository
+                                '{project_repo}' for '{project_team}'.""")
 
     def update_team(self, project):
         """
@@ -337,8 +464,14 @@ class GitHubSync:
         :param project: the project for which a team must be updated
         """
         github_team = self.github.get_team(project.github_team_id)
-        if github_team.name != project.name or github_team.description != project.generate_team_description():
-            github_team.edit(name=project.name, description=project.generate_team_description())
+        if (
+            github_team.name != project.name
+            or github_team.description != project.generate_team_description()
+        ):
+            github_team.edit(
+                name=project.name,
+                description=project.generate_team_description(),
+            )
             self.info(f"Updated name and description of team {project.name}")
             return True
         return False
@@ -350,12 +483,26 @@ class GitHubSync:
         :param repo: The repository to create
         :return: the GitHub repository that is created
         """
+
+        # local wrapper makes interacts with the GitHub library,
+        # receives a class from the GitHub library
         github_repo = self.github.create_repo(repo)
         self.info(f"Created repository {repo.name}")
+
+        # again, this is a class from the GitHub library
         github_team = self.github.get_team(repo.project.github_team_id)
+
+        # a class from the GitHub library has these methods
         github_team.add_to_repos(github_repo)
-        github_team.set_repo_permission(github_repo, "admin")
+
+        success = github_team.update_team_repository(github_repo, "admin")
+        if not success:
+            raise PlainGitHubException(
+                "update_team_repository() returned an unsuccessful status code"
+            )
+
         self.info(f"Added team {github_team.name} to repository {repo.name}")
+
         return github_repo
 
     def archive_repos_marked_as_archived(self, project_team):
@@ -367,12 +514,14 @@ class GitHubSync:
                         self.archive_repo(project_repo)
                     else:
                         self.warning(
-                            f"Repository {project_repo} was not archived, because it does not exist on GitHub either."
+                            f"""Repository {project_repo} was not archived,
+                              because it does not exist on GitHub either."""
                         )
                     project_repo.is_archived = Repository.Archived.CONFIRMED
                     project_repo.save()
-                except (GithubException, AssertionError):
-                    self.error(f"Something went wrong archiving the repository '{project_repo}'.")
+                except GithubException, AssertionError:
+                    self.error(f"""Something went wrong archiving
+                                the repository '{project_repo}'.""")
 
     def sync_project(self, project):
         """Sync one project to GitHub."""
@@ -385,18 +534,21 @@ class GitHubSync:
             self.archive_project(project)
 
     def delete_teams_and_repos_to_be_deleted(self):
-        """Remove all repositories and teams deleted in Django of which the id's are stored for deletion."""
+        """Remove all repositories and teams deleted in Django
+        of which the id's are stored for deletion."""
         for repo in RepositoryToBeDeleted.objects.all():
             try:
                 self.archive_repo(repo)
             except UnknownObjectException:
                 self.error(
-                    f"Something went wrong removing orphan GitHub repository with id {repo.github_repo_id}'. "
+                    f"""Something went wrong removing orphan
+                     GitHub repository with id {repo.github_repo_id}'. """
                     f"Maybe it was already deleted manually?"
                 )
-            except (GithubException, AssertionError):
+            except GithubException, AssertionError:
                 self.error(
-                    f"Something went wrong archiving orphan GitHub repository with id {repo.github_repo_id}'. "
+                    f"""Something went wrong archiving orphan
+                      GitHub repository with id {repo.github_repo_id}'. """
                     f"Will try again at next sync."
                 )
                 continue
@@ -407,12 +559,14 @@ class GitHubSync:
                 self.remove_team(team)
             except UnknownObjectException:
                 self.error(
-                    f"Something went wrong removing orphan GitHub team with id {team.github_team_id}'."
+                    f"""Something went wrong removing orphan
+                      GitHub team with id {team.github_team_id}'."""
                     f"Maybe it was already deleted manually?"
                 )
-            except (GithubException, AssertionError):
+            except GithubException, AssertionError:
                 self.error(
-                    f"Something went wrong removing orphan GitHub team with id {team.github_team_id}'. "
+                    f"""Something went wrong removing orphan
+                      GitHub team with id {team.github_team_id}'. """
                     f"Will try again at next sync."
                 )
                 continue
@@ -422,23 +576,29 @@ class GitHubSync:
         """Sync all selected projects to GitHub."""
         try:
             self.delete_teams_and_repos_to_be_deleted()
+        except GithubException as e:
+            self.exception(e.message)
         except Exception as e:
-            self.logger.exception(e)
-            self.fail = True
+            self.exception(e)
         for project in self.projects:
             try:
                 self.sync_project(project)
+            except GithubException as e:
+                self.exception(e.message)
             except Exception as e:
-                self.logger.exception(e)
-                self.fail = True
+                self.exception(e)
             self.task.completed += 1
             self.task.save()
+        self.task.status = not self.fail
         self.task.fail = self.fail
 
         self.task.success_message = (
-            f"A total of {self.teams_created} teams and {self.repos_created} repositories have been created, "
-            f"a total of {self.users_invited} employees have been invited to their teams and "
-            f"a total of {self.users_removed} users have been removed from GitHub teams. "
+            f"""A total of {self.teams_created} teams and
+              {self.repos_created} repositories have been created, """
+            f"""a total of {self.users_invited} employees
+              have been invited to their teams and """
+            f"""a total of {self.users_removed} users
+              have been removed from GitHub teams. """
             f"{self.repos_archived} repositories have been archived."
         )
         self.task.save()

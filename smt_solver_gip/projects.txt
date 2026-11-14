@@ -1,0 +1,23 @@
+Automated Water Data Validation
+AVS Control Hub
+CampusEnergie 3.0
+Conditional Independence Testing
+Digitalization of the Oiconomy Pricing System
+Discworld Mobile Client
+DPD drawing tool
+eduSpec 3.0-II
+GiPHouse Website
+Integrating Digital Pathology Tooling with QuPath
+IntelliGUI
+Introduction Scavenger Hunt website
+Music Carrier Databas
+My Lifestyle Platform Mobile App
+Nifti
+Portal Genius SAAS Webapplication
+PubHubs – Calendar
+RapidReport: an AI-driven radiology reporting
+TESTAR WebInterface
+Upgrade of ToDI
+BABA
+LALA
+

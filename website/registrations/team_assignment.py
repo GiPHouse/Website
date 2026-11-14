@@ -2,6 +2,7 @@ import csv
 import logging
 import threading
 from io import StringIO
+from datetime import datetime
 
 from django.urls import reverse
 
@@ -49,18 +50,35 @@ class TeamAssignmentGenerator:
         """Get all required data to create a team assignment for a certain semester."""
         self.semester = registrations[0].semester
 
-        self.managers = [registration for registration in registrations if registration.course == Course.objects.sdm()]
-        self.engineers = [registration for registration in registrations if registration.course == Course.objects.se()]
-        self.projects = list(Project.objects.filter(semester=self.semester).order_by("?").all())
+        self.managers = [
+            registration
+            for registration in registrations
+            if registration.course == Course.objects.sdm()
+        ]
+        self.engineers = [
+            registration
+            for registration in registrations
+            if registration.course == Course.objects.se()
+        ]
+        self.projects = list(
+            Project.objects.filter(semester=self.semester).order_by("?").all()
+        )
 
         self.engineers_per_project = list(
-            len(range(len(self.engineers))[i :: len(self.projects)]) for i in range(len(self.projects))
+            len(range(len(self.engineers))[i :: len(self.projects)])
+            for i in range(len(self.projects))
         )
         self.managers_per_project = list(
-            len(range(len(self.managers))[i :: len(self.projects)]) for i in range(len(self.projects))
+            len(range(len(self.managers))[i :: len(self.projects)])
+            for i in range(len(self.projects))
         )
         self.task = Task.objects.create(
-            total=1, completed=0, redirect_url=reverse("admin:registrations_employee_changelist")
+            total=1,
+            completed=0,
+            logs="["
+            + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            + "] INFO: START OF LOGS\n",
+            redirect_url=reverse("admin:registrations_employee_changelist"),
         )
 
         self.logger = logging.getLogger("automaticteams")
@@ -75,12 +93,16 @@ class TeamAssignmentGenerator:
         self.assigned_managers = {}
         for r in range(len(self.managers)):
             for p in range(len(self.projects)):
-                self.assigned_managers[(r, p)] = self.model.NewBoolVar(f"assigned_manager{r}_to_project{p}")
+                self.assigned_managers[(r, p)] = self.model.NewBoolVar(
+                    f"assigned_manager{r}_to_project{p}"
+                )
 
         self.assigned_engineers = {}
         for r in range(len(self.engineers)):
             for p in range(len(self.projects)):
-                self.assigned_engineers[(r, p)] = self.model.NewBoolVar(f"assigned_engineer{r}_to_project{p}")
+                self.assigned_engineers[(r, p)] = self.model.NewBoolVar(
+                    f"assigned_engineer{r}_to_project{p}"
+                )
 
         self.logger.info("Adding constraints")
         self._add_constraints()
@@ -108,24 +130,38 @@ class TeamAssignmentGenerator:
         for p in range(len(self.projects)):
             for r in range(len(self.managers)):
                 if solver.BooleanValue(self.assigned_managers[(r, p)]):
-                    project_for_registrations[self.managers[r].pk] = self.projects[p]
-                    self.logger.debug(f"Assigned manager \t {self.managers[r].user} \t to \t {self.projects[p]}")
+                    project_for_registrations[self.managers[r].pk] = (
+                        self.projects[p]
+                    )
+                    self.logger.debug(
+                        f"Assigned manager \t {self.managers[r].user} \t to \t {self.projects[p]}"
+                    )
             for r in range(len(self.engineers)):
                 if solver.BooleanValue(self.assigned_engineers[(r, p)]):
-                    project_for_registrations[self.engineers[r].pk] = self.projects[p]
-                    self.logger.debug(f"Assigned engineer \t {self.engineers[r].user} \t to \t {self.projects[p]}")
+                    project_for_registrations[self.engineers[r].pk] = (
+                        self.projects[p]
+                    )
+                    self.logger.debug(
+                        f"Assigned engineer \t {self.engineers[r].user} \t to \t {self.projects[p]}"
+                    )
 
         return project_for_registrations
 
     def write_csv(self, output, project_for_registrations):
         """Write the result of the team creation to a csv file."""
-        writer = csv.writer(output, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
+        writer = csv.writer(
+            output, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL
+        )
         writer.writerow(CSV_STRUCTURE)
 
         registrations = sorted(
             self.managers + self.engineers,
             key=lambda r: (
-                project_for_registrations[r.pk].name if r.pk in project_for_registrations else "",
+                (
+                    project_for_registrations[r.pk].name
+                    if r.pk in project_for_registrations
+                    else ""
+                ),
                 r.course.name,
                 r.user.get_full_name(),
             ),
@@ -134,9 +170,15 @@ class TeamAssignmentGenerator:
         for registration in registrations:
             project = project_for_registrations.get(registration.pk, None)
             partners = [
-                Registration.objects.get(pk=reg).user for reg, p in project_for_registrations.items() if p == project
+                Registration.objects.get(pk=reg).user
+                for reg, p in project_for_registrations.items()
+                if p == project
             ]
-            project_prefs = [registration.preference1, registration.preference2, registration.preference3]
+            project_prefs = [
+                registration.preference1,
+                registration.preference2,
+                registration.preference3,
+            ]
             student_prefs = {
                 registration.partner_preference1_user,
                 registration.partner_preference2_user,
@@ -150,13 +192,34 @@ class TeamAssignmentGenerator:
                     registration.course.name,
                     project.name if project else "",
                     "x" if registration.is_international else "",
-                    "x" if registration.available_during_scheduled_timeslot_1 else "",
-                    "x" if registration.available_during_scheduled_timeslot_2 else "",
-                    "x" if registration.available_during_scheduled_timeslot_3 else "",
+                    (
+                        "x"
+                        if registration.available_during_scheduled_timeslot_1
+                        else ""
+                    ),
+                    (
+                        "x"
+                        if registration.available_during_scheduled_timeslot_2
+                        else ""
+                    ),
+                    (
+                        "x"
+                        if registration.available_during_scheduled_timeslot_3
+                        else ""
+                    ),
                     registration.comments,
                     registration.dev_experience,
-                    "x" if project in project_prefs or student_prefs.intersection(partners) else "",
-                    project_prefs.index(project) + 1 if project in project_prefs else "",
+                    (
+                        "x"
+                        if project in project_prefs
+                        or student_prefs.intersection(partners)
+                        else ""
+                    ),
+                    (
+                        project_prefs.index(project) + 1
+                        if project in project_prefs
+                        else ""
+                    ),
                     registration.preference1,
                     registration.preference2,
                     registration.preference3,
@@ -178,7 +241,9 @@ class TeamAssignmentGenerator:
             output = StringIO()
             self.write_csv(output, project_for_registrations)
             self.task.data = output.getvalue()
-            self.task.success_message = "Successfully assigned all users to a project"
+            self.task.success_message = (
+                "Successfully assigned all users to a project"
+            )
         self.task.completed = 1
         self.task.save()
 
@@ -201,19 +266,38 @@ class TeamAssignmentGenerator:
     def _unique_project_per_registration_constraint(self):
         """Add the constraint that each registration is assigned at least 1 project."""
         for r in range(len(self.managers)):
-            self.model.Add(sum(self.assigned_managers[(r, p)] for p in range(len(self.projects))) == 1)
+            self.model.Add(
+                sum(
+                    self.assigned_managers[(r, p)]
+                    for p in range(len(self.projects))
+                )
+                == 1
+            )
         for r in range(len(self.engineers)):
-            self.model.Add(sum(self.assigned_engineers[(r, p)] for p in range(len(self.projects))) == 1)
+            self.model.Add(
+                sum(
+                    self.assigned_engineers[(r, p)]
+                    for p in range(len(self.projects))
+                )
+                == 1
+            )
 
     def _engineers_managers_per_project_constraint(self):
         """Add the constraint that each project has the determined amount of engineers and managers."""
         for p in range(len(self.projects)):
             self.model.Add(
-                sum(self.assigned_managers[(r, p)] for r in range(len(self.managers))) == self.managers_per_project[p]
+                sum(
+                    self.assigned_managers[(r, p)]
+                    for r in range(len(self.managers))
+                )
+                == self.managers_per_project[p]
             )
         for p in range(len(self.projects)):
             self.model.Add(
-                sum(self.assigned_engineers[(r, p)] for r in range(len(self.engineers)))
+                sum(
+                    self.assigned_engineers[(r, p)]
+                    for r in range(len(self.engineers))
+                )
                 == self.engineers_per_project[p]
             )
 
@@ -232,7 +316,11 @@ class TeamAssignmentGenerator:
             for p in range(len(self.projects)):
                 self.model.Add(
                     sum(
-                        (self.assigned_managers[(r, p)] * (not is_international[r])) for r in range(len(self.managers))
+                        (
+                            self.assigned_managers[(r, p)]
+                            * (not is_international[r])
+                        )
+                        for r in range(len(self.managers))
                     )
                     >= 1
                 )
@@ -272,11 +360,17 @@ class TeamAssignmentGenerator:
             num_of_pref = sum(pref_is_none)
             for p in range(len(self.projects)):
                 if self.managers[r].preference1 == self.projects[p]:
-                    manager_preferred_projects[(r, p)] = (12 // num_of_pref) + any(pref_is_none[1:])
+                    manager_preferred_projects[(r, p)] = (
+                        12 // num_of_pref
+                    ) + any(pref_is_none[1:])
                 elif self.managers[r].preference2 == self.projects[p]:
-                    manager_preferred_projects[(r, p)] = (12 // num_of_pref) + pref_is_none[0] - pref_is_none[2]
+                    manager_preferred_projects[(r, p)] = (
+                        (12 // num_of_pref) + pref_is_none[0] - pref_is_none[2]
+                    )
                 elif self.managers[r].preference3 == self.projects[p]:
-                    manager_preferred_projects[(r, p)] = (12 // num_of_pref) - any(pref_is_none[:2])
+                    manager_preferred_projects[(r, p)] = (
+                        12 // num_of_pref
+                    ) - any(pref_is_none[:2])
                 else:
                     manager_preferred_projects[(r, p)] = 0
 
@@ -291,11 +385,17 @@ class TeamAssignmentGenerator:
             num_of_pref = sum(pref_is_none)
             for p in range(len(self.projects)):
                 if self.engineers[r].preference1 == self.projects[p]:
-                    engineer_preferred_projects[(r, p)] = (12 // num_of_pref) + any(pref_is_none[1:])
+                    engineer_preferred_projects[(r, p)] = (
+                        12 // num_of_pref
+                    ) + any(pref_is_none[1:])
                 elif self.engineers[r].preference2 == self.projects[p]:
-                    engineer_preferred_projects[(r, p)] = (12 // num_of_pref) + pref_is_none[0] - pref_is_none[2]
+                    engineer_preferred_projects[(r, p)] = (
+                        (12 // num_of_pref) + pref_is_none[0] - pref_is_none[2]
+                    )
                 elif self.engineers[r].preference3 == self.projects[p]:
-                    engineer_preferred_projects[(r, p)] = (12 // num_of_pref) - any(pref_is_none[:2])
+                    engineer_preferred_projects[(r, p)] = (
+                        12 // num_of_pref
+                    ) - any(pref_is_none[:2])
                 else:
                     engineer_preferred_projects[(r, p)] = 0
 
@@ -304,7 +404,8 @@ class TeamAssignmentGenerator:
             for p in range(len(self.projects))
             for r in range(len(self.managers))
         ) + sum(
-            engineer_preferred_projects[(r, p)] * self.assigned_engineers[(r, p)]
+            engineer_preferred_projects[(r, p)]
+            * self.assigned_engineers[(r, p)]
             for p in range(len(self.projects))
             for r in range(len(self.engineers))
         )
@@ -335,26 +436,33 @@ class TeamAssignmentGenerator:
 
         for r in range(len(self.engineers)):
             programming_experience_for_engineer[r] = (
-                int(self.engineers[r].dev_experience) if self.engineers[r].dev_experience else 0
+                int(self.engineers[r].dev_experience)
+                if self.engineers[r].dev_experience
+                else 0
             )
 
         objectives = []
         for exp, _ in Registration.EXPERIENCE_CHOICES:
             engineers_with_exp = [
-                r for r in range(len(self.engineers)) if programming_experience_for_engineer[r] == exp
+                r
+                for r in range(len(self.engineers))
+                if programming_experience_for_engineer[r] == exp
             ]
             target = len(engineers_with_exp)
 
             abs_diff = {}
             for p in range(len(self.projects)):
                 count = self.model.NewIntVar(
-                    0, self.engineers_per_project[p], f"experience_{exp}_count_in_project_{p}"
+                    0,
+                    self.engineers_per_project[p],
+                    f"experience_{exp}_count_in_project_{p}",
                 )
                 self.model.Add(
                     count
                     == sum(
                         [
-                            self.assigned_engineers[(r, p)] * (programming_experience_for_engineer[r] == exp)
+                            self.assigned_engineers[(r, p)]
+                            * (programming_experience_for_engineer[r] == exp)
                             for r in range(len(self.engineers))
                         ]
                     )
@@ -366,12 +474,16 @@ class TeamAssignmentGenerator:
                     f"experience_{exp}_diff_in_project_{p}",
                 )
                 abs_diff[p] = self.model.NewIntVar(
-                    0, len(self.projects) * self.engineers_per_project[p], f"experience_{exp}_abs_diff_in_project_{p}"
+                    0,
+                    len(self.projects) * self.engineers_per_project[p],
+                    f"experience_{exp}_abs_diff_in_project_{p}",
                 )
                 self.model.Add(diff == count * len(self.projects) - target)
                 self.model.AddAbsEquality(abs_diff[p], diff)
 
-            objectives.append(sum([-abs_diff[p] for p in range(len(self.projects))]))
+            objectives.append(
+                sum([-abs_diff[p] for p in range(len(self.projects))])
+            )
 
         return 10 * sum(objectives)
 
@@ -407,15 +519,22 @@ class TeamAssignmentGenerator:
         for e1 in range(len(self.engineers)):
             for e2 in range(e1, len(self.engineers)):
                 for p in range(len(self.projects)):
-                    engineer_together_in_project_with_engineer[(e1, e2, p)] = self.model.NewBoolVar(
-                        f"engineer_{e1}_together_in_project_{p}_with_engineer_{e2}"
+                    engineer_together_in_project_with_engineer[(e1, e2, p)] = (
+                        self.model.NewBoolVar(
+                            f"engineer_{e1}_together_in_project_{p}_with_engineer_{e2}"
+                        )
                     )
-                    engineer_together_in_project_with_engineer[
-                        (e2, e1, p)
-                    ] = engineer_together_in_project_with_engineer[(e1, e2, p)]
+                    engineer_together_in_project_with_engineer[(e2, e1, p)] = (
+                        engineer_together_in_project_with_engineer[(e1, e2, p)]
+                    )
                     self.model.AddMultiplicationEquality(
-                        engineer_together_in_project_with_engineer[(e1, e2, p)],
-                        [self.assigned_engineers[(e1, p)], self.assigned_engineers[(e2, p)]],
+                        engineer_together_in_project_with_engineer[
+                            (e1, e2, p)
+                        ],
+                        [
+                            self.assigned_engineers[(e1, p)],
+                            self.assigned_engineers[(e2, p)],
+                        ],
                     )
 
         # Set up extra boolean variables for the case: manager - manager
@@ -423,15 +542,20 @@ class TeamAssignmentGenerator:
         for m1 in range(len(self.managers)):
             for m2 in range(m1, len(self.managers)):
                 for p in range(len(self.projects)):
-                    manager_together_in_project_with_manager[(m1, m2, p)] = self.model.NewBoolVar(
-                        f"manager_{m1}_together_in_project_{p}_with_manager_{m2}"
+                    manager_together_in_project_with_manager[(m1, m2, p)] = (
+                        self.model.NewBoolVar(
+                            f"manager_{m1}_together_in_project_{p}_with_manager_{m2}"
+                        )
                     )
-                    manager_together_in_project_with_manager[(m2, m1, p)] = manager_together_in_project_with_manager[
-                        (m1, m2, p)
-                    ]
+                    manager_together_in_project_with_manager[(m2, m1, p)] = (
+                        manager_together_in_project_with_manager[(m1, m2, p)]
+                    )
                     self.model.AddMultiplicationEquality(
                         manager_together_in_project_with_manager[(m1, m2, p)],
-                        [self.assigned_managers[(m1, p)], self.assigned_managers[(m2, p)]],
+                        [
+                            self.assigned_managers[(m1, p)],
+                            self.assigned_managers[(m2, p)],
+                        ],
                     )
 
         # Set up extra boolean variables for the case: engineer - manager
@@ -439,12 +563,17 @@ class TeamAssignmentGenerator:
         for e in range(len(self.engineers)):
             for m in range(len(self.managers)):
                 for p in range(len(self.projects)):
-                    engineer_together_in_project_with_manager[(e, m, p)] = self.model.NewBoolVar(
-                        f"engineer_{e}_together_in_project_{p}_with_manager_{m}"
+                    engineer_together_in_project_with_manager[(e, m, p)] = (
+                        self.model.NewBoolVar(
+                            f"engineer_{e}_together_in_project_{p}_with_manager_{m}"
+                        )
                     )
                     self.model.AddMultiplicationEquality(
                         engineer_together_in_project_with_manager[(e, m, p)],
-                        [self.assigned_engineers[(e, p)], self.assigned_managers[(m, p)]],
+                        [
+                            self.assigned_engineers[(e, p)],
+                            self.assigned_managers[(m, p)],
+                        ],
                     )
 
         # Calculate the preferred partners for the case: engineer - engineer
@@ -466,9 +595,12 @@ class TeamAssignmentGenerator:
                         12
                         // num_pref
                         * int(
-                            self.engineers[reg].partner_preference1_user == self.engineers[partner].user
-                            or self.engineers[reg].partner_preference2_user == self.engineers[partner].user
-                            or self.engineers[reg].partner_preference3_user == self.engineers[partner].user
+                            self.engineers[reg].partner_preference1_user
+                            == self.engineers[partner].user
+                            or self.engineers[reg].partner_preference2_user
+                            == self.engineers[partner].user
+                            or self.engineers[reg].partner_preference3_user
+                            == self.engineers[partner].user
                         )
                     )
 
@@ -491,9 +623,12 @@ class TeamAssignmentGenerator:
                         12
                         // num_pref
                         * int(
-                            self.managers[reg].partner_preference1_user == self.managers[partner].user
-                            or self.managers[reg].partner_preference2_user == self.managers[partner].user
-                            or self.managers[reg].partner_preference3_user == self.managers[partner].user
+                            self.managers[reg].partner_preference1_user
+                            == self.managers[partner].user
+                            or self.managers[reg].partner_preference2_user
+                            == self.managers[partner].user
+                            or self.managers[reg].partner_preference3_user
+                            == self.managers[partner].user
                         )
                     )
 
@@ -516,9 +651,12 @@ class TeamAssignmentGenerator:
                         12
                         // num_pref
                         * int(
-                            self.engineers[reg].partner_preference1_user == self.managers[partner].user
-                            or self.engineers[reg].partner_preference2_user == self.managers[partner].user
-                            or self.engineers[reg].partner_preference3_user == self.managers[partner].user
+                            self.engineers[reg].partner_preference1_user
+                            == self.managers[partner].user
+                            or self.engineers[reg].partner_preference2_user
+                            == self.managers[partner].user
+                            or self.engineers[reg].partner_preference3_user
+                            == self.managers[partner].user
                         )
                     )
 
@@ -541,9 +679,12 @@ class TeamAssignmentGenerator:
                         12
                         // num_pref
                         * int(
-                            self.managers[reg].partner_preference1_user == self.engineers[partner].user
-                            or self.managers[reg].partner_preference2_user == self.engineers[partner].user
-                            or self.managers[reg].partner_preference3_user == self.engineers[partner].user
+                            self.managers[reg].partner_preference1_user
+                            == self.engineers[partner].user
+                            or self.managers[reg].partner_preference2_user
+                            == self.engineers[partner].user
+                            or self.managers[reg].partner_preference3_user
+                            == self.engineers[partner].user
                         )
                     )
 
@@ -557,19 +698,22 @@ class TeamAssignmentGenerator:
                 for p in range(len(self.projects))
             )
             + sum(
-                manager_preferred_partner_managers[(m1, m2)] * manager_together_in_project_with_manager[(m1, m2, p)]
+                manager_preferred_partner_managers[(m1, m2)]
+                * manager_together_in_project_with_manager[(m1, m2, p)]
                 for m1 in range(len(self.managers))
                 for m2 in range(len(self.managers))
                 for p in range(len(self.projects))
             )
             + sum(
-                engineer_preferred_partner_managers[(e, m)] * engineer_together_in_project_with_manager[(e, m, p)]
+                engineer_preferred_partner_managers[(e, m)]
+                * engineer_together_in_project_with_manager[(e, m, p)]
                 for e in range(len(self.engineers))
                 for m in range(len(self.managers))
                 for p in range(len(self.projects))
             )
             + sum(
-                manager_preferred_partner_engineers[(m, e)] * engineer_together_in_project_with_manager[(e, m, p)]
+                manager_preferred_partner_engineers[(m, e)]
+                * engineer_together_in_project_with_manager[(e, m, p)]
                 for m in range(len(self.managers))
                 for e in range(len(self.engineers))
                 for p in range(len(self.projects))

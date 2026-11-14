@@ -42,7 +42,11 @@ class MailingListAdminForm(forms.ModelForm):
         model = MailingList
         exclude = []
         fields = "__all__"
-        widgets = {"address": SuffixTextInputWidget(suffix=f"@{settings.GSUITE_DOMAIN}")}
+        widgets = {
+            "address": SuffixTextInputWidget(
+                suffix=f"@{settings.GSUITE_DOMAIN}"
+            )
+        }
 
     def __init__(self, *args, **kwargs):
         """Initialize the form."""
@@ -53,7 +57,9 @@ class MailingListAdminForm(forms.ModelForm):
         )
 
     users = forms.ModelMultipleChoiceField(
-        queryset=None, required=False, widget=widgets.FilteredSelectMultiple("Users", False)
+        queryset=None,
+        required=False,
+        widget=widgets.FilteredSelectMultiple("Users", False),
     )
 
     def save_m2m(self):

@@ -1,0 +1,24 @@
+{% load bleach_tags %}
+
+<div class="col-12 col-md-6 col-lg-4" id={{ project.id }}>
+    <div class="card my-4 h-100">
+        {% if project.client.logo %}
+            <div class="text-center pt-3">
+                <img
+                    class="project-logo mt-2 mx-2"
+                    src="{{ project.client.logo.url }}"
+                    alt="logo {{ project.client.name }}"
+                >
+            </div>
+        {% endif %}
+        <div class="card-body">
+            <h4 class="card-title">{{ project.name }}</h4>
+
+            {% if project.client %}
+                <h6 class="card-subtitle text-muted mb-2">By {{ project.client.name }}</h6>
+            {% endif %}
+
+            <p class="card-text">{{ project.description | bleach }}</p>
+        </div>
+    </div>
+</div>

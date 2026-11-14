@@ -2,7 +2,11 @@ from admin_auto_filters.filters import AutocompleteFilter
 
 from projects.models import Project
 
-from questionnaires.models import Answer, Questionnaire, QuestionnaireSubmission
+from questionnaires.models import (
+    Answer,
+    Questionnaire,
+    QuestionnaireSubmission,
+)
 
 from registrations.models import Registration
 
@@ -37,12 +41,16 @@ class SubmissionAdminProjectFilter(AutocompleteFilter):
 
     def lookups(self, request, model_admin):
         """List the projects."""
-        return ((project.id, project.name) for project in Project.objects.all())
+        return (
+            (project.id, project.name) for project in Project.objects.all()
+        )
 
     def queryset(self, request, queryset):
         """Filter out participants in the specified Project."""
         if self.value():
-            return queryset.filter(participant__registration__projects=self.value())
+            return queryset.filter(
+                participant__registration__projects=self.value()
+            )
         return queryset
 
 
@@ -97,12 +105,16 @@ class AnswerAdminProjectFilter(AutocompleteFilter):
 
     def lookups(self, request, model_admin):
         """List the projects."""
-        return ((project.id, project.name) for project in Project.objects.all())
+        return (
+            (project.id, project.name) for project in Project.objects.all()
+        )
 
     def queryset(self, request, queryset):
         """Filter out participants in the specified Project."""
         if self.value():
-            return queryset.filter(submission__participant__registration__projects=self.value())
+            return queryset.filter(
+                submission__participant__registration__projects=self.value()
+            )
         return queryset
 
 
@@ -137,5 +149,7 @@ class AnswerAdminSemesterFilter(AutocompleteFilter):
     def queryset(self, request, queryset):
         """Filter semesters."""
         if self.value():
-            return queryset.filter(submission__questionnaire__semester=self.value())
+            return queryset.filter(
+                submission__questionnaire__semester=self.value()
+            )
         return queryset

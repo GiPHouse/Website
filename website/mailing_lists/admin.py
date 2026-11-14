@@ -34,7 +34,9 @@ class CourseSemesterLinkInline(admin.TabularInline):
 
     def formfield_for_dbfield(self, db_field, request, **kwargs):
         """Change widgets for course and semester to remove add and change buttons."""
-        formfield = super(CourseSemesterLinkInline, self).formfield_for_dbfield(db_field, request, **kwargs)
+        formfield = super(
+            CourseSemesterLinkInline, self
+        ).formfield_for_dbfield(db_field, request, **kwargs)
         if db_field.name in ["course", "semester"]:
             formfield.widget.can_add_related = False
             formfield.widget.can_change_related = False
@@ -62,7 +64,9 @@ class MailingListAdmin(admin.ModelAdmin):
 
         sync.sync_mailing_lists(sync_list)
 
-    synchronize_selected_mailing_lists.short_description = "Synchronize selected mailing lists"
+    synchronize_selected_mailing_lists.short_description = (
+        "Synchronize selected mailing lists"
+    )
 
     def synchronize_all_mailing_lists(self, request):
         """Synchronize all mailing lists with Gsuite, including automatic lists."""

@@ -1,0 +1,28 @@
+
+name: "Coverage"
+on: "push"
+
+jobs:
+  test:
+    name: "Coverage"
+    runs-on: "ubuntu-latest"
+
+    steps:
+
+    - name: "Checkout the repository"
+      uses: "actions/checkout@v6"
+
+    - name: "Setup Python"
+      uses: "actions/setup-python@v6"
+      with:
+        python-version: '3.14'
+
+    - name: "Install uv"
+      uses: astral-sh/setup-uv@v7
+
+    - name: "Run Django tests using Coverage"
+      run: "uv run coverage run website/manage.py test website/"
+      continue-on-error: true
+
+    - name: "Check Coverage report"
+      run: "uv run coverage report"

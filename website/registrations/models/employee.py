@@ -37,10 +37,14 @@ class Employee(AbstractUser):
     github_id = models.IntegerField(unique=True)
     github_username = models.CharField(unique=True, max_length=50)
 
-    student_number = models.CharField(unique=True, blank=True, null=True, max_length=8)
+    student_number = models.CharField(
+        unique=True, blank=True, null=True, max_length=8
+    )
 
     comments = models.TextField(
-        null=True, blank=True, help_text="This is for private comments that are only available here."
+        null=True,
+        blank=True,
+        help_text="This is for private comments that are only available here.",
     )
 
     objects = EmployeeManager()

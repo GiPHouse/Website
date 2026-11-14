@@ -19,7 +19,11 @@ class GetCoursesTest(TestCase):
     def test_get_success_spring(self):
         response = self.client.get(
             reverse(
-                "courses:lectures", kwargs={"year": self.spring.year, "season_slug": self.spring.get_season_display()}
+                "courses:lectures",
+                kwargs={
+                    "year": self.spring.year,
+                    "season_slug": self.spring.get_season_display(),
+                },
             )
         )
         self.assertContains(response, self.course.name, status_code=200)
@@ -27,11 +31,17 @@ class GetCoursesTest(TestCase):
     def test_get_success_fall(self):
         response = self.client.get(
             reverse(
-                "courses:lectures", kwargs={"year": self.spring.year, "season_slug": self.fall.get_season_display()}
+                "courses:lectures",
+                kwargs={
+                    "year": self.spring.year,
+                    "season_slug": self.fall.get_season_display(),
+                },
             )
         )
         self.assertContains(response, self.course.name, status_code=200)
 
     def test_get_fail(self):
-        response = self.client.get(f"/projects/{self.spring.year}/not-a-season/")
+        response = self.client.get(
+            f"/projects/{self.spring.year}/not-a-season/"
+        )
         self.assertEqual(response.status_code, 404)

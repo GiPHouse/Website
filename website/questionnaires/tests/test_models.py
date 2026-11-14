@@ -45,29 +45,44 @@ class QuestionnairesTest(TestCase):
         )
 
         cls.open_question = Question.objects.create(
-            questionnaire=cls.questionnaire, question="q1", question_type=Question.OPEN, about_team_member=False
+            questionnaire=cls.questionnaire,
+            question="q1",
+            question_type=Question.OPEN,
+            about_team_member=False,
         )
         cls.quality_question = Question.objects.create(
-            questionnaire=cls.questionnaire, question="q2", question_type=Question.QUALITY, about_team_member=False
+            questionnaire=cls.questionnaire,
+            question="q2",
+            question_type=Question.QUALITY,
+            about_team_member=False,
         )
         cls.agreement_question = Question.objects.create(
-            questionnaire=cls.questionnaire, question="q3", question_type=Question.AGREEMENT, about_team_member=False
+            questionnaire=cls.questionnaire,
+            question="q3",
+            question_type=Question.AGREEMENT,
+            about_team_member=False,
         )
 
     def test_set_open_answer(self):
-        answer = Answer.objects.create(question=self.open_question, submission=self.submission)
+        answer = Answer.objects.create(
+            question=self.open_question, submission=self.submission
+        )
         self.assertIsNone(answer.answer)
         answer.answer = "test"
         self.assertEqual(answer.answer.value, "test")
 
     def test_set_agreement_answer(self):
-        answer = Answer.objects.create(question=self.agreement_question, submission=self.submission)
+        answer = Answer.objects.create(
+            question=self.agreement_question, submission=self.submission
+        )
         self.assertIsNone(answer.answer)
         answer.answer = AgreementAnswerData.NEUTRAL
         self.assertEqual(answer.answer.value, AgreementAnswerData.NEUTRAL)
 
     def test_set_quality_answer(self):
-        answer = Answer.objects.create(question=self.quality_question, submission=self.submission)
+        answer = Answer.objects.create(
+            question=self.quality_question, submission=self.submission
+        )
         self.assertIsNone(answer.answer)
         answer.answer = QualityAnswerData.POOR
         self.assertEqual(answer.answer.value, QualityAnswerData.POOR)
@@ -76,21 +91,27 @@ class QuestionnairesTest(TestCase):
         self.assertEqual(self.open_question.get_likert_choices(), ())
 
     def test_set_comments_no_comments_field(self):
-        answer = Answer.objects.create(question=self.agreement_question, submission=self.submission)
+        answer = Answer.objects.create(
+            question=self.agreement_question, submission=self.submission
+        )
         self.assertIsNone(answer.comments)
         answer.comments = "test"
         self.assertIsNone(answer.comments)
 
     def test_set_agreement_comments(self):
         self.agreement_question.with_comments = True
-        answer = Answer.objects.create(question=self.agreement_question, submission=self.submission)
+        answer = Answer.objects.create(
+            question=self.agreement_question, submission=self.submission
+        )
         self.assertIsNone(answer.comments)
         answer.comments = "test"
         self.assertEqual(answer.comments, "test")
 
     def test_set_quality_comments(self):
         self.quality_question.with_comments = True
-        answer = Answer.objects.create(question=self.quality_question, submission=self.submission)
+        answer = Answer.objects.create(
+            question=self.quality_question, submission=self.submission
+        )
         self.assertIsNone(answer.comments)
         answer.comments = "test"
         self.assertEqual(answer.comments, "test")

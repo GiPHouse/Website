@@ -12,7 +12,11 @@ from giphousewebsite.mixins import LoginRequiredMessageMixin
 from projects.models import Project
 
 from questionnaires.forms import QuestionnaireForm
-from questionnaires.models import Answer, Questionnaire, QuestionnaireSubmission
+from questionnaires.models import (
+    Answer,
+    Questionnaire,
+    QuestionnaireSubmission,
+)
 
 from registrations.models import Employee, Registration
 
@@ -32,17 +36,24 @@ class OverviewView(LoginRequiredMessageMixin, TemplateView):
         context["open_questionnaires"] = []
         context["questionnaires_in_progress"] = []
         for questionnaire in Questionnaire.objects.current_questionnaires():
-
             try:
                 context["submissions"].append(
                     QuestionnaireSubmission.objects.get(
-                        questionnaire=questionnaire, participant=self.request.user, submitted=True
+                        questionnaire=questionnaire,
+                        participant=self.request.user,
+                        submitted=True,
                     )
                 )
             except QuestionnaireSubmission.DoesNotExist:
-                context["questionnaires_in_progress"].append(questionnaire) if QuestionnaireSubmission.objects.filter(
-                    questionnaire=questionnaire, participant=self.request.user, submitted=False
-                ).exists() else context["open_questionnaires"].append(questionnaire)
+                (
+                    context["questionnaires_in_progress"].append(questionnaire)
+                    if QuestionnaireSubmission.objects.filter(
+                        questionnaire=questionnaire,
+                        participant=self.request.user,
+                        submitted=False,
+                    ).exists()
+                    else context["open_questionnaires"].append(questionnaire)
+                )
 
         return context
 
@@ -60,20 +71,28 @@ class QuestionnaireView(LoginRequiredMessageMixin, FormView):
         participant = self.request.user
         kwargs["participant"] = participant
 
-        questionnaire = get_object_or_404(Questionnaire, pk=self.kwargs["questionnaire"])
+        questionnaire = get_object_or_404(
+            Questionnaire, pk=self.kwargs["questionnaire"]
+        )
         if questionnaire.is_closed:
             raise Http404
 
         kwargs["questionnaire"] = questionnaire
 
         participant_projects = Project.objects.filter(
-            registration__user=participant, semester=Semester.objects.get_or_create_current_semester()
+            registration__user=participant,
+            semester=Semester.objects.get_or_create_current_semester(),
         )
-        project_registrations = Registration.objects.filter(projects__in=participant_projects)
-        kwargs["peers"] = User.objects.exclude(pk=participant.pk).filter(registration__in=project_registrations)
+        project_registrations = Registration.objects.filter(
+            projects__in=participant_projects
+        )
+        kwargs["peers"] = User.objects.exclude(pk=participant.pk).filter(
+            registration__in=project_registrations
+        )
 
         kwargs["no_peers_warning"] = (
-            questionnaire.question_set.filter(about_team_member=True).exists() and not kwargs["peers"]
+            questionnaire.question_set.filter(about_team_member=True).exists()
+            and not kwargs["peers"]
         )
 
         return kwargs
@@ -82,7 +101,9 @@ class QuestionnaireView(LoginRequiredMessageMixin, FormView):
         """Validate the form."""
         if "submit" in self.request.POST:
             # Re-evaluate the form to check required fields
-            form_check_required_fields = QuestionnaireForm(**self.get_form_kwargs(), check_required=True)
+            form_check_required_fields = QuestionnaireForm(
+                **self.get_form_kwargs(), check_required=True
+            )
             if not form_check_required_fields.is_valid():
                 form._errors = form_check_required_fields.errors
                 return self.form_invalid(form)
@@ -100,7 +121,6 @@ class QuestionnaireView(LoginRequiredMessageMixin, FormView):
             submission.save()
 
         for question in form.questions:
-
             if question.about_team_member:
                 peers = form.peers
             else:
@@ -108,16 +128,26 @@ class QuestionnaireView(LoginRequiredMessageMixin, FormView):
 
             for peer in peers:
                 field_name = QuestionnaireForm.get_field_name(question, peer)
-                answer, _ = Answer.objects.get_or_create(submission=submission, peer=peer, question=question)
+                answer, _ = Answer.objects.get_or_create(
+                    submission=submission, peer=peer, question=question
+                )
                 answer.answer = form.cleaned_data[field_name]
                 if question.with_comments:
                     answer.comments = form.cleaned_data[
-                        QuestionnaireForm.get_field_name(question, peer, comments=True)
+                        QuestionnaireForm.get_field_name(
+                            question, peer, comments=True
+                        )
                     ]
 
         if submission.submitted:
-            messages.success(self.request, "Questionnaire successfully submitted!", extra_tags="success")
+            messages.success(
+                self.request,
+                "Questionnaire successfully submitted!",
+                extra_tags="success",
+            )
             return redirect("home")
         else:
-            messages.info(self.request, "Questionnaire saved", extra_tags="info")
+            messages.info(
+                self.request, "Questionnaire saved", extra_tags="info"
+            )
             return self.render_to_response(self.get_context_data())
